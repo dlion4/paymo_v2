@@ -1,0 +1,1447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PayMo — Initiate Transfer</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    :root {
+      --glass-bg: rgba(255,255,255,0.55);
+      --glass-bg-solid: rgba(255,255,255,0.75);
+      --glass-border: rgba(255,255,255,0.6);
+      --glass-shadow: 0 8px 32px rgba(0,0,0,0.06), 0 2px 8px rgba(0,0,0,0.04);
+      --glass-shadow-lg: 0 16px 48px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04);
+      --accent: #2563eb;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --sidebar-width: 260px;
+      --sidebar-collapsed: 72px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    * { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+    body {
+      background: linear-gradient(135deg, #e8e4de 0%, #d8d4cc 50%, #e0dcd4 100%);
+      min-height: 100vh;
+      color: #1a1a1a;
+      overflow-x: hidden;
+    }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 3px; }
+    a { text-decoration: none; color: inherit; }
+    button { cursor: pointer; border: none; outline: none; background: none; font-family: inherit; }
+    input, select, textarea { font-family: inherit; }
+
+    /* Glass */
+    .glass {
+      background: var(--glass-bg);
+      backdrop-filter: blur(24px) saturate(1.4);
+      -webkit-backdrop-filter: blur(24px) saturate(1.4);
+      border: 1px solid var(--glass-border);
+      box-shadow: var(--glass-shadow);
+    }
+    .glass-solid {
+      background: var(--glass-bg-solid);
+      backdrop-filter: blur(32px) saturate(1.2);
+      -webkit-backdrop-filter: blur(32px) saturate(1.2);
+      border: 1px solid var(--glass-border);
+      box-shadow: var(--glass-shadow);
+    }
+    .glass-dark {
+      background: rgba(20,20,25,0.88);
+      backdrop-filter: blur(32px) saturate(1.4);
+      -webkit-backdrop-filter: blur(32px) saturate(1.4);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: white;
+    }
+
+    /* Layout */
+    .app-wrapper { display: flex; min-height: 100vh; }
+
+    /* ══ SIDEBAR ══ */
+    .sidebar {
+      position: fixed; left: 16px; top: 16px; bottom: 16px;
+      width: var(--sidebar-width);
+      border-radius: 24px;
+      z-index: 1000;
+      transition: width 0.35s cubic-bezier(0.4,0,0.2,1), transform 0.35s cubic-bezier(0.4,0,0.2,1);
+      overflow: hidden;
+      display: flex; flex-direction: column;
+    }
+    .sidebar.collapsed { width: var(--sidebar-collapsed); }
+    .sidebar-brand {
+      padding: 20px;
+      display: flex; align-items: center; gap: 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      min-height: 72px;
+    }
+    .sidebar-brand .logo {
+      width: 40px; height: 40px; border-radius: 14px;
+      background: linear-gradient(135deg, #2563eb, #4f46e5);
+      display: flex; align-items: center; justify-content: center;
+      color: white; font-weight: 800; font-size: 18px; flex-shrink: 0;
+      box-shadow: 0 4px 16px rgba(37,99,235,0.3);
+    }
+    .sidebar-brand .brand-text { white-space: nowrap; overflow: hidden; transition: opacity 0.25s, width 0.25s; }
+    .sidebar-brand .brand-text p:first-child { color: white; font-weight: 700; font-size: 16px; }
+    .sidebar-brand .brand-text p:last-child { color: rgba(255,255,255,0.5); font-size: 11px; }
+    .sidebar.collapsed .brand-text { opacity: 0; width: 0; }
+    .sidebar-nav { flex: 1; padding: 12px 10px; overflow-y: auto; }
+    .nav-section {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.08em; color: rgba(255,255,255,0.4);
+      padding: 16px 14px 8px; white-space: nowrap; transition: opacity 0.2s;
+    }
+    .sidebar.collapsed .nav-section { opacity: 0; height: 0; padding: 8px 0; overflow: hidden; }
+    .nav-item {
+      display: flex; align-items: center; gap: 14px;
+      padding: 12px 14px; border-radius: 14px;
+      color: rgba(255,255,255,0.6); text-decoration: none;
+      font-size: 14px; font-weight: 500; margin-bottom: 4px;
+      transition: all 0.2s; cursor: pointer; white-space: nowrap;
+    }
+    .nav-item:hover { background: rgba(255,255,255,0.1); color: white; }
+    .nav-item.active {
+      background: linear-gradient(135deg, rgba(37,99,235,0.8), rgba(79,70,229,0.8));
+      color: white; box-shadow: 0 4px 16px rgba(37,99,235,0.25);
+    }
+    .nav-item i { font-size: 20px; width: 24px; text-align: center; flex-shrink: 0; }
+    .nav-item .nav-label { transition: opacity 0.2s; }
+    .sidebar.collapsed .nav-item .nav-label { opacity: 0; width: 0; overflow: hidden; }
+    .sidebar-footer { padding: 12px 10px; border-top: 1px solid rgba(255,255,255,0.1); }
+    .sidebar-toggle {
+      width: 100%; padding: 10px; border-radius: 14px;
+      background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.6);
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      font-size: 14px; transition: all 0.2s;
+    }
+    .sidebar-toggle:hover { background: rgba(255,255,255,0.15); color: white; }
+    .mobile-close { display: none; margin-left: auto; width: 32px; height: 32px; border-radius: 8px; background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.6); align-items: center; justify-content: center; }
+    .mobile-close:hover { color: white; }
+    .mobile-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 998; }
+    .mobile-overlay.active { display: block; }
+
+    /* ══ MAIN ══ */
+    .main-content {
+      flex: 1; padding: 16px 24px;
+      margin-left: calc(var(--sidebar-width) + 32px);
+      transition: margin-left 0.35s cubic-bezier(0.4,0,0.2,1);
+      max-width: 1400px;
+    }
+    .sidebar.collapsed ~ .main-content { margin-left: calc(var(--sidebar-collapsed) + 32px); }
+
+    @media (max-width: 1023px) {
+      .sidebar { left: -280px; }
+      .sidebar.mobile-open { left: 16px; }
+      .main-content { margin-left: 0 !important; padding: 16px; }
+      .mobile-close { display: flex; }
+      .sidebar-toggle { display: none !important; }
+    }
+
+    /* ══ TOP BAR ══ */
+    .top-bar {
+      border-radius: 16px; padding: 16px 24px;
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
+    }
+    .top-bar-left { display: flex; align-items: center; gap: 12px; }
+    .top-bar-right { display: flex; align-items: center; gap: 12px; }
+    .mobile-menu-btn {
+      display: none; width: 40px; height: 40px; border-radius: 12px;
+      background: rgba(0,0,0,0.05); align-items: center; justify-content: center; font-size: 20px;
+    }
+    @media (max-width: 1023px) { .mobile-menu-btn { display: flex; } }
+    .top-bar h1 { font-size: 22px; font-weight: 700; color: #111; }
+    .top-bar .subtitle { font-size: 14px; color: #6b6b6b; }
+    .breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #6b6b6b; flex-wrap: wrap; }
+    .breadcrumb a { color: #2563eb; }
+    .breadcrumb a:hover { text-decoration: underline; }
+    .breadcrumb i { font-size: 10px; color: #9ca3af; }
+
+    /* ══ SECTIONS ══ */
+    .section {
+      border-radius: 20px; padding: 24px; margin-bottom: 20px;
+    }
+    .section-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 20px; flex-wrap: wrap; gap: 12px;
+    }
+    .section-title {
+      font-size: 16px; font-weight: 700; color: #111;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .section-title .num {
+      width: 28px; height: 28px; border-radius: 8px;
+      background: linear-gradient(135deg, #2563eb, #4f46e5);
+      color: white; font-size: 13px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .section-badge {
+      padding: 4px 12px; border-radius: 9999px; font-size: 12px; font-weight: 600;
+    }
+    .badge-green { background: rgba(16,185,129,0.1); color: #059669; }
+    .badge-blue { background: rgba(37,99,235,0.1); color: #2563eb; }
+    .badge-amber { background: rgba(245,158,11,0.1); color: #d97706; }
+    .badge-purple { background: rgba(139,92,246,0.1); color: #7c3aed; }
+
+    /* ══ TRANSFER TYPE SELECTOR ══ */
+    .type-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+    @media (max-width: 900px) { .type-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 500px) { .type-grid { grid-template-columns: 1fr; } }
+    .type-card {
+      padding: 20px; border-radius: 16px; cursor: pointer;
+      border: 2px solid transparent; transition: all 0.2s;
+      background: rgba(255,255,255,0.4); text-align: center;
+    }
+    .type-card:hover { background: rgba(255,255,255,0.6); transform: translateY(-2px); }
+    .type-card.active {
+      border-color: #2563eb; background: rgba(37,99,235,0.06);
+      box-shadow: 0 4px 20px rgba(37,99,235,0.15);
+    }
+    .type-card .type-icon {
+      width: 48px; height: 48px; border-radius: 14px; margin: 0 auto 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; color: white;
+    }
+    .type-card .type-name { font-size: 14px; font-weight: 600; color: #111; margin-bottom: 4px; }
+    .type-card .type-desc { font-size: 12px; color: #6b6b6b; }
+    .type-card.active .type-name { color: #2563eb; }
+
+    .settlement-toggle {
+      display: flex; align-items: center; gap: 16px; padding: 16px 20px;
+      background: rgba(255,255,255,0.4); border-radius: 14px;
+    }
+    .settlement-toggle .st-label { font-size: 14px; font-weight: 600; color: #111; }
+    .settlement-toggle .st-desc { font-size: 12px; color: #6b6b6b; }
+    .toggle-pills { display: flex; gap: 8px; margin-left: auto; }
+    .toggle-pill {
+      padding: 8px 16px; border-radius: 10px; font-size: 13px; font-weight: 600;
+      background: rgba(0,0,0,0.05); color: #6b6b6b; transition: all 0.2s;
+    }
+    .toggle-pill:hover { background: rgba(0,0,0,0.08); }
+    .toggle-pill.active { background: linear-gradient(135deg, #2563eb, #4f46e5); color: white; }
+
+    /* ══ FORM ELEMENTS ══ */
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 700px) { .form-grid { grid-template-columns: 1fr; } }
+    .form-group { margin-bottom: 16px; }
+    .form-group.full { grid-column: 1 / -1; }
+    .form-label {
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;
+    }
+    .form-label .optional { font-weight: 400; color: #9ca3af; }
+    .form-input {
+      width: 100%; padding: 12px 16px; border-radius: 12px;
+      background: rgba(255,255,255,0.6); border: 1px solid #e5e7eb;
+      font-size: 14px; outline: none; transition: all 0.2s;
+    }
+    .form-input:focus { border-color: #93c5fd; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+    .form-input:disabled { background: rgba(0,0,0,0.03); color: #9ca3af; }
+    .form-input-lg { padding: 16px 20px; font-size: 24px; font-weight: 700; }
+    .form-input-wrapper { position: relative; }
+    .form-input-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #9ca3af; }
+    .form-input-action {
+      position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+      padding: 6px 12px; border-radius: 8px; background: rgba(37,99,235,0.08);
+      color: #2563eb; font-size: 12px; font-weight: 600; transition: all 0.2s;
+    }
+    .form-input-action:hover { background: rgba(37,99,235,0.15); }
+    .form-select {
+      width: 100%; padding: 12px 16px; border-radius: 12px;
+      background: rgba(255,255,255,0.6); border: 1px solid #e5e7eb;
+      font-size: 14px; outline: none; transition: all 0.2s;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 40px;
+    }
+    .form-select:focus { border-color: #93c5fd; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+    textarea.form-input { resize: none; min-height: 80px; }
+    .form-hint { font-size: 12px; color: #6b6b6b; margin-top: 4px; }
+    .form-error { font-size: 12px; color: #dc2626; margin-top: 4px; }
+
+    /* Validation states */
+    .input-valid { border-color: #22c55e !important; }
+    .input-valid ~ .validation-icon { color: #22c55e; }
+    .validation-icon { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 18px; }
+
+    /* Account card */
+    .account-card {
+      padding: 16px; border-radius: 14px; background: rgba(255,255,255,0.5);
+      border: 2px solid transparent; cursor: pointer; transition: all 0.2s;
+      display: flex; align-items: center; gap: 14px;
+    }
+    .account-card:hover { background: rgba(255,255,255,0.7); }
+    .account-card.selected { border-color: #2563eb; background: rgba(37,99,235,0.04); }
+    .account-icon {
+      width: 48px; height: 48px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px; flex-shrink: 0;
+    }
+    .account-details { flex: 1; min-width: 0; }
+    .account-name { font-size: 14px; font-weight: 600; color: #111; }
+    .account-number { font-size: 12px; color: #6b6b6b; }
+    .account-balance { text-align: right; }
+    .account-balance .bal-label { font-size: 11px; color: #6b6b6b; }
+    .account-balance .bal-amount { font-size: 16px; font-weight: 700; color: #111; }
+    .account-badge {
+      padding: 3px 8px; border-radius: 6px; font-size: 10px; font-weight: 600;
+      margin-top: 4px; display: inline-block;
+    }
+
+    /* ══ FX RATE BOX ══ */
+    .fx-box {
+      padding: 20px; border-radius: 16px; margin-top: 16px;
+      background: linear-gradient(135deg, rgba(139,92,246,0.06), rgba(59,130,246,0.06));
+      border: 1px solid rgba(139,92,246,0.15);
+    }
+    .fx-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .fx-title { font-size: 13px; font-weight: 600; color: #6b6b6b; }
+    .fx-live { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #059669; font-weight: 500; }
+    .fx-live .dot { width: 6px; height: 6px; border-radius: 50%; background: #22c55e; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+    .fx-rate { font-size: 28px; font-weight: 800; color: #111; margin-bottom: 8px; }
+    .fx-inverse { font-size: 13px; color: #6b6b6b; }
+    .fx-meta { display: flex; align-items: center; gap: 16px; margin-top: 12px; flex-wrap: wrap; }
+    .fx-meta-item { font-size: 12px; color: #6b6b6b; display: flex; align-items: center; gap: 4px; }
+    .fx-meta-item i { color: #9ca3af; }
+
+    /* ══ FEE BREAKDOWN ══ */
+    .fee-breakdown { margin-top: 20px; }
+    .fee-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 0; border-bottom: 1px solid rgba(0,0,0,0.06);
+    }
+    .fee-row:last-child { border-bottom: none; }
+    .fee-label { font-size: 13px; color: #6b6b6b; display: flex; align-items: center; gap: 6px; }
+    .fee-label i { font-size: 14px; cursor: pointer; color: #9ca3af; }
+    .fee-label i:hover { color: #6b6b6b; }
+    .fee-value { font-size: 13px; font-weight: 600; color: #111; }
+    .fee-value.free { color: #059669; }
+    .fee-total {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px; background: rgba(0,0,0,0.03); border-radius: 12px; margin-top: 12px;
+    }
+    .fee-total .ft-label { font-size: 14px; font-weight: 600; color: #111; }
+    .fee-total .ft-value { font-size: 20px; font-weight: 800; color: #111; }
+
+    /* ══ RAIL SELECTOR ══ */
+    .rail-recommendation {
+      padding: 16px; border-radius: 14px; margin-bottom: 16px;
+      background: linear-gradient(135deg, rgba(16,185,129,0.08), rgba(16,185,129,0.03));
+      border: 1px solid rgba(16,185,129,0.2);
+      display: flex; align-items: center; gap: 12px;
+    }
+    .rail-recommendation i { font-size: 24px; color: #059669; }
+    .rail-recommendation .rr-text { flex: 1; }
+    .rail-recommendation .rr-title { font-size: 14px; font-weight: 600; color: #065f46; }
+    .rail-recommendation .rr-desc { font-size: 12px; color: #059669; }
+    .rail-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    @media (max-width: 900px) { .rail-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 500px) { .rail-grid { grid-template-columns: 1fr; } }
+    .rail-card {
+      padding: 16px; border-radius: 14px; background: rgba(255,255,255,0.5);
+      border: 2px solid transparent; cursor: pointer; transition: all 0.2s;
+      position: relative;
+    }
+    .rail-card:hover { background: rgba(255,255,255,0.7); }
+    .rail-card.selected { border-color: #2563eb; background: rgba(37,99,235,0.04); }
+    .rail-card.recommended::before {
+      content: 'Recommended';
+      position: absolute; top: -10px; right: 12px;
+      padding: 2px 8px; border-radius: 6px;
+      background: linear-gradient(135deg, #059669, #0d9488);
+      color: white; font-size: 10px; font-weight: 600;
+    }
+    .rail-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .rail-name { font-size: 14px; font-weight: 700; color: #111; }
+    .rail-badge { padding: 3px 8px; border-radius: 6px; font-size: 10px; font-weight: 600; }
+    .rail-badge.instant { background: rgba(139,92,246,0.1); color: #7c3aed; }
+    .rail-badge.fast { background: rgba(37,99,235,0.1); color: #2563eb; }
+    .rail-badge.standard { background: rgba(107,114,128,0.1); color: #6b7280; }
+    .rail-details { display: flex; flex-direction: column; gap: 8px; }
+    .rail-detail { display: flex; align-items: center; justify-content: space-between; font-size: 12px; }
+    .rail-detail .rd-label { color: #6b6b6b; }
+    .rail-detail .rd-value { font-weight: 600; color: #111; }
+    .rail-detail .rd-value.green { color: #059669; }
+
+    /* ══ PURPOSE & COMPLIANCE ══ */
+    .purpose-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 16px; }
+    @media (max-width: 800px) { .purpose-grid { grid-template-columns: repeat(2, 1fr); } }
+    .purpose-chip {
+      padding: 10px 14px; border-radius: 10px; font-size: 13px; font-weight: 500;
+      background: rgba(255,255,255,0.5); color: #374151; text-align: center;
+      cursor: pointer; transition: all 0.2s; border: 2px solid transparent;
+    }
+    .purpose-chip:hover { background: rgba(255,255,255,0.7); }
+    .purpose-chip.selected { border-color: #2563eb; background: rgba(37,99,235,0.06); color: #2563eb; }
+
+    .upload-area {
+      padding: 32px; border-radius: 14px; text-align: center;
+      border: 2px dashed #d1d5db; background: rgba(255,255,255,0.3);
+      cursor: pointer; transition: all 0.2s;
+    }
+    .upload-area:hover { border-color: #93c5fd; background: rgba(59,130,246,0.04); }
+    .upload-area i { font-size: 32px; color: #9ca3af; margin-bottom: 12px; }
+    .upload-area .ua-title { font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 4px; }
+    .upload-area .ua-desc { font-size: 12px; color: #6b6b6b; }
+    .uploaded-file {
+      display: flex; align-items: center; gap: 12px; padding: 12px 16px;
+      background: rgba(37,99,235,0.06); border-radius: 12px; margin-top: 12px;
+    }
+    .uploaded-file i { font-size: 24px; color: #2563eb; }
+    .uploaded-file .uf-name { flex: 1; font-size: 13px; font-weight: 500; color: #111; }
+    .uploaded-file .uf-size { font-size: 12px; color: #6b6b6b; }
+    .uploaded-file .uf-remove { color: #dc2626; font-size: 16px; cursor: pointer; }
+
+    .priority-selector { display: flex; gap: 10px; }
+    .priority-btn {
+      flex: 1; padding: 12px; border-radius: 12px; text-align: center;
+      border: 2px solid transparent; cursor: pointer; transition: all 0.2s;
+      background: rgba(255,255,255,0.5);
+    }
+    .priority-btn:hover { background: rgba(255,255,255,0.7); }
+    .priority-btn.selected { border-color: currentColor; }
+    .priority-btn.normal { color: #6b7280; }
+    .priority-btn.normal.selected { background: rgba(107,114,128,0.08); }
+    .priority-btn.urgent { color: #f59e0b; }
+    .priority-btn.urgent.selected { background: rgba(245,158,11,0.08); }
+    .priority-btn.critical { color: #dc2626; }
+    .priority-btn.critical.selected { background: rgba(220,38,38,0.08); }
+    .priority-btn i { font-size: 20px; display: block; margin-bottom: 4px; }
+    .priority-btn span { font-size: 12px; font-weight: 600; }
+
+    /* ══ AUTHORIZATION ══ */
+    .approval-chain {
+      display: flex; align-items: center; gap: 8px; padding: 20px;
+      background: rgba(255,255,255,0.5); border-radius: 14px; overflow-x: auto;
+    }
+    .approval-step {
+      display: flex; flex-direction: column; align-items: center; min-width: 80px;
+    }
+    .approval-avatar {
+      width: 48px; height: 48px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; font-weight: 700; margin-bottom: 6px;
+    }
+    .approval-avatar.maker { background: linear-gradient(135deg, #2563eb, #4f46e5); color: white; }
+    .approval-avatar.checker { background: linear-gradient(135deg, #f59e0b, #ea580c); color: white; }
+    .approval-avatar.approver { background: linear-gradient(135deg, #059669, #0d9488); color: white; }
+    .approval-role { font-size: 11px; font-weight: 600; color: #6b6b6b; text-transform: uppercase; }
+    .approval-name { font-size: 12px; color: #111; font-weight: 500; }
+    .approval-arrow { color: #d1d5db; font-size: 20px; }
+
+    .auth-methods { display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
+    .auth-method {
+      flex: 1; min-width: 180px; padding: 16px; border-radius: 14px;
+      background: rgba(255,255,255,0.5); display: flex; align-items: center; gap: 12px;
+    }
+    .auth-method i { font-size: 24px; }
+    .auth-method .am-title { font-size: 13px; font-weight: 600; color: #111; }
+    .auth-method .am-desc { font-size: 11px; color: #6b6b6b; }
+    .auth-method.required { border: 1px solid rgba(37,99,235,0.3); }
+    .auth-method.required i { color: #2563eb; }
+
+    /* ══ SUMMARY ══ */
+    .summary-card {
+      padding: 24px; border-radius: 20px;
+      background: linear-gradient(135deg, rgba(37,99,235,0.04), rgba(139,92,246,0.04));
+      border: 1px solid rgba(37,99,235,0.15);
+    }
+    .summary-header { margin-bottom: 20px; }
+    .summary-title { font-size: 18px; font-weight: 700; color: #111; margin-bottom: 4px; }
+    .summary-subtitle { font-size: 13px; color: #6b6b6b; }
+    .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 600px) { .summary-grid { grid-template-columns: 1fr; } }
+    .summary-item { padding: 14px; background: rgba(255,255,255,0.5); border-radius: 12px; }
+    .summary-item .si-label { font-size: 11px; color: #6b6b6b; margin-bottom: 4px; text-transform: uppercase; font-weight: 600; }
+    .summary-item .si-value { font-size: 14px; font-weight: 600; color: #111; }
+    .summary-item .si-sub { font-size: 12px; color: #6b6b6b; }
+    .summary-amount {
+      grid-column: 1 / -1; padding: 20px; text-align: center;
+      background: linear-gradient(135deg, #2563eb, #4f46e5);
+      border-radius: 16px; color: white;
+    }
+    .summary-amount .sa-label { font-size: 12px; opacity: 0.8; margin-bottom: 4px; }
+    .summary-amount .sa-value { font-size: 32px; font-weight: 800; }
+    .summary-amount .sa-sub { font-size: 13px; opacity: 0.8; margin-top: 4px; }
+
+    .terms-check {
+      display: flex; align-items: flex-start; gap: 12px; margin: 20px 0;
+      padding: 16px; background: rgba(255,255,255,0.4); border-radius: 12px;
+    }
+    .terms-check input[type="checkbox"] {
+      width: 20px; height: 20px; border-radius: 6px; margin-top: 2px;
+      accent-color: #2563eb; flex-shrink: 0;
+    }
+    .terms-check label { font-size: 13px; color: #374151; line-height: 1.5; }
+    .terms-check a { color: #2563eb; }
+
+    .submit-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+    .btn {
+      padding: 14px 28px; border-radius: 14px; font-weight: 600; font-size: 14px;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: all 0.2s;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #2563eb, #4f46e5);
+      color: white; flex: 1;
+    }
+    .btn-primary:hover { box-shadow: 0 8px 24px rgba(37,99,235,0.3); transform: translateY(-1px); }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
+    .btn-secondary {
+      background: rgba(255,255,255,0.6); border: 1px solid #e5e7eb;
+      color: #374151;
+    }
+    .btn-secondary:hover { background: rgba(255,255,255,0.8); }
+
+    /* ══ MODAL ══ */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0; z-index: 9999;
+      background: rgba(0,0,0,0.4); backdrop-filter: blur(8px);
+      align-items: center; justify-content: center; padding: 16px;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal {
+      width: 100%; max-width: 560px; border-radius: 24px; overflow: hidden;
+      animation: slideUp 0.35s cubic-bezier(0.4,0,0.2,1) forwards;
+    }
+    .modal.lg { max-width: 720px; }
+    .modal-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 24px; border-bottom: 1px solid rgba(255,255,255,0.3);
+    }
+    .modal-header h2 { font-size: 18px; font-weight: 700; color: #111; }
+    .modal-header .modal-subtitle { font-size: 13px; color: #6b6b6b; }
+    .modal-close {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: center;
+      font-size: 18px; color: #6b6b6b; transition: background 0.2s;
+    }
+    .modal-close:hover { background: rgba(0,0,0,0.1); }
+    .modal-body { padding: 20px 24px; max-height: 70vh; overflow-y: auto; }
+    .modal-footer {
+      padding: 16px 24px; border-top: 1px solid rgba(0,0,0,0.06);
+      display: flex; gap: 12px; justify-content: flex-end;
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(24px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* Bank search */
+    .bank-search { margin-bottom: 16px; }
+    .bank-list { max-height: 320px; overflow-y: auto; }
+    .bank-item {
+      display: flex; align-items: center; gap: 12px; padding: 12px;
+      border-radius: 12px; cursor: pointer; transition: background 0.2s;
+    }
+    .bank-item:hover { background: rgba(0,0,0,0.04); }
+    .bank-item.selected { background: rgba(37,99,235,0.08); }
+    .bank-logo {
+      width: 40px; height: 40px; border-radius: 10px;
+      background: white; border: 1px solid #e5e7eb;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; flex-shrink: 0;
+    }
+    .bank-info { flex: 1; }
+    .bank-name { font-size: 14px; font-weight: 600; color: #111; }
+    .bank-code { font-size: 12px; color: #6b6b6b; }
+    .bank-check { color: #2563eb; font-size: 20px; }
+
+    /* Success state */
+    .success-overlay {
+      display: none; position: fixed; inset: 0; z-index: 9999;
+      background: rgba(0,0,0,0.5); backdrop-filter: blur(12px);
+      align-items: center; justify-content: center; padding: 16px;
+    }
+    .success-overlay.active { display: flex; }
+    .success-card {
+      width: 100%; max-width: 480px; padding: 48px 32px;
+      text-align: center; border-radius: 24px;
+      animation: scaleIn 0.4s cubic-bezier(0.4,0,0.2,1) forwards;
+    }
+    @keyframes scaleIn {
+      from { opacity: 0; transform: scale(0.9); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .success-icon {
+      width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 24px;
+      background: linear-gradient(135deg, #22c55e, #10b981);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 40px; color: white;
+      box-shadow: 0 12px 32px rgba(34,197,94,0.3);
+    }
+    .success-title { font-size: 24px; font-weight: 800; color: #111; margin-bottom: 8px; }
+    .success-desc { font-size: 14px; color: #6b6b6b; margin-bottom: 24px; line-height: 1.6; }
+    .success-ref {
+      padding: 16px; background: rgba(0,0,0,0.04); border-radius: 12px;
+      margin-bottom: 24px;
+    }
+    .success-ref .sr-label { font-size: 11px; color: #6b6b6b; margin-bottom: 4px; }
+    .success-ref .sr-value { font-size: 18px; font-weight: 700; color: #111; font-family: monospace; }
+    .success-actions { display: flex; gap: 12px; justify-content: center; }
+    .success-actions .btn { min-width: 140px; }
+
+    /* Footer */
+    .page-footer {
+      text-align: center; padding: 24px 16px; font-size: 12px; color: #9ca3af;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-wrapper">
+    <!-- Mobile Overlay -->
+    <div class="mobile-overlay" id="mobileOverlay" onclick="closeMobileMenu()"></div>
+
+    <!-- ══ SIDEBAR ══ -->
+    <aside class="sidebar glass-dark" id="sidebar">
+      <div class="sidebar-brand">
+        <div class="logo">P</div>
+        <div class="brand-text">
+          <p>PayMo</p>
+          <p>Business BaaS</p>
+        </div>
+        <button class="mobile-close" onclick="closeMobileMenu()"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section">OVERVIEW</div>
+        <a href="#" class="nav-item"><i class="bi bi-grid-1x2-fill"></i><span class="nav-label">Dashboard</span></a>
+        <a href="#" class="nav-item active"><i class="bi bi-send-fill"></i><span class="nav-label">Initiate Transfer</span></a>
+        <a href="#" class="nav-item"><i class="bi bi-arrow-left-right"></i><span class="nav-label">Transactions</span></a>
+        <a href="#" class="nav-item"><i class="bi bi-clock-history"></i><span class="nav-label">Pending Approvals</span></a>
+
+        <div class="nav-section">ACCOUNTS</div>
+        <a href="#" class="nav-item"><i class="bi bi-wallet2"></i><span class="nav-label">Accounts</span></a>
+        <a href="#" class="nav-item"><i class="bi bi-bank"></i><span class="nav-label">Connected Banks</span></a>
+        <a href="#" class="nav-item"><i class="bi bi-people"></i><span class="nav-label">Beneficiaries</span></a>
+
+        <div class="nav-section">TOOLS</div>
+        <a href="#" class="nav-item"><i class="bi bi-currency-exchange"></i><span class="nav-label">FX Rates</span></a>
+        <a href="#" class="nav-item"><i class="bi bi-calendar-check"></i><span class="nav-label">Scheduled</span></a>
+        <a href="#" class="nav-item"><i class="bi bi-file-earmark-text"></i><span class="nav-label">Reports</span></a>
+
+        <div class="nav-section">SETTINGS</div>
+        <a href="#" class="nav-item"><i class="bi bi-gear"></i><span class="nav-label">Settings</span></a>
+        <a href="#" class="nav-item"><i class="bi bi-question-circle"></i><span class="nav-label">Help</span></a>
+      </nav>
+      <div class="sidebar-footer">
+        <button class="sidebar-toggle" onclick="toggleSidebar()">
+          <i class="bi bi-chevron-left" id="collapseIcon"></i>
+          <span id="collapseLabel">Collapse</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- ══ MAIN CONTENT ══ -->
+    <div class="main-content" id="mainContent">
+
+      <!-- Top Bar -->
+      <div class="top-bar glass">
+        <div class="top-bar-left">
+          <button class="mobile-menu-btn" onclick="openMobileMenu()"><i class="bi bi-list"></i></button>
+          <div>
+            <div class="breadcrumb">
+              <a href="#">Dashboard</a>
+              <i class="bi bi-chevron-right"></i>
+              <span>Initiate Transfer</span>
+            </div>
+            <h1>Initiate Transfer</h1>
+          </div>
+        </div>
+        <div class="top-bar-right">
+          <span class="section-badge badge-blue"><i class="bi bi-shield-check"></i> Secure Session</span>
+        </div>
+      </div>
+
+      <!-- ══ SECTION 1: TRANSFER TYPE ══ -->
+      <div class="section glass-solid">
+        <div class="section-header">
+          <div class="section-title"><span class="num">1</span> Transfer Type</div>
+          <span class="section-badge badge-blue">Select one</span>
+        </div>
+        <div class="type-grid">
+          <div class="type-card active" onclick="selectType(this)">
+            <div class="type-icon" style="background: linear-gradient(135deg, #2563eb, #4f46e5)"><i class="bi bi-send"></i></div>
+            <div class="type-name">Single Transfer</div>
+            <div class="type-desc">One-time payment to a beneficiary</div>
+          </div>
+          <div class="type-card" onclick="selectType(this)">
+            <div class="type-icon" style="background: linear-gradient(135deg, #7c3aed, #a855f7)"><i class="bi bi-files"></i></div>
+            <div class="type-name">Bulk / Batch</div>
+            <div class="type-desc">Upload CSV or Excel file</div>
+          </div>
+          <div class="type-card" onclick="selectType(this)">
+            <div class="type-icon" style="background: linear-gradient(135deg, #f59e0b, #ea580c)"><i class="bi bi-arrow-repeat"></i></div>
+            <div class="type-name">Recurring</div>
+            <div class="type-desc">Schedule periodic payments</div>
+          </div>
+          <div class="type-card" onclick="selectType(this)">
+            <div class="type-icon" style="background: linear-gradient(135deg, #059669, #0d9488)"><i class="bi bi-calendar-event"></i></div>
+            <div class="type-name">Scheduled</div>
+            <div class="type-desc">Future-dated transfer</div>
+          </div>
+        </div>
+        <div class="settlement-toggle">
+          <div>
+            <div class="st-label">Settlement Speed</div>
+            <div class="st-desc">Choose how fast you need the funds to arrive</div>
+          </div>
+          <div class="toggle-pills">
+            <button class="toggle-pill" onclick="selectSettlement(this)">Standard</button>
+            <button class="toggle-pill active" onclick="selectSettlement(this)">Instant</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ SECTION 2: SENDER DETAILS ══ -->
+      <div class="section glass-solid">
+        <div class="section-header">
+          <div class="section-title"><span class="num">2</span> Sender Details</div>
+          <span class="section-badge badge-green"><i class="bi bi-patch-check-fill"></i> Verified</span>
+        </div>
+        <div class="form-label" style="margin-bottom:12px">Select Source Account</div>
+        <div class="form-grid">
+          <div class="account-card selected" onclick="selectAccount(this)">
+            <div class="account-icon" style="background: linear-gradient(135deg, #2563eb, #4f46e5); color: white;">🏦</div>
+            <div class="account-details">
+              <div class="account-name">Operating Account (USD)</div>
+              <div class="account-number">····4521 · Chase Bank</div>
+              <span class="account-badge badge-blue">Primary</span>
+            </div>
+            <div class="account-balance">
+              <div class="bal-label">Available</div>
+              <div class="bal-amount">$124,850.00</div>
+            </div>
+          </div>
+          <div class="account-card" onclick="selectAccount(this)">
+            <div class="account-icon" style="background: linear-gradient(135deg, #059669, #0d9488); color: white;">💰</div>
+            <div class="account-details">
+              <div class="account-name">Float Account (USD)</div>
+              <div class="account-number">····7832 · Bank of America</div>
+              <span class="account-badge badge-green">Active</span>
+            </div>
+            <div class="account-balance">
+              <div class="bal-label">Available</div>
+              <div class="bal-amount">$48,200.00</div>
+            </div>
+          </div>
+          <div class="account-card" onclick="selectAccount(this)">
+            <div class="account-icon" style="background: linear-gradient(135deg, #7c3aed, #a855f7); color: white;">🇪🇺</div>
+            <div class="account-details">
+              <div class="account-name">EUR Collection Account</div>
+              <div class="account-number">····3301 · Barclays UK</div>
+              <span class="account-badge badge-green">Active</span>
+            </div>
+            <div class="account-balance">
+              <div class="bal-label">Available</div>
+              <div class="bal-amount">€32,450.00</div>
+            </div>
+          </div>
+          <div class="account-card" onclick="selectAccount(this)">
+            <div class="account-icon" style="background: linear-gradient(135deg, #f59e0b, #ea580c); color: white;">🇰🇪</div>
+            <div class="account-details">
+              <div class="account-name">KES Nostro Account</div>
+              <div class="account-number">····2190 · Equity Bank</div>
+              <span class="account-badge badge-green">Active</span>
+            </div>
+            <div class="account-balance">
+              <div class="bal-label">Available</div>
+              <div class="bal-amount">KES 4.2M</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ SECTION 3: RECEIVER DETAILS ══ -->
+      <div class="section glass-solid">
+        <div class="section-header">
+          <div class="section-title"><span class="num">3</span> Receiver Details</div>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Beneficiary Bank</label>
+            <div class="form-input-wrapper">
+              <i class="bi bi-bank form-input-icon"></i>
+              <input class="form-input" id="bankInput" type="text" placeholder="Search bank name or code..." style="padding-left:40px;padding-right:90px" value="Standard Chartered Bank" readonly onclick="openModal('bankSearch')">
+              <button class="form-input-action" onclick="openModal('bankSearch')">Change</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Bank Code / SWIFT</label>
+            <input class="form-input" type="text" value="SCBLKENX" readonly style="background: rgba(0,0,0,0.03);">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Account Number / IBAN</label>
+            <div class="form-input-wrapper">
+              <input class="form-input input-valid" type="text" placeholder="Enter account number" value="01234567890123" id="accountNumber">
+              <i class="bi bi-check-circle-fill validation-icon" style="color:#22c55e"></i>
+            </div>
+            <div class="form-hint" style="color:#059669"><i class="bi bi-check-circle"></i> Account number validated</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Account Name <span class="optional">(Auto-verified)</span></label>
+            <div class="form-input-wrapper">
+              <input class="form-input input-valid" type="text" value="ACME Corporation Ltd" readonly style="background: rgba(22,163,74,0.04);">
+              <i class="bi bi-patch-check-fill validation-icon" style="color:#22c55e"></i>
+            </div>
+            <div class="form-hint" style="color:#059669"><i class="bi bi-shield-check"></i> Name match confirmed via API</div>
+          </div>
+          <div class="form-group full">
+            <label class="form-label">Beneficiary Address <span class="optional">Optional</span></label>
+            <input class="form-input" type="text" placeholder="Street address, city, country" value="123 Business Park, Nairobi, Kenya">
+          </div>
+        </div>
+        <div class="terms-check" style="margin:16px 0 0 0; padding:12px 16px;">
+          <input type="checkbox" id="saveAddress" checked>
+          <label for="saveAddress">Save this beneficiary to my address book for future transfers</label>
+        </div>
+      </div>
+
+      <!-- ══ SECTION 4: AMOUNT & CURRENCY ══ -->
+      <div class="section glass-solid">
+        <div class="section-header">
+          <div class="section-title"><span class="num">4</span> Transfer Amount</div>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">You Send</label>
+            <div class="form-input-wrapper">
+              <input class="form-input form-input-lg" type="text" value="25,000.00" id="sendAmount">
+              <div style="position:absolute;right:12px;top:50%;transform:translateY(-50%)">
+                <select class="form-select" style="width:auto;padding:8px 32px 8px 12px;font-weight:600" id="sendCurrency" onchange="updateFX()">
+                  <option value="USD" selected>USD 🇺🇸</option>
+                  <option value="EUR">EUR 🇪🇺</option>
+                  <option value="GBP">GBP 🇬🇧</option>
+                  <option value="KES">KES 🇰🇪</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Beneficiary Receives</label>
+            <div class="form-input-wrapper">
+              <input class="form-input form-input-lg" type="text" value="3,225,000.00" id="receiveAmount" readonly style="background:rgba(0,0,0,0.02)">
+              <div style="position:absolute;right:12px;top:50%;transform:translateY(-50%)">
+                <select class="form-select" style="width:auto;padding:8px 32px 8px 12px;font-weight:600" id="receiveCurrency" onchange="updateFX()">
+                  <option value="KES" selected>KES 🇰🇪</option>
+                  <option value="USD">USD 🇺🇸</option>
+                  <option value="EUR">EUR 🇪🇺</option>
+                  <option value="GBP">GBP 🇬🇧</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="fx-box">
+          <div class="fx-header">
+            <div class="fx-title">Exchange Rate</div>
+            <div class="fx-live"><span class="dot"></span> Live mid-market rate</div>
+          </div>
+          <div class="fx-rate">1 USD = 129.00 KES</div>
+          <div class="fx-inverse">1 KES = 0.00775 USD</div>
+          <div class="fx-meta">
+            <div class="fx-meta-item"><i class="bi bi-clock"></i> Rate valid for 30 seconds</div>
+            <div class="fx-meta-item"><i class="bi bi-graph-up"></i> +0.15% from yesterday</div>
+            <button style="margin-left:auto;padding:6px 12px;border-radius:8px;background:rgba(37,99,235,0.1);color:#2563eb;font-size:12px;font-weight:600" onclick="openModal('fxDetails')">View Details</button>
+          </div>
+        </div>
+        <div class="fee-breakdown">
+          <div class="fee-row">
+            <span class="fee-label">Platform Fee <i class="bi bi-info-circle" title="PayMo processing fee"></i></span>
+            <span class="fee-value free">$0.00 (Waived)</span>
+          </div>
+          <div class="fee-row">
+            <span class="fee-label">Bank Transfer Fee <i class="bi bi-info-circle" title="Receiving bank charges"></i></span>
+            <span class="fee-value">$15.00</span>
+          </div>
+          <div class="fee-row">
+            <span class="fee-label">FX Spread <i class="bi bi-info-circle" title="Currency conversion margin"></i></span>
+            <span class="fee-value">$0.00 (Mid-market)</span>
+          </div>
+          <div class="fee-total">
+            <span class="ft-label">Total Debit Amount</span>
+            <span class="ft-value">$25,015.00 USD</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ SECTION 5: PAYMENT RAIL ══ -->
+      <div class="section glass-solid">
+        <div class="section-header">
+          <div class="section-title"><span class="num">5</span> Payment Rail</div>
+          <span class="section-badge badge-purple"><i class="bi bi-lightning-charge-fill"></i> Smart Routing</span>
+        </div>
+        <div class="rail-recommendation">
+          <i class="bi bi-lightbulb-fill"></i>
+          <div class="rr-text">
+            <div class="rr-title">Recommended: PesaLink Real-time</div>
+            <div class="rr-desc">Fastest option for KES transfers — arrives in under 30 seconds at lowest cost</div>
+          </div>
+        </div>
+        <div class="rail-grid">
+          <div class="rail-card recommended selected" onclick="selectRail(this)">
+            <div class="rail-header">
+              <span class="rail-name">PesaLink</span>
+              <span class="rail-badge instant">Instant</span>
+            </div>
+            <div class="rail-details">
+              <div class="rail-detail"><span class="rd-label">Settlement</span><span class="rd-value green">< 30 seconds</span></div>
+              <div class="rail-detail"><span class="rd-label">Fee</span><span class="rd-value">$15.00</span></div>
+              <div class="rail-detail"><span class="rd-label">Limit</span><span class="rd-value">KES 1M/txn</span></div>
+            </div>
+          </div>
+          <div class="rail-card" onclick="selectRail(this)">
+            <div class="rail-header">
+              <span class="rail-name">RTGS</span>
+              <span class="rail-badge fast">Same Day</span>
+            </div>
+            <div class="rail-details">
+              <div class="rail-detail"><span class="rd-label">Settlement</span><span class="rd-value">2-4 hours</span></div>
+              <div class="rail-detail"><span class="rd-label">Fee</span><span class="rd-value">$25.00</span></div>
+              <div class="rail-detail"><span class="rd-label">Limit</span><span class="rd-value">Unlimited</span></div>
+            </div>
+          </div>
+          <div class="rail-card" onclick="selectRail(this)">
+            <div class="rail-header">
+              <span class="rail-name">SWIFT</span>
+              <span class="rail-badge standard">1-3 Days</span>
+            </div>
+            <div class="rail-details">
+              <div class="rail-detail"><span class="rd-label">Settlement</span><span class="rd-value">1-3 business days</span></div>
+              <div class="rail-detail"><span class="rd-label">Fee</span><span class="rd-value">$35.00</span></div>
+              <div class="rail-detail"><span class="rd-label">Limit</span><span class="rd-value">Unlimited</span></div>
+            </div>
+          </div>
+          <div class="rail-card" onclick="selectRail(this)">
+            <div class="rail-header">
+              <span class="rail-name">EFT</span>
+              <span class="rail-badge standard">Next Day</span>
+            </div>
+            <div class="rail-details">
+              <div class="rail-detail"><span class="rd-label">Settlement</span><span class="rd-value">Next business day</span></div>
+              <div class="rail-detail"><span class="rd-label">Fee</span><span class="rd-value">$8.00</span></div>
+              <div class="rail-detail"><span class="rd-label">Limit</span><span class="rd-value">KES 999K</span></div>
+            </div>
+          </div>
+          <div class="rail-card" onclick="selectRail(this)">
+            <div class="rail-header">
+              <span class="rail-name">ACH</span>
+              <span class="rail-badge standard">2-3 Days</span>
+            </div>
+            <div class="rail-details">
+              <div class="rail-detail"><span class="rd-label">Settlement</span><span class="rd-value">2-3 business days</span></div>
+              <div class="rail-detail"><span class="rd-label">Fee</span><span class="rd-value free">$0.50</span></div>
+              <div class="rail-detail"><span class="rd-label">Limit</span><span class="rd-value">$100K/day</span></div>
+            </div>
+          </div>
+          <div class="rail-card" onclick="selectRail(this)">
+            <div class="rail-header">
+              <span class="rail-name">Wire</span>
+              <span class="rail-badge fast">Same Day</span>
+            </div>
+            <div class="rail-details">
+              <div class="rail-detail"><span class="rd-label">Settlement</span><span class="rd-value">Same day (cut-off 3PM)</span></div>
+              <div class="rail-detail"><span class="rd-label">Fee</span><span class="rd-value">$30.00</span></div>
+              <div class="rail-detail"><span class="rd-label">Limit</span><span class="rd-value">Unlimited</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ SECTION 6: PURPOSE & COMPLIANCE ══ -->
+      <div class="section glass-solid">
+        <div class="section-header">
+          <div class="section-title"><span class="num">6</span> Purpose & Compliance</div>
+        </div>
+        <div class="form-label" style="margin-bottom:12px">Transfer Purpose Code</div>
+        <div class="purpose-grid">
+          <div class="purpose-chip selected" onclick="selectPurpose(this)">💼 Invoice Payment</div>
+          <div class="purpose-chip" onclick="selectPurpose(this)">💰 Salary / Payroll</div>
+          <div class="purpose-chip" onclick="selectPurpose(this)">📊 Dividend</div>
+          <div class="purpose-chip" onclick="selectPurpose(this)">🏦 Loan Repayment</div>
+          <div class="purpose-chip" onclick="selectPurpose(this)">🏠 Property Purchase</div>
+          <div class="purpose-chip" onclick="selectPurpose(this)">📦 Goods Purchase</div>
+          <div class="purpose-chip" onclick="selectPurpose(this)">🛠️ Service Payment</div>
+          <div class="purpose-chip" onclick="selectPurpose(this)">📋 Other</div>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Reference / Narration</label>
+            <input class="form-input" type="text" placeholder="e.g., INV-2026-00142" value="INV-2026-00142 - Q1 Services">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Internal Memo <span class="optional">Optional</span></label>
+            <input class="form-input" type="text" placeholder="For internal records only" value="Approved by Finance">
+          </div>
+        </div>
+        <div class="form-group" style="margin-top:8px">
+          <label class="form-label">Supporting Documents <span class="optional">Optional</span></label>
+          <div class="upload-area" onclick="openModal('uploadDoc')">
+            <i class="bi bi-cloud-arrow-up"></i>
+            <div class="ua-title">Click to upload or drag & drop</div>
+            <div class="ua-desc">PDF, PNG, JPG up to 10MB · Invoice, Contract, PO</div>
+          </div>
+          <div class="uploaded-file">
+            <i class="bi bi-file-earmark-pdf"></i>
+            <span class="uf-name">Invoice_INV-2026-00142.pdf</span>
+            <span class="uf-size">245 KB</span>
+            <i class="bi bi-x-circle-fill uf-remove" onclick="event.stopPropagation()"></i>
+          </div>
+        </div>
+        <div class="form-group" style="margin-top:20px">
+          <label class="form-label">Priority Level</label>
+          <div class="priority-selector">
+            <div class="priority-btn normal selected" onclick="selectPriority(this, 'normal')">
+              <i class="bi bi-dash-circle"></i>
+              <span>Normal</span>
+            </div>
+            <div class="priority-btn urgent" onclick="selectPriority(this, 'urgent')">
+              <i class="bi bi-exclamation-triangle"></i>
+              <span>Urgent</span>
+            </div>
+            <div class="priority-btn critical" onclick="selectPriority(this, 'critical')">
+              <i class="bi bi-exclamation-octagon"></i>
+              <span>Critical</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ SECTION 7: AUTHORIZATION ══ -->
+      <div class="section glass-solid">
+        <div class="section-header">
+          <div class="section-title"><span class="num">7</span> Authorization Workflow</div>
+          <span class="section-badge badge-amber"><i class="bi bi-people-fill"></i> Dual Approval Required</span>
+        </div>
+        <div class="form-label" style="margin-bottom:12px">Approval Chain Preview</div>
+        <div class="approval-chain">
+          <div class="approval-step">
+            <div class="approval-avatar maker">JM</div>
+            <div class="approval-role">Maker</div>
+            <div class="approval-name">You (James)</div>
+          </div>
+          <i class="bi bi-arrow-right approval-arrow"></i>
+          <div class="approval-step">
+            <div class="approval-avatar checker">SK</div>
+            <div class="approval-role">Checker</div>
+            <div class="approval-name">Sarah Kim</div>
+          </div>
+          <i class="bi bi-arrow-right approval-arrow"></i>
+          <div class="approval-step">
+            <div class="approval-avatar approver">MJ</div>
+            <div class="approval-role">Approver</div>
+            <div class="approval-name">Michael Johnson</div>
+          </div>
+        </div>
+        <div class="auth-methods">
+          <div class="auth-method required">
+            <i class="bi bi-shield-lock"></i>
+            <div>
+              <div class="am-title">2FA Authentication</div>
+              <div class="am-desc">Required for transfers > $10,000</div>
+            </div>
+          </div>
+          <div class="auth-method required">
+            <i class="bi bi-pen"></i>
+            <div>
+              <div class="am-title">Digital Signature</div>
+              <div class="am-desc">PKI certificate validation</div>
+            </div>
+          </div>
+          <div class="auth-method">
+            <i class="bi bi-fingerprint" style="color:#6b6b6b"></i>
+            <div>
+              <div class="am-title">Biometric</div>
+              <div class="am-desc">Optional additional security</div>
+            </div>
+          </div>
+        </div>
+        <div class="form-grid" style="margin-top:20px">
+          <div class="form-group">
+            <label class="form-label">Scheduled Execution <span class="optional">Optional</span></label>
+            <input class="form-input" type="datetime-local" value="2026-01-15T09:00">
+            <div class="form-hint">Leave blank to execute immediately upon final approval</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Expiry Time</label>
+            <select class="form-select">
+              <option>24 hours after initiation</option>
+              <option>48 hours after initiation</option>
+              <option>7 days after initiation</option>
+              <option selected>No expiry</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ SECTION 8: SUMMARY & CONFIRMATION ══ -->
+      <div class="section summary-card">
+        <div class="summary-header">
+          <div class="summary-title">Transfer Summary</div>
+          <div class="summary-subtitle">Please review all details before submitting</div>
+        </div>
+        <div class="summary-grid">
+          <div class="summary-item">
+            <div class="si-label">From</div>
+            <div class="si-value">Operating Account (USD)</div>
+            <div class="si-sub">····4521 · Chase Bank</div>
+          </div>
+          <div class="summary-item">
+            <div class="si-label">To</div>
+            <div class="si-value">ACME Corporation Ltd</div>
+            <div class="si-sub">····0123 · Standard Chartered Bank</div>
+          </div>
+          <div class="summary-item">
+            <div class="si-label">Payment Rail</div>
+            <div class="si-value">PesaLink Real-time</div>
+            <div class="si-sub">< 30 seconds settlement</div>
+          </div>
+          <div class="summary-item">
+            <div class="si-label">Purpose</div>
+            <div class="si-value">Invoice Payment</div>
+            <div class="si-sub">Ref: INV-2026-00142</div>
+          </div>
+          <div class="summary-item">
+            <div class="si-label">Exchange Rate</div>
+            <div class="si-value">1 USD = 129.00 KES</div>
+            <div class="si-sub">Mid-market · Locked</div>
+          </div>
+          <div class="summary-item">
+            <div class="si-label">Total Fees</div>
+            <div class="si-value">$15.00 USD</div>
+            <div class="si-sub">PesaLink transfer fee</div>
+          </div>
+          <div class="summary-amount">
+            <div class="sa-label">Total Amount to Debit</div>
+            <div class="sa-value">$25,015.00</div>
+            <div class="sa-sub">Beneficiary receives KES 3,225,000.00</div>
+          </div>
+        </div>
+
+        <div class="terms-check">
+          <input type="checkbox" id="termsAccept">
+          <label for="termsAccept">
+            I confirm the details are correct and authorize this transfer in accordance with the
+            <a href="#" onclick="openModal('terms'); return false;">Terms of Service</a> and
+            <a href="#" onclick="openModal('terms'); return false;">Payment Authorization Policy</a>.
+            I understand this action cannot be reversed once approved.
+          </label>
+        </div>
+
+        <div class="submit-actions">
+          <button class="btn btn-secondary"><i class="bi bi-save"></i> Save as Draft</button>
+          <button class="btn btn-primary" id="submitBtn" onclick="submitTransfer()">
+            <i class="bi bi-send-check"></i> Submit for Approval
+          </button>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="page-footer">
+        © 2026 PayMo Business BaaS · Enterprise banking infrastructure · SOC 2 Type II Certified
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ MODALS ══════════ -->
+
+  <!-- Bank Search Modal -->
+  <div class="modal-overlay" id="modal-bankSearch">
+    <div class="modal lg glass-solid">
+      <div class="modal-header">
+        <div><h2>Select Beneficiary Bank</h2><p class="modal-subtitle">Search from 127+ connected institutions</p></div>
+        <button class="modal-close" onclick="closeModal('bankSearch')"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="bank-search">
+          <div class="form-input-wrapper">
+            <i class="bi bi-search form-input-icon"></i>
+            <input class="form-input" type="text" placeholder="Search by bank name, SWIFT code, or country..." style="padding-left:40px" id="bankSearchInput" oninput="filterBanks()">
+          </div>
+        </div>
+        <div class="bank-list" id="bankList">
+          <!-- Banks will be populated by JS -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('bankSearch')">Cancel</button>
+        <button class="btn btn-primary" onclick="confirmBank()">Confirm Selection</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FX Details Modal -->
+  <div class="modal-overlay" id="modal-fxDetails">
+    <div class="modal glass-solid">
+      <div class="modal-header">
+        <div><h2>Exchange Rate Details</h2><p class="modal-subtitle">USD → KES Conversion</p></div>
+        <button class="modal-close" onclick="closeModal('fxDetails')"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <div class="modal-body">
+        <div style="text-align:center;padding:24px;background:linear-gradient(135deg,rgba(139,92,246,0.08),rgba(59,130,246,0.08));border-radius:16px;margin-bottom:20px">
+          <div style="font-size:12px;color:#6b6b6b;margin-bottom:4px">Current Mid-Market Rate</div>
+          <div style="font-size:36px;font-weight:800;color:#111">1 USD = 129.00 KES</div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:8px;font-size:13px;color:#059669"><span style="width:8px;height:8px;border-radius:50%;background:#22c55e"></span> Live · Updates every 5 seconds</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
+          <div style="padding:16px;background:rgba(255,255,255,0.5);border-radius:12px;text-align:center">
+            <div style="font-size:11px;color:#6b6b6b;margin-bottom:4px">24H HIGH</div>
+            <div style="font-size:18px;font-weight:700;color:#059669">129.45</div>
+          </div>
+          <div style="padding:16px;background:rgba(255,255,255,0.5);border-radius:12px;text-align:center">
+            <div style="font-size:11px;color:#6b6b6b;margin-bottom:4px">24H LOW</div>
+            <div style="font-size:18px;font-weight:700;color:#dc2626">128.20</div>
+          </div>
+        </div>
+        <div style="padding:16px;background:rgba(16,185,129,0.06);border-radius:12px;margin-bottom:16px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><i class="bi bi-info-circle" style="color:#059669"></i><span style="font-size:13px;font-weight:600;color:#065f46">Zero FX Markup</span></div>
+          <div style="font-size:12px;color:#059669;line-height:1.5">PayMo provides mid-market rates with zero spread. You save approximately $125 compared to traditional banks on this transfer.</div>
+        </div>
+        <div style="font-size:12px;color:#6b6b6b;line-height:1.6">
+          <strong>Rate Lock:</strong> This rate will be locked for 30 seconds after you proceed. If the transfer is not completed within this window, a new rate will be quoted.
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" onclick="closeModal('fxDetails')">Got it</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Upload Document Modal -->
+  <div class="modal-overlay" id="modal-uploadDoc">
+    <div class="modal glass-solid">
+      <div class="modal-header">
+        <div><h2>Upload Supporting Document</h2><p class="modal-subtitle">Attach invoice, contract, or purchase order</p></div>
+        <button class="modal-close" onclick="closeModal('uploadDoc')"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="upload-area" style="padding:48px;margin-bottom:20px">
+          <i class="bi bi-cloud-arrow-up" style="font-size:48px"></i>
+          <div class="ua-title" style="font-size:16px;margin-top:16px">Drop files here or click to browse</div>
+          <div class="ua-desc" style="margin-top:8px">PDF, PNG, JPG, DOCX · Maximum 10MB per file</div>
+        </div>
+        <div style="font-size:13px;color:#374151;margin-bottom:12px;font-weight:600">Accepted Document Types:</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:rgba(255,255,255,0.5);border-radius:8px;font-size:13px"><i class="bi bi-file-earmark-pdf" style="color:#dc2626"></i> Invoice / Bill</div>
+          <div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:rgba(255,255,255,0.5);border-radius:8px;font-size:13px"><i class="bi bi-file-earmark-text" style="color:#2563eb"></i> Contract</div>
+          <div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:rgba(255,255,255,0.5);border-radius:8px;font-size:13px"><i class="bi bi-file-earmark-spreadsheet" style="color:#059669"></i> Purchase Order</div>
+          <div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:rgba(255,255,255,0.5);border-radius:8px;font-size:13px"><i class="bi bi-file-earmark-image" style="color:#7c3aed"></i> Supporting Docs</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('uploadDoc')">Cancel</button>
+        <button class="btn btn-primary" onclick="closeModal('uploadDoc')">Upload</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Terms Modal -->
+  <div class="modal-overlay" id="modal-terms">
+    <div class="modal lg glass-solid">
+      <div class="modal-header">
+        <div><h2>Terms of Service</h2><p class="modal-subtitle">Payment Authorization Policy</p></div>
+        <button class="modal-close" onclick="closeModal('terms')"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <div class="modal-body" style="max-height:60vh">
+        <div style="font-size:13px;color:#374151;line-height:1.8">
+          <h3 style="font-size:15px;margin-bottom:12px;color:#111">1. Authorization & Consent</h3>
+          <p style="margin-bottom:16px">By initiating this transfer, you authorize PayMo to debit the specified amount from your designated account and credit the beneficiary account according to the details provided. You confirm that you have the authority to initiate transactions on behalf of the account holder.</p>
+
+          <h3 style="font-size:15px;margin-bottom:12px;color:#111">2. Accuracy of Information</h3>
+          <p style="margin-bottom:16px">You are responsible for ensuring all beneficiary details are accurate. PayMo is not liable for transfers made to incorrect accounts due to erroneous information provided by you. Account number and name verification services are provided as a convenience but do not guarantee successful delivery.</p>
+
+          <h3 style="font-size:15px;margin-bottom:12px;color:#111">3. Exchange Rates & Fees</h3>
+          <p style="margin-bottom:16px">Exchange rates are quoted in real-time and locked at the moment of confirmation. Rates may vary between quote and execution for transfers that require additional approval. All applicable fees are displayed before confirmation and are non-refundable once the transfer is processed.</p>
+
+          <h3 style="font-size:15px;margin-bottom:12px;color:#111">4. Settlement & Timing</h3>
+          <p style="margin-bottom:16px">Settlement times are estimates based on the selected payment rail and normal processing conditions. PayMo does not guarantee specific delivery times. Delays may occur due to compliance checks, beneficiary bank processing, or public holidays.</p>
+
+          <h3 style="font-size:15px;margin-bottom:12px;color:#111">5. Compliance & AML</h3>
+          <p style="margin-bottom:16px">All transfers are subject to anti-money laundering (AML) and know-your-customer (KYC) requirements. PayMo reserves the right to delay, reject, or reverse transfers that fail compliance screening. You certify that the funds are from legitimate sources and the transfer does not violate any applicable laws.</p>
+
+          <h3 style="font-size:15px;margin-bottom:12px;color:#111">6. Cancellation & Reversal</h3>
+          <p>Transfers may be cancelled before they enter processing. Once a transfer is submitted for settlement, it cannot be reversed except in cases of fraud or manifest error. Reversal requests are subject to beneficiary bank cooperation and may incur additional fees.</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" onclick="closeModal('terms'); document.getElementById('termsAccept').checked = true;">Accept & Continue</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Success Overlay -->
+  <div class="success-overlay" id="successOverlay">
+    <div class="success-card glass-solid">
+      <div class="success-icon"><i class="bi bi-check-lg"></i></div>
+      <div class="success-title">Transfer Submitted!</div>
+      <div class="success-desc">Your transfer has been submitted for approval. Sarah Kim and Michael Johnson will be notified to review and authorize the payment.</div>
+      <div class="success-ref">
+        <div class="sr-label">Transaction Reference</div>
+        <div class="sr-value">TXN-2026-01-15-78421</div>
+      </div>
+      <div class="success-actions">
+        <button class="btn btn-secondary" onclick="closeSuccess()">New Transfer</button>
+        <button class="btn btn-primary" onclick="closeSuccess()">View Status</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ══ Sidebar ══
+    function toggleSidebar() {
+      const sb = document.getElementById('sidebar');
+      sb.classList.toggle('collapsed');
+      const icon = document.getElementById('collapseIcon');
+      const label = document.getElementById('collapseLabel');
+      if (sb.classList.contains('collapsed')) {
+        icon.className = 'bi bi-chevron-right';
+        label.style.display = 'none';
+      } else {
+        icon.className = 'bi bi-chevron-left';
+        label.style.display = '';
+      }
+    }
+    function openMobileMenu() {
+      document.getElementById('sidebar').classList.add('mobile-open');
+      document.getElementById('mobileOverlay').classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeMobileMenu() {
+      document.getElementById('sidebar').classList.remove('mobile-open');
+      document.getElementById('mobileOverlay').classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    // ══ Selectors ══
+    function selectType(el) {
+      document.querySelectorAll('.type-card').forEach(c => c.classList.remove('active'));
+      el.classList.add('active');
+    }
+    function selectSettlement(el) {
+      document.querySelectorAll('.toggle-pill').forEach(p => p.classList.remove('active'));
+      el.classList.add('active');
+    }
+    function selectAccount(el) {
+      document.querySelectorAll('.account-card').forEach(c => c.classList.remove('selected'));
+      el.classList.add('selected');
+    }
+    function selectRail(el) {
+      document.querySelectorAll('.rail-card').forEach(c => c.classList.remove('selected'));
+      el.classList.add('selected');
+    }
+    function selectPurpose(el) {
+      document.querySelectorAll('.purpose-chip').forEach(c => c.classList.remove('selected'));
+      el.classList.add('selected');
+    }
+    function selectPriority(el, type) {
+      document.querySelectorAll('.priority-btn').forEach(b => b.classList.remove('selected'));
+      el.classList.add('selected');
+    }
+
+    // ══ Modals ══
+    function openModal(id) {
+      const overlay = document.getElementById('modal-' + id);
+      if (overlay) {
+        if (id === 'bankSearch') populateBanks();
+        overlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+    }
+    function closeModal(id) {
+      const overlay = document.getElementById('modal-' + id);
+      if (overlay) {
+        overlay.classList.remove('active');
+        document.body.style.overflow = '';
+      }
+    }
+    document.querySelectorAll('.modal-overlay').forEach(o => {
+      o.addEventListener('click', function(e) {
+        if (e.target === this) closeModal(this.id.replace('modal-', ''));
+      });
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.modal-overlay.active').forEach(o => closeModal(o.id.replace('modal-', '')));
+      }
+    });
+
+    // ══ Bank Search ══
+    const banks = [
+      { name: 'Standard Chartered Bank', code: 'SCBLKENX', country: 'Kenya', logo: '🏦' },
+      { name: 'Equity Bank', code: 'EABORKE', country: 'Kenya', logo: '🏛️' },
+      { name: 'KCB Bank', code: 'KCBLKENA', country: 'Kenya', logo: '💰' },
+      { name: 'Cooperative Bank', code: 'COLOKEXX', country: 'Kenya', logo: '🏧' },
+      { name: 'NCBA Bank', code: 'CBAFKENA', country: 'Kenya', logo: '🔐' },
+      { name: 'Barclays / Absa', code: 'BABORKE', country: 'Kenya', logo: '💳' },
+      { name: 'Diamond Trust Bank', code: 'DLOOKENX', country: 'Kenya', logo: '💎' },
+      { name: 'Stanbic Bank', code: 'SBICKENX', country: 'Kenya', logo: '🌍' },
+      { name: 'Chase Bank US', code: 'CHASUS33', country: 'USA', logo: '🇺🇸' },
+      { name: 'Bank of America', code: 'BOFAUS3N', country: 'USA', logo: '🇺🇸' },
+      { name: 'Wells Fargo', code: 'WFBIUS6S', country: 'USA', logo: '🇺🇸' },
+      { name: 'Barclays UK', code: 'BABORKE', country: 'UK', logo: '🇬🇧' },
+      { name: 'HSBC', code: 'MIDLGB22', country: 'UK', logo: '🇬🇧' },
+      { name: 'Deutsche Bank', code: 'DEUTDEFF', country: 'Germany', logo: '🇩🇪' },
+    ];
+    let selectedBank = banks[0];
+
+    function populateBanks(filter = '') {
+      const list = document.getElementById('bankList');
+      const filtered = banks.filter(b => 
+        b.name.toLowerCase().includes(filter.toLowerCase()) || 
+        b.code.toLowerCase().includes(filter.toLowerCase()) ||
+        b.country.toLowerCase().includes(filter.toLowerCase())
+      );
+      list.innerHTML = filtered.map(b => `
+        <div class="bank-item ${b.code === selectedBank.code ? 'selected' : ''}" onclick="selectBank('${b.code}')">
+          <div class="bank-logo">${b.logo}</div>
+          <div class="bank-info">
+            <div class="bank-name">${b.name}</div>
+            <div class="bank-code">${b.code} · ${b.country}</div>
+          </div>
+          ${b.code === selectedBank.code ? '<i class="bi bi-check-circle-fill bank-check"></i>' : ''}
+        </div>
+      `).join('');
+    }
+    function filterBanks() {
+      const val = document.getElementById('bankSearchInput').value;
+      populateBanks(val);
+    }
+    function selectBank(code) {
+      selectedBank = banks.find(b => b.code === code);
+      populateBanks(document.getElementById('bankSearchInput').value);
+    }
+    function confirmBank() {
+      document.getElementById('bankInput').value = selectedBank.name;
+      closeModal('bankSearch');
+    }
+
+    // ══ FX Update (mock) ══
+    function updateFX() {
+      // In real app, this would call an API
+      console.log('Updating FX rate...');
+    }
+
+    // ══ Submit ══
+    function submitTransfer() {
+      const terms = document.getElementById('termsAccept');
+      if (!terms.checked) {
+        alert('Please accept the terms and conditions to proceed.');
+        return;
+      }
+      document.getElementById('successOverlay').classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeSuccess() {
+      document.getElementById('successOverlay').classList.remove('active');
+      document.body.style.overflow = '';
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,1482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PayMo — Transfer Management</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    :root {
+      --glass-bg: rgba(255,255,255,0.55);
+      --glass-bg-solid: rgba(255,255,255,0.75);
+      --glass-border: rgba(255,255,255,0.6);
+      --glass-shadow: 0 8px 32px rgba(0,0,0,0.06), 0 2px 8px rgba(0,0,0,0.04);
+      --sidebar-width: 260px;
+      --sidebar-collapsed: 72px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    * { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+    body {
+      background: linear-gradient(135deg, #e8e4de 0%, #d8d4cc 50%, #e0dcd4 100%);
+      min-height: 100vh; color: #1a1a1a; overflow-x: hidden;
+    }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 3px; }
+    a { text-decoration: none; color: inherit; }
+    button { cursor: pointer; border: none; outline: none; background: none; font-family: inherit; }
+    input, select, textarea { font-family: inherit; }
+    .glass { background: var(--glass-bg); backdrop-filter: blur(24px) saturate(1.4); -webkit-backdrop-filter: blur(24px) saturate(1.4); border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow); }
+    .glass-solid { background: var(--glass-bg-solid); backdrop-filter: blur(32px) saturate(1.2); -webkit-backdrop-filter: blur(32px) saturate(1.2); border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow); }
+    .glass-dark { background: rgba(20,20,25,0.88); backdrop-filter: blur(32px) saturate(1.4); -webkit-backdrop-filter: blur(32px) saturate(1.4); border: 1px solid rgba(255,255,255,0.1); color: white; }
+
+    /* Layout */
+    .app-wrapper { display: flex; min-height: 100vh; }
+
+    /* Sidebar */
+    .sidebar { position: fixed; left: 16px; top: 16px; bottom: 16px; width: var(--sidebar-width); border-radius: 24px; z-index: 1000; transition: width 0.35s cubic-bezier(0.4,0,0.2,1), transform 0.35s; overflow: hidden; display: flex; flex-direction: column; }
+    .sidebar.collapsed { width: var(--sidebar-collapsed); }
+    .sidebar-brand { padding: 20px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); min-height: 72px; }
+    .sidebar-brand .logo { width: 40px; height: 40px; border-radius: 14px; background: linear-gradient(135deg, #2563eb, #4f46e5); display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 18px; flex-shrink: 0; box-shadow: 0 4px 16px rgba(37,99,235,0.3); }
+    .sidebar-brand .brand-text { white-space: nowrap; overflow: hidden; transition: opacity 0.25s, width 0.25s; }
+    .sidebar-brand .brand-text p:first-child { color: white; font-weight: 700; font-size: 16px; }
+    .sidebar-brand .brand-text p:last-child { color: rgba(255,255,255,0.5); font-size: 11px; }
+    .sidebar.collapsed .brand-text { opacity: 0; width: 0; }
+    .sidebar-nav { flex: 1; padding: 12px 10px; overflow-y: auto; }
+    .nav-section { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(255,255,255,0.4); padding: 16px 14px 8px; white-space: nowrap; transition: opacity 0.2s; }
+    .sidebar.collapsed .nav-section { opacity: 0; height: 0; padding: 8px 0; overflow: hidden; }
+    .nav-item { display: flex; align-items: center; gap: 14px; padding: 12px 14px; border-radius: 14px; color: rgba(255,255,255,0.6); font-size: 14px; font-weight: 500; margin-bottom: 4px; transition: all 0.2s; white-space: nowrap; }
+    .nav-item:hover { background: rgba(255,255,255,0.1); color: white; }
+    .nav-item.active { background: linear-gradient(135deg, rgba(37,99,235,0.8), rgba(79,70,229,0.8)); color: white; box-shadow: 0 4px 16px rgba(37,99,235,0.25); }
+    .nav-item i { font-size: 20px; width: 24px; text-align: center; flex-shrink: 0; }
+    .nav-item .nav-label { transition: opacity 0.2s; }
+    .sidebar.collapsed .nav-item .nav-label { opacity: 0; width: 0; overflow: hidden; }
+    .sidebar-footer { padding: 12px 10px; border-top: 1px solid rgba(255,255,255,0.1); }
+    .sidebar-toggle { width: 100%; padding: 10px; border-radius: 14px; background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.6); display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; transition: all 0.2s; }
+    .sidebar-toggle:hover { background: rgba(255,255,255,0.15); color: white; }
+    .mobile-close { display: none; margin-left: auto; width: 32px; height: 32px; border-radius: 8px; background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.6); align-items: center; justify-content: center; }
+    .mobile-close:hover { color: white; }
+    .mobile-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 998; }
+    .mobile-overlay.active { display: block; }
+
+    /* Main */
+    .main-content { flex: 1; padding: 16px 24px; margin-left: calc(var(--sidebar-width) + 32px); transition: margin-left 0.35s; }
+    .sidebar.collapsed ~ .main-content { margin-left: calc(var(--sidebar-collapsed) + 32px); }
+    @media (max-width: 1023px) {
+      .sidebar { left: -280px; }
+      .sidebar.mobile-open { left: 16px; }
+      .main-content { margin-left: 0 !important; padding: 16px; }
+      .mobile-close { display: flex; }
+      .sidebar-toggle { display: none !important; }
+    }
+
+    /* Top Bar */
+    .top-bar { border-radius: 16px; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+    .top-bar-left { display: flex; align-items: center; gap: 12px; }
+    .mobile-menu-btn { display: none; width: 40px; height: 40px; border-radius: 12px; background: rgba(0,0,0,0.05); align-items: center; justify-content: center; font-size: 20px; }
+    @media (max-width: 1023px) { .mobile-menu-btn { display: flex; } }
+    .top-bar h1 { font-size: 22px; font-weight: 700; color: #111; }
+    .breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #6b6b6b; flex-wrap: wrap; }
+    .breadcrumb a { color: #2563eb; }
+    .breadcrumb a:hover { text-decoration: underline; }
+    .breadcrumb i { font-size: 10px; color: #9ca3af; }
+    .top-bar-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+    /* Stats Row */
+    .stats-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 20px; }
+    @media (max-width: 1100px) { .stats-row { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 700px) { .stats-row { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 480px) { .stats-row { grid-template-columns: 1fr; } }
+    .stat-card { padding: 16px; border-radius: 14px; }
+    .stat-card .stat-label { font-size: 12px; color: #6b6b6b; margin-bottom: 4px; }
+    .stat-card .stat-value { font-size: 24px; font-weight: 800; color: #111; }
+    .stat-card .stat-change { font-size: 12px; font-weight: 500; margin-top: 4px; display: flex; align-items: center; gap: 4px; }
+    .stat-card .stat-change.up { color: #059669; }
+    .stat-card .stat-change.down { color: #dc2626; }
+
+    /* Section */
+    .section { border-radius: 20px; padding: 20px; margin-bottom: 20px; }
+    .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; }
+    .section-title { font-size: 16px; font-weight: 700; color: #111; display: flex; align-items: center; gap: 8px; }
+    .section-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+    /* Buttons */
+    .btn { padding: 10px 16px; border-radius: 10px; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s; }
+    .btn-sm { padding: 6px 12px; font-size: 12px; border-radius: 8px; }
+    .btn-primary { background: linear-gradient(135deg, #2563eb, #4f46e5); color: white; }
+    .btn-primary:hover { box-shadow: 0 4px 16px rgba(37,99,235,0.3); }
+    .btn-secondary { background: rgba(255,255,255,0.6); border: 1px solid #e5e7eb; color: #374151; }
+    .btn-secondary:hover { background: rgba(255,255,255,0.8); }
+    .btn-ghost { background: transparent; color: #6b6b6b; }
+    .btn-ghost:hover { background: rgba(0,0,0,0.05); color: #111; }
+    .btn-danger { background: rgba(220,38,38,0.1); color: #dc2626; }
+    .btn-danger:hover { background: rgba(220,38,38,0.15); }
+    .btn-success { background: rgba(22,163,74,0.1); color: #16a34a; }
+    .btn-success:hover { background: rgba(22,163,74,0.15); }
+
+    /* Badges */
+    .badge { padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
+    .badge-green { background: rgba(16,185,129,0.1); color: #059669; }
+    .badge-blue { background: rgba(37,99,235,0.1); color: #2563eb; }
+    .badge-amber { background: rgba(245,158,11,0.1); color: #d97706; }
+    .badge-red { background: rgba(220,38,38,0.1); color: #dc2626; }
+    .badge-purple { background: rgba(139,92,246,0.1); color: #7c3aed; }
+    .badge-gray { background: rgba(107,114,128,0.1); color: #6b7280; }
+
+    /* Filter Panel */
+    .filter-panel { margin-bottom: 20px; }
+    .filter-toggle { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-radius: 14px; cursor: pointer; transition: all 0.2s; }
+    .filter-toggle:hover { background: rgba(255,255,255,0.7); }
+    .filter-toggle .ft-left { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600; color: #111; }
+    .filter-toggle .ft-count { padding: 2px 8px; border-radius: 6px; background: rgba(37,99,235,0.1); color: #2563eb; font-size: 12px; }
+    .filter-toggle .ft-icon { transition: transform 0.2s; }
+    .filter-toggle.open .ft-icon { transform: rotate(180deg); }
+    .filter-body { display: none; padding: 20px; border-top: 1px solid rgba(0,0,0,0.06); }
+    .filter-body.open { display: block; }
+    .filter-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    @media (max-width: 1000px) { .filter-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 600px) { .filter-grid { grid-template-columns: 1fr; } }
+    .filter-group label { display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 6px; }
+    .filter-input { width: 100%; padding: 10px 14px; border-radius: 10px; background: rgba(255,255,255,0.6); border: 1px solid #e5e7eb; font-size: 13px; outline: none; transition: all 0.2s; }
+    .filter-input:focus { border-color: #93c5fd; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+    .filter-row { display: flex; align-items: center; gap: 8px; }
+    .filter-actions { display: flex; align-items: center; justify-content: flex-end; gap: 10px; margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(0,0,0,0.06); }
+
+    /* Status chips */
+    .status-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .status-chip { padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s; border: 1px solid transparent; }
+    .status-chip.draft { background: rgba(107,114,128,0.08); color: #6b7280; }
+    .status-chip.pending { background: rgba(245,158,11,0.08); color: #d97706; }
+    .status-chip.processing { background: rgba(37,99,235,0.08); color: #2563eb; }
+    .status-chip.completed { background: rgba(16,185,129,0.08); color: #059669; }
+    .status-chip.failed { background: rgba(220,38,38,0.08); color: #dc2626; }
+    .status-chip.cancelled { background: rgba(107,114,128,0.08); color: #6b7280; }
+    .status-chip.returned { background: rgba(139,92,246,0.08); color: #7c3aed; }
+    .status-chip.active { border-color: currentColor; font-weight: 600; }
+
+    /* Table */
+    .table-wrapper { overflow-x: auto; margin: 0 -20px; padding: 0 20px; }
+    .data-table { width: 100%; border-collapse: collapse; min-width: 900px; }
+    .data-table th { text-align: left; padding: 12px 14px; font-size: 11px; font-weight: 700; color: #6b6b6b; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid rgba(0,0,0,0.08); white-space: nowrap; }
+    .data-table th.sortable { cursor: pointer; }
+    .data-table th.sortable:hover { color: #2563eb; }
+    .data-table th .sort-icon { margin-left: 4px; font-size: 10px; }
+    .data-table td { padding: 14px; font-size: 13px; color: #374151; border-bottom: 1px solid rgba(0,0,0,0.04); vertical-align: middle; }
+    .data-table tr:hover td { background: rgba(37,99,235,0.02); }
+    .data-table .row-checkbox { width: 20px; height: 20px; border-radius: 6px; accent-color: #2563eb; }
+    .txn-id { font-family: monospace; font-size: 12px; color: #2563eb; font-weight: 500; }
+    .txn-date { font-size: 12px; color: #6b6b6b; }
+    .txn-amount { font-weight: 700; color: #111; }
+    .txn-currency { font-size: 11px; color: #6b6b6b; margin-left: 4px; }
+    .txn-party { display: flex; align-items: center; gap: 10px; }
+    .txn-party-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+    .txn-party-info { min-width: 0; }
+    .txn-party-name { font-size: 13px; font-weight: 600; color: #111; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .txn-party-account { font-size: 11px; color: #6b6b6b; }
+    .risk-score { display: flex; align-items: center; gap: 6px; }
+    .risk-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .risk-dot.low { background: #22c55e; }
+    .risk-dot.medium { background: #f59e0b; }
+    .risk-dot.high { background: #ef4444; }
+    .row-actions { display: flex; align-items: center; gap: 4px; }
+    .row-action { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #6b6b6b; transition: all 0.2s; }
+    .row-action:hover { background: rgba(0,0,0,0.05); color: #111; }
+
+    /* Pagination */
+    .pagination { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(0,0,0,0.06); flex-wrap: wrap; gap: 12px; }
+    .pagination-info { font-size: 13px; color: #6b6b6b; }
+    .pagination-controls { display: flex; align-items: center; gap: 4px; }
+    .page-btn { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; color: #6b6b6b; transition: all 0.2s; }
+    .page-btn:hover { background: rgba(0,0,0,0.05); }
+    .page-btn.active { background: linear-gradient(135deg, #2563eb, #4f46e5); color: white; }
+    .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* Bulk Actions Bar */
+    .bulk-bar { display: none; padding: 12px 20px; background: linear-gradient(135deg, #2563eb, #4f46e5); border-radius: 14px; margin-bottom: 16px; }
+    .bulk-bar.active { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+    .bulk-bar .bb-left { display: flex; align-items: center; gap: 12px; color: white; font-size: 14px; font-weight: 500; }
+    .bulk-bar .bb-count { padding: 4px 10px; background: rgba(255,255,255,0.2); border-radius: 6px; font-weight: 700; }
+    .bulk-bar .bb-actions { display: flex; gap: 8px; }
+    .bulk-bar .bb-btn { padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; background: rgba(255,255,255,0.15); color: white; transition: all 0.2s; }
+    .bulk-bar .bb-btn:hover { background: rgba(255,255,255,0.25); }
+    .bulk-bar .bb-btn.danger { background: rgba(220,38,38,0.8); }
+    .bulk-bar .bb-btn.danger:hover { background: rgba(220,38,38,1); }
+
+    /* Tabs */
+    .tabs { display: flex; gap: 4px; border-bottom: 1px solid rgba(0,0,0,0.08); margin-bottom: 20px; overflow-x: auto; }
+    .tab { padding: 12px 20px; font-size: 14px; font-weight: 500; color: #6b6b6b; border-bottom: 2px solid transparent; transition: all 0.2s; white-space: nowrap; }
+    .tab:hover { color: #111; }
+    .tab.active { color: #2563eb; border-bottom-color: #2563eb; }
+    .tab .tab-count { margin-left: 6px; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; }
+    .tab.active .tab-count { background: rgba(37,99,235,0.1); color: #2563eb; }
+
+    /* Exception Cards */
+    .exception-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    @media (max-width: 900px) { .exception-grid { grid-template-columns: 1fr; } }
+    .exception-card { padding: 20px; border-radius: 16px; background: rgba(255,255,255,0.5); border-left: 4px solid; }
+    .exception-card.failed { border-color: #ef4444; }
+    .exception-card.returned { border-color: #7c3aed; }
+    .exception-card.hold { border-color: #f59e0b; }
+    .exception-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; }
+    .exception-title { font-size: 14px; font-weight: 700; color: #111; }
+    .exception-count { font-size: 24px; font-weight: 800; }
+    .exception-count.red { color: #dc2626; }
+    .exception-count.purple { color: #7c3aed; }
+    .exception-count.amber { color: #d97706; }
+    .exception-list { margin-top: 12px; }
+    .exception-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: rgba(255,255,255,0.5); border-radius: 10px; margin-bottom: 8px; font-size: 13px; }
+    .exception-item:last-child { margin-bottom: 0; }
+    .exception-item .ei-id { font-family: monospace; color: #2563eb; }
+    .exception-item .ei-reason { color: #6b6b6b; flex: 1; margin: 0 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    /* Bulk Operations */
+    .bulk-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 800px) { .bulk-grid { grid-template-columns: 1fr; } }
+    .bulk-card { padding: 20px; border-radius: 16px; background: rgba(255,255,255,0.5); }
+    .bulk-card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+    .bulk-card-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+    .bulk-card-title { font-size: 15px; font-weight: 700; color: #111; }
+    .bulk-card-desc { font-size: 12px; color: #6b6b6b; }
+    .upload-list { margin-top: 12px; }
+    .upload-item { display: flex; align-items: center; gap: 12px; padding: 12px; background: rgba(255,255,255,0.6); border-radius: 10px; margin-bottom: 8px; }
+    .upload-item:last-child { margin-bottom: 0; }
+    .upload-item-icon { font-size: 24px; }
+    .upload-item-info { flex: 1; min-width: 0; }
+    .upload-item-name { font-size: 13px; font-weight: 600; color: #111; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .upload-item-meta { font-size: 11px; color: #6b6b6b; }
+    .template-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 12px; }
+    .template-btn { padding: 14px; border-radius: 10px; background: rgba(255,255,255,0.6); border: 1px solid #e5e7eb; text-align: left; transition: all 0.2s; }
+    .template-btn:hover { background: rgba(255,255,255,0.8); border-color: #2563eb; }
+    .template-btn i { font-size: 20px; margin-bottom: 8px; display: block; }
+    .template-btn .tb-name { font-size: 13px; font-weight: 600; color: #111; }
+    .template-btn .tb-desc { font-size: 11px; color: #6b6b6b; }
+
+    /* Modal */
+    .modal-overlay { display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.4); backdrop-filter: blur(8px); align-items: flex-start; justify-content: flex-end; }
+    .modal-overlay.active { display: flex; }
+    .modal-overlay.center { align-items: center; justify-content: center; padding: 16px; }
+    .drawer { width: 100%; max-width: 600px; height: 100%; overflow-y: auto; animation: slideIn 0.3s ease-out; }
+    .modal { width: 100%; max-width: 560px; border-radius: 24px; overflow: hidden; animation: scaleIn 0.3s ease-out; }
+    .modal.lg { max-width: 720px; }
+    @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+    @keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+    .modal-header, .drawer-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; border-bottom: 1px solid rgba(0,0,0,0.08); }
+    .modal-header h2, .drawer-header h2 { font-size: 18px; font-weight: 700; color: #111; }
+    .modal-subtitle, .drawer-subtitle { font-size: 13px; color: #6b6b6b; }
+    .modal-close, .drawer-close { width: 36px; height: 36px; border-radius: 10px; background: rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: center; font-size: 18px; color: #6b6b6b; transition: background 0.2s; }
+    .modal-close:hover, .drawer-close:hover { background: rgba(0,0,0,0.1); }
+    .modal-body, .drawer-body { padding: 20px 24px; max-height: 70vh; overflow-y: auto; }
+    .drawer-body { max-height: none; padding-bottom: 100px; }
+    .modal-footer, .drawer-footer { padding: 16px 24px; border-top: 1px solid rgba(0,0,0,0.06); display: flex; gap: 12px; justify-content: flex-end; }
+    .drawer-footer { position: fixed; bottom: 0; right: 0; width: 100%; max-width: 600px; background: var(--glass-bg-solid); backdrop-filter: blur(24px); }
+
+    /* Timeline */
+    .timeline { position: relative; padding-left: 28px; }
+    .timeline::before { content: ''; position: absolute; left: 8px; top: 0; bottom: 0; width: 2px; background: #e5e7eb; }
+    .timeline-item { position: relative; padding-bottom: 20px; }
+    .timeline-item:last-child { padding-bottom: 0; }
+    .timeline-dot { position: absolute; left: -28px; top: 0; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; }
+    .timeline-dot.completed { background: #22c55e; color: white; }
+    .timeline-dot.current { background: #2563eb; color: white; animation: pulse 2s infinite; }
+    .timeline-dot.pending { background: #e5e7eb; color: #9ca3af; }
+    .timeline-dot.failed { background: #ef4444; color: white; }
+    @keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(37,99,235,0.4); } 50% { box-shadow: 0 0 0 8px rgba(37,99,235,0); } }
+    .timeline-content h4 { font-size: 14px; font-weight: 600; color: #111; margin-bottom: 4px; }
+    .timeline-content p { font-size: 12px; color: #6b6b6b; }
+    .timeline-content .tl-time { font-size: 11px; color: #9ca3af; margin-top: 4px; }
+
+    /* Audit Log */
+    .audit-log { max-height: 300px; overflow-y: auto; }
+    .audit-item { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid rgba(0,0,0,0.04); }
+    .audit-item:last-child { border-bottom: none; }
+    .audit-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+    .audit-info { flex: 1; }
+    .audit-action { font-size: 13px; color: #111; }
+    .audit-action strong { font-weight: 600; }
+    .audit-time { font-size: 11px; color: #9ca3af; margin-top: 2px; }
+
+    /* Detail rows */
+    .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+    @media (max-width: 500px) { .detail-grid { grid-template-columns: 1fr; } }
+    .detail-item { padding: 14px; background: rgba(255,255,255,0.5); border-radius: 12px; }
+    .detail-item .di-label { font-size: 11px; color: #6b6b6b; margin-bottom: 4px; text-transform: uppercase; font-weight: 600; }
+    .detail-item .di-value { font-size: 14px; font-weight: 600; color: #111; }
+    .detail-item .di-sub { font-size: 12px; color: #6b6b6b; }
+
+    /* Footer */
+    .page-footer { text-align: center; padding: 24px 16px; font-size: 12px; color: #9ca3af; }
+  </style>
+</head>
+<body>
+  <div class="app-wrapper">
+    <div class="mobile-overlay" id="mobileOverlay" onclick="closeMobileMenu()"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar glass-dark" id="sidebar">
+      <div class="sidebar-brand">
+        <div class="logo">P</div>
+        <div class="brand-text"><p>PayMo</p><p>Business BaaS</p></div>
+        <button class="mobile-close" onclick="closeMobileMenu()"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section">OVERVIEW</div>
+        <a href="#" class="nav-item"><i class="bi bi-grid-1x2-fill"></i><span class="nav-label">Dashboard</span></a>
+        <a href="#" class="nav-item"><i class="bi bi-send-fill"></i><span class="nav-label">Initiate Transfer</span></a>
+        <a href="#" class="nav-item active"><i class="bi bi-arrow-left-right"></i><span class="nav-label">Transfer Management</span></a>
+        <a href="#" class="nav-item"><i class="bi bi-clock-history"></i><span class="nav-label">Pending Approvals</span></a>
+        <div class="nav-section">ACCOUNTS</div>
+        <a href="#" class="nav-item"><i class="bi bi-wallet2"></i><span class="nav-label">Accounts</span></a>
+        <a href="#" class="nav-item"><i class="bi bi-bank"></i><span class="nav-label">Connected Banks</span></a>
+        <a href="#" class="nav-item"><i class="bi bi-people"></i><span class="nav-label">Beneficiaries</span></a>
+        <div class="nav-section">TOOLS</div>
+        <a href="#" class="nav-item"><i class="bi bi-currency-exchange"></i><span class="nav-label">FX Rates</span></a>
+        <a href="#" class="nav-item"><i class="bi bi-calendar-check"></i><span class="nav-label">Scheduled</span></a>
+        <a href="#" class="nav-item"><i class="bi bi-file-earmark-text"></i><span class="nav-label">Reports</span></a>
+        <div class="nav-section">SETTINGS</div>
+        <a href="#" class="nav-item"><i class="bi bi-gear"></i><span class="nav-label">Settings</span></a>
+        <a href="#" class="nav-item"><i class="bi bi-question-circle"></i><span class="nav-label">Help</span></a>
+      </nav>
+      <div class="sidebar-footer">
+        <button class="sidebar-toggle" onclick="toggleSidebar()"><i class="bi bi-chevron-left" id="collapseIcon"></i><span id="collapseLabel">Collapse</span></button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+      <!-- Top Bar -->
+      <div class="top-bar glass">
+        <div class="top-bar-left">
+          <button class="mobile-menu-btn" onclick="openMobileMenu()"><i class="bi bi-list"></i></button>
+          <div>
+            <div class="breadcrumb"><a href="#">Dashboard</a><i class="bi bi-chevron-right"></i><span>Transfer Management</span></div>
+            <h1>Transfer Management</h1>
+          </div>
+        </div>
+        <div class="top-bar-right">
+          <button class="btn btn-secondary" onclick="openModal('exportModal')"><i class="bi bi-download"></i> Export</button>
+          <button class="btn btn-primary" onclick="window.location.href='#'"><i class="bi bi-plus-lg"></i> New Transfer</button>
+        </div>
+      </div>
+
+      <!-- Stats Row -->
+      <div class="stats-row">
+        <div class="stat-card glass">
+          <div class="stat-label">Total Transfers</div>
+          <div class="stat-value">2,847</div>
+          <div class="stat-change up"><i class="bi bi-arrow-up"></i> 12.5% vs last month</div>
+        </div>
+        <div class="stat-card glass">
+          <div class="stat-label">Completed</div>
+          <div class="stat-value">2,654</div>
+          <div class="stat-change up"><i class="bi bi-check-circle"></i> 93.2% success rate</div>
+        </div>
+        <div class="stat-card glass">
+          <div class="stat-label">Pending</div>
+          <div class="stat-value">127</div>
+          <div class="stat-change"><i class="bi bi-hourglass-split" style="color:#f59e0b"></i> Awaiting approval</div>
+        </div>
+        <div class="stat-card glass">
+          <div class="stat-label">Failed/Returned</div>
+          <div class="stat-value">66</div>
+          <div class="stat-change down"><i class="bi bi-exclamation-triangle"></i> Needs attention</div>
+        </div>
+        <div class="stat-card glass">
+          <div class="stat-label">Total Volume</div>
+          <div class="stat-value">$4.2M</div>
+          <div class="stat-change up"><i class="bi bi-arrow-up"></i> 8.3% growth</div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab(this, 'all')">All Transfers <span class="tab-count">2,847</span></button>
+        <button class="tab" onclick="switchTab(this, 'pending')">Pending <span class="tab-count" style="background:rgba(245,158,11,0.1);color:#d97706">127</span></button>
+        <button class="tab" onclick="switchTab(this, 'exceptions')">Exceptions <span class="tab-count" style="background:rgba(220,38,38,0.1);color:#dc2626">66</span></button>
+        <button class="tab" onclick="switchTab(this, 'bulk')">Bulk Operations</button>
+      </div>
+
+      <!-- Tab Content: All Transfers -->
+      <div class="tab-content" id="tab-all">
+        <!-- Filter Panel -->
+        <div class="filter-panel section glass-solid">
+          <div class="filter-toggle" onclick="toggleFilter()">
+            <div class="ft-left"><i class="bi bi-funnel"></i> Filters <span class="ft-count" id="filterCount">3 active</span></div>
+            <i class="bi bi-chevron-down ft-icon" id="filterIcon"></i>
+          </div>
+          <div class="filter-body" id="filterBody">
+            <div class="filter-grid">
+              <div class="filter-group">
+                <label>Date Range</label>
+                <div class="filter-row">
+                  <input type="date" class="filter-input" value="2026-01-01">
+                  <span style="color:#9ca3af">to</span>
+                  <input type="date" class="filter-input" value="2026-01-15">
+                </div>
+              </div>
+              <div class="filter-group">
+                <label>Amount Range</label>
+                <div class="filter-row">
+                  <input type="text" class="filter-input" placeholder="Min" value="1,000">
+                  <span style="color:#9ca3af">to</span>
+                  <input type="text" class="filter-input" placeholder="Max" value="100,000">
+                </div>
+              </div>
+              <div class="filter-group">
+                <label>Currency</label>
+                <select class="filter-input">
+                  <option value="">All Currencies</option>
+                  <option value="USD" selected>USD</option>
+                  <option value="EUR">EUR</option>
+                  <option value="GBP">GBP</option>
+                  <option value="KES">KES</option>
+                </select>
+              </div>
+              <div class="filter-group">
+                <label>Reference Number</label>
+                <input type="text" class="filter-input" placeholder="Search by TXN ID...">
+              </div>
+              <div class="filter-group">
+                <label>Sender Bank</label>
+                <select class="filter-input">
+                  <option value="">All Banks</option>
+                  <option>Chase Bank</option>
+                  <option>Bank of America</option>
+                  <option>Wells Fargo</option>
+                </select>
+              </div>
+              <div class="filter-group">
+                <label>Receiver Bank</label>
+                <select class="filter-input">
+                  <option value="">All Banks</option>
+                  <option>Standard Chartered</option>
+                  <option>Equity Bank</option>
+                  <option>KCB Bank</option>
+                </select>
+              </div>
+              <div class="filter-group">
+                <label>Payment Rail</label>
+                <select class="filter-input">
+                  <option value="">All Rails</option>
+                  <option>PesaLink</option>
+                  <option>RTGS</option>
+                  <option>SWIFT</option>
+                  <option>ACH</option>
+                  <option>Wire</option>
+                </select>
+              </div>
+              <div class="filter-group">
+                <label>Risk Score</label>
+                <select class="filter-input">
+                  <option value="">All Scores</option>
+                  <option value="low">Low (0-30)</option>
+                  <option value="medium">Medium (31-70)</option>
+                  <option value="high">High (71-100)</option>
+                </select>
+              </div>
+            </div>
+            <div class="filter-group" style="margin-top:16px">
+              <label>Status</label>
+              <div class="status-chips">
+                <span class="status-chip draft active" onclick="toggleChip(this)">Draft</span>
+                <span class="status-chip pending active" onclick="toggleChip(this)">Pending</span>
+                <span class="status-chip processing active" onclick="toggleChip(this)">Processing</span>
+                <span class="status-chip completed" onclick="toggleChip(this)">Completed</span>
+                <span class="status-chip failed" onclick="toggleChip(this)">Failed</span>
+                <span class="status-chip cancelled" onclick="toggleChip(this)">Cancelled</span>
+                <span class="status-chip returned" onclick="toggleChip(this)">Returned</span>
+              </div>
+            </div>
+            <div class="filter-actions">
+              <button class="btn btn-ghost" onclick="clearFilters()">Clear All</button>
+              <button class="btn btn-primary" onclick="applyFilters()"><i class="bi bi-check-lg"></i> Apply Filters</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bulk Actions Bar -->
+        <div class="bulk-bar" id="bulkBar">
+          <div class="bb-left"><span class="bb-count" id="selectedCount">3</span> transfers selected</div>
+          <div class="bb-actions">
+            <button class="bb-btn" onclick="openModal('bulkApprove')"><i class="bi bi-check-lg"></i> Approve</button>
+            <button class="bb-btn danger" onclick="openModal('bulkReject')"><i class="bi bi-x-lg"></i> Reject</button>
+            <button class="bb-btn" onclick="bulkExport()"><i class="bi bi-download"></i> Export</button>
+            <button class="bb-btn" onclick="clearSelection()"><i class="bi bi-x"></i> Clear</button>
+          </div>
+        </div>
+
+        <!-- Data Table -->
+        <div class="section glass-solid" style="padding:0;overflow:hidden">
+          <div class="table-wrapper" style="padding:0">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th style="padding-left:20px"><input type="checkbox" class="row-checkbox" onchange="toggleSelectAll(this)"></th>
+                  <th class="sortable" onclick="sortTable('id')">Transaction ID <i class="bi bi-chevron-expand sort-icon"></i></th>
+                  <th class="sortable" onclick="sortTable('date')">Date <i class="bi bi-chevron-expand sort-icon"></i></th>
+                  <th class="sortable" onclick="sortTable('amount')">Amount <i class="bi bi-chevron-expand sort-icon"></i></th>
+                  <th>Sender</th>
+                  <th>Receiver</th>
+                  <th>Rail</th>
+                  <th class="sortable" onclick="sortTable('status')">Status <i class="bi bi-chevron-expand sort-icon"></i></th>
+                  <th>Risk</th>
+                  <th style="padding-right:20px">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="tableBody">
+                <!-- Rows populated by JS -->
+              </tbody>
+            </table>
+          </div>
+          <div class="pagination" style="padding:16px 20px">
+            <div class="pagination-info">Showing 1-10 of 2,847 transfers</div>
+            <div class="pagination-controls">
+              <button class="page-btn" disabled><i class="bi bi-chevron-left"></i></button>
+              <button class="page-btn active">1</button>
+              <button class="page-btn">2</button>
+              <button class="page-btn">3</button>
+              <button class="page-btn">...</button>
+              <button class="page-btn">285</button>
+              <button class="page-btn"><i class="bi bi-chevron-right"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab Content: Pending -->
+      <div class="tab-content" id="tab-pending" style="display:none">
+        <div class="section glass-solid">
+          <div class="section-header">
+            <div class="section-title"><i class="bi bi-hourglass-split" style="color:#f59e0b"></i> Pending Approvals</div>
+            <div class="section-actions">
+              <button class="btn btn-success btn-sm" onclick="openModal('bulkApprove')"><i class="bi bi-check-all"></i> Approve All</button>
+            </div>
+          </div>
+          <p style="font-size:14px;color:#6b6b6b;margin-bottom:16px">127 transfers are awaiting approval from authorized signatories.</p>
+          <div id="pendingTableContainer"></div>
+        </div>
+      </div>
+
+      <!-- Tab Content: Exceptions -->
+      <div class="tab-content" id="tab-exceptions" style="display:none">
+        <div class="exception-grid">
+          <!-- Failed Transfers -->
+          <div class="exception-card failed">
+            <div class="exception-header">
+              <div class="exception-title"><i class="bi bi-x-circle"></i> Failed Transfers</div>
+              <div class="exception-count red">23</div>
+            </div>
+            <p style="font-size:12px;color:#6b6b6b;margin-bottom:8px">Transfers that failed during processing and require investigation.</p>
+            <div class="exception-list">
+              <div class="exception-item">
+                <span class="ei-id">TXN-78421</span>
+                <span class="ei-reason">Insufficient funds</span>
+                <button class="btn btn-sm btn-danger" onclick="openModal('retryTransfer')">Retry</button>
+              </div>
+              <div class="exception-item">
+                <span class="ei-id">TXN-78419</span>
+                <span class="ei-reason">Invalid account</span>
+                <button class="btn btn-sm btn-secondary" onclick="openDrawer('TXN-78419')">View</button>
+              </div>
+              <div class="exception-item">
+                <span class="ei-id">TXN-78415</span>
+                <span class="ei-reason">Bank timeout</span>
+                <button class="btn btn-sm btn-danger" onclick="openModal('retryTransfer')">Retry</button>
+              </div>
+            </div>
+            <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:12px" onclick="openModal('allFailed')">View All 23 <i class="bi bi-arrow-right"></i></button>
+          </div>
+
+          <!-- Return Items -->
+          <div class="exception-card returned">
+            <div class="exception-header">
+              <div class="exception-title"><i class="bi bi-arrow-return-left"></i> Return Items</div>
+              <div class="exception-count purple">31</div>
+            </div>
+            <p style="font-size:12px;color:#6b6b6b;margin-bottom:8px">Transfers returned by the receiving bank with reason codes.</p>
+            <div class="exception-list">
+              <div class="exception-item">
+                <span class="ei-id">TXN-78402</span>
+                <span class="ei-reason">R01 - Insufficient Funds</span>
+                <span class="badge badge-purple">R01</span>
+              </div>
+              <div class="exception-item">
+                <span class="ei-id">TXN-78398</span>
+                <span class="ei-reason">R02 - Account Closed</span>
+                <span class="badge badge-purple">R02</span>
+              </div>
+              <div class="exception-item">
+                <span class="ei-id">TXN-78394</span>
+                <span class="ei-reason">R03 - No Account</span>
+                <span class="badge badge-purple">R03</span>
+              </div>
+            </div>
+            <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:12px" onclick="openModal('allReturns')">View All 31 <i class="bi bi-arrow-right"></i></button>
+          </div>
+
+          <!-- Compliance Holds -->
+          <div class="exception-card hold">
+            <div class="exception-header">
+              <div class="exception-title"><i class="bi bi-shield-exclamation"></i> Compliance Holds</div>
+              <div class="exception-count amber">12</div>
+            </div>
+            <p style="font-size:12px;color:#6b6b6b;margin-bottom:8px">Transfers held for compliance review requiring action.</p>
+            <div class="exception-list">
+              <div class="exception-item">
+                <span class="ei-id">TXN-78420</span>
+                <span class="ei-reason">High risk country</span>
+                <button class="btn btn-sm btn-success" onclick="openModal('releaseHold')">Release</button>
+              </div>
+              <div class="exception-item">
+                <span class="ei-id">TXN-78418</span>
+                <span class="ei-reason">Amount threshold</span>
+                <button class="btn btn-sm btn-secondary" onclick="openDrawer('TXN-78418')">Review</button>
+              </div>
+              <div class="exception-item">
+                <span class="ei-id">TXN-78412</span>
+                <span class="ei-reason">Sanctions screening</span>
+                <button class="btn btn-sm btn-secondary" onclick="openDrawer('TXN-78412')">Review</button>
+              </div>
+            </div>
+            <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:12px" onclick="openModal('allHolds')">View All 12 <i class="bi bi-arrow-right"></i></button>
+          </div>
+        </div>
+
+        <!-- Retry Configuration -->
+        <div class="section glass-solid" style="margin-top:20px">
+          <div class="section-header">
+            <div class="section-title"><i class="bi bi-arrow-repeat"></i> Auto-Retry Configuration</div>
+            <button class="btn btn-secondary btn-sm" onclick="openModal('retryConfig')"><i class="bi bi-gear"></i> Configure</button>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
+            <div class="detail-item">
+              <div class="di-label">Retry Attempts</div>
+              <div class="di-value">3 attempts</div>
+            </div>
+            <div class="detail-item">
+              <div class="di-label">Retry Interval</div>
+              <div class="di-value">15 minutes</div>
+            </div>
+            <div class="detail-item">
+              <div class="di-label">Auto-Retry Enabled</div>
+              <div class="di-value" style="color:#059669"><i class="bi bi-check-circle-fill"></i> Yes</div>
+            </div>
+            <div class="detail-item">
+              <div class="di-label">Failed Codes to Retry</div>
+              <div class="di-value">TIMEOUT, CONN_ERR</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab Content: Bulk Operations -->
+      <div class="tab-content" id="tab-bulk" style="display:none">
+        <div class="bulk-grid">
+          <!-- Upload History -->
+          <div class="bulk-card">
+            <div class="bulk-card-header">
+              <div class="bulk-card-icon" style="background:linear-gradient(135deg,#2563eb,#4f46e5);color:white"><i class="bi bi-cloud-arrow-up"></i></div>
+              <div>
+                <div class="bulk-card-title">Upload History</div>
+                <div class="bulk-card-desc">Recent batch upload files and their processing status</div>
+              </div>
+            </div>
+            <button class="btn btn-primary btn-sm" style="width:100%;margin-bottom:16px" onclick="openModal('uploadBatch')"><i class="bi bi-upload"></i> Upload New Batch</button>
+            <div class="upload-list">
+              <div class="upload-item">
+                <span class="upload-item-icon">📄</span>
+                <div class="upload-item-info">
+                  <div class="upload-item-name">payroll_jan_2026.csv</div>
+                  <div class="upload-item-meta">245 transfers · Uploaded Jan 15, 2026</div>
+                </div>
+                <span class="badge badge-green">Completed</span>
+              </div>
+              <div class="upload-item">
+                <span class="upload-item-icon">📄</span>
+                <div class="upload-item-info">
+                  <div class="upload-item-name">vendor_payments_q1.xlsx</div>
+                  <div class="upload-item-meta">89 transfers · Uploaded Jan 14, 2026</div>
+                </div>
+                <span class="badge badge-amber">Processing</span>
+              </div>
+              <div class="upload-item">
+                <span class="upload-item-icon">📄</span>
+                <div class="upload-item-info">
+                  <div class="upload-item-name">dividends_batch.csv</div>
+                  <div class="upload-item-meta">156 transfers · Uploaded Jan 12, 2026</div>
+                </div>
+                <span class="badge badge-green">Completed</span>
+              </div>
+              <div class="upload-item">
+                <span class="upload-item-icon">📄</span>
+                <div class="upload-item-info">
+                  <div class="upload-item-name">refunds_dec_2025.csv</div>
+                  <div class="upload-item-meta">34 transfers · Uploaded Jan 10, 2026</div>
+                </div>
+                <span class="badge badge-red">12 Errors</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Templates -->
+          <div class="bulk-card">
+            <div class="bulk-card-header">
+              <div class="bulk-card-icon" style="background:linear-gradient(135deg,#059669,#0d9488);color:white"><i class="bi bi-file-earmark-arrow-down"></i></div>
+              <div>
+                <div class="bulk-card-title">Template Downloads</div>
+                <div class="bulk-card-desc">Download templates for batch uploads in various formats</div>
+              </div>
+            </div>
+            <div class="template-grid">
+              <button class="template-btn" onclick="downloadTemplate('csv')">
+                <i class="bi bi-filetype-csv" style="color:#059669"></i>
+                <div class="tb-name">CSV Template</div>
+                <div class="tb-desc">Simple comma-separated format</div>
+              </button>
+              <button class="template-btn" onclick="downloadTemplate('xlsx')">
+                <i class="bi bi-file-earmark-excel" style="color:#16a34a"></i>
+                <div class="tb-name">Excel Template</div>
+                <div class="tb-desc">With validation rules</div>
+              </button>
+              <button class="template-btn" onclick="downloadTemplate('xml')">
+                <i class="bi bi-filetype-xml" style="color:#f59e0b"></i>
+                <div class="tb-name">XML Template</div>
+                <div class="tb-desc">For system integrations</div>
+              </button>
+              <button class="template-btn" onclick="downloadTemplate('iso')">
+                <i class="bi bi-file-earmark-code" style="color:#7c3aed"></i>
+                <div class="tb-name">ISO 20022</div>
+                <div class="tb-desc">pain.001 format</div>
+              </button>
+            </div>
+          </div>
+
+          <!-- Bulk Approval Workflows -->
+          <div class="bulk-card">
+            <div class="bulk-card-header">
+              <div class="bulk-card-icon" style="background:linear-gradient(135deg,#f59e0b,#ea580c);color:white"><i class="bi bi-people"></i></div>
+              <div>
+                <div class="bulk-card-title">Bulk Approval Workflows</div>
+                <div class="bulk-card-desc">Pending batch approvals requiring authorization</div>
+              </div>
+            </div>
+            <div class="upload-list">
+              <div class="upload-item">
+                <span class="upload-item-icon">📋</span>
+                <div class="upload-item-info">
+                  <div class="upload-item-name">Payroll January 2026</div>
+                  <div class="upload-item-meta">245 transfers · $892,450.00 total</div>
+                </div>
+                <button class="btn btn-success btn-sm" onclick="openModal('bulkApprove')">Approve</button>
+              </div>
+              <div class="upload-item">
+                <span class="upload-item-icon">📋</span>
+                <div class="upload-item-info">
+                  <div class="upload-item-name">Vendor Payments Q1</div>
+                  <div class="upload-item-meta">89 transfers · $156,780.00 total</div>
+                </div>
+                <button class="btn btn-success btn-sm" onclick="openModal('bulkApprove')">Approve</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Error Reports -->
+          <div class="bulk-card">
+            <div class="bulk-card-header">
+              <div class="bulk-card-icon" style="background:linear-gradient(135deg,#dc2626,#b91c1c);color:white"><i class="bi bi-exclamation-triangle"></i></div>
+              <div>
+                <div class="bulk-card-title">Error Reports</div>
+                <div class="bulk-card-desc">Download error details for failed batch items</div>
+              </div>
+            </div>
+            <div class="upload-list">
+              <div class="upload-item">
+                <span class="upload-item-icon">⚠️</span>
+                <div class="upload-item-info">
+                  <div class="upload-item-name">refunds_dec_2025_errors.csv</div>
+                  <div class="upload-item-meta">12 failed items · Generated Jan 10, 2026</div>
+                </div>
+                <button class="btn btn-secondary btn-sm"><i class="bi bi-download"></i></button>
+              </div>
+              <div class="upload-item">
+                <span class="upload-item-icon">⚠️</span>
+                <div class="upload-item-info">
+                  <div class="upload-item-name">payroll_dec_2025_errors.csv</div>
+                  <div class="upload-item-meta">3 failed items · Generated Dec 28, 2025</div>
+                </div>
+                <button class="btn btn-secondary btn-sm"><i class="bi bi-download"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="page-footer">© 2026 PayMo Business BaaS · Enterprise banking infrastructure · SOC 2 Type II Certified</div>
+    </div>
+  </div>
+
+  <!-- Transfer Detail Drawer -->
+  <div class="modal-overlay" id="transferDrawer">
+    <div class="drawer glass-solid">
+      <div class="drawer-header">
+        <div>
+          <h2>Transfer Details</h2>
+          <p class="drawer-subtitle" id="drawerTxnId">TXN-2026-01-15-78421</p>
+        </div>
+        <button class="drawer-close" onclick="closeDrawer()"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <div class="drawer-body">
+        <!-- Status Banner -->
+        <div style="padding:16px;border-radius:14px;background:linear-gradient(135deg,rgba(22,163,74,0.1),rgba(22,163,74,0.05));border:1px solid rgba(22,163,74,0.2);margin-bottom:20px;display:flex;align-items:center;gap:12px" id="drawerStatus">
+          <i class="bi bi-check-circle-fill" style="font-size:24px;color:#16a34a"></i>
+          <div>
+            <div style="font-size:14px;font-weight:700;color:#065f46">Completed Successfully</div>
+            <div style="font-size:12px;color:#059669">Settled on Jan 15, 2026 at 14:32 EAT</div>
+          </div>
+        </div>
+
+        <!-- Amount Card -->
+        <div style="padding:24px;border-radius:16px;background:linear-gradient(135deg,#2563eb,#4f46e5);color:white;text-align:center;margin-bottom:20px">
+          <div style="font-size:12px;opacity:0.8;margin-bottom:4px">Amount Transferred</div>
+          <div style="font-size:32px;font-weight:800">$25,000.00</div>
+          <div style="font-size:13px;opacity:0.8;margin-top:4px">≈ KES 3,225,000.00 @ 129.00</div>
+        </div>
+
+        <!-- Detail Tabs -->
+        <div class="tabs" style="margin-bottom:16px">
+          <button class="tab active" onclick="switchDetailTab(this, 'overview')">Overview</button>
+          <button class="tab" onclick="switchDetailTab(this, 'timeline')">Timeline</button>
+          <button class="tab" onclick="switchDetailTab(this, 'fees')">Fees</button>
+          <button class="tab" onclick="switchDetailTab(this, 'audit')">Audit Log</button>
+        </div>
+
+        <!-- Overview Tab -->
+        <div class="detail-tab-content" id="detail-overview">
+          <div class="detail-grid">
+            <div class="detail-item">
+              <div class="di-label">Sender</div>
+              <div class="di-value">Operating Account (USD)</div>
+              <div class="di-sub">····4521 · Chase Bank</div>
+            </div>
+            <div class="detail-item">
+              <div class="di-label">Receiver</div>
+              <div class="di-value">ACME Corporation Ltd</div>
+              <div class="di-sub">····0123 · Standard Chartered</div>
+            </div>
+            <div class="detail-item">
+              <div class="di-label">Payment Rail</div>
+              <div class="di-value">PesaLink Real-time</div>
+              <div class="di-sub">Instant settlement</div>
+            </div>
+            <div class="detail-item">
+              <div class="di-label">Reference</div>
+              <div class="di-value">INV-2026-00142</div>
+              <div class="di-sub">Q1 Services Payment</div>
+            </div>
+            <div class="detail-item">
+              <div class="di-label">Purpose</div>
+              <div class="di-value">Invoice Payment</div>
+            </div>
+            <div class="detail-item">
+              <div class="di-label">Priority</div>
+              <div class="di-value"><span class="badge badge-gray">Normal</span></div>
+            </div>
+            <div class="detail-item">
+              <div class="di-label">Risk Score</div>
+              <div class="di-value"><span class="risk-score"><span class="risk-dot low"></span> 12 (Low)</span></div>
+            </div>
+            <div class="detail-item">
+              <div class="di-label">Initiated By</div>
+              <div class="di-value">James Miller</div>
+              <div class="di-sub">Jan 15, 2026 at 14:25</div>
+            </div>
+          </div>
+
+          <!-- Reconciliation -->
+          <div style="margin-top:20px;padding:16px;background:rgba(255,255,255,0.5);border-radius:14px">
+            <div style="font-size:13px;font-weight:700;color:#111;margin-bottom:12px;display:flex;align-items:center;gap:8px"><i class="bi bi-link-45deg"></i> Linked Reconciliation</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:rgba(255,255,255,0.6);border-radius:10px;font-size:13px">
+              <span style="font-family:monospace;color:#2563eb">REC-2026-01-78421</span>
+              <span class="badge badge-green">Matched</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Timeline Tab -->
+        <div class="detail-tab-content" id="detail-timeline" style="display:none">
+          <div class="timeline">
+            <div class="timeline-item">
+              <div class="timeline-dot completed"><i class="bi bi-check"></i></div>
+              <div class="timeline-content">
+                <h4>Transfer Initiated</h4>
+                <p>James Miller created the transfer request</p>
+                <div class="tl-time">Jan 15, 2026 at 14:25:32</div>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot completed"><i class="bi bi-check"></i></div>
+              <div class="timeline-content">
+                <h4>First Approval</h4>
+                <p>Sarah Kim approved as Checker</p>
+                <div class="tl-time">Jan 15, 2026 at 14:27:15</div>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot completed"><i class="bi bi-check"></i></div>
+              <div class="timeline-content">
+                <h4>Final Authorization</h4>
+                <p>Michael Johnson approved as Approver with 2FA</p>
+                <div class="tl-time">Jan 15, 2026 at 14:29:48</div>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot completed"><i class="bi bi-check"></i></div>
+              <div class="timeline-content">
+                <h4>Sent to Rail</h4>
+                <p>Transfer submitted to PesaLink network</p>
+                <div class="tl-time">Jan 15, 2026 at 14:29:52</div>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot completed"><i class="bi bi-check"></i></div>
+              <div class="timeline-content">
+                <h4>Processing</h4>
+                <p>PesaLink acknowledged receipt, processing payment</p>
+                <div class="tl-time">Jan 15, 2026 at 14:30:01</div>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot completed"><i class="bi bi-check"></i></div>
+              <div class="timeline-content">
+                <h4>Settlement Complete</h4>
+                <p>Funds credited to ACME Corporation Ltd account</p>
+                <div class="tl-time">Jan 15, 2026 at 14:32:17</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fees Tab -->
+        <div class="detail-tab-content" id="detail-fees" style="display:none">
+          <div style="padding:16px;background:rgba(255,255,255,0.5);border-radius:14px">
+            <div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid rgba(0,0,0,0.06)">
+              <span style="font-size:13px;color:#6b6b6b">Transfer Amount</span>
+              <span style="font-size:13px;font-weight:600;color:#111">$25,000.00</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid rgba(0,0,0,0.06)">
+              <span style="font-size:13px;color:#6b6b6b">Platform Fee</span>
+              <span style="font-size:13px;font-weight:600;color:#059669">$0.00 (Waived)</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid rgba(0,0,0,0.06)">
+              <span style="font-size:13px;color:#6b6b6b">PesaLink Rail Fee</span>
+              <span style="font-size:13px;font-weight:600;color:#111">$15.00</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid rgba(0,0,0,0.06)">
+              <span style="font-size:13px;color:#6b6b6b">FX Conversion</span>
+              <span style="font-size:13px;font-weight:600;color:#059669">$0.00 (Mid-market)</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid rgba(0,0,0,0.06)">
+              <span style="font-size:13px;color:#6b6b6b">Correspondent Bank</span>
+              <span style="font-size:13px;font-weight:600;color:#111">$0.00</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:16px 0 0;margin-top:8px;border-top:2px solid rgba(0,0,0,0.1)">
+              <span style="font-size:14px;font-weight:700;color:#111">Total Debited</span>
+              <span style="font-size:18px;font-weight:800;color:#111">$25,015.00</span>
+            </div>
+          </div>
+          <div style="margin-top:16px;padding:12px 16px;background:rgba(16,185,129,0.06);border-radius:12px;font-size:12px;color:#059669;display:flex;align-items:center;gap:8px">
+            <i class="bi bi-piggy-bank"></i> You saved $125.00 compared to traditional bank wire fees
+          </div>
+        </div>
+
+        <!-- Audit Tab -->
+        <div class="detail-tab-content" id="detail-audit" style="display:none">
+          <div class="audit-log">
+            <div class="audit-item">
+              <div class="audit-avatar" style="background:linear-gradient(135deg,#2563eb,#4f46e5);color:white">JM</div>
+              <div class="audit-info">
+                <div class="audit-action"><strong>James Miller</strong> initiated the transfer</div>
+                <div class="audit-time">Jan 15, 2026 at 14:25:32 · IP: 192.168.1.45</div>
+              </div>
+            </div>
+            <div class="audit-item">
+              <div class="audit-avatar" style="background:linear-gradient(135deg,#f59e0b,#ea580c);color:white">SK</div>
+              <div class="audit-info">
+                <div class="audit-action"><strong>Sarah Kim</strong> approved as Checker</div>
+                <div class="audit-time">Jan 15, 2026 at 14:27:15 · IP: 192.168.1.67</div>
+              </div>
+            </div>
+            <div class="audit-item">
+              <div class="audit-avatar" style="background:linear-gradient(135deg,#059669,#0d9488);color:white">MJ</div>
+              <div class="audit-info">
+                <div class="audit-action"><strong>Michael Johnson</strong> gave final authorization with 2FA</div>
+                <div class="audit-time">Jan 15, 2026 at 14:29:48 · IP: 192.168.1.12</div>
+              </div>
+            </div>
+            <div class="audit-item">
+              <div class="audit-avatar" style="background:#6b7280;color:white"><i class="bi bi-robot"></i></div>
+              <div class="audit-info">
+                <div class="audit-action"><strong>System</strong> submitted to PesaLink API</div>
+                <div class="audit-time">Jan 15, 2026 at 14:29:52 · Ref: PL-78421-XYZ</div>
+              </div>
+            </div>
+            <div class="audit-item">
+              <div class="audit-avatar" style="background:#6b7280;color:white"><i class="bi bi-robot"></i></div>
+              <div class="audit-info">
+                <div class="audit-action"><strong>System</strong> received settlement confirmation</div>
+                <div class="audit-time">Jan 15, 2026 at 14:32:17 · Settlement ID: STL-9982341</div>
+              </div>
+            </div>
+            <div class="audit-item">
+              <div class="audit-avatar" style="background:#6b7280;color:white"><i class="bi bi-robot"></i></div>
+              <div class="audit-info">
+                <div class="audit-action"><strong>System</strong> auto-reconciled with invoice INV-2026-00142</div>
+                <div class="audit-time">Jan 15, 2026 at 14:32:45 · Match confidence: 100%</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="drawer-footer">
+        <button class="btn btn-secondary" onclick="closeDrawer()">Close</button>
+        <button class="btn btn-secondary"><i class="bi bi-printer"></i> Print</button>
+        <button class="btn btn-secondary"><i class="bi bi-download"></i> Receipt</button>
+        <button class="btn btn-primary"><i class="bi bi-copy"></i> Clone</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Export Modal -->
+  <div class="modal-overlay center" id="modal-exportModal">
+    <div class="modal glass-solid">
+      <div class="modal-header">
+        <div><h2>Export Transfers</h2><p class="modal-subtitle">Download transfer data in your preferred format</p></div>
+        <button class="modal-close" onclick="closeModal('exportModal')"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="filter-group" style="margin-bottom:16px">
+          <label>Date Range</label>
+          <div class="filter-row">
+            <input type="date" class="filter-input" value="2026-01-01">
+            <span style="color:#9ca3af">to</span>
+            <input type="date" class="filter-input" value="2026-01-15">
+          </div>
+        </div>
+        <div class="filter-group" style="margin-bottom:16px">
+          <label>Status</label>
+          <select class="filter-input">
+            <option>All Statuses</option>
+            <option>Completed Only</option>
+            <option>Failed Only</option>
+            <option>Pending Only</option>
+          </select>
+        </div>
+        <div class="filter-group" style="margin-bottom:16px">
+          <label>Format</label>
+          <div class="template-grid">
+            <button class="template-btn" style="border-color:#2563eb;background:rgba(37,99,235,0.04)">
+              <i class="bi bi-filetype-csv" style="color:#059669"></i>
+              <div class="tb-name">CSV</div>
+            </button>
+            <button class="template-btn">
+              <i class="bi bi-file-earmark-excel" style="color:#16a34a"></i>
+              <div class="tb-name">Excel</div>
+            </button>
+            <button class="template-btn">
+              <i class="bi bi-filetype-pdf" style="color:#dc2626"></i>
+              <div class="tb-name">PDF Report</div>
+            </button>
+            <button class="template-btn">
+              <i class="bi bi-filetype-json" style="color:#f59e0b"></i>
+              <div class="tb-name">JSON</div>
+            </button>
+          </div>
+        </div>
+        <div class="filter-group">
+          <label>Include Columns</label>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px">
+            <label style="display:flex;align-items:center;gap:6px;font-size:13px;padding:6px 12px;background:rgba(37,99,235,0.06);border-radius:8px;cursor:pointer"><input type="checkbox" checked style="accent-color:#2563eb"> Transaction ID</label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:13px;padding:6px 12px;background:rgba(37,99,235,0.06);border-radius:8px;cursor:pointer"><input type="checkbox" checked style="accent-color:#2563eb"> Date/Time</label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:13px;padding:6px 12px;background:rgba(37,99,235,0.06);border-radius:8px;cursor:pointer"><input type="checkbox" checked style="accent-color:#2563eb"> Amount</label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:13px;padding:6px 12px;background:rgba(37,99,235,0.06);border-radius:8px;cursor:pointer"><input type="checkbox" checked style="accent-color:#2563eb"> Sender</label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:13px;padding:6px 12px;background:rgba(37,99,235,0.06);border-radius:8px;cursor:pointer"><input type="checkbox" checked style="accent-color:#2563eb"> Receiver</label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:13px;padding:6px 12px;background:rgba(37,99,235,0.06);border-radius:8px;cursor:pointer"><input type="checkbox" checked style="accent-color:#2563eb"> Status</label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:13px;padding:6px 12px;background:rgba(255,255,255,0.5);border-radius:8px;cursor:pointer"><input type="checkbox" style="accent-color:#2563eb"> Fees</label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:13px;padding:6px 12px;background:rgba(255,255,255,0.5);border-radius:8px;cursor:pointer"><input type="checkbox" style="accent-color:#2563eb"> Audit Trail</label>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('exportModal')">Cancel</button>
+        <button class="btn btn-primary"><i class="bi bi-download"></i> Export 2,847 Transfers</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bulk Approve Modal -->
+  <div class="modal-overlay center" id="modal-bulkApprove">
+    <div class="modal glass-solid">
+      <div class="modal-header">
+        <div><h2>Bulk Approve Transfers</h2><p class="modal-subtitle">Authorize multiple transfers at once</p></div>
+        <button class="modal-close" onclick="closeModal('bulkApprove')"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <div class="modal-body">
+        <div style="padding:20px;background:linear-gradient(135deg,rgba(22,163,74,0.08),rgba(22,163,74,0.03));border-radius:14px;text-align:center;margin-bottom:20px">
+          <div style="font-size:48px;margin-bottom:12px">✅</div>
+          <div style="font-size:24px;font-weight:800;color:#111">3 Transfers</div>
+          <div style="font-size:14px;color:#6b6b6b;margin-top:4px">Total: $47,250.00 USD</div>
+        </div>
+        <div style="font-size:13px;color:#374151;margin-bottom:16px">You are about to approve the following transfers:</div>
+        <div style="max-height:200px;overflow-y:auto;margin-bottom:16px">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;background:rgba(255,255,255,0.5);border-radius:10px;margin-bottom:8px">
+            <div><span style="font-family:monospace;color:#2563eb;font-size:12px">TXN-78421</span><span style="margin-left:8px;font-size:13px">ACME Corporation</span></div>
+            <span style="font-weight:600">$25,000.00</span>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;background:rgba(255,255,255,0.5);border-radius:10px;margin-bottom:8px">
+            <div><span style="font-family:monospace;color:#2563eb;font-size:12px">TXN-78420</span><span style="margin-left:8px;font-size:13px">XYZ Suppliers</span></div>
+            <span style="font-weight:600">$12,500.00</span>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;background:rgba(255,255,255,0.5);border-radius:10px">
+            <div><span style="font-family:monospace;color:#2563eb;font-size:12px">TXN-78419</span><span style="margin-left:8px;font-size:13px">Global Tech Inc</span></div>
+            <span style="font-weight:600">$9,750.00</span>
+          </div>
+        </div>
+        <div style="padding:14px;background:rgba(245,158,11,0.08);border-radius:12px;font-size:13px;color:#92400e;display:flex;align-items:flex-start;gap:10px">
+          <i class="bi bi-shield-lock" style="font-size:18px;margin-top:2px"></i>
+          <div>This action requires 2FA verification. You will be prompted to enter your authentication code.</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('bulkApprove')">Cancel</button>
+        <button class="btn btn-success"><i class="bi bi-check-lg"></i> Approve All (3)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bulk Reject Modal -->
+  <div class="modal-overlay center" id="modal-bulkReject">
+    <div class="modal glass-solid">
+      <div class="modal-header">
+        <div><h2>Reject Transfers</h2><p class="modal-subtitle">Decline selected transfers</p></div>
+        <button class="modal-close" onclick="closeModal('bulkReject')"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <div class="modal-body">
+        <div style="padding:20px;background:rgba(220,38,38,0.06);border-radius:14px;text-align:center;margin-bottom:20px">
+          <div style="font-size:48px;margin-bottom:12px">❌</div>
+          <div style="font-size:24px;font-weight:800;color:#dc2626">3 Transfers</div>
+          <div style="font-size:14px;color:#6b6b6b;margin-top:4px">Will be rejected and cancelled</div>
+        </div>
+        <div class="filter-group">
+          <label>Rejection Reason <span style="color:#dc2626">*</span></label>
+          <select class="filter-input">
+            <option value="">Select a reason...</option>
+            <option>Insufficient documentation</option>
+            <option>Incorrect beneficiary details</option>
+            <option>Compliance concern</option>
+            <option>Duplicate transfer</option>
+            <option>Budget not approved</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="filter-group" style="margin-top:16px">
+          <label>Additional Comments <span style="font-weight:400;color:#9ca3af">(Optional)</span></label>
+          <textarea class="filter-input" rows="3" placeholder="Provide additional context for the rejection..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('bulkReject')">Cancel</button>
+        <button class="btn btn-danger"><i class="bi bi-x-lg"></i> Reject All (3)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Retry Transfer Modal -->
+  <div class="modal-overlay center" id="modal-retryTransfer">
+    <div class="modal glass-solid">
+      <div class="modal-header">
+        <div><h2>Retry Failed Transfer</h2><p class="modal-subtitle">Attempt to reprocess this transfer</p></div>
+        <button class="modal-close" onclick="closeModal('retryTransfer')"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <div class="modal-body">
+        <div style="padding:16px;background:rgba(220,38,38,0.06);border-radius:12px;margin-bottom:20px">
+          <div style="font-size:13px;font-weight:600;color:#dc2626;margin-bottom:8px"><i class="bi bi-exclamation-triangle"></i> Failure Reason</div>
+          <div style="font-size:14px;color:#374151">Insufficient funds in source account at time of processing.</div>
+        </div>
+        <div class="detail-grid">
+          <div class="detail-item">
+            <div class="di-label">Transaction</div>
+            <div class="di-value">TXN-78421</div>
+          </div>
+          <div class="detail-item">
+            <div class="di-label">Amount</div>
+            <div class="di-value">$25,000.00</div>
+          </div>
+          <div class="detail-item">
+            <div class="di-label">Current Balance</div>
+            <div class="di-value" style="color:#059669">$124,850.00</div>
+          </div>
+          <div class="detail-item">
+            <div class="di-label">Previous Attempts</div>
+            <div class="di-value">2 of 3</div>
+          </div>
+        </div>
+        <div style="padding:14px;background:rgba(16,185,129,0.06);border-radius:12px;font-size:13px;color:#065f46;margin-top:16px;display:flex;align-items:center;gap:10px">
+          <i class="bi bi-check-circle"></i> Sufficient funds now available. Retry should succeed.
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('retryTransfer')">Cancel</button>
+        <button class="btn btn-primary"><i class="bi bi-arrow-repeat"></i> Retry Now</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Upload Batch Modal -->
+  <div class="modal-overlay center" id="modal-uploadBatch">
+    <div class="modal glass-solid">
+      <div class="modal-header">
+        <div><h2>Upload Batch File</h2><p class="modal-subtitle">Import multiple transfers from a file</p></div>
+        <button class="modal-close" onclick="closeModal('uploadBatch')"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <div class="modal-body">
+        <div style="padding:48px 24px;border:2px dashed #d1d5db;border-radius:16px;text-align:center;background:rgba(255,255,255,0.3);cursor:pointer;transition:all 0.2s" onmouseover="this.style.borderColor='#93c5fd';this.style.background='rgba(59,130,246,0.04)'" onmouseout="this.style.borderColor='#d1d5db';this.style.background='rgba(255,255,255,0.3)'">
+          <i class="bi bi-cloud-arrow-up" style="font-size:48px;color:#9ca3af"></i>
+          <div style="font-size:16px;font-weight:600;color:#374151;margin-top:16px">Drop your file here or click to browse</div>
+          <div style="font-size:13px;color:#6b6b6b;margin-top:8px">Supports CSV, XLSX, XML, ISO 20022 (pain.001)</div>
+          <div style="font-size:12px;color:#9ca3af;margin-top:4px">Maximum file size: 50MB · Up to 10,000 transfers per file</div>
+        </div>
+        <div style="margin-top:20px">
+          <div style="font-size:13px;font-weight:600;color:#374151;margin-bottom:12px">Upload Options</div>
+          <label style="display:flex;align-items:center;gap:10px;padding:12px;background:rgba(255,255,255,0.5);border-radius:10px;cursor:pointer;margin-bottom:8px">
+            <input type="checkbox" checked style="accent-color:#2563eb;width:18px;height:18px">
+            <div><div style="font-size:13px;font-weight:500;color:#111">Validate before processing</div><div style="font-size:11px;color:#6b6b6b">Check all records before submitting for approval</div></div>
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;padding:12px;background:rgba(255,255,255,0.5);border-radius:10px;cursor:pointer">
+            <input type="checkbox" style="accent-color:#2563eb;width:18px;height:18px">
+            <div><div style="font-size:13px;font-weight:500;color:#111">Skip duplicate detection</div><div style="font-size:11px;color:#6b6b6b">Process transfers even if similar ones exist</div></div>
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('uploadBatch')">Cancel</button>
+        <button class="btn btn-primary"><i class="bi bi-upload"></i> Upload & Validate</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Retry Config Modal -->
+  <div class="modal-overlay center" id="modal-retryConfig">
+    <div class="modal glass-solid">
+      <div class="modal-header">
+        <div><h2>Auto-Retry Configuration</h2><p class="modal-subtitle">Configure automatic retry rules for failed transfers</p></div>
+        <button class="modal-close" onclick="closeModal('retryConfig')"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="filter-group" style="margin-bottom:16px">
+          <label>Enable Auto-Retry</label>
+          <div style="display:flex;align-items:center;gap:12px;margin-top:8px">
+            <div style="width:48px;height:28px;border-radius:14px;background:#2563eb;display:flex;align-items:center;justify-content:flex-end;padding:2px;cursor:pointer"><div style="width:24px;height:24px;border-radius:50%;background:white"></div></div>
+            <span style="font-size:13px;color:#111">Enabled</span>
+          </div>
+        </div>
+        <div class="filter-group" style="margin-bottom:16px">
+          <label>Maximum Retry Attempts</label>
+          <select class="filter-input">
+            <option>1 attempt</option>
+            <option>2 attempts</option>
+            <option selected>3 attempts</option>
+            <option>5 attempts</option>
+          </select>
+        </div>
+        <div class="filter-group" style="margin-bottom:16px">
+          <label>Retry Interval</label>
+          <select class="filter-input">
+            <option>5 minutes</option>
+            <option selected>15 minutes</option>
+            <option>30 minutes</option>
+            <option>1 hour</option>
+            <option>4 hours</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Retry on Error Codes</label>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px">
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px;padding:6px 10px;background:rgba(37,99,235,0.06);border-radius:6px;cursor:pointer"><input type="checkbox" checked style="accent-color:#2563eb"> TIMEOUT</label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px;padding:6px 10px;background:rgba(37,99,235,0.06);border-radius:6px;cursor:pointer"><input type="checkbox" checked style="accent-color:#2563eb"> CONN_ERR</label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px;padding:6px 10px;background:rgba(37,99,235,0.06);border-radius:6px;cursor:pointer"><input type="checkbox" checked style="accent-color:#2563eb"> BANK_UNAVAIL</label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px;padding:6px 10px;background:rgba(255,255,255,0.5);border-radius:6px;cursor:pointer"><input type="checkbox" style="accent-color:#2563eb"> INSUF_FUNDS</label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px;padding:6px 10px;background:rgba(255,255,255,0.5);border-radius:6px;cursor:pointer"><input type="checkbox" style="accent-color:#2563eb"> INVALID_ACCT</label>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('retryConfig')">Cancel</button>
+        <button class="btn btn-primary"><i class="bi bi-check-lg"></i> Save Configuration</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Sample transfer data
+    const transfers = [
+      { id: 'TXN-78421', date: '2026-01-15', time: '14:32', amount: 25000, currency: 'USD', sender: 'Operating Account', senderBank: 'Chase', receiver: 'ACME Corporation', receiverBank: 'Standard Chartered', rail: 'PesaLink', status: 'completed', risk: 12 },
+      { id: 'TXN-78420', date: '2026-01-15', time: '13:45', amount: 12500, currency: 'USD', sender: 'Float Account', senderBank: 'BoA', receiver: 'XYZ Suppliers', receiverBank: 'Equity Bank', rail: 'RTGS', status: 'pending', risk: 25 },
+      { id: 'TXN-78419', date: '2026-01-15', time: '11:20', amount: 9750, currency: 'USD', sender: 'Operating Account', senderBank: 'Chase', receiver: 'Global Tech Inc', receiverBank: 'KCB', rail: 'PesaLink', status: 'processing', risk: 18 },
+      { id: 'TXN-78418', date: '2026-01-14', time: '16:55', amount: 45000, currency: 'EUR', sender: 'EUR Collection', senderBank: 'Barclays', receiver: 'Munich Partners', receiverBank: 'Deutsche', rail: 'SWIFT', status: 'completed', risk: 45 },
+      { id: 'TXN-78417', date: '2026-01-14', time: '14:30', amount: 8200, currency: 'USD', sender: 'Operating Account', senderBank: 'Chase', receiver: 'Office Supplies Co', receiverBank: 'Wells Fargo', rail: 'ACH', status: 'completed', risk: 8 },
+      { id: 'TXN-78416', date: '2026-01-14', time: '10:15', amount: 156000, currency: 'KES', sender: 'KES Nostro', senderBank: 'Equity', receiver: 'Local Vendor', receiverBank: 'Coop', rail: 'PesaLink', status: 'failed', risk: 72 },
+      { id: 'TXN-78415', date: '2026-01-13', time: '15:40', amount: 32000, currency: 'USD', sender: 'Operating Account', senderBank: 'Chase', receiver: 'Cloud Services LLC', receiverBank: 'BoA', rail: 'Wire', status: 'completed', risk: 15 },
+      { id: 'TXN-78414', date: '2026-01-13', time: '09:20', amount: 5500, currency: 'GBP', sender: 'GBP Account', senderBank: 'Barclays', receiver: 'UK Partner Ltd', receiverBank: 'HSBC', rail: 'FPS', status: 'returned', risk: 35 },
+      { id: 'TXN-78413', date: '2026-01-12', time: '17:10', amount: 18750, currency: 'USD', sender: 'Float Account', senderBank: 'BoA', receiver: 'Marketing Agency', receiverBank: 'Chase', rail: 'ACH', status: 'completed', risk: 22 },
+      { id: 'TXN-78412', date: '2026-01-12', time: '11:45', amount: 92000, currency: 'USD', sender: 'Operating Account', senderBank: 'Chase', receiver: 'Overseas Branch', receiverBank: 'SCB Singapore', rail: 'SWIFT', status: 'draft', risk: 55 },
+    ];
+
+    // Populate table
+    function populateTable() {
+      const tbody = document.getElementById('tableBody');
+      tbody.innerHTML = transfers.map(t => {
+        const statusBadge = {
+          completed: '<span class="badge badge-green"><i class="bi bi-check-circle"></i> Completed</span>',
+          pending: '<span class="badge badge-amber"><i class="bi bi-hourglass"></i> Pending</span>',
+          processing: '<span class="badge badge-blue"><i class="bi bi-arrow-repeat"></i> Processing</span>',
+          failed: '<span class="badge badge-red"><i class="bi bi-x-circle"></i> Failed</span>',
+          returned: '<span class="badge badge-purple"><i class="bi bi-arrow-return-left"></i> Returned</span>',
+          draft: '<span class="badge badge-gray"><i class="bi bi-pencil"></i> Draft</span>',
+          cancelled: '<span class="badge badge-gray"><i class="bi bi-slash-circle"></i> Cancelled</span>',
+        }[t.status];
+        const riskClass = t.risk <= 30 ? 'low' : t.risk <= 70 ? 'medium' : 'high';
+        const senderIcon = { 'Chase': '🏦', 'BoA': '🏛️', 'Barclays': '🔐', 'Equity': '💰' }[t.senderBank] || '🏦';
+        const receiverIcon = { 'Standard Chartered': '🌍', 'Equity Bank': '💰', 'KCB': '🏧', 'Coop': '🤝' }[t.receiverBank] || '🏦';
+        return `
+          <tr>
+            <td style="padding-left:20px"><input type="checkbox" class="row-checkbox" onchange="updateBulkBar()"></td>
+            <td><span class="txn-id" style="cursor:pointer" onclick="openDrawer('${t.id}')">${t.id}</span></td>
+            <td><div class="txn-date">${t.date}</div><div class="txn-date">${t.time}</div></td>
+            <td><span class="txn-amount">${t.currency === 'KES' ? 'KES ' : t.currency === 'EUR' ? '€' : t.currency === 'GBP' ? '£' : '$'}${t.amount.toLocaleString()}</span><span class="txn-currency">${t.currency}</span></td>
+            <td><div class="txn-party"><div class="txn-party-icon" style="background:rgba(37,99,235,0.1)">${senderIcon}</div><div class="txn-party-info"><div class="txn-party-name">${t.sender}</div><div class="txn-party-account">${t.senderBank}</div></div></div></td>
+            <td><div class="txn-party"><div class="txn-party-icon" style="background:rgba(16,185,129,0.1)">${receiverIcon}</div><div class="txn-party-info"><div class="txn-party-name">${t.receiver}</div><div class="txn-party-account">${t.receiverBank}</div></div></div></td>
+            <td><span class="badge badge-blue">${t.rail}</span></td>
+            <td>${statusBadge}</td>
+            <td><span class="risk-score"><span class="risk-dot ${riskClass}"></span>${t.risk}</span></td>
+            <td style="padding-right:20px"><div class="row-actions"><button class="row-action" title="View" onclick="openDrawer('${t.id}')"><i class="bi bi-eye"></i></button><button class="row-action" title="Clone"><i class="bi bi-copy"></i></button><button class="row-action" title="Download"><i class="bi bi-download"></i></button><button class="row-action" title="More"><i class="bi bi-three-dots"></i></button></div></td>
+          </tr>
+        `;
+      }).join('');
+    }
+    populateTable();
+
+    // Sidebar
+    function toggleSidebar() {
+      const sb = document.getElementById('sidebar');
+      sb.classList.toggle('collapsed');
+      document.getElementById('collapseIcon').className = sb.classList.contains('collapsed') ? 'bi bi-chevron-right' : 'bi bi-chevron-left';
+      document.getElementById('collapseLabel').style.display = sb.classList.contains('collapsed') ? 'none' : '';
+    }
+    function openMobileMenu() {
+      document.getElementById('sidebar').classList.add('mobile-open');
+      document.getElementById('mobileOverlay').classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeMobileMenu() {
+      document.getElementById('sidebar').classList.remove('mobile-open');
+      document.getElementById('mobileOverlay').classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    // Tabs
+    function switchTab(el, tabId) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      el.classList.add('active');
+      document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+      document.getElementById('tab-' + tabId).style.display = 'block';
+    }
+
+    // Filter panel
+    function toggleFilter() {
+      const body = document.getElementById('filterBody');
+      const icon = document.getElementById('filterIcon');
+      const toggle = document.querySelector('.filter-toggle');
+      body.classList.toggle('open');
+      toggle.classList.toggle('open');
+    }
+    function toggleChip(el) { el.classList.toggle('active'); }
+    function clearFilters() {
+      document.querySelectorAll('.filter-input').forEach(i => { if (i.tagName === 'SELECT') i.selectedIndex = 0; else i.value = ''; });
+      document.querySelectorAll('.status-chip').forEach(c => c.classList.remove('active'));
+    }
+    function applyFilters() { toggleFilter(); }
+
+    // Bulk actions
+    function toggleSelectAll(cb) {
+      document.querySelectorAll('#tableBody .row-checkbox').forEach(c => c.checked = cb.checked);
+      updateBulkBar();
+    }
+    function updateBulkBar() {
+      const checked = document.querySelectorAll('#tableBody .row-checkbox:checked').length;
+      const bar = document.getElementById('bulkBar');
+      if (checked > 0) {
+        bar.classList.add('active');
+        document.getElementById('selectedCount').textContent = checked;
+      } else {
+        bar.classList.remove('active');
+      }
+    }
+    function clearSelection() {
+      document.querySelectorAll('.row-checkbox').forEach(c => c.checked = false);
+      updateBulkBar();
+    }
+    function bulkExport() { openModal('exportModal'); }
+
+    // Modals
+    function openModal(id) {
+      document.getElementById('modal-' + id).classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeModal(id) {
+      document.getElementById('modal-' + id).classList.remove('active');
+      document.body.style.overflow = '';
+    }
+    document.querySelectorAll('.modal-overlay.center').forEach(o => {
+      o.addEventListener('click', function(e) { if (e.target === this) closeModal(this.id.replace('modal-', '')); });
+    });
+
+    // Drawer
+    function openDrawer(txnId) {
+      document.getElementById('drawerTxnId').textContent = txnId;
+      document.getElementById('transferDrawer').classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeDrawer() {
+      document.getElementById('transferDrawer').classList.remove('active');
+      document.body.style.overflow = '';
+    }
+    document.getElementById('transferDrawer').addEventListener('click', function(e) {
+      if (e.target === this) closeDrawer();
+    });
+
+    // Detail tabs
+    function switchDetailTab(el, tabId) {
+      el.parentElement.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      el.classList.add('active');
+      document.querySelectorAll('.detail-tab-content').forEach(c => c.style.display = 'none');
+      document.getElementById('detail-' + tabId).style.display = 'block';
+    }
+
+    // Sort table (mock)
+    function sortTable(col) { console.log('Sorting by', col); }
+
+    // Download template (mock)
+    function downloadTemplate(format) { alert('Downloading ' + format.toUpperCase() + ' template...'); }
+
+    // Escape key
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.modal-overlay.active').forEach(o => {
+          if (o.id === 'transferDrawer') closeDrawer();
+          else closeModal(o.id.replace('modal-', ''));
+        });
+      }
+    });
+  </script>
+</body>
+</html>
