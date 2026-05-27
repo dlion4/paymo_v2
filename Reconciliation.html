@@ -1,0 +1,2558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reconciliation Center - PayMo BaaS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-color: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-light: #818cf8;
+            --secondary-color: #8b5cf6;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --info-color: #3b82f6;
+            --dark-bg: #0f172a;
+            --dark-card: #1e293b;
+            --dark-border: #334155;
+            --light-bg: #f8fafc;
+            --light-card: #ffffff;
+            --light-border: #e2e8f0;
+            --text-dark: #0f172a;
+            --text-light: #f8fafc;
+            --text-muted: #64748b;
+            --sidebar-width: 280px;
+            --sidebar-collapsed: 80px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+            transition: all 0.3s ease;
+        }
+
+        body.light-mode {
+            background: var(--light-bg);
+        }
+
+        /* Glassmorphism Effects */
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border-radius: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: var(--sidebar-width);
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1.5rem 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .sidebar.collapsed {
+            width: var(--sidebar-collapsed);
+        }
+
+        .sidebar-header {
+            padding: 0 1.5rem 1.5rem;
+            border-bottom: 1px solid var(--dark-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: var(--text-light);
+            font-size: 1.25rem;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar.collapsed .sidebar-logo span {
+            display: none;
+        }
+
+        .sidebar-toggle {
+            background: var(--primary-color);
+            border: none;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-toggle:hover {
+            background: var(--primary-dark);
+            transform: scale(1.05);
+        }
+
+        .sidebar-nav {
+            padding: 1.5rem 0;
+        }
+
+        .nav-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .nav-section-title {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            padding: 0 1.5rem;
+            margin-bottom: 0.5rem;
+            letter-spacing: 0.05em;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar.collapsed .nav-section-title {
+            opacity: 0;
+            height: 0;
+            margin: 0;
+            padding: 0;
+        }
+
+        .nav-link-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1.5rem;
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-link-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-light);
+        }
+
+        .nav-link-item.active {
+            background: var(--primary-color);
+            color: var(--text-light);
+        }
+
+        .nav-link-item.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--primary-light);
+        }
+
+        .nav-link-item i {
+            font-size: 1.25rem;
+            min-width: 24px;
+        }
+
+        .sidebar.collapsed .nav-link-item span {
+            display: none;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 2rem;
+            transition: all 0.3s ease;
+            min-height: 100vh;
+        }
+
+        .main-content.expanded {
+            margin-left: var(--sidebar-collapsed);
+        }
+
+        /* Top Bar */
+        .top-bar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 1rem 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+        }
+
+        .page-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin: 0;
+        }
+
+        .top-bar-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .theme-toggle {
+            background: var(--light-bg);
+            border: 1px solid var(--light-border);
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .theme-toggle:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .btn-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .stat-change {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            margin-top: 0.5rem;
+        }
+
+        .stat-change.positive {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+        }
+
+        .stat-change.negative {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger-color);
+        }
+
+        /* Tabs */
+        .custom-tabs {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 0.5rem;
+            overflow-x: auto;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            color: var(--text-muted);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .tab-btn:hover {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary-color);
+        }
+
+        .tab-btn.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        /* Content Card */
+        .content-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--light-border);
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin: 0;
+        }
+
+        /* Tables */
+        .table-responsive {
+            overflow-x: auto;
+            border-radius: 12px;
+        }
+
+        .custom-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .custom-table thead {
+            background: var(--light-bg);
+        }
+
+        .custom-table th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-dark);
+            font-size: 0.875rem;
+            border-bottom: 2px solid var(--light-border);
+        }
+
+        .custom-table td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--light-border);
+            color: var(--text-dark);
+        }
+
+        .custom-table tr:hover {
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        /* Badges */
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+        }
+
+        .badge-warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning-color);
+        }
+
+        .badge-danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger-color);
+        }
+
+        .badge-info {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--info-color);
+        }
+
+        /* Buttons */
+        .btn-custom {
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .btn-outline:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 800px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--light-border);
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .modal-close {
+            background: transparent;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: all 0.3s ease;
+        }
+
+        .modal-close:hover {
+            color: var(--danger-color);
+            transform: rotate(90deg);
+        }
+
+        /* Form Controls */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--light-border);
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        /* Progress Bar */
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--light-bg);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary-color);
+            transition: width 0.3s ease;
+        }
+
+        /* Spinner */
+        .spinner {
+            border: 3px solid rgba(99, 102, 241, 0.1);
+            border-top: 3px solid var(--primary-color);
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Alert */
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .alert-success {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--success-color);
+            color: var(--success-color);
+        }
+
+        .alert-warning {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid var(--warning-color);
+            color: var(--warning-color);
+        }
+
+        .alert-danger {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--danger-color);
+            color: var(--danger-color);
+        }
+
+        /* Charts */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin: 1rem 0;
+        }
+
+        /* Comparison View */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin: 1.5rem 0;
+        }
+
+        .comparison-panel {
+            background: var(--light-bg);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .comparison-title {
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--primary-color);
+        }
+
+        /* File Upload */
+        .upload-area {
+            border: 2px dashed var(--light-border);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .upload-area:hover {
+            border-color: var(--primary-color);
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        .upload-area.dragover {
+            border-color: var(--primary-color);
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: var(--sidebar-collapsed);
+            }
+
+            .sidebar-logo span,
+            .nav-section-title,
+            .nav-link-item span {
+                display: none;
+            }
+
+            .main-content {
+                margin-left: var(--sidebar-collapsed);
+                padding: 1rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .top-bar {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .custom-tabs {
+                overflow-x: scroll;
+            }
+        }
+
+        /* Action Buttons */
+        .action-btn {
+            background: transparent;
+            border: none;
+            padding: 0.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--text-muted);
+        }
+
+        .action-btn:hover {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary-color);
+        }
+
+        .aging-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+
+        .aging-0-30 { background: var(--success-color); }
+        .aging-31-60 { background: var(--warning-color); }
+        .aging-61-90 { background: var(--danger-color); }
+        .aging-90-plus { background: #6b7280; }
+
+        .match-suggestion {
+            background: rgba(99, 102, 241, 0.05);
+            border-left: 3px solid var(--primary-color);
+            padding: 1rem;
+            margin: 0.5rem 0;
+            border-radius: 8px;
+        }
+
+        .confidence-score {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .multistep-progress {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .multistep-progress::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--light-border);
+            z-index: -1;
+        }
+
+        .step-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            flex: 1;
+        }
+
+        .step-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--light-bg);
+            border: 2px solid var(--light-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: var(--text-muted);
+            transition: all 0.3s ease;
+        }
+
+        .step-item.active .step-circle {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+        }
+
+        .step-item.completed .step-circle {
+            background: var(--success-color);
+            border-color: var(--success-color);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <a href="#" class="sidebar-logo">
+                <i class="bi bi-bank2"></i>
+                <span>PayMo</span>
+            </a>
+            <button class="sidebar-toggle" id="sidebarToggle">
+                <i class="bi bi-list"></i>
+            </button>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-title">Dashboard</div>
+                <a href="#overview" class="nav-link-item">
+                    <i class="bi bi-speedometer2"></i>
+                    <span>Overview</span>
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Transactions</div>
+                <a href="#initiate" class="nav-link-item">
+                    <i class="bi bi-send"></i>
+                    <span>Initiate Transfer</span>
+                </a>
+                <a href="#management" class="nav-link-item">
+                    <i class="bi bi-list-check"></i>
+                    <span>Transfer Management</span>
+                </a>
+                <a href="#rails" class="nav-link-item">
+                    <i class="bi bi-diagram-3"></i>
+                    <span>Payment Rails</span>
+                </a>
+                <a href="#liquidity" class="nav-link-item">
+                    <i class="bi bi-cash-stack"></i>
+                    <span>Liquidity</span>
+                </a>
+                <a href="#reconciliation" class="nav-link-item active">
+                    <i class="bi bi-arrow-left-right"></i>
+                    <span>Reconciliation</span>
+                </a>
+                <a href="#settlement" class="nav-link-item">
+                    <i class="bi bi-calculator"></i>
+                    <span>Settlement</span>
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Analytics</div>
+                <a href="#analytics" class="nav-link-item">
+                    <i class="bi bi-graph-up"></i>
+                    <span>Analytics</span>
+                </a>
+                <a href="#reports" class="nav-link-item">
+                    <i class="bi bi-file-earmark-text"></i>
+                    <span>Reports</span>
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">System</div>
+                <a href="#compliance" class="nav-link-item">
+                    <i class="bi bi-shield-check"></i>
+                    <span>Compliance</span>
+                </a>
+                <a href="#api" class="nav-link-item">
+                    <i class="bi bi-code-square"></i>
+                    <span>API</span>
+                </a>
+                <a href="#settings" class="nav-link-item">
+                    <i class="bi bi-gear"></i>
+                    <span>Settings</span>
+                </a>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <div>
+                <h1 class="page-title">Reconciliation Center</h1>
+                <p style="color: var(--text-muted); margin: 0; font-size: 0.875rem;">Automated and manual transaction matching across systems</p>
+            </div>
+            <div class="top-bar-actions">
+                <button class="btn-icon theme-toggle" id="themeToggle">
+                    <i class="bi bi-moon-fill"></i>
+                </button>
+                <button class="btn-icon" style="background: var(--light-bg); border: 1px solid var(--light-border);">
+                    <i class="bi bi-bell"></i>
+                </button>
+                <button class="btn-icon" style="background: var(--light-bg); border: 1px solid var(--light-border);">
+                    <i class="bi bi-person-circle"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(16, 185, 129, 0.1); color: var(--success-color);">
+                    <i class="bi bi-check-circle-fill"></i>
+                </div>
+                <div class="stat-value">98.7%</div>
+                <div class="stat-label">Match Rate</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 98.7%; background: var(--success-color);"></div>
+                </div>
+                <span class="stat-change positive">
+                    <i class="bi bi-arrow-up"></i>
+                    2.3% from last month
+                </span>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(245, 158, 11, 0.1); color: var(--warning-color);">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                </div>
+                <div class="stat-value">1,247</div>
+                <div class="stat-label">Unmatched Items</div>
+                <span class="stat-change negative">
+                    <i class="bi bi-arrow-down"></i>
+                    156 pending review
+                </span>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(59, 130, 246, 0.1); color: var(--info-color);">
+                    <i class="bi bi-clock-history"></i>
+                </div>
+                <div class="stat-value">24 hrs</div>
+                <div class="stat-label">Avg Resolution Time</div>
+                <span class="stat-change positive">
+                    <i class="bi bi-arrow-up"></i>
+                    15% faster
+                </span>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(139, 92, 246, 0.1); color: var(--secondary-color);">
+                    <i class="bi bi-robot"></i>
+                </div>
+                <div class="stat-value">89%</div>
+                <div class="stat-label">Auto-Match Success</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 89%; background: var(--secondary-color);"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="custom-tabs">
+            <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
+            <button class="tab-btn" data-tab="auto-engine">Auto-Reconciliation</button>
+            <button class="tab-btn" data-tab="manual-workspace">Manual Workspace</button>
+            <button class="tab-btn" data-tab="import">Bank Statement Import</button>
+            <button class="tab-btn" data-tab="reports">Reports</button>
+        </div>
+
+        <!-- Tab Content: Dashboard -->
+        <div class="tab-content active" id="dashboard">
+            <!-- Breakdown Analysis -->
+            <div class="content-card">
+                <div class="card-header">
+                    <h2 class="card-title">Reconciliation Breakdown</h2>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <select class="form-control" style="width: auto;">
+                            <option>Last 7 Days</option>
+                            <option>Last 30 Days</option>
+                            <option>Last 90 Days</option>
+                            <option>Custom Range</option>
+                        </select>
+                        <button class="btn-custom btn-outline">
+                            <i class="bi bi-download"></i>
+                            Export
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="custom-table">
+                        <thead>
+                            <tr>
+                                <th>Payment Rail</th>
+                                <th>Total Transactions</th>
+                                <th>Matched</th>
+                                <th>Unmatched</th>
+                                <th>Match Rate</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>SWIFT</strong></td>
+                                <td>12,458</td>
+                                <td>12,287</td>
+                                <td>171</td>
+                                <td>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: 98.6%;"></div>
+                                    </div>
+                                    <small>98.6%</small>
+                                </td>
+                                <td><span class="badge badge-success">Excellent</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>SEPA</strong></td>
+                                <td>8,934</td>
+                                <td>8,821</td>
+                                <td>113</td>
+                                <td>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: 98.7%;"></div>
+                                    </div>
+                                    <small>98.7%</small>
+                                </td>
+                                <td><span class="badge badge-success">Excellent</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>ACH</strong></td>
+                                <td>25,678</td>
+                                <td>25,123</td>
+                                <td>555</td>
+                                <td>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: 97.8%;"></div>
+                                    </div>
+                                    <small>97.8%</small>
+                                </td>
+                                <td><span class="badge badge-success">Good</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Wire Transfer</strong></td>
+                                <td>6,234</td>
+                                <td>6,112</td>
+                                <td>122</td>
+                                <td>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: 98.0%;"></div>
+                                    </div>
+                                    <small>98.0%</small>
+                                </td>
+                                <td><span class="badge badge-success">Excellent</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>FPS</strong></td>
+                                <td>18,456</td>
+                                <td>18,170</td>
+                                <td>286</td>
+                                <td>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: 98.4%;"></div>
+                                    </div>
+                                    <small>98.4%</small>
+                                </td>
+                                <td><span class="badge badge-success">Excellent</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Aging Analysis -->
+            <div class="content-card">
+                <div class="card-header">
+                    <h2 class="card-title">Aging Analysis of Unmatched Items</h2>
+                    <button class="btn-custom btn-outline" onclick="openAgingDetailsModal()">
+                        <i class="bi bi-zoom-in"></i>
+                        View Details
+                    </button>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                    <div style="background: var(--light-bg); padding: 1.5rem; border-radius: 12px;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                            <span class="aging-indicator aging-0-30"></span>
+                            <strong>0-30 Days</strong>
+                        </div>
+                        <div style="font-size: 1.5rem; font-weight: 700; color: var(--success-color);">456</div>
+                        <small style="color: var(--text-muted);">36.6% of total</small>
+                    </div>
+
+                    <div style="background: var(--light-bg); padding: 1.5rem; border-radius: 12px;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                            <span class="aging-indicator aging-31-60"></span>
+                            <strong>31-60 Days</strong>
+                        </div>
+                        <div style="font-size: 1.5rem; font-weight: 700; color: var(--warning-color);">387</div>
+                        <small style="color: var(--text-muted);">31.0% of total</small>
+                    </div>
+
+                    <div style="background: var(--light-bg); padding: 1.5rem; border-radius: 12px;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                            <span class="aging-indicator aging-61-90"></span>
+                            <strong>61-90 Days</strong>
+                        </div>
+                        <div style="font-size: 1.5rem; font-weight: 700; color: var(--danger-color);">234</div>
+                        <small style="color: var(--text-muted);">18.8% of total</small>
+                    </div>
+
+                    <div style="background: var(--light-bg); padding: 1.5rem; border-radius: 12px;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                            <span class="aging-indicator aging-90-plus"></span>
+                            <strong>90+ Days</strong>
+                        </div>
+                        <div style="font-size: 1.5rem; font-weight: 700; color: #6b7280;">170</div>
+                        <small style="color: var(--text-muted);">13.6% of total</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Content: Auto-Reconciliation Engine -->
+        <div class="tab-content" id="auto-engine" style="display: none;">
+            <div class="content-card">
+                <div class="card-header">
+                    <h2 class="card-title">Matching Rules Configuration</h2>
+                    <button class="btn-custom btn-primary" onclick="openNewRuleModal()">
+                        <i class="bi bi-plus-circle"></i>
+                        New Rule
+                    </button>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="custom-table">
+                        <thead>
+                            <tr>
+                                <th>Rule Name</th>
+                                <th>Type</th>
+                                <th>Priority</th>
+                                <th>Success Rate</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Exact Amount & Reference Match</strong></td>
+                                <td><span class="badge badge-info">Exact</span></td>
+                                <td>1</td>
+                                <td>
+                                    <div class="confidence-score">
+                                        <div class="progress-bar" style="width: 100px;">
+                                            <div class="progress-fill" style="width: 95%;"></div>
+                                        </div>
+                                        95%
+                                    </div>
+                                </td>
+                                <td><span class="badge badge-success">Active</span></td>
+                                <td>
+                                    <button class="action-btn" onclick="editRule(1)"><i class="bi bi-pencil"></i></button>
+                                    <button class="action-btn" onclick="toggleRule(1)"><i class="bi bi-toggle-on"></i></button>
+                                    <button class="action-btn" onclick="deleteRule(1)"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Fuzzy Amount Match (±0.5%)</strong></td>
+                                <td><span class="badge badge-warning">Fuzzy</span></td>
+                                <td>2</td>
+                                <td>
+                                    <div class="confidence-score">
+                                        <div class="progress-bar" style="width: 100px;">
+                                            <div class="progress-fill" style="width: 87%;"></div>
+                                        </div>
+                                        87%
+                                    </div>
+                                </td>
+                                <td><span class="badge badge-success">Active</span></td>
+                                <td>
+                                    <button class="action-btn" onclick="editRule(2)"><i class="bi bi-pencil"></i></button>
+                                    <button class="action-btn" onclick="toggleRule(2)"><i class="bi bi-toggle-on"></i></button>
+                                    <button class="action-btn" onclick="deleteRule(2)"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Reference Number Based</strong></td>
+                                <td><span class="badge badge-info">Reference</span></td>
+                                <td>3</td>
+                                <td>
+                                    <div class="confidence-score">
+                                        <div class="progress-bar" style="width: 100px;">
+                                            <div class="progress-fill" style="width: 92%;"></div>
+                                        </div>
+                                        92%
+                                    </div>
+                                </td>
+                                <td><span class="badge badge-success">Active</span></td>
+                                <td>
+                                    <button class="action-btn" onclick="editRule(3)"><i class="bi bi-pencil"></i></button>
+                                    <button class="action-btn" onclick="toggleRule(3)"><i class="bi bi-toggle-on"></i></button>
+                                    <button class="action-btn" onclick="deleteRule(3)"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Date Window Match (±2 days)</strong></td>
+                                <td><span class="badge badge-warning">Fuzzy</span></td>
+                                <td>4</td>
+                                <td>
+                                    <div class="confidence-score">
+                                        <div class="progress-bar" style="width: 100px;">
+                                            <div class="progress-fill" style="width: 78%;"></div>
+                                        </div>
+                                        78%
+                                    </div>
+                                </td>
+                                <td><span class="badge badge-warning">Testing</span></td>
+                                <td>
+                                    <button class="action-btn" onclick="editRule(4)"><i class="bi bi-pencil"></i></button>
+                                    <button class="action-btn" onclick="toggleRule(4)"><i class="bi bi-toggle-off"></i></button>
+                                    <button class="action-btn" onclick="deleteRule(4)"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <div class="card-header">
+                    <h2 class="card-title">Tolerance Settings</h2>
+                    <button class="btn-custom btn-outline" onclick="saveToleranceSettings()">
+                        <i class="bi bi-save"></i>
+                        Save Settings
+                    </button>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+                    <div class="form-group">
+                        <label class="form-label">Amount Tolerance (%)</label>
+                        <input type="number" class="form-control" value="0.5" step="0.1">
+                        <small style="color: var(--text-muted);">Acceptable variance in transaction amounts</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Date Tolerance (days)</label>
+                        <input type="number" class="form-control" value="2">
+                        <small style="color: var(--text-muted);">Acceptable difference in transaction dates</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Minimum Confidence Score (%)</label>
+                        <input type="number" class="form-control" value="80">
+                        <small style="color: var(--text-muted);">Minimum match confidence for auto-reconciliation</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Maximum Auto-Match Amount</label>
+                        <input type="number" class="form-control" value="10000">
+                        <small style="color: var(--text-muted);">Transactions above this require manual review</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <div class="card-header">
+                    <h2 class="card-title">Scheduled Reconciliation Jobs</h2>
+                    <button class="btn-custom btn-primary" onclick="openScheduleJobModal()">
+                        <i class="bi bi-calendar-plus"></i>
+                        Schedule Job
+                    </button>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="custom-table">
+                        <thead>
+                            <tr>
+                                <th>Job Name</th>
+                                <th>Schedule</th>
+                                <th>Last Run</th>
+                                <th>Next Run</th>
+                                <th>Items Processed</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Daily EOD Reconciliation</strong></td>
+                                <td>Daily @ 23:00 UTC</td>
+                                <td>2024-01-15 23:00</td>
+                                <td>2024-01-16 23:00</td>
+                                <td>15,234</td>
+                                <td><span class="badge badge-success">Completed</span></td>
+                                <td>
+                                    <button class="action-btn" onclick="viewJobDetails(1)"><i class="bi bi-eye"></i></button>
+                                    <button class="action-btn" onclick="runJobNow(1)"><i class="bi bi-play-fill"></i></button>
+                                    <button class="action-btn" onclick="editJob(1)"><i class="bi bi-pencil"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Hourly SWIFT Matching</strong></td>
+                                <td>Hourly</td>
+                                <td>2024-01-16 14:00</td>
+                                <td>2024-01-16 15:00</td>
+                                <td>456</td>
+                                <td><span class="badge badge-info">Running</span></td>
+                                <td>
+                                    <button class="action-btn" onclick="viewJobDetails(2)"><i class="bi bi-eye"></i></button>
+                                    <button class="action-btn" onclick="stopJob(2)"><i class="bi bi-stop-fill"></i></button>
+                                    <button class="action-btn" onclick="editJob(2)"><i class="bi bi-pencil"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Weekly Deep Reconciliation</strong></td>
+                                <td>Weekly @ Sunday 00:00</td>
+                                <td>2024-01-14 00:00</td>
+                                <td>2024-01-21 00:00</td>
+                                <td>78,432</td>
+                                <td><span class="badge badge-success">Completed</span></td>
+                                <td>
+                                    <button class="action-btn" onclick="viewJobDetails(3)"><i class="bi bi-eye"></i></button>
+                                    <button class="action-btn" onclick="runJobNow(3)"><i class="bi bi-play-fill"></i></button>
+                                    <button class="action-btn" onclick="editJob(3)"><i class="bi bi-pencil"></i></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Content: Manual Workspace -->
+        <div class="tab-content" id="manual-workspace" style="display: none;">
+            <div class="content-card">
+                <div class="card-header">
+                    <h2 class="card-title">Unmatched Items Queue</h2>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <select class="form-control" style="width: auto;">
+                            <option>All Rails</option>
+                            <option>SWIFT</option>
+                            <option>SEPA</option>
+                            <option>ACH</option>
+                            <option>Wire</option>
+                        </select>
+                        <select class="form-control" style="width: auto;">
+                            <option>All Currencies</option>
+                            <option>USD</option>
+                            <option>EUR</option>
+                            <option>GBP</option>
+                            <option>JPY</option>
+                        </select>
+                        <button class="btn-custom btn-outline" onclick="openBulkMatchModal()">
+                            <i class="bi bi-stack"></i>
+                            Bulk Match
+                        </button>
+                    </div>
+                </div>
+
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    <div>
+                        <strong>156 items require manual review</strong>
+                        <br>
+                        <small>AI-powered suggestions available for 89 items</small>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="custom-table">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" id="selectAll"></th>
+                                <th>Transaction ID</th>
+                                <th>Date</th>
+                                <th>Amount</th>
+                                <th>Reference</th>
+                                <th>Rail</th>
+                                <th>Age</th>
+                                <th>AI Suggestions</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><input type="checkbox" class="item-checkbox"></td>
+                                <td><strong>TXN-2024-001</strong></td>
+                                <td>2024-01-15</td>
+                                <td><strong>$5,234.50</strong></td>
+                                <td>INV-45678</td>
+                                <td><span class="badge badge-info">SWIFT</span></td>
+                                <td><span class="aging-indicator aging-0-30"></span> 3 days</td>
+                                <td><span class="badge badge-success">2 matches (95%)</span></td>
+                                <td>
+                                    <button class="action-btn" onclick="openMatchingModal('TXN-2024-001')"><i class="bi bi-arrow-left-right"></i></button>
+                                    <button class="action-btn" onclick="viewTransaction('TXN-2024-001')"><i class="bi bi-eye"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" class="item-checkbox"></td>
+                                <td><strong>TXN-2024-002</strong></td>
+                                <td>2024-01-14</td>
+                                <td><strong>€12,450.00</strong></td>
+                                <td>PAY-89012</td>
+                                <td><span class="badge badge-info">SEPA</span></td>
+                                <td><span class="aging-indicator aging-0-30"></span> 4 days</td>
+                                <td><span class="badge badge-warning">1 match (78%)</span></td>
+                                <td>
+                                    <button class="action-btn" onclick="openMatchingModal('TXN-2024-002')"><i class="bi bi-arrow-left-right"></i></button>
+                                    <button class="action-btn" onclick="viewTransaction('TXN-2024-002')"><i class="bi bi-eye"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" class="item-checkbox"></td>
+                                <td><strong>TXN-2024-003</strong></td>
+                                <td>2023-12-20</td>
+                                <td><strong>$8,900.25</strong></td>
+                                <td>REF-34567</td>
+                                <td><span class="badge badge-info">ACH</span></td>
+                                <td><span class="aging-indicator aging-31-60"></span> 45 days</td>
+                                <td><span class="badge badge-danger">No matches</span></td>
+                                <td>
+                                    <button class="action-btn" onclick="openMatchingModal('TXN-2024-003')"><i class="bi bi-arrow-left-right"></i></button>
+                                    <button class="action-btn" onclick="viewTransaction('TXN-2024-003')"><i class="bi bi-eye"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" class="item-checkbox"></td>
+                                <td><strong>TXN-2024-004</strong></td>
+                                <td>2024-01-12</td>
+                                <td><strong>£3,456.78</strong></td>
+                                <td>TRF-67890</td>
+                                <td><span class="badge badge-info">FPS</span></td>
+                                <td><span class="aging-indicator aging-0-30"></span> 6 days</td>
+                                <td><span class="badge badge-success">3 matches (92%)</span></td>
+                                <td>
+                                    <button class="action-btn" onclick="openMatchingModal('TXN-2024-004')"><i class="bi bi-arrow-left-right"></i></button>
+                                    <button class="action-btn" onclick="viewTransaction('TXN-2024-004')"><i class="bi bi-eye"></i></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Content: Bank Statement Import -->
+        <div class="tab-content" id="import" style="display: none;">
+            <div class="content-card">
+                <div class="card-header">
+                    <h2 class="card-title">Import Bank Statement</h2>
+                    <button class="btn-custom btn-primary" onclick="openImportModal()">
+                        <i class="bi bi-upload"></i>
+                        New Import
+                    </button>
+                </div>
+
+                <div class="upload-area" id="uploadArea">
+                    <i class="bi bi-cloud-upload" style="font-size: 3rem; color: var(--primary-color); margin-bottom: 1rem;"></i>
+                    <h3>Drop files here or click to browse</h3>
+                    <p style="color: var(--text-muted); margin-top: 0.5rem;">
+                        Supported formats: MT940, CAMT.053, CSV, ISO 20022, Excel
+                    </p>
+                    <input type="file" id="fileInput" style="display: none;" multiple accept=".csv,.xml,.xlsx,.mt940,.txt">
+                    <button class="btn-custom btn-primary" style="margin-top: 1rem;" onclick="document.getElementById('fileInput').click()">
+                        Browse Files
+                    </button>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <div class="card-header">
+                    <h2 class="card-title">Import History</h2>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <select class="form-control" style="width: auto;">
+                            <option>All Statuses</option>
+                            <option>Success</option>
+                            <option>Failed</option>
+                            <option>In Progress</option>
+                        </select>
+                        <button class="btn-custom btn-outline">
+                            <i class="bi bi-funnel"></i>
+                            Filter
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="custom-table">
+                        <thead>
+                            <tr>
+                                <th>Import ID</th>
+                                <th>Date/Time</th>
+                                <th>File Name</th>
+                                <th>Format</th>
+                                <th>Records</th>
+                                <th>Parsed</th>
+                                <th>Errors</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>IMP-2024-0156</strong></td>
+                                <td>2024-01-16 14:23</td>
+                                <td>swift_statement_jan2024.mt940</td>
+                                <td><span class="badge badge-info">MT940</span></td>
+                                <td>1,234</td>
+                                <td>1,234</td>
+                                <td>0</td>
+                                <td><span class="badge badge-success">Success</span></td>
+                                <td>
+                                    <button class="action-btn" onclick="viewImportDetails('IMP-2024-0156')"><i class="bi bi-eye"></i></button>
+                                    <button class="action-btn" onclick="downloadImport('IMP-2024-0156')"><i class="bi bi-download"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>IMP-2024-0155</strong></td>
+                                <td>2024-01-16 13:45</td>
+                                <td>sepa_camt053_20240116.xml</td>
+                                <td><span class="badge badge-info">CAMT.053</span></td>
+                                <td>856</td>
+                                <td>856</td>
+                                <td>0</td>
+                                <td><span class="badge badge-success">Success</span></td>
+                                <td>
+                                    <button class="action-btn" onclick="viewImportDetails('IMP-2024-0155')"><i class="bi bi-eye"></i></button>
+                                    <button class="action-btn" onclick="downloadImport('IMP-2024-0155')"><i class="bi bi-download"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>IMP-2024-0154</strong></td>
+                                <td>2024-01-16 12:30</td>
+                                <td>ach_transactions.csv</td>
+                                <td><span class="badge badge-info">CSV</span></td>
+                                <td>2,456</td>
+                                <td>2,423</td>
+                                <td>33</td>
+                                <td><span class="badge badge-warning">Partial</span></td>
+                                <td>
+                                    <button class="action-btn" onclick="viewImportDetails('IMP-2024-0154')"><i class="bi bi-eye"></i></button>
+                                    <button class="action-btn" onclick="viewErrors('IMP-2024-0154')"><i class="bi bi-exclamation-circle"></i></button>
+                                    <button class="action-btn" onclick="retryImport('IMP-2024-0154')"><i class="bi bi-arrow-clockwise"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>IMP-2024-0153</strong></td>
+                                <td>2024-01-16 10:15</td>
+                                <td>wire_transfers_q1.xlsx</td>
+                                <td><span class="badge badge-info">Excel</span></td>
+                                <td>-</td>
+                                <td>-</td>
+                                <td>-</td>
+                                <td>
+                                    <span class="badge badge-info">
+                                        <div class="spinner" style="width: 12px; height: 12px; border-width: 2px; display: inline-block; margin-right: 4px;"></div>
+                                        Processing
+                                    </span>
+                                </td>
+                                <td>
+                                    <button class="action-btn" onclick="cancelImport('IMP-2024-0153')"><i class="bi bi-x-circle"></i></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <div class="card-header">
+                    <h2 class="card-title">Auto-Import Configuration</h2>
+                    <button class="btn-custom btn-primary" onclick="openAutoImportModal()">
+                        <i class="bi bi-gear"></i>
+                        Configure
+                    </button>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+                    <div style="background: var(--light-bg); padding: 1.5rem; border-radius: 12px;">
+                        <h4 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <i class="bi bi-hdd-network" style="color: var(--primary-color);"></i>
+                            SFTP Connection
+                        </h4>
+                        <div style="margin-bottom: 0.5rem;">
+                            <strong>Status:</strong> <span class="badge badge-success">Connected</span>
+                        </div>
+                        <div style="margin-bottom: 0.5rem;">
+                            <strong>Last Sync:</strong> 2024-01-16 14:30
+                        </div>
+                        <div style="margin-bottom: 0.5rem;">
+                            <strong>Files Retrieved:</strong> 3
+                        </div>
+                        <button class="btn-custom btn-outline" style="margin-top: 1rem;" onclick="testSFTPConnection()">
+                            <i class="bi bi-lightning"></i>
+                            Test Connection
+                        </button>
+                    </div>
+
+                    <div style="background: var(--light-bg); padding: 1.5rem; border-radius: 12px;">
+                        <h4 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <i class="bi bi-link-45deg" style="color: var(--info-color);"></i>
+                            API Integration
+                        </h4>
+                        <div style="margin-bottom: 0.5rem;">
+                            <strong>Status:</strong> <span class="badge badge-success">Active</span>
+                        </div>
+                        <div style="margin-bottom: 0.5rem;">
+                            <strong>Last Request:</strong> 2024-01-16 14:25
+                        </div>
+                        <div style="margin-bottom: 0.5rem;">
+                            <strong>Endpoints:</strong> 5 configured
+                        </div>
+                        <button class="btn-custom btn-outline" style="margin-top: 1rem;" onclick="manageAPIEndpoints()">
+                            <i class="bi bi-gear"></i>
+                            Manage Endpoints
+                        </button>
+                    </div>
+
+                    <div style="background: var(--light-bg); padding: 1.5rem; border-radius: 12px;">
+                        <h4 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <i class="bi bi-calendar-check" style="color: var(--success-color);"></i>
+                            Scheduled Import
+                        </h4>
+                        <div style="margin-bottom: 0.5rem;">
+                            <strong>Frequency:</strong> Every 6 hours
+                        </div>
+                        <div style="margin-bottom: 0.5rem;">
+                            <strong>Next Run:</strong> 2024-01-16 18:00
+                        </div>
+                        <div style="margin-bottom: 0.5rem;">
+                            <strong>Success Rate:</strong> 98.5%
+                        </div>
+                        <button class="btn-custom btn-outline" style="margin-top: 1rem;" onclick="editSchedule()">
+                            <i class="bi bi-pencil"></i>
+                            Edit Schedule
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Content: Reports -->
+        <div class="tab-content" id="reports" style="display: none;">
+            <div class="content-card">
+                <div class="card-header">
+                    <h2 class="card-title">Reconciliation Reports</h2>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button class="btn-custom btn-primary" onclick="generateReport()">
+                            <i class="bi bi-file-earmark-plus"></i>
+                            Generate Report
+                        </button>
+                        <button class="btn-custom btn-outline" onclick="scheduleReport()">
+                            <i class="bi bi-calendar-event"></i>
+                            Schedule
+                        </button>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+                    <div style="background: var(--light-bg); padding: 1.5rem; border-radius: 12px; cursor: pointer;" onclick="openReportModal('daily')">
+                        <i class="bi bi-calendar-day" style="font-size: 2rem; color: var(--primary-color); margin-bottom: 0.5rem;"></i>
+                        <h4>Daily Reconciliation Summary</h4>
+                        <p style="color: var(--text-muted); font-size: 0.875rem;">End-of-day reconciliation status and summary</p>
+                    </div>
+
+                    <div style="background: var(--light-bg); padding: 1.5rem; border-radius: 12px; cursor: pointer;" onclick="openReportModal('outstanding')">
+                        <i class="bi bi-exclamation-triangle" style="font-size: 2rem; color: var(--warning-color); margin-bottom: 0.5rem;"></i>
+                        <h4>Outstanding Items Report</h4>
+                        <p style="color: var(--text-muted); font-size: 0.875rem;">Detailed list of unmatched transactions</p>
+                    </div>
+
+                    <div style="background: var(--light-bg); padding: 1.5rem; border-radius: 12px; cursor: pointer;" onclick="openReportModal('adjustment')">
+                        <i class="bi bi-journal-text" style="font-size: 2rem; color: var(--info-color); margin-bottom: 0.5rem;"></i>
+                        <h4>Adjustment Journal Entries</h4>
+                        <p style="color: var(--text-muted); font-size: 0.875rem;">Manual adjustments and corrections log</p>
+                    </div>
+
+                    <div style="background: var(--light-bg); padding: 1.5rem; border-radius: 12px; cursor: pointer;" onclick="openReportModal('audit')">
+                        <i class="bi bi-shield-check" style="font-size: 2rem; color: var(--success-color); margin-bottom: 0.5rem;"></i>
+                        <h4>Audit-Ready Certificates</h4>
+                        <p style="color: var(--text-muted); font-size: 0.875rem;">Compliance and audit reconciliation certificates</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <div class="card-header">
+                    <h2 class="card-title">Recent Reports</h2>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="custom-table">
+                        <thead>
+                            <tr>
+                                <th>Report ID</th>
+                                <th>Type</th>
+                                <th>Generated</th>
+                                <th>Period</th>
+                                <th>Generated By</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>RPT-2024-0089</strong></td>
+                                <td>Daily Summary</td>
+                                <td>2024-01-16 00:15</td>
+                                <td>Jan 15, 2024</td>
+                                <td>System Auto</td>
+                                <td><span class="badge badge-success">Ready</span></td>
+                                <td>
+                                    <button class="action-btn" onclick="viewReport('RPT-2024-0089')"><i class="bi bi-eye"></i></button>
+                                    <button class="action-btn" onclick="downloadReport('RPT-2024-0089', 'pdf')"><i class="bi bi-file-pdf"></i></button>
+                                    <button class="action-btn" onclick="downloadReport('RPT-2024-0089', 'excel')"><i class="bi bi-file-excel"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>RPT-2024-0088</strong></td>
+                                <td>Outstanding Items</td>
+                                <td>2024-01-15 16:30</td>
+                                <td>Jan 1-15, 2024</td>
+                                <td>John Doe</td>
+                                <td><span class="badge badge-success">Ready</span></td>
+                                <td>
+                                    <button class="action-btn" onclick="viewReport('RPT-2024-0088')"><i class="bi bi-eye"></i></button>
+                                    <button class="action-btn" onclick="downloadReport('RPT-2024-0088', 'pdf')"><i class="bi bi-file-pdf"></i></button>
+                                    <button class="action-btn" onclick="downloadReport('RPT-2024-0088', 'excel')"><i class="bi bi-file-excel"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>RPT-2024-0087</strong></td>
+                                <td>Audit Certificate</td>
+                                <td>2024-01-15 14:20</td>
+                                <td>Q4 2023</td>
+                                <td>Jane Smith</td>
+                                <td><span class="badge badge-success">Ready</span></td>
+                                <td>
+                                    <button class="action-btn" onclick="viewReport('RPT-2024-0087')"><i class="bi bi-eye"></i></button>
+                                    <button class="action-btn" onclick="downloadReport('RPT-2024-0087', 'pdf')"><i class="bi bi-file-pdf"></i></button>
+                                    <button class="action-btn" onclick="downloadReport('RPT-2024-0087', 'excel')"><i class="bi bi-file-excel"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>RPT-2024-0086</strong></td>
+                                <td>Adjustment Journal</td>
+                                <td>2024-01-15 11:45</td>
+                                <td>Jan 1-14, 2024</td>
+                                <td>System Auto</td>
+                                <td>
+                                    <span class="badge badge-info">
+                                        <div class="spinner" style="width: 12px; height: 12px; border-width: 2px; display: inline-block; margin-right: 4px;"></div>
+                                        Processing
+                                    </span>
+                                </td>
+                                <td>
+                                    <button class="action-btn" disabled><i class="bi bi-eye"></i></button>
+                                    <button class="action-btn" disabled><i class="bi bi-file-pdf"></i></button>
+                                    <button class="action-btn" disabled><i class="bi bi-file-excel"></i></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+
+    <!-- Matching Modal -->
+    <div class="modal" id="matchingModal">
+        <div class="modal-content" style="max-width: 1200px;">
+            <div class="modal-header">
+                <h2 class="modal-title">Manual Reconciliation - Transaction Matching</h2>
+                <button class="modal-close" onclick="closeModal('matchingModal')">&times;</button>
+            </div>
+
+            <div class="modal-body">
+                <div class="comparison-grid">
+                    <div class="comparison-panel">
+                        <h3 class="comparison-title">Internal Transaction</h3>
+                        <div style="margin-top: 1rem;">
+                            <div style="margin-bottom: 1rem;">
+                                <strong>Transaction ID:</strong> TXN-2024-001
+                            </div>
+                            <div style="margin-bottom: 1rem;">
+                                <strong>Date:</strong> 2024-01-15
+                            </div>
+                            <div style="margin-bottom: 1rem;">
+                                <strong>Amount:</strong> <span style="font-size: 1.25rem; color: var(--primary-color); font-weight: 700;">$5,234.50</span>
+                            </div>
+                            <div style="margin-bottom: 1rem;">
+                                <strong>Reference:</strong> INV-45678
+                            </div>
+                            <div style="margin-bottom: 1rem;">
+                                <strong>Payment Rail:</strong> <span class="badge badge-info">SWIFT</span>
+                            </div>
+                            <div style="margin-bottom: 1rem;">
+                                <strong>Sender:</strong> ABC Corporation
+                            </div>
+                            <div style="margin-bottom: 1rem;">
+                                <strong>Receiver:</strong> XYZ Limited
+                            </div>
+                            <div style="margin-bottom: 1rem;">
+                                <strong>Description:</strong> Invoice payment for services
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="comparison-panel">
+                        <h3 class="comparison-title">Bank Statement Entry</h3>
+                        <div style="margin-top: 1rem;">
+                            <div style="margin-bottom: 1rem;">
+                                <strong>Statement ID:</strong> STMT-2024-789
+                            </div>
+                            <div style="margin-bottom: 1rem;">
+                                <strong>Value Date:</strong> 2024-01-15
+                            </div>
+                            <div style="margin-bottom: 1rem;">
+                                <strong>Amount:</strong> <span style="font-size: 1.25rem; color: var(--success-color); font-weight: 700;">$5,234.50</span>
+                            </div>
+                            <div style="margin-bottom: 1rem;">
+                                <strong>Bank Reference:</strong> SWIFT45678XYZ
+                            </div>
+                            <div style="margin-bottom: 1rem;">
+                                <strong>Transaction Code:</strong> 020
+                            </div>
+                            <div style="margin-bottom: 1rem;">
+                                <strong>Originator:</strong> ABC CORP
+                            </div>
+                            <div style="margin-bottom: 1rem;">
+                                <strong>Beneficiary:</strong> XYZ LTD
+                            </div>
+                            <div style="margin-bottom: 1rem;">
+                                <strong>Narrative:</strong> INV-45678 PAYMENT
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 2rem; padding: 1.5rem; background: var(--light-bg); border-radius: 12px;">
+                    <h4 style="margin-bottom: 1rem;">AI-Powered Suggestions</h4>
+                    
+                    <div class="match-suggestion">
+                        <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 0.5rem;">
+                            <div>
+                                <strong>Suggested Match #1</strong>
+                            </div>
+                            <div class="confidence-score">
+                                <span class="badge badge-success">95% Confidence</span>
+                            </div>
+                        </div>
+                        <p style="margin: 0; color: var(--text-muted);">
+                            Exact amount match • Reference similarity: 89% • Date match • Same parties
+                        </p>
+                        <div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
+                            <button class="btn-custom btn-primary" onclick="acceptMatch()">
+                                <i class="bi bi-check-circle"></i>
+                                Accept Match
+                            </button>
+                            <button class="btn-custom btn-outline" onclick="rejectMatch()">
+                                <i class="bi bi-x-circle"></i>
+                                Reject
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 1.5rem; display: flex; gap: 1rem;">
+                    <button class="btn-custom btn-outline" onclick="manualMatch()">
+                        <i class="bi bi-arrow-left-right"></i>
+                        Manual Match
+                    </button>
+                    <button class="btn-custom btn-outline" onclick="splitTransaction()">
+                        <i class="bi bi-scissors"></i>
+                        Split Transaction
+                    </button>
+                    <button class="btn-custom btn-outline" onclick="writeOff()">
+                        <i class="bi bi-trash"></i>
+                        Write Off
+                    </button>
+                    <button class="btn-custom btn-outline" onclick="closeModal('matchingModal')">
+                        <i class="bi bi-x"></i>
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Import Modal -->
+    <div class="modal" id="importModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Import Bank Statement</h2>
+                <button class="modal-close" onclick="closeModal('importModal')">&times;</button>
+            </div>
+
+            <div class="modal-body">
+                <!-- Multi-step Progress -->
+                <div class="multistep-progress">
+                    <div class="step-item active">
+                        <div class="step-circle">1</div>
+                        <small>Upload</small>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-circle">2</div>
+                        <small>Validate</small>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-circle">3</div>
+                        <small>Map Fields</small>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-circle">4</div>
+                        <small>Import</small>
+                    </div>
+                </div>
+
+                <!-- Step 1: Upload -->
+                <div id="importStep1">
+                    <div class="form-group">
+                        <label class="form-label">Select Bank</label>
+                        <select class="form-control">
+                            <option>Select a bank...</option>
+                            <option>JPMorgan Chase</option>
+                            <option>Bank of America</option>
+                            <option>Deutsche Bank</option>
+                            <option>HSBC</option>
+                            <option>Barclays</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Statement Format</label>
+                        <select class="form-control">
+                            <option>Auto-detect</option>
+                            <option>MT940</option>
+                            <option>CAMT.053 (ISO 20022)</option>
+                            <option>CSV</option>
+                            <option>Excel (.xlsx)</option>
+                            <option>BAI2</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Upload File</label>
+                        <div class="upload-area">
+                            <i class="bi bi-cloud-upload" style="font-size: 2rem; color: var(--primary-color);"></i>
+                            <p style="margin: 0.5rem 0; font-weight: 600;">Drop file here or click to browse</p>
+                            <small style="color: var(--text-muted);">Maximum file size: 50MB</small>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 2rem;">
+                        <button class="btn-custom btn-outline" onclick="closeModal('importModal')">Cancel</button>
+                        <button class="btn-custom btn-primary" onclick="proceedToValidation()">
+                            Next: Validate
+                            <i class="bi bi-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Rule Modal -->
+    <div class="modal" id="newRuleModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Create Matching Rule</h2>
+                <button class="modal-close" onclick="closeModal('newRuleModal')">&times;</button>
+            </div>
+
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Rule Name</label>
+                    <input type="text" class="form-control" placeholder="e.g., Exact Amount & Reference Match">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Rule Type</label>
+                    <select class="form-control">
+                        <option>Exact Match</option>
+                        <option>Fuzzy Match</option>
+                        <option>Reference-Based</option>
+                        <option>Custom Logic</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Priority</label>
+                    <input type="number" class="form-control" value="1" min="1">
+                    <small style="color: var(--text-muted);">Lower numbers have higher priority</small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Matching Criteria</label>
+                    <div style="background: var(--light-bg); padding: 1rem; border-radius: 8px;">
+                        <div style="margin-bottom: 0.5rem;">
+                            <input type="checkbox" id="matchAmount" checked>
+                            <label for="matchAmount" style="margin-left: 0.5rem;">Match Amount</label>
+                        </div>
+                        <div style="margin-bottom: 0.5rem;">
+                            <input type="checkbox" id="matchReference" checked>
+                            <label for="matchReference" style="margin-left: 0.5rem;">Match Reference Number</label>
+                        </div>
+                        <div style="margin-bottom: 0.5rem;">
+                            <input type="checkbox" id="matchDate">
+                            <label for="matchDate" style="margin-left: 0.5rem;">Match Date</label>
+                        </div>
+                        <div style="margin-bottom: 0.5rem;">
+                            <input type="checkbox" id="matchParties">
+                            <label for="matchParties" style="margin-left: 0.5rem;">Match Sender/Receiver</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Minimum Confidence Score (%)</label>
+                    <input type="number" class="form-control" value="85" min="0" max="100">
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 2rem;">
+                    <button class="btn-custom btn-outline" onclick="closeModal('newRuleModal')">Cancel</button>
+                    <button class="btn-custom btn-primary" onclick="saveRule()">
+                        <i class="bi bi-save"></i>
+                        Save Rule
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Generation Modal -->
+    <div class="modal" id="reportModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Generate Reconciliation Report</h2>
+                <button class="modal-close" onclick="closeModal('reportModal')">&times;</button>
+            </div>
+
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Report Type</label>
+                    <select class="form-control" id="reportType">
+                        <option value="daily">Daily Reconciliation Summary</option>
+                        <option value="outstanding">Outstanding Items Report</option>
+                        <option value="adjustment">Adjustment Journal Entries</option>
+                        <option value="audit">Audit-Ready Certificate</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Date Range</label>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <input type="date" class="form-control" value="2024-01-01">
+                        <input type="date" class="form-control" value="2024-01-16">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Payment Rails</label>
+                    <div style="background: var(--light-bg); padding: 1rem; border-radius: 8px;">
+                        <div style="margin-bottom: 0.5rem;">
+                            <input type="checkbox" id="railAll" checked>
+                            <label for="railAll" style="margin-left: 0.5rem;"><strong>All Rails</strong></label>
+                        </div>
+                        <div style="margin-bottom: 0.5rem;">
+                            <input type="checkbox" id="railSWIFT">
+                            <label for="railSWIFT" style="margin-left: 0.5rem;">SWIFT</label>
+                        </div>
+                        <div style="margin-bottom: 0.5rem;">
+                            <input type="checkbox" id="railSEPA">
+                            <label for="railSEPA" style="margin-left: 0.5rem;">SEPA</label>
+                        </div>
+                        <div style="margin-bottom: 0.5rem;">
+                            <input type="checkbox" id="railACH">
+                            <label for="railACH" style="margin-left: 0.5rem;">ACH</label>
+                        </div>
+                        <div style="margin-bottom: 0.5rem;">
+                            <input type="checkbox" id="railWire">
+                            <label for="railWire" style="margin-left: 0.5rem;">Wire Transfer</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Output Format</label>
+                    <select class="form-control">
+                        <option>PDF</option>
+                        <option>Excel (.xlsx)</option>
+                        <option>CSV</option>
+                        <option>JSON</option>
+                    </select>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 2rem;">
+                    <button class="btn-custom btn-outline" onclick="closeModal('reportModal')">Cancel</button>
+                    <button class="btn-custom btn-primary" onclick="generateReportConfirm()">
+                        <i class="bi bi-file-earmark-check"></i>
+                        Generate Report
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Sidebar Toggle
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('mainContent');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('expanded');
+        });
+
+        // Theme Toggle
+        const themeToggle = document.getElementById('themeToggle');
+        let isDark = true;
+
+        themeToggle.addEventListener('click', () => {
+            isDark = !isDark;
+            document.body.classList.toggle('light-mode');
+            themeToggle.innerHTML = isDark ? '<i class="bi bi-moon-fill"></i>' : '<i class="bi bi-sun-fill"></i>';
+        });
+
+        // Tab Navigation
+        const tabButtons = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const tabName = button.getAttribute('data-tab');
+                
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                
+                tabContents.forEach(content => {
+                    content.style.display = 'none';
+                });
+                
+                document.getElementById(tabName).style.display = 'block';
+            });
+        });
+
+        // Modal Functions
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        function openMatchingModal(txnId) {
+            console.log('Opening matching modal for:', txnId);
+            openModal('matchingModal');
+        }
+
+        function openImportModal() {
+            openModal('importModal');
+        }
+
+        function openNewRuleModal() {
+            openModal('newRuleModal');
+        }
+
+        function openReportModal(type) {
+            const select = document.getElementById('reportType');
+            if (select) {
+                select.value = type;
+            }
+            openModal('reportModal');
+        }
+
+        function openAgingDetailsModal() {
+            alert('Opening aging details modal...');
+        }
+
+        function openBulkMatchModal() {
+            alert('Opening bulk match modal...');
+        }
+
+        function openScheduleJobModal() {
+            alert('Opening schedule job modal...');
+        }
+
+        function openAutoImportModal() {
+            alert('Opening auto-import configuration modal...');
+        }
+
+        // Action Functions
+        function editRule(id) {
+            console.log('Editing rule:', id);
+            showLoadingToast('Loading rule details...');
+            setTimeout(() => {
+                openNewRuleModal();
+                hideToast();
+            }, 500);
+        }
+
+        function toggleRule(id) {
+            console.log('Toggling rule:', id);
+            showSuccessToast('Rule status updated successfully!');
+        }
+
+        function deleteRule(id) {
+            if (confirm('Are you sure you want to delete this rule?')) {
+                console.log('Deleting rule:', id);
+                showSuccessToast('Rule deleted successfully!');
+            }
+        }
+
+        function saveRule() {
+            showLoadingToast('Saving rule...');
+            setTimeout(() => {
+                closeModal('newRuleModal');
+                showSuccessToast('Rule saved successfully!');
+            }, 1000);
+        }
+
+        function saveToleranceSettings() {
+            showLoadingToast('Saving tolerance settings...');
+            setTimeout(() => {
+                showSuccessToast('Settings saved successfully!');
+            }, 1000);
+        }
+
+        function viewJobDetails(id) {
+            console.log('Viewing job details:', id);
+            alert('Job Details for ID: ' + id);
+        }
+
+        function runJobNow(id) {
+            console.log('Running job now:', id);
+            showLoadingToast('Starting reconciliation job...');
+            setTimeout(() => {
+                showSuccessToast('Job started successfully!');
+            }, 1500);
+        }
+
+        function stopJob(id) {
+            console.log('Stopping job:', id);
+            showLoadingToast('Stopping job...');
+            setTimeout(() => {
+                showSuccessToast('Job stopped!');
+            }, 1000);
+        }
+
+        function editJob(id) {
+            console.log('Editing job:', id);
+            openScheduleJobModal();
+        }
+
+        function viewTransaction(id) {
+            console.log('Viewing transaction:', id);
+            alert('Transaction Details for: ' + id);
+        }
+
+        function acceptMatch() {
+            showLoadingToast('Processing match...');
+            setTimeout(() => {
+                closeModal('matchingModal');
+                showSuccessToast('Match accepted and processed!');
+            }, 1500);
+        }
+
+        function rejectMatch() {
+            closeModal('matchingModal');
+            showSuccessToast('Match rejected!');
+        }
+
+        function manualMatch() {
+            alert('Opening manual match interface...');
+        }
+
+        function splitTransaction() {
+            alert('Opening split transaction interface...');
+        }
+
+        function writeOff() {
+            if (confirm('Are you sure you want to write off this transaction?')) {
+                showLoadingToast('Processing write-off...');
+                setTimeout(() => {
+                    closeModal('matchingModal');
+                    showSuccessToast('Transaction written off!');
+                }, 1000);
+            }
+        }
+
+        function viewImportDetails(id) {
+            console.log('Viewing import details:', id);
+            alert('Import Details for: ' + id);
+        }
+
+        function downloadImport(id) {
+            console.log('Downloading import:', id);
+            showLoadingToast('Preparing download...');
+            setTimeout(() => {
+                showSuccessToast('Download started!');
+            }, 1000);
+        }
+
+        function viewErrors(id) {
+            console.log('Viewing errors for:', id);
+            alert('Error Log for Import: ' + id);
+        }
+
+        function retryImport(id) {
+            console.log('Retrying import:', id);
+            showLoadingToast('Retrying import...');
+            setTimeout(() => {
+                showSuccessToast('Import retry started!');
+            }, 1500);
+        }
+
+        function cancelImport(id) {
+            if (confirm('Are you sure you want to cancel this import?')) {
+                console.log('Cancelling import:', id);
+                showSuccessToast('Import cancelled!');
+            }
+        }
+
+        function testSFTPConnection() {
+            showLoadingToast('Testing SFTP connection...');
+            setTimeout(() => {
+                showSuccessToast('SFTP connection successful!');
+            }, 2000);
+        }
+
+        function manageAPIEndpoints() {
+            alert('Opening API endpoint management...');
+        }
+
+        function editSchedule() {
+            alert('Opening schedule editor...');
+        }
+
+        function generateReport() {
+            openReportModal('daily');
+        }
+
+        function scheduleReport() {
+            alert('Opening report scheduler...');
+        }
+
+        function generateReportConfirm() {
+            showLoadingToast('Generating report...');
+            setTimeout(() => {
+                closeModal('reportModal');
+                showSuccessToast('Report generated successfully!');
+            }, 2000);
+        }
+
+        function viewReport(id) {
+            console.log('Viewing report:', id);
+            alert('Opening Report: ' + id);
+        }
+
+        function downloadReport(id, format) {
+            console.log('Downloading report:', id, 'as', format);
+            showLoadingToast('Preparing ' + format.toUpperCase() + ' download...');
+            setTimeout(() => {
+                showSuccessToast('Download started!');
+            }, 1000);
+        }
+
+        function proceedToValidation() {
+            showLoadingToast('Validating file...');
+            setTimeout(() => {
+                showSuccessToast('Validation successful! Ready for field mapping.');
+            }, 2000);
+        }
+
+        // Toast Notifications
+        let currentToast = null;
+
+        function showToast(message, type = 'info') {
+            hideToast();
+            
+            const toast = document.createElement('div');
+            toast.className = `alert alert-${type}`;
+            toast.style.position = 'fixed';
+            toast.style.top = '20px';
+            toast.style.right = '20px';
+            toast.style.zIndex = '9999';
+            toast.style.minWidth = '300px';
+            toast.style.animation = 'slideInRight 0.3s ease';
+            
+            const icon = type === 'success' ? 'check-circle-fill' : 
+                        type === 'warning' ? 'exclamation-triangle-fill' :
+                        type === 'danger' ? 'x-circle-fill' : 'info-circle-fill';
+            
+            toast.innerHTML = `
+                <i class="bi bi-${icon}"></i>
+                <span>${message}</span>
+            `;
+            
+            document.body.appendChild(toast);
+            currentToast = toast;
+            
+            if (type !== 'loading') {
+                setTimeout(() => hideToast(), 3000);
+            }
+        }
+
+        function showSuccessToast(message) {
+            showToast(message, 'success');
+        }
+
+        function showLoadingToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'alert alert-info';
+            toast.style.position = 'fixed';
+            toast.style.top = '20px';
+            toast.style.right = '20px';
+            toast.style.zIndex = '9999';
+            toast.style.minWidth = '300px';
+            toast.style.animation = 'slideInRight 0.3s ease';
+            
+            toast.innerHTML = `
+                <div class="spinner"></div>
+                <span>${message}</span>
+            `;
+            
+            hideToast();
+            document.body.appendChild(toast);
+            currentToast = toast;
+        }
+
+        function hideToast() {
+            if (currentToast) {
+                currentToast.style.animation = 'slideOutRight 0.3s ease';
+                setTimeout(() => {
+                    if (currentToast && currentToast.parentNode) {
+                        currentToast.parentNode.removeChild(currentToast);
+                    }
+                    currentToast = null;
+                }, 300);
+            }
+        }
+
+        // File Upload
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+
+        if (uploadArea && fileInput) {
+            uploadArea.addEventListener('click', () => fileInput.click());
+            
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('dragover');
+            });
+
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                handleFileUpload(files);
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                handleFileUpload(e.target.files);
+            });
+        }
+
+        function handleFileUpload(files) {
+            if (files.length > 0) {
+                showLoadingToast(`Uploading ${files.length} file(s)...`);
+                setTimeout(() => {
+                    showSuccessToast('File(s) uploaded successfully!');
+                }, 2000);
+            }
+        }
+
+        // Select All Checkbox
+        const selectAll = document.getElementById('selectAll');
+        const itemCheckboxes = document.querySelectorAll('.item-checkbox');
+
+        if (selectAll) {
+            selectAll.addEventListener('change', (e) => {
+                itemCheckboxes.forEach(checkbox => {
+                    checkbox.checked = e.target.checked;
+                });
+            });
+        }
+
+        // Add CSS animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideInRight {
+                from {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+            
+            @keyframes slideOutRight {
+                from {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Close modal on outside click
+        window.addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal')) {
+                e.target.classList.remove('active');
+            }
+        });
+
+        // Initialize page
+        console.log('PayMo Reconciliation Center - Ready');
+    </script>
+</body>
+</html>
