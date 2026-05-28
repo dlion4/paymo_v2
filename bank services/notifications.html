@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notifications & Communication Center - PayMo BaaS</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="stylesheet" href="master.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    .tpl-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .tpl-card { background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius); padding: 18px; cursor: pointer; transition: all .15s; }
+    .tpl-card:hover { border-color: var(--primary); box-shadow: var(--shadow-lg); transform: translateY(-1px); }
+    .channel-chip { width: 38px; height: 38px; border-radius: 11px; display: flex; align-items: center; justify-content: center; }
+    .channel-chip svg { width: 18px; height: 18px; }
+    .chan-email { background: var(--info-soft); color: var(--info); }
+    .chan-sms { background: var(--success-soft); color: var(--success); }
+    .chan-push { background: var(--purple-soft); color: var(--purple); }
+    .chan-webhook { background: var(--warning-soft); color: var(--warning); }
+    .chan-inapp { background: var(--primary-soft); color: var(--primary); }
+    .config-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--border-soft); }
+    .config-row:last-child { border-bottom: 0; }
+    .config-label { font-size: 13px; font-weight: 600; }
+    .config-desc { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+    .two-col { display: grid; grid-template-columns: 1.5fr 1fr; gap: 16px; }
+    .kv-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px 18px; }
+    .kv-label { font-size: 11px; color: var(--text-3); text-transform: uppercase; letter-spacing: .06em; }
+    .kv-val { font-size: 13px; font-weight: 600; margin-top: 2px; }
+    .dist-row { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+    .dist-label { width: 110px; font-size: 12px; font-weight: 500; }
+    .dist-bar { flex: 1; height: 8px; border-radius: 999px; background: var(--surface-3); overflow: hidden; }
+    .dist-bar span { display: block; height: 100%; border-radius: 999px; }
+    .dist-val { width: 64px; text-align: right; font-size: 12px; font-weight: 600; }
+    .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 11px; color: var(--text-3); }
+    .legend-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; vertical-align: middle; }
+    .timeline { position: relative; padding-left: 24px; }
+    .timeline:before { content: ""; position: absolute; top: 6px; bottom: 6px; left: 8px; width: 2px; background: var(--border); }
+    .tl-item { position: relative; padding-bottom: 16px; }
+    .tl-item:before { content: ""; position: absolute; left: -20px; top: 4px; width: 10px; height: 10px; border-radius: 50%; background: var(--primary); border: 2px solid #fff; }
+    .tl-time { font-size: 11px; color: var(--text-3); }
+    .tl-text { font-size: 13px; margin-top: 2px; }
+    .device-preview { border: 1px solid var(--border); border-radius: 16px; padding: 16px; background: var(--surface-2); }
+    .device-bar { display: flex; gap: 6px; margin-bottom: 12px; }
+    .device-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--border); }
+    .preview-body { background: var(--surface); border-radius: 12px; padding: 14px; font-size: 13px; line-height: 1.6; min-height: 120px; }
+    .var-chip { display: inline-block; background: var(--primary-soft); color: var(--primary); border-radius: 6px; padding: 2px 8px; font-size: 12px; font-family: 'JetBrains Mono', monospace; margin: 2px; cursor: pointer; }
+    .var-chip:hover { background: var(--primary); color: #fff; }
+    .sev-strip { width: 4px; align-self: stretch; border-radius: 4px; }
+    .sev-critical { background: var(--danger); }
+    .sev-high { background: var(--warning); }
+    .sev-info { background: var(--info); }
+    .lang-tab { padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 500; border: 1px solid var(--border); background: var(--surface); cursor: pointer; }
+    .lang-tab.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .escalation-step { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 8px; }
+    .escalation-num { width: 28px; height: 28px; border-radius: 50%; background: var(--primary-soft); color: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; flex-shrink: 0; }
+    .oncall-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+    .oncall-cell { border: 1px solid var(--border-soft); border-radius: 10px; padding: 10px 6px; text-align: center; }
+    .avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--primary-soft); color: var(--primary); display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; }
+    @media (max-width: 1100px) { .tpl-grid { grid-template-columns: repeat(2, 1fr); } .two-col { grid-template-columns: 1fr; } .oncall-grid { grid-template-columns: repeat(4, 1fr); } }
+    @media (max-width: 768px) { .tpl-grid { grid-template-columns: 1fr; } .oncall-grid { grid-template-columns: repeat(2, 1fr); } }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">P</div>
+      <nav class="sidebar-nav">
+        <button class="sidebar-item" title="Dashboard" data-modal="navDashboardModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg><span class="sidebar-label">Dashboard</span></button>
+        <button class="sidebar-item" title="Payment Rails" data-modal="navRailsModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="19" r="3"></circle><circle cx="18" cy="5" r="3"></circle><path d="M6 16V8a4 4 0 0 1 4-4h8"></path></svg><span class="sidebar-label">Rails</span></button>
+        <button class="sidebar-item" title="Open Banking" data-modal="navOpenBankingModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"></path><path d="M3 10h18"></path><path d="M5 6l7-3 7 3"></path><path d="M4 10v11"></path><path d="M20 10v11"></path></svg><span class="sidebar-label">Open Banking</span></button>
+        <button class="sidebar-item" title="Wallets" data-modal="navWalletsModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"></path></svg><span class="sidebar-label">Wallets</span></button>
+        <button class="sidebar-item" title="Customers" data-modal="navCustomersModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path></svg><span class="sidebar-label">Customers</span></button>
+        <button class="sidebar-item active" title="Notifications"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg><span class="sidebar-label">Notifications</span></button>
+        <button class="sidebar-item" title="Risk" data-modal="navRiskModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line></svg><span class="sidebar-label">Risk</span></button>
+        <button class="sidebar-item" title="Analytics" data-modal="navAnalyticsModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="20" x2="12" y2="10"></line><line x1="18" y1="20" x2="18" y2="4"></line><line x1="6" y1="20" x2="6" y2="16"></line></svg><span class="sidebar-label">Analytics</span></button>
+        <button class="sidebar-item" title="Settings" data-modal="navSettingsModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg><span class="sidebar-label">Settings</span></button>
+      </nav>
+      <button class="sidebar-expand" id="sidebarToggle"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg><span class="sidebar-label">Collapse</span></button>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <div class="crumb">
+            <button class="mobile-menu-btn btn btn-light btn-sm" id="mobileMenuBtn" style="margin-right:8px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+            <span>Dashboard</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg><span>Notifications & Communication Center</span>
+          </div>
+          <h1 class="page-title">Notifications & Communication Center</h1>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-light btn-icon" title="Inbox" data-modal="inboxModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-6l-2 3h-4l-2-3H2"></path><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path></svg></button>
+          <button class="btn btn-light" data-modal="filterModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg><span class="btn-text">Filters</span></button>
+          <button class="btn btn-light" data-modal="exportModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg><span class="btn-text">Export</span></button>
+          <button class="btn btn-primary" data-modal="newTemplateModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>New Template</button>
+        </div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card" data-modal="sentSummaryModal"><div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg></div><div class="stat-label">Messages Sent (24h)</div><div class="stat-value">48.2K</div><div class="stat-trend up"><span>+6.4% vs yesterday</span></div></div>
+        <div class="stat-card" data-modal="deliveryModal"><div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg></div><div class="stat-label">Delivery Rate</div><div class="stat-value">98.9%</div><div class="stat-trend up"><span>+0.3% this week</span></div></div>
+        <div class="stat-card" data-modal="engagementModal"><div class="stat-icon purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"></path><circle cx="12" cy="12" r="3"></circle></svg></div><div class="stat-label">Open Rate</div><div class="stat-value">42.1%</div><div class="stat-trend up"><span>18.6% click rate</span></div></div>
+        <div class="stat-card" data-modal="bounceModal"><div class="stat-icon amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line></svg></div><div class="stat-label">Bounces & Complaints</div><div class="stat-value">312</div><div class="stat-trend down"><span>0.6% of volume</span></div></div>
+        <div class="stat-card" data-modal="activeAlertsModal"><div class="stat-icon red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path></svg></div><div class="stat-label">Active System Alerts</div><div class="stat-value">5</div><div class="stat-trend neutral"><span>2 critical, 3 high</span></div></div>
+      </div>
+
+      <div class="panel">
+        <div class="tabs" id="mainTabs">
+          <button class="tab active" data-tab="templates"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>Notification Templates <span class="tab-badge">28</span></button>
+          <button class="tab" data-tab="rules"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"></path></svg>Communication Rules <span class="tab-badge">14</span></button>
+          <button class="tab" data-tab="log"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>Client Communication Log</button>
+          <button class="tab" data-tab="alerts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path></svg>Alert Management <span class="tab-badge">5</span></button>
+        </div>
+
+        <!-- TAB: Templates -->
+        <section class="tab-panel active" data-panel="templates">
+          <div class="panel-body">
+            <div class="panel-header" style="padding:0 0 18px;border-bottom:0;">
+              <h2 class="panel-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg>Email, SMS & Push Templates</h2>
+              <div class="panel-actions">
+                <div class="search-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg><input id="tplSearch" placeholder="Search templates..."></div>
+                <select class="select" id="tplFilter"><option>All Channels</option><option>Email</option><option>SMS</option><option>Push</option><option>Webhook</option></select>
+                <button class="btn btn-light btn-sm" data-modal="variableLibraryModal">Variables</button>
+              </div>
+            </div>
+            <div class="tpl-grid" id="tplGrid">
+              <div class="tpl-card" data-channel="Email" data-modal="templateDetailModal"><div class="dir-card-head" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;"><div class="channel-chip chan-email"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"></rect><path d="m22 7-10 5L2 7"></path></svg></div><span class="badge success"><span class="badge-dot"></span>Active</span></div><h4 style="margin:0;font-size:14px;">Payment Confirmation</h4><div class="list-sub">Email - v4.2 - 6 languages</div><div style="margin-top:12px;"><span class="badge gray">42.1% open</span> <span class="badge primary">18.6% click</span></div></div>
+              <div class="tpl-card" data-channel="SMS" data-modal="templateDetailModal"><div class="dir-card-head" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;"><div class="channel-chip chan-sms"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></div><span class="badge success"><span class="badge-dot"></span>Active</span></div><h4 style="margin:0;font-size:14px;">OTP Verification</h4><div class="list-sub">SMS - v2.0 - 4 languages</div><div style="margin-top:12px;"><span class="badge gray">99.4% delivered</span></div></div>
+              <div class="tpl-card" data-channel="Push" data-modal="templateDetailModal"><div class="dir-card-head" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;"><div class="channel-chip chan-push"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path></svg></div><span class="badge success"><span class="badge-dot"></span>Active</span></div><h4 style="margin:0;font-size:14px;">Funds Received</h4><div class="list-sub">Push - v1.5 - 6 languages</div><div style="margin-top:12px;"><span class="badge gray">61.2% open</span></div></div>
+              <div class="tpl-card" data-channel="Email" data-modal="templateDetailModal"><div class="dir-card-head" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;"><div class="channel-chip chan-email"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"></rect><path d="m22 7-10 5L2 7"></path></svg></div><span class="badge warning"><span class="badge-dot"></span>Draft</span></div><h4 style="margin:0;font-size:14px;">Monthly Statement</h4><div class="list-sub">Email - v0.3 draft - 2 languages</div><div style="margin-top:12px;"><span class="badge gray">Not published</span></div></div>
+              <div class="tpl-card" data-channel="Webhook" data-modal="templateDetailModal"><div class="dir-card-head" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;"><div class="channel-chip chan-webhook"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 16.98h-5.99c-1.66 0-3.01-1.34-3.01-3s1.34-3 3.01-3H18"></path><polyline points="15 7 18 10 15 13"></polyline></svg></div><span class="badge success"><span class="badge-dot"></span>Active</span></div><h4 style="margin:0;font-size:14px;">Settlement Webhook</h4><div class="list-sub">Webhook - v3.1 - JSON</div><div style="margin-top:12px;"><span class="badge gray">99.98% delivered</span></div></div>
+              <div class="tpl-card" data-channel="SMS" data-modal="templateDetailModal"><div class="dir-card-head" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;"><div class="channel-chip chan-sms"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></div><span class="badge gray"><span class="badge-dot"></span>Archived</span></div><h4 style="margin:0;font-size:14px;">Low Balance Alert</h4><div class="list-sub">SMS - v1.2 - archived</div><div style="margin-top:12px;"><span class="badge gray">Inactive</span></div></div>
+            </div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;">
+              <button class="btn btn-light" data-modal="versionHistoryModal">Version history</button>
+              <button class="btn btn-light" data-modal="languageModal">Manage languages</button>
+              <button class="btn btn-light" data-modal="testSendModal">Send test</button>
+              <button class="btn btn-light" data-modal="variableLibraryModal">Variable library</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB: Communication Rules -->
+        <section class="tab-panel" data-panel="rules">
+          <div class="panel-body">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
+              <h2 class="panel-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"></path></svg>Event-triggered & Threshold Rules</h2>
+              <div style="display:flex;gap:8px;">
+                <button class="btn btn-light" data-modal="quietHoursModal">Quiet Hours</button>
+                <button class="btn btn-light" data-modal="digestModal">Digest Settings</button>
+                <button class="btn btn-primary" data-modal="newRuleModal">New Rule</button>
+              </div>
+            </div>
+            <div class="two-col">
+              <div class="table-wrap">
+                <table class="table">
+                  <thead><tr><th>Rule</th><th>Trigger</th><th>Channels</th><th>Delivery</th><th>Status</th><th></th></tr></thead>
+                  <tbody>
+                    <tr data-modal="ruleDetailModal"><td>Payment received</td><td>event: payment.settled</td><td>Email, Push</td><td><span class="badge info">Instant</span></td><td><span class="badge success">On</span></td><td class="right"><button class="btn btn-light btn-sm" data-modal="ruleDetailModal">Edit</button></td></tr>
+                    <tr data-modal="ruleDetailModal"><td>Large transfer</td><td>amount &gt; $50,000</td><td>Email, SMS</td><td><span class="badge info">Instant</span></td><td><span class="badge success">On</span></td><td class="right"><button class="btn btn-light btn-sm" data-modal="ruleDetailModal">Edit</button></td></tr>
+                    <tr data-modal="ruleDetailModal"><td>Daily summary</td><td>schedule: 18:00</td><td>Email</td><td><span class="badge purple">Digest</span></td><td><span class="badge success">On</span></td><td class="right"><button class="btn btn-light btn-sm" data-modal="ruleDetailModal">Edit</button></td></tr>
+                    <tr data-modal="ruleDetailModal"><td>Failed payment</td><td>event: payment.failed</td><td>Email, SMS, Push</td><td><span class="badge info">Instant</span></td><td><span class="badge success">On</span></td><td class="right"><button class="btn btn-light btn-sm" data-modal="ruleDetailModal">Edit</button></td></tr>
+                    <tr data-modal="ruleDetailModal"><td>Consent expiring</td><td>consent &lt; 10 days</td><td>Email</td><td><span class="badge purple">Digest</span></td><td><span class="badge warning">Paused</span></td><td class="right"><button class="btn btn-light btn-sm" data-modal="ruleDetailModal">Edit</button></td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div>
+                <div style="background:var(--surface-2);border-radius:14px;padding:18px;margin-bottom:14px;">
+                  <div class="config-label" style="margin-bottom:10px;">Delivery Preferences</div>
+                  <div class="config-row"><div><div class="config-label">Instant delivery</div><div class="config-desc">Critical & transactional events</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+                  <div class="config-row"><div><div class="config-label">Digest batching</div><div class="config-desc">Group non-urgent into daily digest</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+                  <div class="config-row"><div><div class="config-label">Quiet hours</div><div class="config-desc">22:00 - 07:00 local time</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+                  <div class="config-row"><div><div class="config-label">Channel fallback</div><div class="config-desc">SMS fallback if push fails</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+                  <button class="btn btn-light btn-sm" style="width:100%;margin-top:12px;" data-modal="quietHoursModal">Configure quiet hours</button>
+                </div>
+                <div style="background:var(--surface-2);border-radius:14px;padding:18px;">
+                  <div class="config-label" style="margin-bottom:10px;">Rule Throughput (24h)</div>
+                  <div class="dist-row"><div class="dist-label">Instant</div><div class="dist-bar"><span style="width:64%;background:var(--info);"></span></div><div class="dist-val">30.8K</div></div>
+                  <div class="dist-row"><div class="dist-label">Digest</div><div class="dist-bar"><span style="width:24%;background:var(--purple);"></span></div><div class="dist-val">11.4K</div></div>
+                  <div class="dist-row"><div class="dist-label">Threshold</div><div class="dist-bar"><span style="width:12%;background:var(--warning);"></span></div><div class="dist-val">6.0K</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB: Communication Log -->
+        <section class="tab-panel" data-panel="log">
+          <div class="panel-body">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
+              <h2 class="panel-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>Client Communication History</h2>
+              <div style="display:flex;gap:8px;">
+                <select class="select" id="logChannel"><option>All Channels</option><option>Email</option><option>SMS</option><option>Push</option><option>Webhook</option></select>
+                <select class="select" id="logStatus"><option>All Status</option><option>Delivered</option><option>Opened</option><option>Bounced</option><option>Complaint</option></select>
+                <button class="btn btn-light" data-modal="bounceModal">Bounce Handling</button>
+              </div>
+            </div>
+            <div class="two-col" style="margin-bottom:18px;">
+              <div style="background:var(--surface-2);border-radius:14px;padding:18px;">
+                <div class="config-label" style="margin-bottom:12px;">Delivery & Engagement Funnel</div>
+                <div class="dist-row"><div class="dist-label">Sent</div><div class="dist-bar"><span style="width:100%;background:var(--primary);"></span></div><div class="dist-val">48.2K</div></div>
+                <div class="dist-row"><div class="dist-label">Delivered</div><div class="dist-bar"><span style="width:98.9%;background:var(--success);"></span></div><div class="dist-val">47.7K</div></div>
+                <div class="dist-row"><div class="dist-label">Opened</div><div class="dist-bar"><span style="width:42%;background:var(--info);"></span></div><div class="dist-val">20.1K</div></div>
+                <div class="dist-row"><div class="dist-label">Clicked</div><div class="dist-bar"><span style="width:18.6%;background:var(--purple);"></span></div><div class="dist-val">8.9K</div></div>
+                <div class="dist-row"><div class="dist-label">Bounced</div><div class="dist-bar"><span style="width:0.6%;background:var(--danger);"></span></div><div class="dist-val">312</div></div>
+              </div>
+              <div style="background:var(--surface-2);border-radius:14px;padding:18px;">
+                <div class="config-label" style="margin-bottom:12px;">Channel Mix</div>
+                <div style="text-align:center;"><svg width="130" height="130" viewBox="0 0 130 130" class="donut" style="transform:rotate(-90deg);"><circle cx="65" cy="65" r="50" fill="none" stroke="#eef0ff" stroke-width="14"></circle><circle cx="65" cy="65" r="50" fill="none" stroke="#5b5bf5" stroke-width="14" stroke-dasharray="314" stroke-dashoffset="110"></circle><circle cx="65" cy="65" r="38" fill="none" stroke="#dcfce7" stroke-width="14" stroke-dasharray="239" stroke-dashoffset="120"></circle></svg></div>
+                <div class="legend" style="justify-content:center;margin-top:8px;"><span><span class="legend-dot" style="background:#5b5bf5;"></span>Email 58%</span><span><span class="legend-dot" style="background:#16a34a;"></span>SMS 28%</span><span><span class="legend-dot" style="background:#7c3aed;"></span>Push 14%</span></div>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table class="table" id="logTable">
+                <thead><tr><th>Message ID</th><th>Client</th><th>Channel</th><th>Template</th><th>Status</th><th>Time</th><th></th></tr></thead>
+                <tbody>
+                  <tr data-channel="Email" data-status="Opened" data-modal="messageDetailModal"><td class="mono">MSG-77421</td><td>Acme Corp</td><td>Email</td><td>Payment Confirmation</td><td><span class="badge info"><span class="badge-dot"></span>Opened</span></td><td>2 min ago</td><td class="right"><button class="btn btn-light btn-sm" data-modal="messageDetailModal">View</button></td></tr>
+                  <tr data-channel="SMS" data-status="Delivered" data-modal="messageDetailModal"><td class="mono">MSG-77420</td><td>J. Mwangi</td><td>SMS</td><td>OTP Verification</td><td><span class="badge success"><span class="badge-dot"></span>Delivered</span></td><td>4 min ago</td><td class="right"><button class="btn btn-light btn-sm" data-modal="messageDetailModal">View</button></td></tr>
+                  <tr data-channel="Push" data-status="Opened" data-modal="messageDetailModal"><td class="mono">MSG-77419</td><td>Savanna Ltd</td><td>Push</td><td>Funds Received</td><td><span class="badge info"><span class="badge-dot"></span>Opened</span></td><td>9 min ago</td><td class="right"><button class="btn btn-light btn-sm" data-modal="messageDetailModal">View</button></td></tr>
+                  <tr data-channel="Email" data-status="Bounced" data-modal="messageDetailModal"><td class="mono">MSG-77418</td><td>Old Vendor Inc</td><td>Email</td><td>Monthly Statement</td><td><span class="badge danger"><span class="badge-dot"></span>Bounced</span></td><td>14 min ago</td><td class="right"><button class="btn btn-light btn-sm" data-modal="bounceModal">Handle</button></td></tr>
+                  <tr data-channel="Email" data-status="Complaint" data-modal="messageDetailModal"><td class="mono">MSG-77410</td><td>R. Adeyemi</td><td>Email</td><td>Promotional Update</td><td><span class="badge warning"><span class="badge-dot"></span>Complaint</span></td><td>32 min ago</td><td class="right"><button class="btn btn-light btn-sm" data-modal="complaintModal">Review</button></td></tr>
+                  <tr data-channel="Webhook" data-status="Delivered" data-modal="messageDetailModal"><td class="mono">MSG-77405</td><td>Partner API</td><td>Webhook</td><td>Settlement Webhook</td><td><span class="badge success"><span class="badge-dot"></span>Delivered</span></td><td>48 min ago</td><td class="right"><button class="btn btn-light btn-sm" data-modal="messageDetailModal">View</button></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB: Alert Management -->
+        <section class="tab-panel" data-panel="alerts">
+          <div class="panel-body">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
+              <h2 class="panel-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path></svg>System Alerts & Escalation</h2>
+              <div style="display:flex;gap:8px;">
+                <button class="btn btn-light" data-modal="escalationModal">Escalation Rules</button>
+                <button class="btn btn-light" data-modal="onCallModal">On-call Rotation</button>
+                <button class="btn btn-primary" data-modal="newAlertModal">New Alert Rule</button>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <div class="list-item" style="border:1px solid var(--border-soft);border-radius:14px;padding:14px;display:flex;gap:12px;" data-modal="alertDetailModal">
+                <div class="sev-strip sev-critical"></div>
+                <div class="list-left"><div class="list-icon" style="background:var(--danger-soft);color:var(--danger);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line></svg></div><div><div class="list-title">Email provider degraded latency</div><div class="list-sub">Critical - escalated to on-call - 6 min ago</div></div></div>
+                <span class="badge danger"><span class="badge-dot"></span>Critical</span>
+              </div>
+              <div class="list-item" style="border:1px solid var(--border-soft);border-radius:14px;padding:14px;display:flex;gap:12px;" data-modal="alertDetailModal">
+                <div class="sev-strip sev-critical"></div>
+                <div class="list-left"><div class="list-icon" style="background:var(--danger-soft);color:var(--danger);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg></div><div><div class="list-title">SMS bounce rate above threshold</div><div class="list-sub">Critical - 3.2% vs 1% threshold - 11 min ago</div></div></div>
+                <span class="badge danger"><span class="badge-dot"></span>Critical</span>
+              </div>
+              <div class="list-item" style="border:1px solid var(--border-soft);border-radius:14px;padding:14px;display:flex;gap:12px;" data-modal="alertDetailModal">
+                <div class="sev-strip sev-high"></div>
+                <div class="list-left"><div class="list-icon" style="background:var(--warning-soft);color:var(--warning);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg></div><div><div class="list-title">Webhook retry queue building up</div><div class="list-sub">High - 240 pending retries - 22 min ago</div></div></div>
+                <span class="badge warning"><span class="badge-dot"></span>High</span>
+              </div>
+              <div class="list-item" style="border:1px solid var(--border-soft);border-radius:14px;padding:14px;display:flex;gap:12px;" data-modal="alertDetailModal">
+                <div class="sev-strip sev-high"></div>
+                <div class="list-left"><div class="list-icon" style="background:var(--warning-soft);color:var(--warning);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg></div><div><div class="list-title">Push token expiry spike</div><div class="list-sub">High - 1,420 expired tokens - 38 min ago</div></div></div>
+                <span class="badge warning"><span class="badge-dot"></span>High</span>
+              </div>
+              <div class="list-item" style="border:1px solid var(--border-soft);border-radius:14px;padding:14px;display:flex;gap:12px;" data-modal="alertDetailModal">
+                <div class="sev-strip sev-info"></div>
+                <div class="list-left"><div class="list-icon" style="background:var(--info-soft);color:var(--info);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line></svg></div><div><div class="list-title">Template publish completed</div><div class="list-sub">Info - Payment Confirmation v4.2 live - 1h ago</div></div></div>
+                <span class="badge info"><span class="badge-dot"></span>Info</span>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- ============ MODALS ============ -->
+
+  <!-- Template detail -->
+  <div class="modal-backdrop" id="templateDetailModal"><div class="modal xl"><div class="modal-header"><div><h3 class="modal-title">Payment Confirmation Template</h3><div class="modal-sub">Email - v4.2 - Active</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="two-col"><div><div style="display:flex;gap:6px;margin-bottom:12px;"><button class="lang-tab active">EN</button><button class="lang-tab">FR</button><button class="lang-tab">SW</button><button class="lang-tab">AR</button><button class="lang-tab" data-modal="languageModal">+ Add</button></div><div class="field"><label class="field-label">Subject</label><input class="input" value="Your payment of {{amount}} was successful"></div><div class="field"><label class="field-label">Body</label><textarea class="textarea" style="min-height:140px;">Hi {{customer_name}},
+
+Your payment of {{amount}} to {{payee}} on {{date}} has been confirmed. Reference: {{reference}}.
+
+Status: {{status}}</textarea></div><div><span class="config-label">Insert variable:</span><div style="margin-top:6px;"><span class="var-chip">{{customer_name}}</span><span class="var-chip">{{amount}}</span><span class="var-chip">{{status}}</span><span class="var-chip">{{payee}}</span><span class="var-chip">{{date}}</span><span class="var-chip">{{reference}}</span></div></div></div><div><div class="config-label" style="margin-bottom:8px;">Live preview</div><div class="device-preview"><div class="device-bar"><span class="device-dot"></span><span class="device-dot"></span><span class="device-dot"></span></div><div class="preview-body"><strong>Your payment of $18,400.00 was successful</strong><br><br>Hi Acme Corp,<br><br>Your payment of $18,400.00 to Savanna Logistics on Feb 12 has been confirmed. Reference: INV-77218.<br><br>Status: <span style="color:var(--success);font-weight:600;">Settled</span></div></div><div class="kv-grid" style="margin-top:14px;"><div><div class="kv-label">Open rate</div><div class="kv-val">42.1%</div></div><div><div class="kv-label">Click rate</div><div class="kv-val">18.6%</div></div><div><div class="kv-label">Version</div><div class="kv-val">v4.2</div></div><div><div class="kv-label">Languages</div><div class="kv-val">6</div></div></div></div></div></div><div class="modal-footer"><button class="btn btn-light" data-modal="versionHistoryModal">Version history</button><div style="display:flex;gap:8px;"><button class="btn btn-light" data-modal="testSendModal">Send test</button><button class="btn btn-primary" data-result="Template saved and published as v4.3">Save & publish</button></div></div></div></div>
+
+  <!-- New template (multi-step) -->
+  <div class="modal-backdrop" id="newTemplateModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Create Notification Template</h3><div class="modal-sub">Channel, content, variables, and review</div></div><button class="modal-close" data-close>x</button></div><div class="stepper" id="tplStepper"><div class="step active"><div class="step-num">1</div>Channel</div><div class="step-line"></div><div class="step"><div class="step-num">2</div>Content</div><div class="step-line"></div><div class="step"><div class="step-num">3</div>Languages</div><div class="step-line"></div><div class="step"><div class="step-num">4</div>Review</div></div><div class="modal-body"><div class="step-panel active" data-step="1"><label class="choice-row selected"><input type="radio" name="tplChannel" checked><div class="channel-chip chan-email"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"></rect><path d="m22 7-10 5L2 7"></path></svg></div><div><div class="choice-title">Email</div><div class="choice-desc">Rich HTML with full templating</div></div></label><label class="choice-row"><input type="radio" name="tplChannel"><div class="channel-chip chan-sms"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></div><div><div class="choice-title">SMS</div><div class="choice-desc">160 character plain text</div></div></label><label class="choice-row"><input type="radio" name="tplChannel"><div class="channel-chip chan-push"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path></svg></div><div><div class="choice-title">Push notification</div><div class="choice-desc">Mobile app push with deep links</div></div></label></div><div class="step-panel" data-step="2"><div class="field"><label class="field-label">Template name</label><input class="input" placeholder="e.g. Refund Processed"></div><div class="field"><label class="field-label">Subject / Title</label><input class="input" placeholder="Your refund of {{amount}} is on the way"></div><div class="field"><label class="field-label">Body</label><textarea class="textarea" placeholder="Hi {{customer_name}}, ..."></textarea></div><div><span class="config-label">Variables:</span> <span class="var-chip">{{customer_name}}</span><span class="var-chip">{{amount}}</span><span class="var-chip">{{status}}</span></div></div><div class="step-panel" data-step="3"><label class="choice-row selected"><input type="checkbox" checked><div><div class="choice-title">English (base)</div><div class="choice-desc">Default fallback language</div></div></label><label class="choice-row selected"><input type="checkbox" checked><div><div class="choice-title">French</div><div class="choice-desc">Auto-translate with review</div></div></label><label class="choice-row"><input type="checkbox"><div><div class="choice-title">Swahili</div><div class="choice-desc">Auto-translate with review</div></div></label><label class="choice-row"><input type="checkbox"><div><div class="choice-title">Arabic</div><div class="choice-desc">RTL layout support</div></div></label></div><div class="step-panel" data-step="4"><div class="alert success" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>Template is ready to publish.</div><div class="kv-grid"><div><div class="kv-label">Channel</div><div class="kv-val">Email</div></div><div><div class="kv-label">Languages</div><div class="kv-val">2 selected</div></div><div><div class="kv-label">Variables</div><div class="kv-val">3 detected</div></div><div><div class="kv-label">Version</div><div class="kv-val">v1.0</div></div></div></div></div><div class="modal-footer"><button class="btn btn-light" id="tplBack" disabled>Back</button><button class="btn btn-primary" id="tplNext">Next</button></div></div></div>
+
+  <!-- Variable library -->
+  <div class="modal-backdrop" id="variableLibraryModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Variable Library</h3><div class="modal-sub">Insert dynamic data into any template</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><table class="table"><thead><tr><th>Variable</th><th>Description</th><th>Example</th></tr></thead><tbody><tr><td class="mono">{{customer_name}}</td><td>Recipient full name</td><td>Acme Corp</td></tr><tr><td class="mono">{{amount}}</td><td>Transaction amount with currency</td><td>$18,400.00</td></tr><tr><td class="mono">{{status}}</td><td>Transaction or event status</td><td>Settled</td></tr><tr><td class="mono">{{payee}}</td><td>Beneficiary name</td><td>Savanna Logistics</td></tr><tr><td class="mono">{{date}}</td><td>Formatted event date</td><td>Feb 12, 2026</td></tr><tr><td class="mono">{{reference}}</td><td>Reference or invoice number</td><td>INV-77218</td></tr><tr><td class="mono">{{account_last4}}</td><td>Masked account number</td><td>****2081</td></tr></tbody></table></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button class="btn btn-primary" data-result="Variable copied to clipboard">Copy variable</button></div></div></div>
+
+  <!-- Language management -->
+  <div class="modal-backdrop" id="languageModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Multi-language Support</h3><div class="modal-sub">Manage template translations</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="config-row"><div><div class="config-label">English (EN)</div><div class="config-desc">Base language</div></div><span class="badge success">Published</span></div><div class="config-row"><div><div class="config-label">French (FR)</div><div class="config-desc">Reviewed translation</div></div><span class="badge success">Published</span></div><div class="config-row"><div><div class="config-label">Swahili (SW)</div><div class="config-desc">Pending review</div></div><span class="badge warning">Draft</span></div><div class="config-row"><div><div class="config-label">Arabic (AR)</div><div class="config-desc">RTL layout</div></div><span class="badge success">Published</span></div><div class="field" style="margin-top:14px;"><label class="field-label">Add language</label><select class="select-field"><option>Spanish (ES)</option><option>Portuguese (PT)</option><option>German (DE)</option><option>Chinese (ZH)</option></select></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Language added and queued for translation">Add language</button></div></div></div>
+
+  <!-- Version history -->
+  <div class="modal-backdrop" id="versionHistoryModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Template Version History</h3><div class="modal-sub">Payment Confirmation - Email</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="timeline"><div class="tl-item"><div class="tl-time">v4.2 - Today 10:14 - by Sarah K.</div><div class="tl-text">Updated subject line and CTA button color (current)</div></div><div class="tl-item"><div class="tl-time">v4.1 - 5 days ago - by John M.</div><div class="tl-text">Added Arabic RTL translation</div></div><div class="tl-item"><div class="tl-time">v4.0 - 2 weeks ago - by Sarah K.</div><div class="tl-text">Redesigned email layout to new brand system</div></div><div class="tl-item"><div class="tl-time">v3.4 - 1 month ago - by Anita L.</div><div class="tl-text">Fixed amount formatting variable</div></div></div></div><div class="modal-footer"><button class="btn btn-light" data-modal="diffModal">Compare versions</button><div style="display:flex;gap:8px;"><button class="btn btn-light" data-close>Close</button><button class="btn btn-primary" data-result="Reverted to selected version">Restore version</button></div></div></div></div>
+
+  <!-- Diff/compare -->
+  <div class="modal-backdrop" id="diffModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Compare Versions</h3><div class="modal-sub">v4.1 vs v4.2</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="two-col"><div style="background:var(--danger-soft);border-radius:12px;padding:14px;"><div class="config-label" style="margin-bottom:8px;">v4.1 (previous)</div><div style="font-size:13px;">Subject: Payment received - {{amount}}</div></div><div style="background:var(--success-soft);border-radius:12px;padding:14px;"><div class="config-label" style="margin-bottom:8px;">v4.2 (current)</div><div style="font-size:13px;">Subject: Your payment of {{amount}} was successful</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <!-- Test send -->
+  <div class="modal-backdrop" id="testSendModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Send Test Message</h3><div class="modal-sub">Preview with sample data</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Channel</label><select class="select-field"><option>Email</option><option>SMS</option><option>Push</option></select></div><div class="field"><label class="field-label">Send to</label><input class="input" value="test@paymo.com"></div><div class="field"><label class="field-label">Sample variables</label><select class="select-field"><option>Use default sample data</option><option>Use real customer Acme Corp</option><option>Custom values</option></select></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Test message sent to test@paymo.com">Send test</button></div></div></div>
+
+  <!-- New rule (multi-step) -->
+  <div class="modal-backdrop" id="newRuleModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Create Communication Rule</h3><div class="modal-sub">Trigger, conditions, channels, and delivery</div></div><button class="modal-close" data-close>x</button></div><div class="stepper" id="ruleStepper"><div class="step active"><div class="step-num">1</div>Trigger</div><div class="step-line"></div><div class="step"><div class="step-num">2</div>Conditions</div><div class="step-line"></div><div class="step"><div class="step-num">3</div>Delivery</div><div class="step-line"></div><div class="step"><div class="step-num">4</div>Review</div></div><div class="modal-body"><div class="step-panel active" data-step="1"><label class="choice-row selected"><input type="radio" name="trigType" checked><div><div class="choice-title">Event-triggered</div><div class="choice-desc">Fires on a platform event such as payment.settled</div></div></label><label class="choice-row"><input type="radio" name="trigType"><div><div class="choice-title">Threshold-based</div><div class="choice-desc">Fires when a metric crosses a limit</div></div></label><label class="choice-row"><input type="radio" name="trigType"><div><div class="choice-title">Scheduled</div><div class="choice-desc">Time-based digest or summary</div></div></label></div><div class="step-panel" data-step="2"><div class="field"><label class="field-label">Event</label><select class="select-field"><option>payment.settled</option><option>payment.failed</option><option>transfer.created</option><option>consent.expiring</option></select></div><div class="field"><label class="field-label">Condition</label><input class="input" value="amount > 50000"></div><div class="field"><label class="field-label">Recipient audience</label><select class="select-field"><option>Account owner</option><option>All admins</option><option>Custom segment</option></select></div></div><div class="step-panel" data-step="3"><label class="choice-row selected"><input type="checkbox" checked><div class="channel-chip chan-email"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"></rect></svg></div><div><div class="choice-title">Email</div><div class="choice-desc">Template: Large transfer alert</div></div></label><label class="choice-row selected"><input type="checkbox" checked><div class="channel-chip chan-sms"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5"></path></svg></div><div><div class="choice-title">SMS</div><div class="choice-desc">Instant fallback</div></div></label><div class="field" style="margin-top:8px;"><label class="field-label">Delivery mode</label><select class="select-field"><option>Instant</option><option>Digest (daily)</option><option>Digest (hourly)</option></select></div></div><div class="step-panel" data-step="4"><div class="alert success" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>Rule ready to activate.</div><div class="kv-grid"><div><div class="kv-label">Trigger</div><div class="kv-val">Event-triggered</div></div><div><div class="kv-label">Condition</div><div class="kv-val">amount &gt; 50000</div></div><div><div class="kv-label">Channels</div><div class="kv-val">Email, SMS</div></div><div><div class="kv-label">Mode</div><div class="kv-val">Instant</div></div></div></div></div><div class="modal-footer"><button class="btn btn-light" id="ruleBack" disabled>Back</button><button class="btn btn-primary" id="ruleNext">Next</button></div></div></div>
+
+  <!-- Rule detail -->
+  <div class="modal-backdrop" id="ruleDetailModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Large Transfer Alert Rule</h3><div class="modal-sub">Threshold-based - Active</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid" style="margin-bottom:16px;"><div><div class="kv-label">Trigger</div><div class="kv-val">amount &gt; $50,000</div></div><div><div class="kv-label">Channels</div><div class="kv-val">Email, SMS</div></div><div><div class="kv-label">Delivery</div><div class="kv-val">Instant</div></div><div><div class="kv-label">Audience</div><div class="kv-val">Account owner + admins</div></div></div><div class="config-row"><div><div class="config-label">Quiet hours override</div><div class="config-desc">Send even during quiet hours</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div><div class="config-row"><div><div class="config-label">Channel fallback</div><div class="config-desc">SMS if email fails</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div></div><div class="modal-footer"><button class="btn btn-danger" data-modal="deleteRuleModal">Delete rule</button><div style="display:flex;gap:8px;"><button class="btn btn-light" data-close>Close</button><button class="btn btn-primary" data-result="Rule changes saved">Save changes</button></div></div></div></div>
+
+  <!-- Delete rule -->
+  <div class="modal-backdrop" id="deleteRuleModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Delete Rule</h3><div class="modal-sub">This action cannot be undone</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="alert danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg>Deleting this rule stops all related notifications immediately. Historical logs are retained.</div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-danger" data-result="Rule deleted">Delete rule</button></div></div></div>
+
+  <!-- Quiet hours -->
+  <div class="modal-backdrop" id="quietHoursModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Quiet Hours Configuration</h3><div class="modal-sub">Suppress non-urgent notifications</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field-row"><div class="field"><label class="field-label">Start</label><input class="input" type="time" value="22:00"></div><div class="field"><label class="field-label">End</label><input class="input" type="time" value="07:00"></div></div><div class="field"><label class="field-label">Timezone basis</label><select class="select-field"><option>Recipient local time</option><option>Account timezone</option><option>UTC</option></select></div><div class="config-row"><div><div class="config-label">Allow critical alerts</div><div class="config-desc">Override quiet hours for critical events</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Quiet hours saved">Save quiet hours</button></div></div></div>
+
+  <!-- Digest -->
+  <div class="modal-backdrop" id="digestModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Digest Delivery Settings</h3><div class="modal-sub">Batch non-urgent notifications</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Digest frequency</label><select class="select-field"><option>Daily at 18:00</option><option>Twice daily</option><option>Hourly</option><option>Weekly Monday</option></select></div><div class="field"><label class="field-label">Channel</label><select class="select-field"><option>Email only</option><option>Email + Push</option></select></div><div class="config-row"><div><div class="config-label">Skip empty digests</div><div class="config-desc">Do not send when no events</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Digest settings saved">Save digest</button></div></div></div>
+
+  <!-- Message detail -->
+  <div class="modal-backdrop" id="messageDetailModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Message Detail</h3><div class="modal-sub mono">MSG-77421</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid" style="margin-bottom:16px;"><div><div class="kv-label">Recipient</div><div class="kv-val">Acme Corp</div></div><div><div class="kv-label">Channel</div><div class="kv-val">Email</div></div><div><div class="kv-label">Template</div><div class="kv-val">Payment Confirmation v4.2</div></div><div><div class="kv-label">Status</div><div class="kv-val"><span class="badge info">Opened</span></div></div></div><div class="timeline"><div class="tl-item"><div class="tl-time">10:02:14</div><div class="tl-text">Message queued</div></div><div class="tl-item"><div class="tl-time">10:02:15</div><div class="tl-text">Accepted by email provider</div></div><div class="tl-item"><div class="tl-time">10:02:18</div><div class="tl-text">Delivered to inbox</div></div><div class="tl-item"><div class="tl-time">10:04:51</div><div class="tl-text">Opened by recipient (Nairobi, KE)</div></div></div></div><div class="modal-footer"><button class="btn btn-light" data-modal="resendModal">Resend</button><div style="display:flex;gap:8px;"><button class="btn btn-light" data-close>Close</button><button class="btn btn-primary" data-modal="templateDetailModal">Open template</button></div></div></div></div>
+
+  <!-- Resend -->
+  <div class="modal-backdrop" id="resendModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Resend Message</h3><div class="modal-sub">Deliver again to recipient</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Channel</label><select class="select-field"><option>Same channel (Email)</option><option>SMS instead</option><option>Push instead</option></select></div><div class="field"><label class="field-label">Recipient</label><input class="input" value="billing@acme.com"></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Message resent successfully">Resend</button></div></div></div>
+
+  <!-- Bounce handling -->
+  <div class="modal-backdrop" id="bounceModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Bounce & Complaint Handling</h3><div class="modal-sub">Suppression list and remediation</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="dist-row"><div class="dist-label">Hard bounce</div><div class="dist-bar"><span style="width:58%;background:var(--danger);"></span></div><div class="dist-val">181</div></div><div class="dist-row"><div class="dist-label">Soft bounce</div><div class="dist-bar"><span style="width:30%;background:var(--warning);"></span></div><div class="dist-val">94</div></div><div class="dist-row"><div class="dist-label">Complaints</div><div class="dist-bar"><span style="width:12%;background:var(--purple);"></span></div><div class="dist-val">37</div></div><table class="table" style="margin-top:14px;"><thead><tr><th>Recipient</th><th>Type</th><th>Action</th></tr></thead><tbody><tr><td>old@vendor.com</td><td><span class="badge danger">Hard bounce</span></td><td><button class="btn btn-light btn-sm" data-result="Recipient added to suppression list">Suppress</button></td></tr><tr><td>full@inbox.com</td><td><span class="badge warning">Soft bounce</span></td><td><button class="btn btn-light btn-sm" data-result="Retry scheduled">Retry</button></td></tr></tbody></table></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button class="btn btn-primary" data-modal="suppressionModal">Suppression list</button></div></div></div>
+
+  <!-- Suppression list -->
+  <div class="modal-backdrop" id="suppressionModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Suppression List</h3><div class="modal-sub">Addresses excluded from sending</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><table class="table"><thead><tr><th>Address</th><th>Reason</th><th></th></tr></thead><tbody><tr><td>old@vendor.com</td><td>Hard bounce</td><td class="right"><button class="btn btn-light btn-sm" data-result="Removed from suppression list">Remove</button></td></tr><tr><td>spam@report.com</td><td>Complaint</td><td class="right"><button class="btn btn-light btn-sm" data-result="Removed from suppression list">Remove</button></td></tr></tbody></table></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <!-- Complaint -->
+  <div class="modal-backdrop" id="complaintModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Complaint Review</h3><div class="modal-sub mono">MSG-77410</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="alert warning" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg>Recipient marked a promotional email as spam.</div><div class="field"><label class="field-label">Resolution</label><select class="select-field"><option>Unsubscribe from promotional</option><option>Add to suppression list</option><option>Mark as false complaint</option></select></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Complaint resolved and recipient unsubscribed">Resolve</button></div></div></div>
+
+  <!-- Alert detail -->
+  <div class="modal-backdrop" id="alertDetailModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Email Provider Degraded Latency</h3><div class="modal-sub">Critical - Active</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid" style="margin-bottom:16px;"><div><div class="kv-label">Severity</div><div class="kv-val"><span class="badge danger">Critical</span></div></div><div><div class="kv-label">Triggered</div><div class="kv-val">6 min ago</div></div><div><div class="kv-label">Metric</div><div class="kv-val">Delivery latency p95 8.4s</div></div><div><div class="kv-label">On-call</div><div class="kv-val">Sarah Karanja</div></div></div><div class="timeline"><div class="tl-item"><div class="tl-time">6 min ago</div><div class="tl-text">Alert triggered by latency threshold</div></div><div class="tl-item"><div class="tl-time">5 min ago</div><div class="tl-text">Paged primary on-call engineer</div></div><div class="tl-item"><div class="tl-time">3 min ago</div><div class="tl-text">Acknowledged by Sarah Karanja</div></div></div></div><div class="modal-footer"><button class="btn btn-light" data-modal="escalationModal">Escalate</button><div style="display:flex;gap:8px;"><button class="btn btn-light" data-result="Alert snoozed for 30 minutes">Snooze</button><button class="btn btn-primary" data-result="Alert acknowledged and assigned">Acknowledge</button></div></div></div></div>
+
+  <!-- New alert rule -->
+  <div class="modal-backdrop" id="newAlertModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">New System Alert Rule</h3><div class="modal-sub">Define monitoring threshold</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Metric</label><select class="select-field"><option>Delivery latency</option><option>Bounce rate</option><option>Webhook retry queue</option><option>Open rate drop</option></select></div><div class="field-row"><div class="field"><label class="field-label">Threshold</label><input class="input" value="5"></div><div class="field"><label class="field-label">Unit</label><select class="select-field"><option>seconds</option><option>percent</option><option>count</option></select></div></div><div class="field"><label class="field-label">Severity</label><select class="select-field"><option>Critical</option><option>High</option><option>Info</option></select></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Alert rule created">Create alert</button></div></div></div>
+
+  <!-- Escalation rules -->
+  <div class="modal-backdrop" id="escalationModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Escalation Rules</h3><div class="modal-sub">Define escalation path for unacknowledged alerts</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="escalation-step"><div class="escalation-num">1</div><div style="flex:1;"><div class="config-label">Page primary on-call</div><div class="config-desc">Immediately via SMS + push</div></div><span class="badge info">0 min</span></div><div class="escalation-step"><div class="escalation-num">2</div><div style="flex:1;"><div class="config-label">Escalate to secondary</div><div class="config-desc">If not acknowledged</div></div><span class="badge warning">5 min</span></div><div class="escalation-step"><div class="escalation-num">3</div><div style="flex:1;"><div class="config-label">Notify team lead</div><div class="config-desc">Email + phone call</div></div><span class="badge warning">15 min</span></div><div class="escalation-step"><div class="escalation-num">4</div><div style="flex:1;"><div class="config-label">Page incident manager</div><div class="config-desc">Open incident bridge</div></div><span class="badge danger">30 min</span></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button class="btn btn-primary" data-result="Escalation policy saved">Save policy</button></div></div></div>
+
+  <!-- On-call rotation -->
+  <div class="modal-backdrop" id="onCallModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">On-call Rotation</h3><div class="modal-sub">Weekly schedule and PagerDuty sync</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="oncall-grid"><div class="oncall-cell"><div class="list-sub">Mon</div><div class="avatar" style="margin:6px auto;">SK</div><div style="font-size:11px;">Sarah</div></div><div class="oncall-cell"><div class="list-sub">Tue</div><div class="avatar" style="margin:6px auto;">JM</div><div style="font-size:11px;">John</div></div><div class="oncall-cell"><div class="list-sub">Wed</div><div class="avatar" style="margin:6px auto;">AL</div><div style="font-size:11px;">Anita</div></div><div class="oncall-cell"><div class="list-sub">Thu</div><div class="avatar" style="margin:6px auto;">DR</div><div style="font-size:11px;">David</div></div><div class="oncall-cell"><div class="list-sub">Fri</div><div class="avatar" style="margin:6px auto;">SK</div><div style="font-size:11px;">Sarah</div></div><div class="oncall-cell"><div class="list-sub">Sat</div><div class="avatar" style="margin:6px auto;">JM</div><div style="font-size:11px;">John</div></div><div class="oncall-cell"><div class="list-sub">Sun</div><div class="avatar" style="margin:6px auto;">AL</div><div style="font-size:11px;">Anita</div></div></div><div class="config-row" style="margin-top:14px;"><div><div class="config-label">PagerDuty integration</div><div class="config-desc">Synced every 15 minutes</div></div><span class="badge success">Connected</span></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button class="btn btn-primary" data-result="On-call rotation updated">Save rotation</button></div></div></div>
+
+  <!-- Active alerts (stat) -->
+  <div class="modal-backdrop" id="activeAlertsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Active System Alerts</h3><div class="modal-sub">5 alerts requiring attention</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body" style="padding:0;"><div class="list-item" data-modal="alertDetailModal"><div class="list-left"><div class="list-icon" style="background:var(--danger-soft);color:var(--danger);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg></div><div><div class="list-title">Email provider degraded</div><div class="list-sub">Critical</div></div></div><button class="btn btn-light btn-sm" data-modal="alertDetailModal">View</button></div><div class="list-item" data-modal="alertDetailModal"><div class="list-left"><div class="list-icon" style="background:var(--danger-soft);color:var(--danger);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg></div><div><div class="list-title">SMS bounce rate high</div><div class="list-sub">Critical</div></div></div><button class="btn btn-light btn-sm" data-modal="alertDetailModal">View</button></div><div class="list-item" data-modal="alertDetailModal"><div class="list-left"><div class="list-icon" style="background:var(--warning-soft);color:var(--warning);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg></div><div><div class="list-title">Webhook retry queue</div><div class="list-sub">High</div></div></div><button class="btn btn-light btn-sm" data-modal="alertDetailModal">View</button></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button class="btn btn-primary" onclick="switchTab('alerts');closeAll();">Open alerts tab</button></div></div></div>
+
+  <!-- Stat modals -->
+  <div class="modal-backdrop" id="sentSummaryModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Messages Sent Summary</h3><div class="modal-sub">Last 24 hours by channel</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="dist-row"><div class="dist-label">Email</div><div class="dist-bar"><span style="width:58%;background:var(--info);"></span></div><div class="dist-val">28.0K</div></div><div class="dist-row"><div class="dist-label">SMS</div><div class="dist-bar"><span style="width:28%;background:var(--success);"></span></div><div class="dist-val">13.5K</div></div><div class="dist-row"><div class="dist-label">Push</div><div class="dist-bar"><span style="width:14%;background:var(--purple);"></span></div><div class="dist-val">6.7K</div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button class="btn btn-primary" data-modal="exportModal">Export</button></div></div></div>
+  <div class="modal-backdrop" id="deliveryModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Delivery Performance</h3><div class="modal-sub">98.9% overall delivery rate</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">Email</div><div class="kv-val">99.1%</div></div><div><div class="kv-label">SMS</div><div class="kv-val">99.4%</div></div><div><div class="kv-label">Push</div><div class="kv-val">96.8%</div></div><div><div class="kv-label">Webhook</div><div class="kv-val">99.98%</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+  <div class="modal-backdrop" id="engagementModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Engagement Metrics</h3><div class="modal-sub">Open and click performance</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="dist-row"><div class="dist-label">Open rate</div><div class="dist-bar"><span style="width:42%;background:var(--info);"></span></div><div class="dist-val">42.1%</div></div><div class="dist-row"><div class="dist-label">Click rate</div><div class="dist-bar"><span style="width:18.6%;background:var(--purple);"></span></div><div class="dist-val">18.6%</div></div><div class="dist-row"><div class="dist-label">Unsubscribe</div><div class="dist-bar"><span style="width:1.2%;background:var(--warning);"></span></div><div class="dist-val">1.2%</div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <!-- Inbox -->
+  <div class="modal-backdrop" id="inboxModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Internal Inbox</h3><div class="modal-sub">Team messages and assignments</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body" style="padding:0;"><div class="list-item"><div class="list-left"><span class="avatar">SK</span><div><div class="list-title">Sarah assigned you a complaint</div><div class="list-sub">MSG-77410 - 12 min ago</div></div></div><button class="btn btn-light btn-sm" data-modal="complaintModal">Open</button></div><div class="list-item"><div class="list-left"><span class="avatar">JM</span><div><div class="list-title">Template v4.2 needs review</div><div class="list-sub">Payment Confirmation - 1h ago</div></div></div><button class="btn btn-light btn-sm" data-modal="templateDetailModal">Review</button></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-result="Inbox marked as read">Mark read</button><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <!-- Filter -->
+  <div class="modal-backdrop" id="filterModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Dashboard Filters</h3><div class="modal-sub">Filter notifications and logs</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Channel</label><select class="select-field"><option>All channels</option><option>Email</option><option>SMS</option><option>Push</option><option>Webhook</option></select></div><div class="field"><label class="field-label">Status</label><select class="select-field"><option>All status</option><option>Delivered</option><option>Opened</option><option>Bounced</option><option>Complaint</option></select></div><div class="field"><label class="field-label">Date range</label><select class="select-field"><option>Last 24 hours</option><option>Last 7 days</option><option>Last 30 days</option></select></div></div><div class="modal-footer"><button class="btn btn-ghost" data-result="Filters reset">Reset</button><div style="display:flex;gap:8px;"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Filters applied">Apply filters</button></div></div></div></div>
+
+  <!-- Export -->
+  <div class="modal-backdrop" id="exportModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Export Communication Report</h3><div class="modal-sub">Generate delivery or engagement report</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Report type</label><select class="select-field"><option>Delivery summary</option><option>Engagement report</option><option>Bounce & complaint log</option><option>Communication log</option><option>Alert history</option></select></div><div class="field"><label class="field-label">Format</label><select class="select-field"><option>PDF</option><option>CSV</option><option>JSON</option></select></div><div class="field"><label class="field-label">Period</label><select class="select-field"><option>Last 24 hours</option><option>Last 7 days</option><option>Last 30 days</option></select></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Export generated and queued for download">Generate export</button></div></div></div>
+
+  <!-- Result modal -->
+  <div class="modal-backdrop" id="resultModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Action Complete</h3><div class="modal-sub">PayMo operation completed successfully</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="alert success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg><span id="resultMessage">Action completed.</span></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Done</button></div></div></div>
+
+  <!-- Nav modals -->
+  <div class="modal-backdrop" id="navDashboardModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Dashboard</h3><div class="modal-sub">Main PayMo platform overview</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">Daily volume</div><div class="kv-val">$8.4M</div></div><div><div class="kv-label">Services online</div><div class="kv-val">14 of 14</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+  <div class="modal-backdrop" id="navRailsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Payment Rails</h3><div class="modal-sub">Rail availability and routing</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="alert info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg>ACH, Wire, SWIFT, RTGS, PesaLink, SEPA, FPS, CHAPS monitored.</div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+  <div class="modal-backdrop" id="navOpenBankingModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Open Banking</h3><div class="modal-sub">Linked accounts and consents</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">Connected accounts</div><div class="kv-val">36</div></div><div><div class="kv-label">Active consents</div><div class="kv-val">91</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+  <div class="modal-backdrop" id="navWalletsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Wallets</h3><div class="modal-sub">Virtual accounts and balances</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">Wallets</div><div class="kv-val">48,221</div></div><div><div class="kv-label">Balance</div><div class="kv-val">$182M</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+  <div class="modal-backdrop" id="navCustomersModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Customers</h3><div class="modal-sub">Customer directory and segments</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">Total customers</div><div class="kv-val">128,442</div></div><div><div class="kv-label">Active (30d)</div><div class="kv-val">98,201</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+  <div class="modal-backdrop" id="navRiskModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Risk</h3><div class="modal-sub">Fraud and risk controls</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="alert warning"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg>47 high-risk alerts require review.</div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+  <div class="modal-backdrop" id="navAnalyticsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Analytics</h3><div class="modal-sub">Cross-platform insights</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">Messages</div><div class="kv-val">48.2K/day</div></div><div><div class="kv-label">Delivery</div><div class="kv-val">98.9%</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+  <div class="modal-backdrop" id="navSettingsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Settings</h3><div class="modal-sub">Communication preferences</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><button class="btn btn-light" style="width:100%;margin-bottom:8px;" data-modal="quietHoursModal">Quiet hours</button><button class="btn btn-light" style="width:100%;" data-modal="digestModal">Digest settings</button></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <script>
+    const sidebar = document.getElementById('sidebar');
+    document.getElementById('sidebarToggle').addEventListener('click', () => sidebar.classList.toggle('expanded'));
+    document.getElementById('mobileMenuBtn').addEventListener('click', () => sidebar.classList.toggle('mobile-open'));
+
+    function openModal(id) { const m = document.getElementById(id); if (m) m.classList.add('show'); }
+    function closeAll() { document.querySelectorAll('.modal-backdrop.show').forEach(m => m.classList.remove('show')); }
+    document.addEventListener('click', e => {
+      const close = e.target.closest('[data-close]');
+      if (close) { e.preventDefault(); e.stopPropagation(); closeAll(); return; }
+      const result = e.target.closest('[data-result]');
+      if (result) { e.preventDefault(); e.stopPropagation(); setResult(result.dataset.result); return; }
+      const opener = e.target.closest('[data-modal]');
+      if (opener) { e.preventDefault(); e.stopPropagation(); openModal(opener.dataset.modal); }
+    });
+    document.querySelectorAll('.modal-backdrop').forEach(b => b.addEventListener('click', e => { if (e.target === b) closeAll(); }));
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAll(); });
+
+    function setResult(message) { closeAll(); document.getElementById('resultMessage').textContent = message; openModal('resultModal'); }
+
+    function switchTab(name) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.dataset.panel === name));
+    }
+    document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => switchTab(tab.dataset.tab)));
+
+    document.querySelectorAll('.choice-row').forEach(row => {
+      row.addEventListener('click', () => {
+        const radio = row.querySelector('input[type="radio"]');
+        if (radio) {
+          document.querySelectorAll('input[name="' + radio.name + '"]').forEach(i => i.closest('.choice-row')?.classList.remove('selected'));
+          radio.checked = true; row.classList.add('selected');
+        }
+        const cb = row.querySelector('input[type="checkbox"]');
+        if (cb && !radio) row.classList.toggle('selected', cb.checked);
+      });
+    });
+
+    document.querySelectorAll('.lang-tab').forEach(t => t.addEventListener('click', function() {
+      if (this.dataset.modal) return;
+      this.parentElement.querySelectorAll('.lang-tab').forEach(x => x.classList.remove('active'));
+      this.classList.add('active');
+    }));
+
+    function setupStepper(rootId, stepperId, backId, nextId, total, doneMessage) {
+      const root = document.getElementById(rootId);
+      let current = 1;
+      const render = () => {
+        document.querySelectorAll('#' + stepperId + ' .step').forEach((s, i) => { s.classList.toggle('active', i + 1 === current); s.classList.toggle('done', i + 1 < current); });
+        root.querySelectorAll('.step-panel').forEach(p => p.classList.toggle('active', Number(p.dataset.step) === current));
+        document.getElementById(backId).disabled = current === 1;
+        document.getElementById(nextId).textContent = current === total ? 'Publish' : 'Next';
+      };
+      document.getElementById(backId).addEventListener('click', () => { if (current > 1) { current--; render(); } });
+      document.getElementById(nextId).addEventListener('click', () => { if (current < total) { current++; render(); } else { current = 1; render(); setResult(doneMessage); } });
+      render();
+    }
+    setupStepper('newTemplateModal', 'tplStepper', 'tplBack', 'tplNext', 4, 'Template created and published as v1.0');
+    setupStepper('newRuleModal', 'ruleStepper', 'ruleBack', 'ruleNext', 4, 'Communication rule created and activated');
+
+    const tplSearch = document.getElementById('tplSearch');
+    const tplFilter = document.getElementById('tplFilter');
+    function filterTemplates() {
+      const q = (tplSearch.value || '').toLowerCase();
+      const c = tplFilter.value;
+      document.querySelectorAll('#tplGrid .tpl-card').forEach(card => {
+        const matchText = card.textContent.toLowerCase().includes(q);
+        const matchChan = c === 'All Channels' || card.dataset.channel === c;
+        card.style.display = matchText && matchChan ? '' : 'none';
+      });
+    }
+    tplSearch.addEventListener('input', filterTemplates);
+    tplFilter.addEventListener('change', filterTemplates);
+
+    const logChannel = document.getElementById('logChannel');
+    const logStatus = document.getElementById('logStatus');
+    function filterLog() {
+      const c = logChannel.value, s = logStatus.value;
+      document.querySelectorAll('#logTable tbody tr').forEach(tr => {
+        const mc = c === 'All Channels' || tr.dataset.channel === c;
+        const ms = s === 'All Status' || tr.dataset.status === s;
+        tr.style.display = mc && ms ? '' : 'none';
+      });
+    }
+    logChannel.addEventListener('change', filterLog);
+    logStatus.addEventListener('change', filterLog);
+  </script>
+</body>
+</html>

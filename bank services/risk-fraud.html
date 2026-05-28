@@ -1,0 +1,2330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Fraud & Risk Management — PayMo BaaS</title>
+<link rel="stylesheet" href="./master.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Page-specific styling */
+  .risk-gauge-wrap {
+    display: flex; align-items: center; gap: 28px;
+    flex-wrap: wrap;
+  }
+  .gauge-card {
+    flex: 1; min-width: 260px;
+    background: linear-gradient(135deg, #fff 0%, #fafaf7 100%);
+    border-radius: var(--radius);
+    padding: 22px;
+    border: 1px solid var(--border-soft);
+    text-align: center;
+  }
+  .gauge {
+    position: relative;
+    width: 180px; height: 100px;
+    margin: 0 auto 10px;
+  }
+  .gauge svg { width: 100%; height: 100%; }
+  .gauge-value {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    text-align: center;
+  }
+  .gauge-value .num { font-size: 30px; font-weight: 700; }
+  .gauge-value .lbl { font-size: 11px; color: var(--text-3); text-transform: uppercase; letter-spacing: .08em; }
+
+  .dist-row { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .dist-label { width: 80px; font-size: 12px; font-weight: 500; }
+  .dist-bar { flex: 1; height: 8px; border-radius: 100px; background: var(--surface-3); overflow: hidden; }
+  .dist-bar span { display: block; height: 100%; border-radius: 100px; }
+  .dist-val { width: 70px; text-align: right; font-size: 12px; font-weight: 600; }
+
+  .feature-bar {
+    display: flex; align-items: center; gap: 10px; padding: 10px 0;
+  }
+  .feature-name { width: 160px; font-size: 12px; }
+  .feature-track { flex: 1; height: 6px; background: var(--surface-3); border-radius: 100px; overflow: hidden; }
+  .feature-track span { display: block; height: 100%; background: linear-gradient(90deg, #7c3aed, #5b5bf5); border-radius: 100px; }
+  .feature-val { width: 44px; text-align: right; font-size: 12px; font-weight: 600; }
+
+  .case-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; }
+  .case-card {
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius);
+    padding: 16px;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .case-card:hover { border-color: var(--primary); box-shadow: var(--shadow-lg); }
+  .case-card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .case-id { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-3); }
+
+  .severity-strip { width: 4px; align-self: stretch; border-radius: 4px; margin-right: 12px; }
+  .severity-strip.high { background: var(--danger); }
+  .severity-strip.med { background: var(--warning); }
+  .severity-strip.low { background: var(--info); }
+
+  .ml-model-card {
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius);
+    padding: 18px;
+  }
+  .perf-ring {
+    width: 70px; height: 70px;
+    position: relative;
+  }
+  .ring-text {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700;
+  }
+
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 11px; color: var(--text-3); }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; vertical-align: middle; }
+
+  .trend-svg { width: 100%; height: 180px; }
+
+  .threed-card {
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius);
+    padding: 18px;
+  }
+
+  .config-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 0; border-bottom: 1px solid var(--border-soft);
+  }
+  .config-row:last-child { border-bottom: none; }
+  .config-label { font-size: 13px; font-weight: 500; }
+  .config-desc { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+
+  .slider-wrap { display: flex; align-items: center; gap: 12px; }
+  .slider-wrap input[type=range] { flex: 1; accent-color: var(--primary); }
+
+  /* Two-column responsive */
+  .two-col { display: grid; grid-template-columns: 1.4fr 1fr; gap: 16px; }
+  @media (max-width: 900px) { .two-col { grid-template-columns: 1fr; } }
+
+  .scroll-x { overflow-x: auto; }
+  .timeline { position: relative; padding-left: 24px; }
+  .timeline::before {
+    content: ""; position: absolute; left: 8px; top: 6px; bottom: 6px;
+    width: 2px; background: var(--border);
+  }
+  .tl-item { position: relative; padding-bottom: 16px; }
+  .tl-item::before {
+    content: ""; position: absolute; left: -20px; top: 4px;
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--primary); border: 2px solid #fff;
+  }
+  .tl-time { font-size: 11px; color: var(--text-3); }
+  .tl-text { font-size: 13px; margin-top: 2px; }
+
+  .kv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 24px; }
+  .kv-label { font-size: 11px; color: var(--text-3); text-transform: uppercase; letter-spacing: .06em; }
+  .kv-val { font-size: 13px; font-weight: 500; margin-top: 2px; }
+
+  .tag-input { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px; border: 1px solid var(--border); border-radius: 10px; }
+  .tag-chip { background: var(--primary-soft); color: var(--primary); padding: 3px 8px 3px 10px; border-radius: 6px; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; }
+  .tag-chip button { color: var(--primary); font-size: 14px; line-height: 1; }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ============== SIDEBAR ============== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">P</div>
+    <nav class="sidebar-nav">
+      <button class="sidebar-item" title="Dashboard" data-modal="navHomeModal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        <span class="sidebar-label">Dashboard</span>
+      </button>
+      <button class="sidebar-item" title="Transfers" data-modal="navTransfersModal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        <span class="sidebar-label">Transfers</span>
+      </button>
+      <button class="sidebar-item" title="FX" data-modal="navFXModal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+        <span class="sidebar-label">FX & Rates</span>
+      </button>
+      <button class="sidebar-item" title="Routing" data-modal="navRoutingModal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="19" r="3"/><circle cx="18" cy="5" r="3"/><path d="M6 16V8a4 4 0 0 1 4-4h8"/></svg>
+        <span class="sidebar-label">Routing</span>
+      </button>
+      <button class="sidebar-item" title="Wallets" data-modal="navWalletsModal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg>
+        <span class="sidebar-label">Wallets</span>
+      </button>
+      <button class="sidebar-item" title="Institutions" data-modal="navInstitutionsModal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"/><path d="M3 10h18"/><path d="M5 6l7-3 7 3"/><path d="M4 10v11"/><path d="M20 10v11"/><path d="M8 14v3"/><path d="M12 14v3"/><path d="M16 14v3"/></svg>
+        <span class="sidebar-label">Institutions</span>
+      </button>
+      <button class="sidebar-item" title="Customers" data-modal="navCustomersModal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span class="sidebar-label">Customers</span>
+      </button>
+      <button class="sidebar-item active" title="Risk & Fraud">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+        <span class="sidebar-label">Risk & Fraud</span>
+      </button>
+      <button class="sidebar-item" title="Analytics" data-modal="navAnalyticsModal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
+        <span class="sidebar-label">Analytics</span>
+      </button>
+    </nav>
+    <button class="sidebar-expand" id="sidebarToggle">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      <span class="sidebar-label">Collapse</span>
+    </button>
+  </aside>
+
+  <!-- ============== MAIN ============== -->
+  <main class="main">
+
+    <div class="topbar">
+      <div>
+        <div class="crumb">
+          <button class="mobile-menu-btn btn btn-light btn-sm" id="mobileMenuBtn" style="margin-right:8px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          </button>
+          <span>Dashboard</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          <span>Fraud &amp; Risk Management</span>
+        </div>
+        <h1 class="page-title">Fraud &amp; Risk Management</h1>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-light btn-icon" data-modal="notificationsModal" title="Notifications">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        </button>
+        <button class="btn btn-light" data-modal="exportModal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span class="btn-text">Export Report</span>
+        </button>
+        <button class="btn btn-light" data-modal="filterModal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+          <span class="btn-text">Filters</span>
+        </button>
+        <button class="btn btn-primary" data-modal="createRuleModal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span>Create Rule</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ============== STAT CARDS ============== -->
+    <div class="stats-row">
+      <div class="stat-card" data-modal="riskScoreModal">
+        <div class="stat-icon green">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <div class="stat-label">Risk Posture</div>
+        <div class="stat-value">82<span style="font-size:14px;color:var(--text-3);font-weight:500;">/100</span></div>
+        <div class="stat-trend up">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="18 15 12 9 6 15"/></svg>
+          <span>+4 pts this week</span>
+        </div>
+      </div>
+
+      <div class="stat-card" data-modal="alertsQueueModal">
+        <div class="stat-icon red">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <div class="stat-label">High-Risk Alerts</div>
+        <div class="stat-value">47</div>
+        <div class="stat-trend down">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="6 9 12 15 18 9"/></svg>
+          <span>+12 last 24h</span>
+        </div>
+      </div>
+
+      <div class="stat-card" data-modal="blockedModal">
+        <div class="stat-icon amber">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+        </div>
+        <div class="stat-label">Blocked Today</div>
+        <div class="stat-value">128</div>
+        <div class="stat-trend neutral">
+          <span>$2.4M prevented</span>
+        </div>
+      </div>
+
+      <div class="stat-card" data-modal="modelPerfModal">
+        <div class="stat-icon purple">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+        </div>
+        <div class="stat-label">Model Accuracy</div>
+        <div class="stat-value">94.7%</div>
+        <div class="stat-trend up">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="18 15 12 9 6 15"/></svg>
+          <span>+0.6% vs last</span>
+        </div>
+      </div>
+
+      <div class="stat-card" data-modal="casesModal">
+        <div class="stat-icon blue">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </div>
+        <div class="stat-label">Open Cases</div>
+        <div class="stat-value">23</div>
+        <div class="stat-trend down">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="18 15 12 9 6 15"/></svg>
+          <span>-5 resolved today</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============== TABS ============== -->
+    <div class="panel">
+      <div class="tabs" id="mainTabs">
+        <button class="tab active" data-tab="overview">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          Risk Overview
+        </button>
+        <button class="tab" data-tab="rules">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/></svg>
+          Rule Engine <span class="tab-badge">24</span>
+        </button>
+        <button class="tab" data-tab="ml">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+          ML Models
+        </button>
+        <button class="tab" data-tab="cases">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7h-3a2 2 0 0 1-2-2V2"/><path d="M9 18a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h7l4 4v12a2 2 0 0 1-2 2H9z"/></svg>
+          Case Management <span class="tab-badge">23</span>
+        </button>
+        <button class="tab" data-tab="threed">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          3D Secure &amp; Auth
+        </button>
+      </div>
+
+      <!-- ===== TAB: Risk Overview ===== -->
+      <div class="tab-panel active" data-panel="overview">
+        <div class="panel-body">
+          <div class="risk-gauge-wrap">
+            <div class="gauge-card">
+              <div style="font-size:13px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px;">Overall Risk Posture</div>
+              <div class="gauge">
+                <svg viewBox="0 0 200 110">
+                  <path d="M20,100 A80,80 0 0,1 180,100" stroke="#eef0ff" stroke-width="14" fill="none" stroke-linecap="round"/>
+                  <path d="M20,100 A80,80 0 0,1 162,55" stroke="#16a34a" stroke-width="14" fill="none" stroke-linecap="round"/>
+                </svg>
+                <div class="gauge-value">
+                  <div class="num">82</div>
+                  <div class="lbl">Healthy</div>
+                </div>
+              </div>
+              <div class="legend" style="justify-content:center;margin-top:8px;">
+                <span><span class="legend-dot" style="background:#16a34a;"></span>Healthy</span>
+                <span><span class="legend-dot" style="background:#d97706;"></span>Watch</span>
+                <span><span class="legend-dot" style="background:#dc2626;"></span>Critical</span>
+              </div>
+            </div>
+
+            <div style="flex:2; min-width:300px;">
+              <div style="font-size:13px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px;">Risk Score Distribution (24h)</div>
+              <div class="dist-row">
+                <div class="dist-label">Low (0-30)</div>
+                <div class="dist-bar"><span style="width:68%;background:#16a34a;"></span></div>
+                <div class="dist-val">12,845</div>
+              </div>
+              <div class="dist-row">
+                <div class="dist-label">Medium (31-60)</div>
+                <div class="dist-bar"><span style="width:22%;background:#eab308;"></span></div>
+                <div class="dist-val">4,128</div>
+              </div>
+              <div class="dist-row">
+                <div class="dist-label">High (61-85)</div>
+                <div class="dist-bar"><span style="width:8%;background:#d97706;"></span></div>
+                <div class="dist-val">1,502</div>
+              </div>
+              <div class="dist-row">
+                <div class="dist-label">Critical (86+)</div>
+                <div class="dist-bar"><span style="width:2%;background:#dc2626;"></span></div>
+                <div class="dist-val">347</div>
+              </div>
+              <div style="display:flex; gap:10px; margin-top:12px;">
+                <button class="btn btn-light btn-sm" data-modal="distDetailModal">View distribution detail</button>
+                <button class="btn btn-light btn-sm" data-modal="riskTrendModal">7-day trend</button>
+              </div>
+            </div>
+          </div>
+
+          <div style="height: 22px;"></div>
+
+          <!-- Risk Trend chart -->
+          <div style="font-weight:600; margin-bottom: 10px; display:flex; justify-content:space-between; align-items:center;">
+            <div>Risk Trend Analysis</div>
+            <div style="display:flex; gap:6px;">
+              <button class="btn btn-light btn-sm period-btn active" data-period="24h">24h</button>
+              <button class="btn btn-light btn-sm period-btn" data-period="7d">7d</button>
+              <button class="btn btn-light btn-sm period-btn" data-period="30d">30d</button>
+              <button class="btn btn-light btn-sm period-btn" data-period="90d">90d</button>
+            </div>
+          </div>
+          <div style="background: var(--surface-2); border-radius: 12px; padding: 16px;">
+            <svg class="trend-svg" viewBox="0 0 800 180" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="trendGrad" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0%" stop-color="#5b5bf5" stop-opacity="0.3"/>
+                  <stop offset="100%" stop-color="#5b5bf5" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+              <g stroke="#e8e6df" stroke-width="1">
+                <line x1="0" y1="30" x2="800" y2="30"/>
+                <line x1="0" y1="75" x2="800" y2="75"/>
+                <line x1="0" y1="120" x2="800" y2="120"/>
+                <line x1="0" y1="165" x2="800" y2="165"/>
+              </g>
+              <path d="M0,120 L40,100 L80,110 L120,85 L160,95 L200,70 L240,90 L280,60 L320,75 L360,55 L400,80 L440,45 L480,65 L520,40 L560,72 L600,55 L640,30 L680,68 L720,45 L760,58 L800,42 L800,180 L0,180 Z" fill="url(#trendGrad)"/>
+              <path d="M0,120 L40,100 L80,110 L120,85 L160,95 L200,70 L240,90 L280,60 L320,75 L360,55 L400,80 L440,45 L480,65 L520,40 L560,72 L600,55 L640,30 L680,68 L720,45 L760,58 L800,42" fill="none" stroke="#5b5bf5" stroke-width="2.5"/>
+              <path d="M0,140 L40,135 L80,130 L120,128 L160,125 L200,120 L240,118 L280,115 L320,112 L360,108 L400,105 L440,100 L480,98 L520,95 L560,90 L600,88 L640,85 L680,82 L720,78 L760,75 L800,72" fill="none" stroke="#dc2626" stroke-width="2" stroke-dasharray="5,4"/>
+            </svg>
+            <div class="legend" style="justify-content:center; margin-top:10px;">
+              <span><span class="legend-dot" style="background:#5b5bf5;"></span>Avg Risk Score</span>
+              <span><span class="legend-dot" style="background:#dc2626;"></span>Fraud Rate</span>
+            </div>
+          </div>
+
+          <div style="height: 22px;"></div>
+
+          <!-- High Risk transactions -->
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
+            <div style="font-weight:600;">High-Risk Transaction Alerts</div>
+            <div style="display:flex; gap:8px;">
+              <div class="search-box" style="min-width:200px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input placeholder="Search transactions..." />
+              </div>
+              <select class="select">
+                <option>All Severity</option>
+                <option>Critical</option>
+                <option>High</option>
+                <option>Medium</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Transaction</th><th>Score</th><th>Amount</th><th>Origin</th><th>Reason</th><th>Status</th><th></th>
+              </tr>
+            </thead>
+            <tbody id="riskTxnTable">
+              <tr data-modal="txnDetailModal">
+                <td><div class="mono">TXN-9F4A82E1</div><div style="font-size:11px;color:var(--text-3);">2 min ago</div></td>
+                <td><span class="badge danger"><span class="badge-dot"></span>97</span></td>
+                <td>$12,450.00</td>
+                <td>KE → US</td>
+                <td>Velocity + Geo mismatch</td>
+                <td><span class="badge warning"><span class="badge-dot"></span>Held</span></td>
+                <td class="right"><button class="btn btn-light btn-sm">Review</button></td>
+              </tr>
+              <tr data-modal="txnDetailModal">
+                <td><div class="mono">TXN-8B22D5C9</div><div style="font-size:11px;color:var(--text-3);">8 min ago</div></td>
+                <td><span class="badge danger"><span class="badge-dot"></span>92</span></td>
+                <td>£8,200.00</td>
+                <td>GB → NG</td>
+                <td>Unusual device fingerprint</td>
+                <td><span class="badge danger"><span class="badge-dot"></span>Blocked</span></td>
+                <td class="right"><button class="btn btn-light btn-sm">Review</button></td>
+              </tr>
+              <tr data-modal="txnDetailModal">
+                <td><div class="mono">TXN-7AB1F3D0</div><div style="font-size:11px;color:var(--text-3);">14 min ago</div></td>
+                <td><span class="badge warning"><span class="badge-dot"></span>78</span></td>
+                <td>KES 850,000</td>
+                <td>KE → KE</td>
+                <td>Behavioral anomaly</td>
+                <td><span class="badge warning"><span class="badge-dot"></span>Review</span></td>
+                <td class="right"><button class="btn btn-light btn-sm">Review</button></td>
+              </tr>
+              <tr data-modal="txnDetailModal">
+                <td><div class="mono">TXN-6CC9E2B4</div><div style="font-size:11px;color:var(--text-3);">22 min ago</div></td>
+                <td><span class="badge warning"><span class="badge-dot"></span>71</span></td>
+                <td>€3,180.00</td>
+                <td>FR → RU</td>
+                <td>Sanctions list adjacent</td>
+                <td><span class="badge warning"><span class="badge-dot"></span>Held</span></td>
+                <td class="right"><button class="btn btn-light btn-sm">Review</button></td>
+              </tr>
+              <tr data-modal="txnDetailModal">
+                <td><div class="mono">TXN-5DD2A8F7</div><div style="font-size:11px;color:var(--text-3);">31 min ago</div></td>
+                <td><span class="badge danger"><span class="badge-dot"></span>89</span></td>
+                <td>$24,900.00</td>
+                <td>US → US</td>
+                <td>Card not present + new device</td>
+                <td><span class="badge success"><span class="badge-dot"></span>Cleared</span></td>
+                <td class="right"><button class="btn btn-light btn-sm">Review</button></td>
+              </tr>
+              <tr data-modal="txnDetailModal">
+                <td><div class="mono">TXN-4EE8C1A2</div><div style="font-size:11px;color:var(--text-3);">48 min ago</div></td>
+                <td><span class="badge warning"><span class="badge-dot"></span>76</span></td>
+                <td>KES 1.2M</td>
+                <td>KE → AE</td>
+                <td>High amount + new beneficiary</td>
+                <td><span class="badge warning"><span class="badge-dot"></span>Review</span></td>
+                <td class="right"><button class="btn btn-light btn-sm">Review</button></td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== TAB: Rule Engine ===== -->
+      <div class="tab-panel" data-panel="rules">
+        <div class="panel-body">
+          <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:18px;">
+            <button class="btn btn-light" data-modal="velocityRuleModal">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              Velocity Rules
+            </button>
+            <button class="btn btn-light" data-modal="geoRuleModal">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="10" r="3"/><path d="M12 2a8 8 0 0 0-8 8c0 6 8 12 8 12s8-6 8-12a8 8 0 0 0-8-8z"/></svg>
+              Geolocation Rules
+            </button>
+            <button class="btn btn-light" data-modal="deviceRuleModal">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+              Device Fingerprinting
+            </button>
+            <button class="btn btn-light" data-modal="behavioralRuleModal">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/></svg>
+              Behavioral Anomaly
+            </button>
+            <button class="btn btn-primary" data-modal="ruleBuilderModal" style="margin-left:auto;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Custom Rule Builder
+            </button>
+          </div>
+
+          <div class="dir-grid">
+            <div class="dir-card" data-modal="ruleDetailModal">
+              <div class="dir-card-head">
+                <div class="dir-card-left">
+                  <div class="dir-avatar" style="background:#fee2e2;color:#dc2626;">V</div>
+                  <div>
+                    <h4>High Velocity Block</h4>
+                    <div class="sub">VELOCITY · ACTIVE</div>
+                  </div>
+                </div>
+                <label class="toggle"><input type="checkbox" checked /><span class="toggle-slider"></span></label>
+              </div>
+              <div class="dir-metrics">
+                <div><div class="dir-metric-label">Triggers (24h)</div><div class="dir-metric-value">142</div></div>
+                <div><div class="dir-metric-label">Precision</div><div class="dir-metric-value">96.2%</div></div>
+                <div><div class="dir-metric-label">Threshold</div><div class="dir-metric-value">&gt;10 txns / 5min</div></div>
+                <div><div class="dir-metric-label">Action</div><div class="dir-metric-value">Block</div></div>
+              </div>
+              <div><span class="pill">VELOCITY</span><span class="pill">AUTO</span><span class="pill">P0</span></div>
+            </div>
+
+            <div class="dir-card" data-modal="ruleDetailModal">
+              <div class="dir-card-head">
+                <div class="dir-card-left">
+                  <div class="dir-avatar" style="background:#fef3c7;color:#d97706;">G</div>
+                  <div>
+                    <h4>Sanctioned Country Hold</h4>
+                    <div class="sub">GEOLOCATION · ACTIVE</div>
+                  </div>
+                </div>
+                <label class="toggle"><input type="checkbox" checked /><span class="toggle-slider"></span></label>
+              </div>
+              <div class="dir-metrics">
+                <div><div class="dir-metric-label">Triggers (24h)</div><div class="dir-metric-value">38</div></div>
+                <div><div class="dir-metric-label">Precision</div><div class="dir-metric-value">99.1%</div></div>
+                <div><div class="dir-metric-label">Countries</div><div class="dir-metric-value">12 listed</div></div>
+                <div><div class="dir-metric-label">Action</div><div class="dir-metric-value">Hold + Review</div></div>
+              </div>
+              <div><span class="pill">GEO</span><span class="pill">AML</span><span class="pill">OFAC</span></div>
+            </div>
+
+            <div class="dir-card" data-modal="ruleDetailModal">
+              <div class="dir-card-head">
+                <div class="dir-card-left">
+                  <div class="dir-avatar" style="background:#e0f2fe;color:#0284c7;">D</div>
+                  <div>
+                    <h4>New Device Challenge</h4>
+                    <div class="sub">DEVICE · ACTIVE</div>
+                  </div>
+                </div>
+                <label class="toggle"><input type="checkbox" checked /><span class="toggle-slider"></span></label>
+              </div>
+              <div class="dir-metrics">
+                <div><div class="dir-metric-label">Triggers (24h)</div><div class="dir-metric-value">512</div></div>
+                <div><div class="dir-metric-label">Precision</div><div class="dir-metric-value">88.4%</div></div>
+                <div><div class="dir-metric-label">Method</div><div class="dir-metric-value">3DS Challenge</div></div>
+                <div><div class="dir-metric-label">Action</div><div class="dir-metric-value">Step-up</div></div>
+              </div>
+              <div><span class="pill">DEVICE</span><span class="pill">3DS</span></div>
+            </div>
+
+            <div class="dir-card" data-modal="ruleDetailModal">
+              <div class="dir-card-head">
+                <div class="dir-card-left">
+                  <div class="dir-avatar" style="background:#ede9fe;color:#7c3aed;">B</div>
+                  <div>
+                    <h4>Behavioral Drift</h4>
+                    <div class="sub">BEHAVIORAL · ACTIVE</div>
+                  </div>
+                </div>
+                <label class="toggle"><input type="checkbox" checked /><span class="toggle-slider"></span></label>
+              </div>
+              <div class="dir-metrics">
+                <div><div class="dir-metric-label">Triggers (24h)</div><div class="dir-metric-value">87</div></div>
+                <div><div class="dir-metric-label">Precision</div><div class="dir-metric-value">82.5%</div></div>
+                <div><div class="dir-metric-label">Window</div><div class="dir-metric-value">30 day rolling</div></div>
+                <div><div class="dir-metric-label">Action</div><div class="dir-metric-value">Score boost +25</div></div>
+              </div>
+              <div><span class="pill">ML</span><span class="pill">BEHAVIORAL</span></div>
+            </div>
+
+            <div class="dir-card" data-modal="ruleDetailModal">
+              <div class="dir-card-head">
+                <div class="dir-card-left">
+                  <div class="dir-avatar" style="background:#dcfce7;color:#16a34a;">A</div>
+                  <div>
+                    <h4>Amount Threshold</h4>
+                    <div class="sub">VELOCITY · ACTIVE</div>
+                  </div>
+                </div>
+                <label class="toggle"><input type="checkbox" checked /><span class="toggle-slider"></span></label>
+              </div>
+              <div class="dir-metrics">
+                <div><div class="dir-metric-label">Triggers (24h)</div><div class="dir-metric-value">203</div></div>
+                <div><div class="dir-metric-label">Precision</div><div class="dir-metric-value">94.0%</div></div>
+                <div><div class="dir-metric-label">Threshold</div><div class="dir-metric-value">&gt; $10,000</div></div>
+                <div><div class="dir-metric-label">Action</div><div class="dir-metric-value">Manual Review</div></div>
+              </div>
+              <div><span class="pill">AMOUNT</span><span class="pill">REVIEW</span></div>
+            </div>
+
+            <div class="dir-card" data-modal="ruleDetailModal">
+              <div class="dir-card-head">
+                <div class="dir-card-left">
+                  <div class="dir-avatar" style="background:#fee2e2;color:#dc2626;">F</div>
+                  <div>
+                    <h4>Frequency Spike</h4>
+                    <div class="sub">VELOCITY · PAUSED</div>
+                  </div>
+                </div>
+                <label class="toggle"><input type="checkbox" /><span class="toggle-slider"></span></label>
+              </div>
+              <div class="dir-metrics">
+                <div><div class="dir-metric-label">Triggers (24h)</div><div class="dir-metric-value">—</div></div>
+                <div><div class="dir-metric-label">Precision</div><div class="dir-metric-value">71.2%</div></div>
+                <div><div class="dir-metric-label">Threshold</div><div class="dir-metric-value">5x normal</div></div>
+                <div><div class="dir-metric-label">Action</div><div class="dir-metric-value">Score boost +15</div></div>
+              </div>
+              <div><span class="pill gray">PAUSED</span><span class="pill">TUNING</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== TAB: ML Models ===== -->
+      <div class="tab-panel" data-panel="ml">
+        <div class="panel-body">
+          <div class="two-col">
+            <div>
+              <div style="font-weight:600; margin-bottom:14px;">Active Models</div>
+              <div class="ml-model-card" style="margin-bottom:12px;" data-modal="modelDetailModal">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
+                  <div>
+                    <div style="font-weight:600;">FraudNet v3.2</div>
+                    <div style="font-size:11px;color:var(--text-3);margin-top:2px;">Gradient Boosting · 247 features · Production</div>
+                  </div>
+                  <span class="badge success"><span class="badge-dot"></span>Live</span>
+                </div>
+                <div style="display:flex; gap:24px; align-items:center;">
+                  <div class="perf-ring">
+                    <svg width="70" height="70" class="donut">
+                      <circle cx="35" cy="35" r="28" stroke="#eef0ff"/>
+                      <circle cx="35" cy="35" r="28" stroke="#5b5bf5" stroke-dasharray="176" stroke-dashoffset="9.3"/>
+                    </svg>
+                    <div class="ring-text">94.7%</div>
+                  </div>
+                  <div style="flex:1;">
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                      <div><div class="kv-label">Precision</div><div class="kv-val">93.2%</div></div>
+                      <div><div class="kv-label">Recall</div><div class="kv-val">91.8%</div></div>
+                      <div><div class="kv-label">F1</div><div class="kv-val">0.925</div></div>
+                      <div><div class="kv-label">AUC</div><div class="kv-val">0.971</div></div>
+                    </div>
+                  </div>
+                </div>
+                <div style="display:flex; gap:8px; margin-top:14px;">
+                  <button class="btn btn-light btn-sm" onclick="event.stopPropagation();openModal('retrainModal')">Retrain</button>
+                  <button class="btn btn-light btn-sm" onclick="event.stopPropagation();openModal('featureImportanceModal')">Feature Importance</button>
+                  <button class="btn btn-light btn-sm" onclick="event.stopPropagation();openModal('falsePosModal')">FP/FN</button>
+                </div>
+              </div>
+
+              <div class="ml-model-card" style="margin-bottom:12px;" data-modal="modelDetailModal">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
+                  <div>
+                    <div style="font-weight:600;">DeviceTrust v1.4</div>
+                    <div style="font-size:11px;color:var(--text-3);margin-top:2px;">Neural Net · Device Risk Scoring · Production</div>
+                  </div>
+                  <span class="badge success"><span class="badge-dot"></span>Live</span>
+                </div>
+                <div style="display:flex; gap:24px; align-items:center;">
+                  <div class="perf-ring">
+                    <svg width="70" height="70" class="donut">
+                      <circle cx="35" cy="35" r="28" stroke="#eef0ff"/>
+                      <circle cx="35" cy="35" r="28" stroke="#7c3aed" stroke-dasharray="176" stroke-dashoffset="20"/>
+                    </svg>
+                    <div class="ring-text">88.6%</div>
+                  </div>
+                  <div style="flex:1;">
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                      <div><div class="kv-label">Precision</div><div class="kv-val">86.1%</div></div>
+                      <div><div class="kv-label">Recall</div><div class="kv-val">89.4%</div></div>
+                      <div><div class="kv-label">F1</div><div class="kv-val">0.877</div></div>
+                      <div><div class="kv-label">AUC</div><div class="kv-val">0.943</div></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="ml-model-card" data-modal="modelDetailModal">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
+                  <div>
+                    <div style="font-weight:600;">BehaviorScore v2.0</div>
+                    <div style="font-size:11px;color:var(--text-3);margin-top:2px;">LSTM · Behavioral Patterns · Shadow Mode</div>
+                  </div>
+                  <span class="badge warning"><span class="badge-dot"></span>Shadow</span>
+                </div>
+                <div style="display:flex; gap:24px; align-items:center;">
+                  <div class="perf-ring">
+                    <svg width="70" height="70" class="donut">
+                      <circle cx="35" cy="35" r="28" stroke="#eef0ff"/>
+                      <circle cx="35" cy="35" r="28" stroke="#d97706" stroke-dasharray="176" stroke-dashoffset="32"/>
+                    </svg>
+                    <div class="ring-text">82.1%</div>
+                  </div>
+                  <div style="flex:1;">
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                      <div><div class="kv-label">Precision</div><div class="kv-val">79.6%</div></div>
+                      <div><div class="kv-label">Recall</div><div class="kv-val">84.8%</div></div>
+                      <div><div class="kv-label">F1</div><div class="kv-val">0.821</div></div>
+                      <div><div class="kv-label">AUC</div><div class="kv-val">0.908</div></div>
+                    </div>
+                  </div>
+                </div>
+                <div style="display:flex; gap:8px; margin-top:14px;">
+                  <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();openModal('promoteModal')">Promote to Production</button>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <div style="font-weight:600; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;">
+                <span>Feature Importance — FraudNet v3.2</span>
+                <button class="btn btn-light btn-sm" data-modal="featureImportanceModal">All features</button>
+              </div>
+              <div style="background:var(--surface-2);padding:16px;border-radius:12px;">
+                <div class="feature-bar"><div class="feature-name">Txn amount z-score</div><div class="feature-track"><span style="width:96%;"></span></div><div class="feature-val">0.96</div></div>
+                <div class="feature-bar"><div class="feature-name">Device trust score</div><div class="feature-track"><span style="width:88%;"></span></div><div class="feature-val">0.88</div></div>
+                <div class="feature-bar"><div class="feature-name">Velocity 5min</div><div class="feature-track"><span style="width:82%;"></span></div><div class="feature-val">0.82</div></div>
+                <div class="feature-bar"><div class="feature-name">Geo distance from home</div><div class="feature-track"><span style="width:74%;"></span></div><div class="feature-val">0.74</div></div>
+                <div class="feature-bar"><div class="feature-name">Beneficiary newness</div><div class="feature-track"><span style="width:68%;"></span></div><div class="feature-val">0.68</div></div>
+                <div class="feature-bar"><div class="feature-name">Time-of-day anomaly</div><div class="feature-track"><span style="width:55%;"></span></div><div class="feature-val">0.55</div></div>
+                <div class="feature-bar"><div class="feature-name">IP reputation</div><div class="feature-track"><span style="width:48%;"></span></div><div class="feature-val">0.48</div></div>
+                <div class="feature-bar"><div class="feature-name">MCC category risk</div><div class="feature-track"><span style="width:40%;"></span></div><div class="feature-val">0.40</div></div>
+              </div>
+
+              <div style="font-weight:600; margin: 22px 0 12px;">Model Triggers</div>
+              <div style="display:flex; flex-direction:column; gap:8px;">
+                <button class="choice-row" onclick="openModal('retrainModal')">
+                  <div style="flex:1;">
+                    <div class="choice-title">Drift detected — recommend retrain</div>
+                    <div class="choice-desc">PSI 0.18 exceeded threshold on 3 features</div>
+                  </div>
+                  <span class="badge warning"><span class="badge-dot"></span>Action</span>
+                </button>
+                <button class="choice-row" onclick="openModal('falsePosModal')">
+                  <div style="flex:1;">
+                    <div class="choice-title">FP rate up 1.2% vs baseline</div>
+                    <div class="choice-desc">Last 24h false positive analysis</div>
+                  </div>
+                  <span class="badge info"><span class="badge-dot"></span>Info</span>
+                </button>
+                <button class="choice-row" onclick="openModal('abTestModal')">
+                  <div style="flex:1;">
+                    <div class="choice-title">A/B test ready: BehaviorScore v2.0</div>
+                    <div class="choice-desc">Shadow scored 14 days, ready to promote</div>
+                  </div>
+                  <span class="badge primary"><span class="badge-dot"></span>Ready</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== TAB: Case Management ===== -->
+      <div class="tab-panel" data-panel="cases">
+        <div class="panel-body">
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom: 16px;">
+            <div style="display:flex; gap:6px;">
+              <button class="btn btn-light btn-sm case-filter active" data-filter="all">All (23)</button>
+              <button class="btn btn-light btn-sm case-filter" data-filter="open">Open (14)</button>
+              <button class="btn btn-light btn-sm case-filter" data-filter="review">Under Review (6)</button>
+              <button class="btn btn-light btn-sm case-filter" data-filter="escalated">Escalated (3)</button>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <button class="btn btn-light btn-sm" data-modal="assignBulkModal">Bulk Assign</button>
+              <button class="btn btn-primary btn-sm" data-modal="newCaseModal">+ New Case</button>
+            </div>
+          </div>
+
+          <div class="case-grid">
+            <div class="case-card" data-modal="caseDetailModal">
+              <div style="display:flex;gap:0;">
+                <div class="severity-strip high"></div>
+                <div style="flex:1;">
+                  <div class="case-card-head">
+                    <span class="case-id">CASE-2026-00471</span>
+                    <span class="badge danger"><span class="badge-dot"></span>High</span>
+                  </div>
+                  <div style="font-weight:600; margin-bottom:4px;">Suspected account takeover</div>
+                  <div style="font-size:12px;color:var(--text-3); margin-bottom:12px;">Customer ID #C-88521 · 3 flagged transactions</div>
+                  <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div style="display:flex; gap:-6px;">
+                      <span class="avatar">SK</span>
+                    </div>
+                    <span style="font-size:11px; color:var(--text-3);">Opened 2h ago</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="case-card" data-modal="caseDetailModal">
+              <div style="display:flex;gap:0;">
+                <div class="severity-strip high"></div>
+                <div style="flex:1;">
+                  <div class="case-card-head">
+                    <span class="case-id">CASE-2026-00470</span>
+                    <span class="badge danger"><span class="badge-dot"></span>High</span>
+                  </div>
+                  <div style="font-weight:600; margin-bottom:4px;">Velocity attack on merchant</div>
+                  <div style="font-size:12px;color:var(--text-3); margin-bottom:12px;">Merchant MRC-552 · 42 transactions in 5 min</div>
+                  <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span class="avatar">JM</span>
+                    <span style="font-size:11px; color:var(--text-3);">Opened 3h ago</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="case-card" data-modal="caseDetailModal">
+              <div style="display:flex;gap:0;">
+                <div class="severity-strip med"></div>
+                <div style="flex:1;">
+                  <div class="case-card-head">
+                    <span class="case-id">CASE-2026-00469</span>
+                    <span class="badge warning"><span class="badge-dot"></span>Medium</span>
+                  </div>
+                  <div style="font-weight:600; margin-bottom:4px;">Geo mismatch — UK to Nigeria</div>
+                  <div style="font-size:12px;color:var(--text-3); margin-bottom:12px;">Customer #C-44210 · Single high-amount txn</div>
+                  <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span class="avatar">AL</span>
+                    <span style="font-size:11px; color:var(--text-3);">Opened 5h ago</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="case-card" data-modal="caseDetailModal">
+              <div style="display:flex;gap:0;">
+                <div class="severity-strip med"></div>
+                <div style="flex:1;">
+                  <div class="case-card-head">
+                    <span class="case-id">CASE-2026-00468</span>
+                    <span class="badge warning"><span class="badge-dot"></span>Medium</span>
+                  </div>
+                  <div style="font-weight:600; margin-bottom:4px;">New beneficiary, high value</div>
+                  <div style="font-size:12px;color:var(--text-3); margin-bottom:12px;">KES 1.2M to first-time payee</div>
+                  <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span class="avatar">SK</span>
+                    <span style="font-size:11px; color:var(--text-3);">Opened 6h ago</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="case-card" data-modal="caseDetailModal">
+              <div style="display:flex;gap:0;">
+                <div class="severity-strip low"></div>
+                <div style="flex:1;">
+                  <div class="case-card-head">
+                    <span class="case-id">CASE-2026-00467</span>
+                    <span class="badge info"><span class="badge-dot"></span>Low</span>
+                  </div>
+                  <div style="font-weight:600; margin-bottom:4px;">Unusual login pattern</div>
+                  <div style="font-size:12px;color:var(--text-3); margin-bottom:12px;">3 login attempts from new device</div>
+                  <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span class="avatar">JM</span>
+                    <span style="font-size:11px; color:var(--text-3);">Opened 12h ago</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="case-card" data-modal="caseDetailModal">
+              <div style="display:flex;gap:0;">
+                <div class="severity-strip low"></div>
+                <div style="flex:1;">
+                  <div class="case-card-head">
+                    <span class="case-id">CASE-2026-00466</span>
+                    <span class="badge info"><span class="badge-dot"></span>Low</span>
+                  </div>
+                  <div style="font-weight:600; margin-bottom:4px;">Card declined repeatedly</div>
+                  <div style="font-size:12px;color:var(--text-3); margin-bottom:12px;">5 declines in 10 min — possible testing</div>
+                  <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span class="avatar">AL</span>
+                    <span style="font-size:11px; color:var(--text-3);">Opened 1d ago</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== TAB: 3DS & Auth ===== -->
+      <div class="tab-panel" data-panel="threed">
+        <div class="panel-body">
+          <div class="two-col">
+            <div>
+              <div class="threed-card" style="margin-bottom:14px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                  <div style="font-weight:600;">3DS Configuration by Transaction Type</div>
+                  <button class="btn btn-light btn-sm" data-modal="threedConfigModal">Configure</button>
+                </div>
+                <div class="config-row">
+                  <div>
+                    <div class="config-label">Card-not-present (CNP)</div>
+                    <div class="config-desc">Always require 3DS challenge above $50</div>
+                  </div>
+                  <span class="badge success"><span class="badge-dot"></span>3DS 2.2</span>
+                </div>
+                <div class="config-row">
+                  <div>
+                    <div class="config-label">Recurring payments</div>
+                    <div class="config-desc">Frictionless flow with risk-based step-up</div>
+                  </div>
+                  <span class="badge info"><span class="badge-dot"></span>RBA</span>
+                </div>
+                <div class="config-row">
+                  <div>
+                    <div class="config-label">High-value wire (&gt; $10k)</div>
+                    <div class="config-desc">Mandatory step-up + biometric</div>
+                  </div>
+                  <span class="badge warning"><span class="badge-dot"></span>Step-up</span>
+                </div>
+                <div class="config-row">
+                  <div>
+                    <div class="config-label">Trusted merchant</div>
+                    <div class="config-desc">TRA exemption when applicable</div>
+                  </div>
+                  <span class="badge gray"><span class="badge-dot"></span>Exempt</span>
+                </div>
+              </div>
+
+              <div class="threed-card">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                  <div style="font-weight:600;">Exemption Rules</div>
+                  <button class="btn btn-light btn-sm" data-modal="exemptionModal">+ Add Exemption</button>
+                </div>
+                <div class="config-row">
+                  <div>
+                    <div class="config-label">Low-value (LVE)</div>
+                    <div class="config-desc">Transactions under €30 / $35</div>
+                  </div>
+                  <label class="toggle"><input type="checkbox" checked /><span class="toggle-slider"></span></label>
+                </div>
+                <div class="config-row">
+                  <div>
+                    <div class="config-label">Transaction Risk Analysis (TRA)</div>
+                    <div class="config-desc">Risk score &lt; 25 exempt from challenge</div>
+                  </div>
+                  <label class="toggle"><input type="checkbox" checked /><span class="toggle-slider"></span></label>
+                </div>
+                <div class="config-row">
+                  <div>
+                    <div class="config-label">Trusted beneficiary list</div>
+                    <div class="config-desc">User-whitelisted payees</div>
+                  </div>
+                  <label class="toggle"><input type="checkbox" checked /><span class="toggle-slider"></span></label>
+                </div>
+                <div class="config-row">
+                  <div>
+                    <div class="config-label">Corporate (SCT-Inst)</div>
+                    <div class="config-desc">B2B exemption with explicit consent</div>
+                  </div>
+                  <label class="toggle"><input type="checkbox" /><span class="toggle-slider"></span></label>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <div class="threed-card" style="margin-bottom:14px;">
+                <div style="font-weight:600; margin-bottom:14px;">Authentication Success Rates</div>
+                <div class="dist-row"><div class="dist-label">Frictionless</div><div class="dist-bar"><span style="width:78%;background:#16a34a;"></span></div><div class="dist-val">78.2%</div></div>
+                <div class="dist-row"><div class="dist-label">OTP Step-up</div><div class="dist-bar"><span style="width:15%;background:#5b5bf5;"></span></div><div class="dist-val">15.4%</div></div>
+                <div class="dist-row"><div class="dist-label">Biometric</div><div class="dist-bar"><span style="width:5%;background:#7c3aed;"></span></div><div class="dist-val">5.1%</div></div>
+                <div class="dist-row"><div class="dist-label">Abandoned</div><div class="dist-bar"><span style="width:1.3%;background:#dc2626;"></span></div><div class="dist-val">1.3%</div></div>
+                <button class="btn btn-light btn-sm" style="margin-top:8px;" data-modal="authAnalyticsModal">Detailed analytics</button>
+              </div>
+
+              <div class="threed-card">
+                <div style="font-weight:600; margin-bottom:14px;">Friction vs Security Balance</div>
+                <div class="slider-wrap" style="margin-bottom:14px;">
+                  <span style="font-size:11px;color:var(--text-3);">Low friction</span>
+                  <input type="range" min="0" max="100" value="65" id="frictionSlider" />
+                  <span style="font-size:11px;color:var(--text-3);">High security</span>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; text-align:center;">
+                  <div style="padding:12px; background:var(--surface-2); border-radius:10px;">
+                    <div style="font-size:11px; color:var(--text-3);">Conversion</div>
+                    <div style="font-size:18px; font-weight:700;" id="convVal">91.8%</div>
+                  </div>
+                  <div style="padding:12px; background:var(--surface-2); border-radius:10px;">
+                    <div style="font-size:11px; color:var(--text-3);">Fraud Stop</div>
+                    <div style="font-size:18px; font-weight:700;" id="stopVal">96.4%</div>
+                  </div>
+                  <div style="padding:12px; background:var(--surface-2); border-radius:10px;">
+                    <div style="font-size:11px; color:var(--text-3);">Avg Latency</div>
+                    <div style="font-size:18px; font-weight:700;" id="latVal">820ms</div>
+                  </div>
+                </div>
+                <button class="btn btn-primary btn-sm" style="margin-top:14px;width:100%;" data-modal="tuneBalanceModal">Apply &amp; Tune</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ============================================
+     MODALS (20+)
+     ============================================ -->
+
+<!-- 1. Risk Score Detail -->
+<div class="modal-backdrop" id="riskScoreModal">
+  <div class="modal lg">
+    <div class="modal-header">
+      <div>
+        <h3 class="modal-title">Risk Posture — Deep Dive</h3>
+        <div class="modal-sub">Composite risk score across all channels and rules</div>
+      </div>
+      <button class="modal-close" data-close>×</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;">
+        <div style="background:var(--surface-2);padding:18px;border-radius:12px;">
+          <div class="kv-label">Current score</div>
+          <div style="font-size:36px;font-weight:700;">82<span style="font-size:14px;color:var(--text-3);">/100</span></div>
+          <div class="badge success" style="margin-top:6px;"><span class="badge-dot"></span>Healthy</div>
+        </div>
+        <div style="background:var(--surface-2);padding:18px;border-radius:12px;">
+          <div class="kv-label">Components</div>
+          <div style="margin-top:8px;">
+            <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px;"><span>Transaction</span><strong>87</strong></div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px;"><span>Authentication</span><strong>91</strong></div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px;"><span>Device</span><strong>76</strong></div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;"><span>Behavioral</span><strong>74</strong></div>
+          </div>
+        </div>
+      </div>
+      <div style="font-weight:600;margin-bottom:8px;">Recommendations</div>
+      <div class="alert info" style="margin-bottom:8px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>Behavioral score down 4 pts — review recent rule changes</div>
+      <div class="alert success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Authentication score improving — biometric adoption +12%</div>
+    </div>
+    <div class="modal-footer modal-footer-end">
+      <button class="btn btn-light" data-close>Close</button>
+      <button class="btn btn-primary" data-close onclick="openModal('riskTrendModal')">View trend</button>
+    </div>
+  </div>
+</div>
+
+<!-- 2. Distribution Detail -->
+<div class="modal-backdrop" id="distDetailModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <h3 class="modal-title">Risk Score Distribution</h3>
+        <div class="modal-sub">Last 24 hours · 18,822 scored transactions</div>
+      </div>
+      <button class="modal-close" data-close>×</button>
+    </div>
+    <div class="modal-body">
+      <table class="table">
+        <thead><tr><th>Bucket</th><th>Range</th><th>Count</th><th>% of total</th><th>Action</th></tr></thead>
+        <tbody>
+          <tr><td><span class="badge success"><span class="badge-dot"></span>Low</span></td><td>0–30</td><td>12,845</td><td>68.2%</td><td>Auto-approve</td></tr>
+          <tr><td><span class="badge warning"><span class="badge-dot"></span>Medium</span></td><td>31–60</td><td>4,128</td><td>21.9%</td><td>Soft monitor</td></tr>
+          <tr><td><span class="badge warning"><span class="badge-dot"></span>High</span></td><td>61–85</td><td>1,502</td><td>8.0%</td><td>Manual review</td></tr>
+          <tr><td><span class="badge danger"><span class="badge-dot"></span>Critical</span></td><td>86–100</td><td>347</td><td>1.9%</td><td>Block + investigate</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="modal-footer modal-footer-end">
+      <button class="btn btn-light" data-close>Close</button>
+      <button class="btn btn-primary" onclick="closeAll();openModal('exportModal')">Export</button>
+    </div>
+  </div>
+</div>
+
+<!-- 3. Risk Trend -->
+<div class="modal-backdrop" id="riskTrendModal">
+  <div class="modal lg">
+    <div class="modal-header">
+      <div>
+        <h3 class="modal-title">Risk Trend Analysis</h3>
+        <div class="modal-sub">Compare against baseline and detect drift</div>
+      </div>
+      <button class="modal-close" data-close>×</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;gap:6px;margin-bottom:14px;">
+        <button class="btn btn-light btn-sm">24h</button>
+        <button class="btn btn-primary btn-sm">7d</button>
+        <button class="btn btn-light btn-sm">30d</button>
+        <button class="btn btn-light btn-sm">90d</button>
+      </div>
+      <svg viewBox="0 0 600 200" style="width:100%;height:200px;">
+        <g stroke="#e8e6df" stroke-width="1">
+          <line x1="0" y1="40" x2="600" y2="40"/><line x1="0" y1="90" x2="600" y2="90"/>
+          <line x1="0" y1="140" x2="600" y2="140"/><line x1="0" y1="190" x2="600" y2="190"/>
+        </g>
+        <path d="M0,120 L80,100 L160,110 L240,80 L320,70 L400,90 L480,60 L560,75 L600,55" fill="none" stroke="#5b5bf5" stroke-width="2.5"/>
+        <path d="M0,135 L80,130 L160,128 L240,120 L320,118 L400,115 L480,108 L560,105 L600,100" fill="none" stroke="#16a34a" stroke-width="2" stroke-dasharray="5,4"/>
+      </svg>
+      <div class="legend" style="justify-content:center;margin-top:10px;">
+        <span><span class="legend-dot" style="background:#5b5bf5;"></span>Current period</span>
+        <span><span class="legend-dot" style="background:#16a34a;"></span>Baseline</span>
+      </div>
+      <div class="alert warning" style="margin-top:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>Drift detected on Tue Oct 14 — PSI 0.21 (threshold 0.15)</div>
+    </div>
+    <div class="modal-footer modal-footer-end">
+      <button class="btn btn-light" data-close>Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- 4. Alerts Queue -->
+<div class="modal-backdrop" id="alertsQueueModal">
+  <div class="modal lg">
+    <div class="modal-header">
+      <div>
+        <h3 class="modal-title">High-Risk Alerts Queue</h3>
+        <div class="modal-sub">47 alerts requiring action</div>
+      </div>
+      <button class="modal-close" data-close>×</button>
+    </div>
+    <div class="modal-body" style="padding:0;">
+      <div class="list-item">
+        <div class="list-left">
+          <div class="list-icon" style="background:var(--danger-soft);color:var(--danger);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+          <div><div class="list-title">Velocity attack — Merchant MRC-552</div><div class="list-sub">42 txns in 5 min · score 98</div></div>
+        </div>
+        <button class="btn btn-light btn-sm" onclick="closeAll();openModal('caseDetailModal')">Investigate</button>
+      </div>
+      <div class="list-item">
+        <div class="list-left">
+          <div class="list-icon" style="background:var(--danger-soft);color:var(--danger);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg></div>
+          <div><div class="list-title">Sanctioned country attempt</div><div class="list-sub">FR → RU · €3,180 · score 92</div></div>
+        </div>
+        <button class="btn btn-light btn-sm" onclick="closeAll();openModal('caseDetailModal')">Investigate</button>
+      </div>
+      <div class="list-item">
+        <div class="list-left">
+          <div class="list-icon" style="background:var(--warning-soft);color:var(--warning);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+          <div><div class="list-title">New device + high-value</div><div class="list-sub">$24,900 · score 89</div></div>
+        </div>
+        <button class="btn btn-light btn-sm" onclick="closeAll();openModal('caseDetailModal')">Investigate</button>
+      </div>
+      <div class="list-item">
+        <div class="list-left">
+          <div class="list-icon" style="background:var(--warning-soft);color:var(--warning);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/></svg></div>
+          <div><div class="list-title">Behavioral drift detected</div><div class="list-sub">Customer #C-44210 · score 78</div></div>
+        </div>
+        <button class="btn btn-light btn-sm" onclick="closeAll();openModal('caseDetailModal')">Investigate</button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <span style="font-size:12px;color:var(--text-3);">4 of 47 shown</span>
+      <button class="btn btn-light" data-close>Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- 5. Blocked Today -->
+<div class="modal-backdrop" id="blockedModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <h3 class="modal-title">Blocked Transactions</h3>
+        <div class="modal-sub">128 transactions blocked · $2.4M prevented</div>
+      </div>
+      <button class="modal-close" data-close>×</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:18px;">
+        <div style="background:var(--surface-2);padding:14px;border-radius:10px;text-align:center;">
+          <div style="font-size:11px;color:var(--text-3);">By Velocity</div>
+          <div style="font-size:22px;font-weight:700;">64</div>
+        </div>
+        <div style="background:var(--surface-2);padding:14px;border-radius:10px;text-align:center;">
+          <div style="font-size:11px;color:var(--text-3);">By Geo</div>
+          <div style="font-size:22px;font-weight:700;">38</div>
+        </div>
+        <div style="background:var(--surface-2);padding:14px;border-radius:10px;text-align:center;">
+          <div style="font-size:11px;color:var(--text-3);">By ML</div>
+          <div style="font-size:22px;font-weight:700;">26</div>
+        </div>
+      </div>
+      <div class="alert success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>$2.4M prevented loss · 0.4% false positive rate</div>
+    </div>
+    <div class="modal-footer modal-footer-end">
+      <button class="btn btn-light" data-close>Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- 6. Model Performance -->
+<div class="modal-backdrop" id="modelPerfModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div><h3 class="modal-title">Model Performance Summary</h3><div class="modal-sub">FraudNet v3.2 · last 7 days</div></div>
+      <button class="modal-close" data-close>×</button>
+    </div>
+    <div class="modal-body">
+      <div class="kv-grid">
+        <div><div class="kv-label">Accuracy</div><div class="kv-val">94.7%</div></div>
+        <div><div class="kv-label">Precision</div><div class="kv-val">93.2%</div></div>
+        <div><div class="kv-label">Recall</div><div class="kv-val">91.8%</div></div>
+        <div><div class="kv-label">F1 Score</div><div class="kv-val">0.925</div></div>
+        <div><div class="kv-label">AUC-ROC</div><div class="kv-val">0.971</div></div>
+        <div><div class="kv-label">Inference latency</div><div class="kv-val">42ms p95</div></div>
+      </div>
+    </div>
+    <div class="modal-footer modal-footer-end">
+      <button class="btn btn-light" data-close>Close</button>
+      <button class="btn btn-primary" onclick="closeAll();openModal('retrainModal')">Retrain</button>
+    </div>
+  </div>
+</div>
+
+<!-- 7. Cases Quick -->
+<div class="modal-backdrop" id="casesModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div><h3 class="modal-title">Open Cases — Quick View</h3><div class="modal-sub">23 active cases across analysts</div></div>
+      <button class="modal-close" data-close>×</button>
+    </div>
+    <div class="modal-body" style="padding:0;">
+      <div class="list-item"><div class="list-left"><span class="avatar">SK</span><div><div class="list-title">Sarah Karanja</div><div class="list-sub">8 cases · avg 2h response</div></div></div><span class="badge primary">8</span></div>
+      <div class="list-item"><div class="list-left"><span class="avatar">JM</span><div><div class="list-title">John Mwangi</div><div class="list-sub">6 cases · avg 3h response</div></div></div><span class="badge primary">6</span></div>
+      <div class="list-item"><div class="list-left"><span class="avatar">AL</span><div><div class="list-title">Anita Lopez</div><div class="list-sub">5 cases · avg 1.5h response</div></div></div><span class="badge primary">5</span></div>
+      <div class="list-item"><div class="list-left"><span class="avatar">DR</span><div><div class="list-title">Unassigned</div><div class="list-sub">4 cases awaiting triage</div></div></div><span class="badge warning">4</span></div>
+    </div>
+    <div class="modal-footer modal-footer-end">
+      <button class="btn btn-light" data-close>Close</button>
+      <button class="btn btn-primary" onclick="closeAll();switchTab('cases');">Go to cases</button>
+    </div>
+  </div>
+</div>
+
+<!-- 8. Transaction Detail -->
+<div class="modal-backdrop" id="txnDetailModal">
+  <div class="modal lg">
+    <div class="modal-header">
+      <div>
+        <h3 class="modal-title">Transaction TXN-9F4A82E1</h3>
+        <div class="modal-sub">Risk score 97 · Held for manual review</div>
+      </div>
+      <button class="modal-close" data-close>×</button>
+    </div>
+    <div class="modal-body">
+      <div class="kv-grid" style="margin-bottom:18px;">
+        <div><div class="kv-label">Amount</div><div class="kv-val">$12,450.00 USD</div></div>
+        <div><div class="kv-label">Status</div><div class="kv-val"><span class="badge warning"><span class="badge-dot"></span>Held</span></div></div>
+        <div><div class="kv-label">Origin</div><div class="kv-val">Equity Bank, KE</div></div>
+        <div><div class="kv-label">Destination</div><div class="kv-val">Chase Bank, US</div></div>
+        <div><div class="kv-label">Channel</div><div class="kv-val">SWIFT</div></div>
+        <div><div class="kv-label">Timestamp</div><div class="kv-val">2 min ago</div></div>
+      </div>
+
+      <div style="font-weight:600;margin-bottom:8px;">Triggered Rules</div>
+      <div class="choice-row selected">
+        <div style="flex:1;"><div class="choice-title">High Velocity Block</div><div class="choice-desc">11 transactions in 4 minutes from same account</div></div>
+        <span class="badge danger">+45</span>
+      </div>
+      <div class="choice-row selected">
+        <div style="flex:1;"><div class="choice-title">Geo Mismatch</div><div class="choice-desc">Origin device IP in Lagos, account home is Nairobi</div></div>
+        <span class="badge warning">+28</span>
+      </div>
+      <div class="choice-row selected">
+        <div style="flex:1;"><div class="choice-title">ML Anomaly Score</div><div class="choice-desc">FraudNet v3.2 anomaly score 0.94</div></div>
+        <span class="badge danger">+24</span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger" onclick="closeAll();openModal('confirmFraudModal')">Confirm fraud</button>
+      <div style="display:flex; gap:8px;">
+        <button class="btn btn-light" data-close>Cancel</button>
+        <button class="btn btn-success" onclick="closeAll();openModal('clearedModal')">Mark as cleared</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 9. Confirm Fraud -->
+<div class="modal-backdrop" id="confirmFraudModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div><h3 class="modal-title">Confirm Fraud</h3><div class="modal-sub">This action will block and report the transaction</div></div>
+      <button class="modal-close" data-close>×</button>
+    </div>
+    <div class="modal-body">
+      <div class="alert danger" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg>This transaction will be permanently blocked, the customer notified, and a SAR filed.</div>
+      <div class="field"><label class="field-label">Fraud type</label><select class="select-field"><option>Account takeover</option><option>Card-not-present fraud</option><option>Identity theft</option><option>Money laundering</option><option>Synthetic identity</option></select></div>
+      <div class="field"><label class="field-label">Evidence summary</label><textarea class="textarea" placeholder="Describe the indicators that confirm fraud..."></textarea></div>
+      <div class="field"><label class="field-label" style="display:flex;align-items:center;gap:8px;"><input type="checkbox" checked/>File Suspicious Activity Report (SAR)</label></div>
+    </div>
+    <div class="modal-footer modal-footer-end">
+      <button class="btn btn-light" data-close>Cancel</button>
+      <button class="btn btn-danger" onclick="closeAll();showToast('Fraud confirmed · SAR filed');">Confirm &amp; Report</button>
+    </div>
+  </div>
+</div>
+
+<!-- 10. Cleared -->
+<div class="modal-backdrop" id="clearedModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div><h3 class="modal-title">Clear Transaction</h3><div class="modal-sub">Release the transaction and update training data</div></div>
+      <button class="modal-close" data-close>×</button>
+    </div>
+    <div class="modal-body">
+      <div class="field"><label class="field-label">Reason for clearing</label><select class="select-field"><option>Verified with customer (phone)</option><option>Verified with customer (email)</option><option>Authentic per device history</option><option>Legitimate business pattern</option><option>False positive — model error</option></select></div>
+      <div class="field"><label class="field-label">Notes</label><textarea class="textarea" placeholder="Optional reviewer notes..."></textarea></div>
+      <div class="field"><label class="field-label" style="display:flex;align-items:center;gap:8px;"><input type="checkbox" checked/>Add to training data as negative sample</label></div>
+    </div>
+    <div class="modal-footer modal-footer-end">
+      <button class="btn btn-light" data-close>Cancel</button>
+      <button class="btn btn-success" onclick="closeAll();showToast('Transaction cleared');">Release transaction</button>
+    </div>
+  </div>
+</div>
+
+<!-- 11. Create Rule (Multi-step) -->
+<div class="modal-backdrop" id="createRuleModal">
+  <div class="modal lg">
+    <div class="modal-header">
+      <div><h3 class="modal-title">Create Rule</h3><div class="modal-sub">Multi-step rule creation wizard</div></div>
+      <button class="modal-close" data-close>×</button>
+    </div>
+    <div class="stepper" id="createRuleStepper">
+      <div class="step active"><div class="step-num">1</div>Type</div>
+      <div class="step-line"></div>
+      <div class="step"><div class="step-num">2</div>Conditions</div>
+      <div class="step-line"></div>
+      <div class="step"><div class="step-num">3</div>Action</div>
+      <div class="step-line"></div>
+      <div class="step"><div class="step-num">4</div>Review</div>
+    </div>
+    <div class="modal-body">
+      <div class="step-panel active" data-step="1">
+        <div style="font-weight:600;margin-bottom:8px;">Choose rule type</div>
+        <label class="choice-row selected"><input type="radio" name="ruleType" checked /><div style="flex:1;"><div class="choice-title">Velocity rule</div><div class="choice-desc">Limit transactions by frequency, amount, or count</div></div></label>
+        <label class="choice-row"><input type="radio" name="ruleType" /><div style="flex:1;"><div class="choice-title">Geolocation rule</div><div class="choice-desc">Filter by country, region, or IP geolocation</div></div></label>
+        <label class="choice-row"><input type="radio" name="ruleType" /><div style="flex:1;"><div class="choice-title">Device rule</div><div class="choice-desc">Fingerprinting and device reputation</div></div></label>
+        <label class="choice-row"><input type="radio" name="ruleType" /><div style="flex:1;"><div class="choice-title">Behavioral rule</div><div class="choice-desc">Anomaly detection vs customer baseline</div></div></label>
+      </div>
+      <div class="step-panel" data-step="2">
+        <div class="field"><label class="field-label">Rule name</label><input class="input" placeholder="e.g. High Velocity Block" value="High Velocity Block v2"/></div>
+        <div class="field-row">
+          <div class="field"><label class="field-label">Max transactions</label><input class="input" value="10"/></div>
+          <div class="field"><label class="field-label">Time window</label><select class="select-field"><option>5 minutes</option><option>15 minutes</option><option>1 hour</option><option>24 hours</option></select></div>
+        </div>
+        <div class="field"><label class="field-label">Applies to</label><select class="select-field"><option>All transactions</option><option>Card-not-present only</option><option>Wire transfers only</option><option>High-value (&gt; threshold)</option></select></div>
+      </div>
+      <div class="step-panel" data-step="3">
+        <div style="font-weight:600;margin-bottom:8px;">Action on match</div>
+        <label class="choice-row selected"><input type="radio" name="ruleAction" checked/><div style="flex:1;"><div class="choice-title">Block</div><div class="choice-desc">Reject transaction immediately</div></div></label>
+        <label class="choice-row"><input type="radio" name="ruleAction"/><div style="flex:1;"><div class="choice-title">Hold for review</div><div class="choice-desc">Place in case queue for analyst</div></div></label>
+        <label class="choice-row"><input type="radio" name="ruleAction"/><div style="flex:1;"><div class="choice-title">Step-up authentication</div><div class="choice-desc">Trigger 3DS / OTP challenge</div></div></label>
+        <label class="choice-row"><input type="radio" name="ruleAction"/><div style="flex:1;"><div class="choice-title">Score boost</div><div class="choice-desc">Increase risk score by N points</div></div></label>
+      </div>
+      <div class="step-panel" data-step="4">
+        <div class="alert success" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Rule ready to deploy</div>
+        <div class="kv-grid">
+          <div><div class="kv-label">Type</div><div class="kv-val">Velocity</div></div>
+          <div><div class="kv-label">Name</div><div class="kv-val">High Velocity Block v2</div></div>
+          <div><div class="kv-label">Threshold</div><div class="kv-val">&gt; 10 txns / 5 min</div></div>
+          <div><div class="kv-label">Action</div><div class="kv-val">Block</div></div>
+          <div><div class="kv-label">Mode</div><div class="kv-val">Shadow first (recommended)</div></div>
+          <div><div class="kv-label">Owner</div><div class="kv-val">Risk Team</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-light" id="ruleBackBtn" disabled>← Back</button>
+      <button class="btn btn-primary" id="ruleNextBtn">Next →</button>
+    </div>
+  </div>
+</div>
+
+<!-- 12. Velocity Rule -->
+<div class="modal-backdrop" id="velocityRuleModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div><h3 class="modal-title">Velocity Rules</h3><div class="modal-sub">Limit by frequency, amount, or count over time</div></div>
+      <button class="modal-close" data-close>×</button>
+    </div>
+    <div class="modal-body">
+      <div class="field"><label class="field-label">Rule name</label><input class="input" value="High Velocity Block"/></div>
+      <div class="field-row">
+        <div class="field"><label class="field-label">Max count</label><input class="input" value="10"/></div>
+        <div class="field"><label class="field-label">Per (window)</label><select class="select-field"><option>5 minutes</option><option>15 minutes</option><option>1 hour</option></select></div>
+      </div>
+      <div class="field"><label class="field-label">Max cumulative amount</label><input class="input" value="$50,000"/></div>
+      <div class="field"><label class="field-label">Scope</label><select class="select-field"><option>Per account</option><option>Per device</option><option>Per IP</option><option>Per merchant</option></select></div>
+    </div>
+    <div class="modal-footer modal-footer-end">
+      <button class="btn btn-light" data-close>Cancel</button>
+      <button class="btn btn-primary" onclick="closeAll();showToast('Velocity rule saved');">Save rule</button>
+    </div>
+  </div>
+</div>
+
+<!-- 13. Geo Rule -->
+<div class="modal-backdrop" id="geoRuleModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div><h3 class="modal-title">Geolocation Rules</h3><div class="modal-sub">Country and IP-based filtering</div></div>
+      <button class="modal-close" data-close>×</button>
+    </div>
+    <div class="modal-body">
+      <div class="field"><label class="field-label">Block list (countries)</label>
+        <div class="tag-input">
+          <span class="tag-chip">RU<button>×</button></span>
+          <span class="tag-chip">KP<button>×</button></span>
+          <span class="tag-chip">IR<button>×</button></span>
+          <span class="tag-chip">SY<button>×</button></span>
+          <input style="border:none;outline:none;flex:1;min-width:80px;" placeholder="Add country..."/>
+        </div>
+      </div>
+      <div class="field"><label class="field-label">Allow list (whitelisted)</label>
+        <div class="tag-input">
+          <span class="tag-chip">KE<button>×</button></span>
+          <span class="tag-chip">US<button>×</button></span>
+          <span class="tag-chip">GB<button>×</button></span>
+          <input style="border:none;outline:none;flex:1;min-width:80px;" placeholder="Add country..."/>
+        </div>
+      </div>
+      <div class="field"><label class="field-label">Action on geo mismatch</label><select class="select-field"><option>Hold for review</option><option>Block</option><option>Step-up</option></select></div>
+    </div>
+    <div class="modal-footer modal-footer-end">
+      <button class="btn btn-light" data-close>Cancel</button>
+      <button class="btn btn-primary" onclick="closeAll();showToast('Geo rule updated');">Save rule</button>
+    </div>
+  </div>
+</div>
+
+<!-- 14. Device Rule -->
+<div class="modal-backdrop" id="deviceRuleModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div><h3 class="modal-title">Device Fingerprinting</h3><div class="modal-sub">Trust scoring & risk signals</div></div>
+      <button class="modal-close" data-close>×</button>
+    </div>
+    <div class="modal-body">
+      <div class="config-row"><div><div class="config-label">New device challenge</div><div class="config-desc">3DS step-up for first-seen device</div></div><label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label></div>
+      <div class="config-row"><div><div class="config-label">Emulator detection</div><div class="config-desc">Block known emulator signatures</div></div><label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label></div>
+      <div class="config-row"><div><div class="config-label">Jailbroken / Rooted</div><div class="config-desc">Block compromised devices</div></div><label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label></div>
+      <div class="config-row"><div><div class="config-label">VPN / proxy detection</div><div class="config-desc">Score boost for VPN-originated traffic</div></div><label class="toggle"><input type="checkbox"/><span class="toggle-slider"></span></label></div>
+      <div class="config-row"><div><div class="config-label">Device velocity</div><div class="config-desc">Multiple accounts on same device</div></div><label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label></div>
+    </div>
+    <div class="modal-footer modal-footer-end">
+      <button class="btn btn-light" data-close>Cancel</button>
+      <button class="btn btn-primary" onclick="closeAll();showToast('Device rules updated');">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- 15. Behavioral Rule -->
+<div class="modal-backdrop" id="behavioralRuleModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div><h3 class="modal-title">Behavioral Anomaly</h3><div class="modal-sub">Compare against customer baseline</div></div>
+      <button class="modal-close" data-close>×</button>
+    </div>
+    <div class="modal-body">
+      <div class="field"><label class="field-label">Baseline window</label><select class="select-field"><option>30 days rolling</option><option>60 days rolling</option><option>90 days rolling</option></select></div>
+      <div class="field"><label class="field-label">Sensitivity</label>
+        <div class="slider-wrap"><span style="font-size:11px;">Low</span><input type="range" min="0" max="100" value="60"/><span style="font-size:11px;">High</span></div>
+      </div>
+      <div class="field"><label class="field-label">Signals monitored</label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:6px;"><input type="checkbox" checked/> Transaction time-of-day</label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:6px;"><input type="checkbox" checked/> Average txn amount</label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:6px;"><input type="checkbox" checked/> Beneficiary network</label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;"><input type="checkbox"/> Merchant categories</label>
+      </div>
+    </div>
+    <div class="modal-footer modal-footer-end">
+      <button class="btn btn-light" data-close>Cancel</button>
+      <button class="btn btn-primary" onclick="closeAll();showToast('Behavioral config saved');">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- 16. Rule Builder (drag-drop) -->
+<div class="modal-backdrop" id="ruleBuilderModal">
+  <div class="modal xl">
+    <div class="modal-header">
+      <div><h3 class="modal-title">Custom Rule Builder</h3><div class="modal-sub">Drag conditions onto canvas · combine with AND / OR</div></div>
+      <button class="modal-close" data-close>×</button>
+    </div>
+    <div class="modal-body">
+      <div class="field"><label class="field-label">Rule name</label><input class="input" placeholder="My custom rule"/></div>
+      <div class="builder">
+        <div class="builder-palette">
+          <div style="font-size:11px;text-transform:uppercase;color:var(--text-3);letter-spacing:.06em;margin-bottom:8px;">Conditions</div>
+          <div class="palette-item" draggable="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/></svg>Amount</div>
+          <div class="palette-item" draggable="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>Velocity</div>
+          <div class="palette-item" draggable="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="10" r="3"/></svg>Geolocation</div>
+          <div class="palette-item" draggable="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/></svg>Device</div>
+          <div class="palette-item" draggable="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>ML Score</div>
+          <div class="palette-item" draggable="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-18 0"/></svg>Time of day</div>
+          <div class="palette-item" draggable="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>MCC</div>
+          <div style="font-size:11px;text-transform:uppercase;color:var(--text-3);letter-spacing:.06em;margin-top:14px;margin-bottom:8px;">Operators</div>
+          <div class="palette-item" draggable="true">AND</div>
+          <div class="palette-item" draggable="true">OR</div>
+          <div class="palette-item" draggable="true">NOT</div>
+        </div>
+        <div class="builder-canvas" id="builderCanvas">
+          <div class="canvas-block"><span class="grip">⋮⋮</span>Amount &gt; $5,000 <button class="btn-ghost" style="margin-left:auto;">×</button></div>
+          <div class="canvas-block" style="background:var(--primary-soft);color:var(--primary);font-weight:600;">AND</div>
+          <div class="canvas-block"><span class="grip">⋮⋮</span>Velocity &gt; 5 / 10min <button class="btn-ghost" style="margin-left:auto;">×</button></div>
+          <div class="canvas-block" style="background:var(--primary-soft);color:var(--primary);font-weight:600;">AND</div>
+          <div class="canvas-block"><span class="grip">⋮⋮</span>Geo = high-risk country <button class="btn-ghost" style="margin-left:auto;">×</button></div>
+          <div style="text-align:center;color:var(--text-4);font-size:12px;padding:8px;">Drop conditions here</div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-light" data-close>Cancel</button>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-light" onclick="openModal('testRuleModal')">Test rule</button>
+        <button class="btn btn-primary" onclick="closeAll();showToast('Custom rule saved');">Save rule</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 17. Rule Detail -->
+<div class="modal-backdrop" id="ruleDetailModal">
+  <div class="modal lg">
+    <div class="modal-header">
+      <div><h3 class="modal-title">High Velocity Block</h3><div class="modal-sub">VELOCITY · ACTIVE · Last updated 4d ago</div></div>
+      <button class="modal-close" data-close>×</button>
+    </div>
+    <div class="modal-body">
+      <div class="kv-grid" style="margin-bottom:18px;">
+        <div><div class="kv-label">Triggers (24h)</div><div class="kv-val">142</div></div>
+        <div><div class="kv-label">Precision</div><div class="kv-val">96.2%</div></div>
+        <div><div class="kv-label">Threshold</div><div class="kv-val">&gt; 10 txns / 5 min</div></div>
+        <div><div class="kv-label">Action</div><div class="kv-val">Block</div></div>
+        <div><div class="kv-label">Owner</div><div class="kv-val">Risk Team</div></div>
+        <div><div class="kv-label">Mode</div><div class="kv-val">Production</div></div>
+      </div>
+      <div style="font-weight:600;margin-bottom:8px;">Recent triggers</div>
+      <table class="table">
+        <thead><tr><th>Time</th><th>Transaction</th><th>Outcome</th></tr></thead>
+        <tbody>
+          <tr><td>2 min ago</td><td class="mono">TXN-9F4A82E1</td><td><span class="badge warning">Held</span></td></tr>
+          <tr><td>14 min ago</td><td class="mono">TXN-7AB1F3D0</td><td><span class="badge danger">Blocked</span></td></tr>
+          <tr><td>32 min ago</td><td class="mono">TXN-6CC9E2B4</td><td><span class="badge success">Cleared</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger" onclick="openModal('deleteRuleModal')">Delete rule</button>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-light" data-close>Close</button>
+        <button class="btn btn-primary" onclick="closeAll();openModal('createRuleModal')">Edit rule</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 18. Delete rule -->
+<div class="modal-backdrop" id="deleteRuleModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div><h3 class="modal-title">Delete rule?</h3><div class="modal-sub">This cannot be undone</div></div>
+      <button class="modal-close" data-close>×</button>
+    </div>
+    <div class="modal-body">
+      <div class="alert danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>Deleting "High Velocity Block" will deactivate it immediately. Active cases will not be affected.</div>
+    </div>
+    <div class="modal-footer modal-footer-end">
+      <button class="btn btn-light" data-close>Cancel</button>
+      <button class="btn btn-danger" onclick="closeAll();showToast('Rule deleted');">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- 19. Test Rule -->
+<div class="modal-backdrop" id="testRuleModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div><h3 class="modal-title">Test Rule (Replay)</h3><div class="modal-sub">Run against last N days of data</div></div>
+      <button class="modal-close" data-close>×</button>
+    </div>
+    <div class="modal-body">
+      <div class="field"><label class="field-label">Replay window</label><select class="select-field"><option>Last 24 hours</option><option>Last 7 days</option><option>Last 30 days</option></select></div>
+      <div style="background:var(--surface-2);padding:14px;border-radius:10px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;text-align:center;">
+          <div><div class="kv-label">Triggers</div><div style="font-size:22px;font-weight:700;">1,847</div></div>
+          <div><div class="kv-label">True positives</div><div style="font-size:22px;font-weight:700;color:var(--success);">1,762</div></div>
+          <div><div class="kv-label">False positives</div><div style="font-size:22px;font-weight:700;color:var(--danger);">85</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer modal-footer-end">
+      <button class="btn btn-light" data-close>Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- 20. Model Detail -->
+<div class="modal-backdrop" id="modelDetailModal">
+  <div class="modal lg">
+    <div class="modal-header">
+      <div><h3 class="modal-title">FraudNet v3.2</h3><div class="modal-sub">Gradient Boosting · 247 features · Production since Sep 2026</div></div>
+      <button class="modal-close" data-close>×</button>
+    </div>
+    <div class="modal-body">
+      <div class="kv-grid" style="margin-bottom:18px;">
+        <div><div class="kv-label">Accuracy</div><div class="kv-val">94.7%</div></div>
+        <div><div class="kv-label">Precision</div><div class="kv-val">93.2%</div></div>
+        <div><div class="kv-label">Recall</div><div class="kv-val">91.8%</div></div>
+        <div><div class="kv-label">F1 Score</div><div class="kv-val">0.925</div></div>
+        <div><div class="kv-label">AUC-ROC</div><div class="kv-val">0.971</div></div>
+        <div><div class="kv-label">Latency (p95)</div><div class="kv-val">42ms</div></div>
+        <div><div class="kv-label">Inferences/day</div><div class="kv-val">1.4M</div></div>
+        <div><div class="kv-label">Last retrain</div><div class="kv-val">14 days ago</div></div>
+      </div>
+      <div class="alert info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/></svg>PSI drift 0.18 on 3 features — retrain recommended</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-light" data-close>Close</button>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-light" onclick="openModal('featureImportanceModal')">Features</button>
+        <button class="btn btn-primary" onclick="closeAll();openModal('retrainModal')">Retrain</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 21. Feature Importance -->
+<div class="modal-backdrop" id="featureImportanceModal">
+  <div class="modal lg">
+    <div class="modal-header">
+      <div><h3 class="modal-title">Feature Importance Analysis</h3><div class="modal-sub">SHAP values · Top 20 of 247 features</div></div>
+      <button class="modal-close" data-close>×</button>
+    </div>
+    <div class="modal-body">
+      <div class="feature-bar"><div class="feature-name">txn_amount_zscore</div><div class="feature-track"><span style="width:96%;"></span></div><div class="feature-val">0.96</div></div>
+      <div class="feature-bar"><div class="feature-name">device_trust_score</div><div class="feature-track"><span style="width:88%;"></span></div><div class="feature-val">0.88</div></div>
+      <div class="feature-bar"><div class="feature-name">velocity_5min</div><div class="feature-track"><span style="width:82%;"></span></div><div class="feature-val">0.82</div></div>
+      <div class="feature-bar"><div class="feature-name">geo_distance_home</div><div class="feature-track"><span style="width:74%;"></span></div><div class="feature-val">0.74</div></div>
+      <div class="feature-bar"><div class="feature-name">beneficiary_age_days</div><div class="feature-track"><span style="width:68%;"></span></div><div class="feature-val">0.68</div></div>
+      <div class="feature-bar"><div class="feature-name">tod_anomaly</div><div class="feature-track"><span style="width:55%;"></span></div><div class="feature-val">0.55</div></div>
+      <div class="feature-bar"><div class="feature-name">ip_reputation</div><div class="feature-track"><span style="width:48%;"></span></div><div class="feature-val">0.48</div></div>
+      <div class="feature-bar"><div class="feature-name">mcc_risk</div><div class="feature-track"><span style="width:40%;"></span></div><div class="feature-val">0.40</div></div>
+      <div class="feature-bar"><div class="feature-name">channel_type</div><div class="feature-track"><span style="width:34%;"></span></div><div class="feature-val">0.34</div></div>
+      <div class="feature-bar"><div class="feature-name">customer_age_days</div><div class="feature-track"><span style="width:28%;"></span></div><div class="feature-val">0.28</div></div>
+    </div>
+    <div class="modal-footer modal-footer-end">
+      <button class="btn btn-light" data-close>Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- 22. Retrain (multi-step) -->
+<div class="modal-backdrop" id="retrainModal">
+  <div class="modal lg">
+    <div class="modal-header">
+      <div><h3 class="modal-title">Retrain Model</h3><div class="modal-sub">FraudNet v3.2 → v3.3</div></div>
+      <button class="modal-close" data-close>×</button>
+    </div>
+    <div class="stepper" id="retrainStepper">
+      <div class="step active"><div class="step-num">1</div>Dataset</div>
+      <div class="step-line"></div>
+      <div class="step"><div class="step-num">2</div>Hyperparams</div>
+      <div class="step-line"></div>
+      <div class="step"><div class="step-num">3</div>Validate</div>
+      <div class="step-line"></div>
+      <div class="step"><div class="step-num">4</div>Deploy</div>
+    </div>
+    <div class="modal-body">
+      <div class="step-panel active" data-step="1">
+        <div class="field"><label class="field-label">Training window</label><select class="select-field"><option>Last 90 days</option><option>Last 180 days</option><option>Last 365 days</option></select></div>
+        <div class="field"><label class="field-label">Label source</label><select class="select-field"><option>Confirmed fraud + manual reviews</option><option>Confirmed fraud only</option></select></div>
+        <div class="alert info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>Dataset: 4.2M txns · 18,420 fraud labels (0.44% prevalence)</div>
+      </div>
+      <div class="step-panel" data-step="2">
+        <div class="field-row"><div class="field"><label class="field-label">Learning rate</label><input class="input" value="0.05"/></div><div class="field"><label class="field-label">Max depth</label><input class="input" value="8"/></div></div>
+        <div class="field-row"><div class="field"><label class="field-label">N estimators</label><input class="input" value="500"/></div><div class="field"><label class="field-label">Class weight</label><input class="input" value="balanced"/></div></div>
+      </div>
+      <div class="step-panel" data-step="3">
+        <div class="alert success" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Validation complete · accuracy 95.4% (+0.7%) on holdout set</div>
+        <div class="kv-grid"><div><div class="kv-label">AUC-ROC</div><div class="kv-val">0.978</div></div><div><div class="kv-label">F1</div><div class="kv-val">0.932</div></div><div><div class="kv-label">FP rate</div><div class="kv-val">0.42%</div></div><div><div class="kv-label">FN rate</div><div class="kv-val">7.8%</div></div></div>
+      </div>
+      <div class="step-panel" data-step="4">
+        <div style="font-weight:600;margin-bottom:8px;">Deployment mode</div>
+        <label class="choice-row selected"><input type="radio" name="deploy" checked/><div><div class="choice-title">Shadow mode (14 days)</div><div class="choice-desc">Score in parallel, no production impact</div></div></label>
+        <label class="choice-row"><input type="radio" name="deploy"/><div><div class="choice-title">A/B test (50/50)</div><div class="choice-desc">Split traffic between v3.2 and v3.3</div></div></label>
+        <label class="choice-row"><input type="radio" name="deploy"/><div><div class="choice-title">Direct promotion</div><div class="choice-desc">Replace v3.2 immediately</div></div></label>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-light" id="retrainBackBtn" disabled>← Back</button>
+      <button class="btn btn-primary" id="retrainNextBtn">Next →</button>
+    </div>
+  </div>
+</div>
+
+<!-- 23. False Positive/Negative -->
+<div class="modal-backdrop" id="falsePosModal">
+  <div class="modal lg">
+    <div class="modal-header">
+      <div><h3 class="modal-title">False Positive / Negative Analysis</h3><div class="modal-sub">Last 7 days · FraudNet v3.2</div></div>
+      <button class="modal-close" data-close>×</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;">
+        <div style="background:var(--danger-soft);padding:18px;border-radius:12px;">
+          <div style="font-size:11px;color:#991b1b;text-transform:uppercase;letter-spacing:.06em;">False positives</div>
+          <div style="font-size:30px;font-weight:700;color:var(--danger);">142</div>
+          <div style="font-size:11px;color:#991b1b;margin-top:4px;">0.4% of scored · +12% vs last week</div>
+        </div>
+        <div style="background:var(--warning-soft);padding:18px;border-radius:12px;">
+          <div style="font-size:11px;color:#92400e;text-transform:uppercase;letter-spacing:.06em;">False negatives</div>
+          <div style="font-size:30px;font-weight:700;color:var(--warning);">28</div>
+          <div style="font-size:11px;color:#92400e;margin-top:4px;">8.2% of confirmed · stable</div>
+        </div>
+      </div>
+      <div style="font-weight:600;margin-bottom:8px;">FP root causes</div>
+      <div class="dist-row"><div class="dist-label" style="width:160px;">Travel pattern</div><div class="dist-bar"><span style="width:42%;background:#dc2626;"></span></div><div class="dist-val">42%</div></div>
+      <div class="dist-row"><div class="dist-label" style="width:160px;">Legit new device</div><div class="dist-bar"><span style="width:28%;background:#dc2626;"></span></div><div class="dist-val">28%</div></div>
+      <div class="dist-row"><div class="dist-label" style="width:160px;">Bulk corporate</div><div class="dist-bar"><span style="width:18%;background:#dc2626;"></span></div><div class="dist-val">18%</div></div>
+      <div class="dist-row"><div class="dist-label" style="width:160px;">Other</div><div class="dist-bar"><span style="width:12%;background:#dc2626;"></span></div><div class="dist-val">12%</div></div>
+    </div>
+    <div class="modal-footer modal-footer-end">
+      <button class="btn btn-light" data-close>Close</button>
+      <button class="btn btn-primary" onclick="closeAll();openModal('retrainModal')">Trigger retrain</button>
+    </div>
+  </div>
+</div>
+
+<!-- 24. Promote model -->
+<div class="modal-backdrop" id="promoteModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div><h3 class="modal-title">Promote to Production</h3><div class="modal-sub">BehaviorScore v2.0 → live</div></div>
+      <button class="modal-close" data-close>×</button>
+    </div>
+    <div class="modal-body">
+      <div class="alert success" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Shadow scoring 14 days · matched expected envelope</div>
+      <div class="kv-grid">
+        <div><div class="kv-label">Shadow accuracy</div><div class="kv-val">82.1%</div></div>
+        <div><div class="kv-label">Live (current)</div><div class="kv-val">FraudNet v3.2</div></div>
+        <div><div class="kv-label">Rollout</div><div class="kv-val">Gradual (10/25/50/100%)</div></div>
+        <div><div class="kv-label">Rollback</div><div class="kv-val">Automatic on threshold</div></div>
+      </div>
+    </div>
+    <div class="modal-footer modal-footer-end">
+      <button class="btn btn-light" data-close>Cancel</button>
+      <button class="btn btn-primary" onclick="closeAll();showToast('Promotion scheduled');">Promote</button>
+    </div>
+  </div>
+</div>
+
+<!-- 25. A/B Test -->
+<div class="modal-backdrop" id="abTestModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div><h3 class="modal-title">A/B Test Setup</h3><div class="modal-sub">Compare BehaviorScore v2.0 vs FraudNet v3.2</div></div>
+      <button class="modal-close" data-close>×</button>
+    </div>
+    <div class="modal-body">
+      <div class="field"><label class="field-label">Traffic split</label>
+        <div class="slider-wrap"><span style="font-size:11px;">A 10%</span><input type="range" min="10" max="90" value="50"/><span style="font-size:11px;">A 90%</span></div>
+      </div>
+      <div class="field"><label class="field-label">Duration</label><select class="select-field"><option>7 days</option><option>14 days</option><option>30 days</option></select></div>
+      <div class="field"><label class="field-label">Primary metric</label><select class="select-field"><option>F1 score</option><option>Recall</option><option>Precision</option><option>FP rate</option></select></div>
+    </div>
+    <div class="modal-footer modal-footer-end">
+      <button class="btn btn-light" data-close>Cancel</button>
+      <button class="btn btn-primary" onclick="closeAll();showToast('A/B test scheduled');">Start test</button>
+    </div>
+  </div>
+</div>
+
+<!-- 26. Case Detail -->
+<div class="modal-backdrop" id="caseDetailModal">
+  <div class="modal xl">
+    <div class="modal-header">
+      <div><h3 class="modal-title">CASE-2026-00471 — Suspected account takeover</h3><div class="modal-sub">Customer #C-88521 · 3 flagged transactions · Opened 2h ago</div></div>
+      <button class="modal-close" data-close>×</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;">
+        <div>
+          <div style="font-weight:600;margin-bottom:8px;">Case details</div>
+          <div class="kv-grid" style="margin-bottom:18px;">
+            <div><div class="kv-label">Severity</div><div class="kv-val"><span class="badge danger"><span class="badge-dot"></span>High</span></div></div>
+            <div><div class="kv-label">Status</div><div class="kv-val"><span class="badge warning"><span class="badge-dot"></span>Investigating</span></div></div>
+            <div><div class="kv-label">Assignee</div><div class="kv-val">Sarah Karanja</div></div>
+            <div><div class="kv-label">Customer</div><div class="kv-val">#C-88521</div></div>
+            <div><div class="kv-label">Exposure</div><div class="kv-val">$45,890</div></div>
+            <div><div class="kv-label">SLA</div><div class="kv-val" style="color:var(--warning);">3h remaining</div></div>
+          </div>
+
+          <div style="font-weight:600;margin-bottom:8px;">Flagged transactions</div>
+          <table class="table">
+            <thead><tr><th>Txn</th><th>Amount</th><th>Score</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">TXN-9F4A82E1</td><td>$12,450</td><td><span class="badge danger">97</span></td></tr>
+              <tr><td class="mono">TXN-9F4A8201</td><td>$18,940</td><td><span class="badge danger">94</span></td></tr>
+              <tr><td class="mono">TXN-9F4A7F12</td><td>$14,500</td><td><span class="badge danger">91</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div>
+          <div style="font-weight:600;margin-bottom:8px;">Investigation timeline</div>
+          <div class="timeline">
+            <div class="tl-item"><div class="tl-time">2h ago</div><div class="tl-text">Case auto-opened from FraudNet alert</div></div>
+            <div class="tl-item"><div class="tl-time">1h 50m ago</div><div class="tl-text">Assigned to Sarah Karanja by triage</div></div>
+            <div class="tl-item"><div class="tl-time">1h 30m ago</div><div class="tl-text">Customer contact attempted via SMS</div></div>
+            <div class="tl-item"><div class="tl-time">45m ago</div><div class="tl-text">Customer did not respond — escalating</div></div>
+            <div class="tl-item"><div class="tl-time">12m ago</div><div class="tl-text">Note: device fingerprint matches 3 other suspect accounts</div></div>
+          </div>
+
+          <div style="font-weight:600;margin: 18px 0 8px;">Add note</div>
+          <textarea class="textarea" placeholder="Investigation findings..."></textarea>
+          <div style="display:flex;gap:8px;margin-top:10px;">
+            <button class="btn btn-light btn-sm" onclick="openModal('uploadEvidenceModal')">Attach evidence</button>
+            <button class="btn btn-primary btn-sm">Save note</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-light" onclick="openModal('assignCaseModal')">Reassign</button>
+        <button class="btn btn-light" onclick="openModal('escalateModal')">Escalate</button>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-danger" onclick="openModal('dispositionModal')">Disposition</button>
+        <button class="btn btn-light" data-close>Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 27. Assign Case -->
+<div class="modal-backdrop" id="assignCaseModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div><h3 class="modal-title">Reassign Case</h3><div class="modal-sub">CASE-2026-00471</div></div>
+      <button class="modal-close" data-close>×</button>
+    </div>
+    <div class="modal-body">
+      <label class="choice-row selected"><input type="radio" name="assignee" checked/><span class="avatar">SK</span><div style="flex:1;"><div class="choice-title">Sarah Karanja</div><div class="choice-desc">Senior analyst · 8 open cases</div></div></label>
+      <label class="choice-row"><input type="radio" name="assignee"/><span class="avatar">JM</span><div style="flex:1;"><div class="choice-title">John Mwangi</div><div class="choice-desc">Lead analyst · 6 open cases</div></div></label>
+      <label class="choice-row"><input type="radio" name="assignee"/><span class="avatar">AL</span><div style="flex:1;"><div class="choice-title">Anita Lopez</div><div class="choice-desc">Analyst · 5 open cases</div></div></label>
+      <label class="choice-row"><input type="radio" name="assignee"/><span class="avatar">DR</span><div style="flex:1;"><div class="choice-title">David Ruto</div><div class="choice-desc">Analyst · 2 open cases</div></div></label>
+    </div>
+    <div class="modal-footer modal-footer-end">
+      <button class="btn btn-light" data-close>Cancel</button>
+      <button class="btn btn-primary" onclick="closeAll();showToast('Case reassigned');">Reassign</button>
+    </div>
+  </div>
+</div>
+
+<!-- 28. Escalate -->
+<div class="modal-backdrop" id="escalateModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div><h3 class="modal-title">Escalate Case</h3><div class="modal-sub">CASE-2026-00471</div></div>
+      <button class="modal-close" data-close>×</button>
+    </div>
+    <div class="modal-body">
+      <div class="field"><label class="field-label">Escalate to</label><select class="select-field"><option>Fraud Investigations Team Lead</option><option>Compliance Officer</option><option>Legal Counsel</option><option>External LEA Liaison</option></select></div>
+      <div class="field"><label class="field-label">Reason</label><textarea class="textarea" placeholder="Why is this being escalated..."></textarea></div>
+      <div class="field"><label class="field-label">Priority</label>
+        <div style="display:flex;gap:8px;">
+          <button type="button" class="btn btn-light btn-sm">P2 Standard</button>
+          <button type="button" class="btn btn-light btn-sm">P1 Urgent</button>
+          <button type="button" class="btn btn-danger btn-sm">P0 Critical</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer modal-footer-end">
+      <button class="btn btn-light" data-close>Cancel</button>
+      <button class="btn btn-primary" onclick="closeAll();showToast('Case escalated');">Escalate</button>
+    </div>
+  </div>
+</div>
+
+<!-- 29. Disposition -->
+<div class="modal-backdrop" id="dispositionModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div><h3 class="modal-title">Close Case — Disposition</h3><div class="modal-sub">Record final outcome</div></div>
+      <button class="modal-close" data-close>×</button>
+    </div>
+    <div class="modal-body">
+      <label class="choice-row"><input type="radio" name="disp" /><div style="flex:1;"><div class="choice-title">✓ Cleared (false positive)</div><div class="choice-desc">No fraud detected — release holds</div></div></label>
+      <label class="choice-row selected"><input type="radio" name="disp" checked/><div style="flex:1;"><div class="choice-title">⚠ Confirmed fraud</div><div class="choice-desc">Block account, file SAR, notify customer</div></div></label>
+      <label class="choice-row"><input type="radio" name="disp" /><div style="flex:1;"><div class="choice-title">? Suspicious — monitor</div><div class="choice-desc">Insufficient evidence, place on watch</div></div></label>
+      <div class="field" style="margin-top:14px;"><label class="field-label">Disposition notes</label><textarea class="textarea" placeholder="Final notes for audit trail..."></textarea></div>
+    </div>
+    <div class="modal-footer modal-footer-end">
+      <button class="btn btn-light" data-close>Cancel</button>
+      <button class="btn btn-primary" onclick="closeAll();showToast('Case closed');">Close case</button>
+    </div>
+  </div>
+</div>
+
+<!-- 30. Upload Evidence -->
+<div class="modal-backdrop" id="uploadEvidenceModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div><h3 class="modal-title">Attach Evidence</h3><div class="modal-sub">Documents, screenshots, communications</div></div>
+      <button class="modal-close" data-close>×</button>
+    </div>
+    <div class="modal-body">
+      <div style="border:2px dashed var(--border);border-radius:12px;padding:32px;text-align:center;background:var(--surface-2);">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5" style="margin-bottom:8px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <div style="font-weight:500;margin-bottom:4px;">Drop files here or click to browse</div>
+        <div style="font-size:11px;color:var(--text-3);">PDF, PNG, JPG, EML up to 25MB</div>
+      </div>
+      <div style="margin-top:12px;">
+        <div class="list-item" style="border-bottom:none;padding:8px 0;">
+          <div class="list-left">
+            <div class="list-icon" style="background:var(--info-soft);color:var(--info);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg></div>
+            <div><div class="list-title">customer_communication.pdf</div><div class="list-sub">412 KB · uploaded just now</div></div>
+          </div>
+          <button class="btn btn-ghost btn-sm">×</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer modal-footer-end">
+      <button class="btn btn-light" data-close>Cancel</button>
+      <button class="btn btn-primary" onclick="closeAll();showToast('Evidence attached');">Attach</button>
+    </div>
+  </div>
+</div>
+
+<!-- 31. New Case -->
+<div class="modal-backdrop" id="newCaseModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div><h3 class="modal-title">New Case</h3><div class="modal-sub">Open manual investigation</div></div>
+      <button class="modal-close" data-close>×</button>
+    </div>
+    <div class="modal-body">
+      <div class="field"><label class="field-label">Title</label><input class="input" placeholder="Brief case description"/></div>
+      <div class="field-row">
+        <div class="field"><label class="field-label">Severity</label><select class="select-field"><option>Low</option><option>Medium</option><option>High</option></select></div>
+        <div class="field"><label class="field-label">Type</label><select class="select-field"><option>Account takeover</option><option>Velocity attack</option><option>Geo mismatch</option><option>Money laundering</option></select></div>
+      </div>
+      <div class="field"><label class="field-label">Customer / Account ID</label><input class="input" placeholder="C-XXXXX"/></div>
+      <div class="field"><label class="field-label">Initial notes</label><textarea class="textarea"></textarea></div>
+    </div>
+    <div class="modal-footer modal-footer-end">
+      <button class="btn btn-light" data-close>Cancel</button>
+      <button class="btn btn-primary" onclick="closeAll();showToast('Case created');">Create case</button>
+    </div>
+  </div>
+</div>
+
+<!-- 32. Bulk Assign -->
+<div class="modal-backdrop" id="assignBulkModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div><h3 class="modal-title">Bulk Assign Cases</h3><div class="modal-sub">Distribute open cases to analysts</div></div>
+      <button class="modal-close" data-close>×</button>
+    </div>
+    <div class="modal-body">
+      <div class="field"><label class="field-label">Strategy</label><select class="select-field"><option>Round-robin</option><option>Least loaded</option><option>By severity match</option><option>By region</option></select></div>
+      <div class="field"><label class="field-label">Apply to</label><select class="select-field"><option>All unassigned (4)</option><option>Open + High severity (8)</option><option>Open + Medium (12)</option></select></div>
+    </div>
+    <div class="modal-footer modal-footer-end">
+      <button class="btn btn-light" data-close>Cancel</button>
+      <button class="btn btn-primary" onclick="closeAll();showToast('4 cases assigned');">Assign</button>
+    </div>
+  </div>
+</div>
+
+<!-- 33. 3DS Configuration -->
+<div class="modal-backdrop" id="threedConfigModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div><h3 class="modal-title">3DS Configuration</h3><div class="modal-sub">Per transaction type</div></div>
+      <button class="modal-close" data-close>×</button>
+    </div>
+    <div class="modal-body">
+      <div class="field"><label class="field-label">Transaction type</label><select class="select-field"><option>Card-not-present (CNP)</option><option>Recurring</option><option>High-value wire</option><option>Trusted merchant</option></select></div>
+      <div class="field"><label class="field-label">3DS protocol</label><select class="select-field"><option>3DS 2.2 (recommended)</option><option>3DS 2.1</option><option>3DS 1.0 (legacy)</option></select></div>
+      <div class="field"><label class="field-label">Challenge threshold ($)</label><input class="input" value="50"/></div>
+      <div class="config-row"><div><div class="config-label">Frictionless when possible</div><div class="config-desc">Risk-based auth (RBA)</div></div><label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label></div>
+      <div class="config-row"><div><div class="config-label">Mandate biometric on step-up</div></div><label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label></div>
+    </div>
+    <div class="modal-footer modal-footer-end">
+      <button class="btn btn-light" data-close>Cancel</button>
+      <button class="btn btn-primary" onclick="closeAll();showToast('3DS config saved');">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- 34. Exemption -->
+<div class="modal-backdrop" id="exemptionModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div><h3 class="modal-title">Add Exemption Rule</h3><div class="modal-sub">Skip 3DS challenge under specific conditions</div></div>
+      <button class="modal-close" data-close>×</button>
+    </div>
+    <div class="modal-body">
+      <div class="field"><label class="field-label">Exemption type</label><select class="select-field"><option>Low Value Exemption (LVE)</option><option>Transaction Risk Analysis (TRA)</option><option>Trusted Beneficiary</option><option>Secure Corporate Payment</option></select></div>
+      <div class="field-row">
+        <div class="field"><label class="field-label">Max amount</label><input class="input" value="30"/></div>
+        <div class="field"><label class="field-label">Currency</label><select class="select-field"><option>EUR</option><option>USD</option><option>GBP</option></select></div>
+      </div>
+      <div class="field"><label class="field-label">Max risk score</label><input class="input" value="25"/></div>
+    </div>
+    <div class="modal-footer modal-footer-end">
+      <button class="btn btn-light" data-close>Cancel</button>
+      <button class="btn btn-primary" onclick="closeAll();showToast('Exemption added');">Add</button>
+    </div>
+  </div>
+</div>
+
+<!-- 35. Auth Analytics -->
+<div class="modal-backdrop" id="authAnalyticsModal">
+  <div class="modal lg">
+    <div class="modal-header">
+      <div><h3 class="modal-title">Authentication Analytics</h3><div class="modal-sub">Last 30 days</div></div>
+      <button class="modal-close" data-close>×</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:18px;">
+        <div style="background:var(--surface-2);padding:14px;border-radius:10px;text-align:center;"><div style="font-size:11px;color:var(--text-3);">Total auths</div><div style="font-size:22px;font-weight:700;">1.4M</div></div>
+        <div style="background:var(--surface-2);padding:14px;border-radius:10px;text-align:center;"><div style="font-size:11px;color:var(--text-3);">Success rate</div><div style="font-size:22px;font-weight:700;color:var(--success);">98.7%</div></div>
+        <div style="background:var(--surface-2);padding:14px;border-radius:10px;text-align:center;"><div style="font-size:11px;color:var(--text-3);">Abandon rate</div><div style="font-size:22px;font-weight:700;color:var(--danger);">1.3%</div></div>
+        <div style="background:var(--surface-2);padding:14px;border-radius:10px;text-align:center;"><div style="font-size:11px;color:var(--text-3);">Avg latency</div><div style="font-size:22px;font-weight:700;">820ms</div></div>
+      </div>
+      <table class="table">
+        <thead><tr><th>Method</th><th>Volume</th><th>Success</th><th>Avg time</th></tr></thead>
+        <tbody>
+          <tr><td>Frictionless</td><td>1.1M (78%)</td><td>99.4%</td><td>120ms</td></tr>
+          <tr><td>OTP step-up</td><td>216k (15%)</td><td>96.2%</td><td>14s</td></tr>
+          <tr><td>Biometric</td><td>71k (5%)</td><td>98.8%</td><td>3.2s</td></tr>
+          <tr><td>Abandoned</td><td>18k (1.3%)</td><td>—</td><td>—</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="modal-footer modal-footer-end">
+      <button class="btn btn-light" data-close>Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- 36. Tune balance -->
+<div class="modal-backdrop" id="tuneBalanceModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div><h3 class="modal-title">Apply Friction Tuning</h3><div class="modal-sub">Confirm rollout across rails</div></div>
+      <button class="modal-close" data-close>×</button>
+    </div>
+    <div class="modal-body">
+      <div class="alert info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>This will adjust step-up thresholds across all transaction types</div>
+      <div class="field"><label class="field-label">Rollout plan</label><select class="select-field"><option>Gradual (10% → 100% over 7d)</option><option>Immediate</option><option>Sandbox first</option></select></div>
+    </div>
+    <div class="modal-footer modal-footer-end">
+      <button class="btn btn-light" data-close>Cancel</button>
+      <button class="btn btn-primary" onclick="closeAll();showToast('Tuning applied');">Apply</button>
+    </div>
+  </div>
+</div>
+
+<!-- 37. Filters -->
+<div class="modal-backdrop" id="filterModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div><h3 class="modal-title">Filter View</h3><div class="modal-sub">Refine what's shown on this dashboard</div></div>
+      <button class="modal-close" data-close>×</button>
+    </div>
+    <div class="modal-body">
+      <div class="field"><label class="field-label">Time range</label><select class="select-field"><option>Last 24h</option><option>Last 7 days</option><option>Last 30 days</option><option>Custom</option></select></div>
+      <div class="field"><label class="field-label">Channel</label><select class="select-field"><option>All</option><option>Card</option><option>Wire</option><option>ACH / PesaLink</option></select></div>
+      <div class="field"><label class="field-label">Severity</label>
+        <div style="display:flex;gap:8px;">
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;"><input type="checkbox" checked/>High</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;"><input type="checkbox" checked/>Medium</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;"><input type="checkbox"/>Low</label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeAll();showToast('Filters reset');">Reset</button>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-light" data-close>Cancel</button>
+        <button class="btn btn-primary" onclick="closeAll();showToast('Filters applied');">Apply</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 38. Export -->
+<div class="modal-backdrop" id="exportModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div><h3 class="modal-title">Export Report</h3><div class="modal-sub">Generate fraud & risk report</div></div>
+      <button class="modal-close" data-close>×</button>
+    </div>
+    <div class="modal-body">
+      <div class="field"><label class="field-label">Report type</label><select class="select-field"><option>Executive summary</option><option>Detailed transactions</option><option>Rule performance</option><option>Model metrics</option><option>Case audit trail</option></select></div>
+      <div class="field"><label class="field-label">Format</label>
+        <div style="display:flex;gap:8px;">
+          <label class="choice-row selected" style="flex:1;margin:0;"><input type="radio" name="fmt" checked/><div>PDF</div></label>
+          <label class="choice-row" style="flex:1;margin:0;"><input type="radio" name="fmt"/><div>CSV</div></label>
+          <label class="choice-row" style="flex:1;margin:0;"><input type="radio" name="fmt"/><div>JSON</div></label>
+        </div>
+      </div>
+      <div class="field"><label class="field-label">Period</label><select class="select-field"><option>Last 24h</option><option>Last 7 days</option><option>Last 30 days</option><option>Last quarter</option></select></div>
+    </div>
+    <div class="modal-footer modal-footer-end">
+      <button class="btn btn-light" data-close>Cancel</button>
+      <button class="btn btn-primary" onclick="closeAll();showToast('Export started — you will be emailed');">Generate</button>
+    </div>
+  </div>
+</div>
+
+<!-- 39. Notifications -->
+<div class="modal-backdrop" id="notificationsModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div><h3 class="modal-title">Notifications</h3><div class="modal-sub">12 unread</div></div>
+      <button class="modal-close" data-close>×</button>
+    </div>
+    <div class="modal-body" style="padding:0;">
+      <div class="list-item"><div class="list-left"><div class="list-icon" style="background:var(--danger-soft);color:var(--danger);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg></div><div><div class="list-title">Velocity attack detected</div><div class="list-sub">Merchant MRC-552 · 2m ago</div></div></div></div>
+      <div class="list-item"><div class="list-left"><div class="list-icon" style="background:var(--warning-soft);color:var(--warning);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/></svg></div><div><div class="list-title">Model drift detected</div><div class="list-sub">FraudNet v3.2 · 1h ago</div></div></div></div>
+      <div class="list-item"><div class="list-left"><div class="list-icon" style="background:var(--info-soft);color:var(--info);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg></div><div><div class="list-title">A/B test ready to promote</div><div class="list-sub">BehaviorScore v2.0 · 2h ago</div></div></div></div>
+      <div class="list-item"><div class="list-left"><div class="list-icon" style="background:var(--success-soft);color:var(--success);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div><div><div class="list-title">Case CASE-2026-00465 closed</div><div class="list-sub">Cleared · 3h ago</div></div></div></div>
+    </div>
+    <div class="modal-footer modal-footer-end">
+      <button class="btn btn-light" onclick="closeAll();showToast('All marked read');">Mark all read</button>
+      <button class="btn btn-light" data-close>Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- 40-46. Sidebar Nav Modals (simple) -->
+<div class="modal-backdrop" id="navHomeModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Dashboard Overview</h3><div class="modal-sub">Navigate to main BaaS dashboard</div></div><button class="modal-close" data-close>×</button></div><div class="modal-body"><div class="alert info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>You're currently on Fraud & Risk Management. Navigate to other modules below.</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;"><button class="btn btn-light">Payment Rails</button><button class="btn btn-light">Wallets</button><button class="btn btn-light">FX & Rates</button><button class="btn btn-light">Transfers</button></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+<div class="modal-backdrop" id="navTransfersModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Transfers</h3><div class="modal-sub">Bank-to-bank transfer module</div></div><button class="modal-close" data-close>×</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">Today</div><div class="kv-val">$4.2M</div></div><div><div class="kv-label">Pending</div><div class="kv-val">128</div></div><div><div class="kv-label">Success</div><div class="kv-val">99.4%</div></div><div><div class="kv-label">Avg time</div><div class="kv-val">2.1s</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+<div class="modal-backdrop" id="navFXModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">FX & Rates</h3><div class="modal-sub">Live FX rate book</div></div><button class="modal-close" data-close>×</button></div><div class="modal-body"><table class="table"><thead><tr><th>Pair</th><th>Rate</th><th>Spread</th></tr></thead><tbody><tr><td>USD/KES</td><td>129.45</td><td>0.3%</td></tr><tr><td>EUR/USD</td><td>1.0842</td><td>0.1%</td></tr><tr><td>GBP/USD</td><td>1.2654</td><td>0.1%</td></tr></tbody></table></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+<div class="modal-backdrop" id="navRoutingModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Payment Routing</h3><div class="modal-sub">Smart routing engine</div></div><button class="modal-close" data-close>×</button></div><div class="modal-body"><div class="alert info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>8 active rails · routing 99.4% of transactions optimally</div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+<div class="modal-backdrop" id="navWalletsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Wallets</h3><div class="modal-sub">Customer wallet management</div></div><button class="modal-close" data-close>×</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">Active wallets</div><div class="kv-val">48,221</div></div><div><div class="kv-label">Total balance</div><div class="kv-val">$182M</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+<div class="modal-backdrop" id="navInstitutionsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Financial Institutions</h3><div class="modal-sub">14 connected banks</div></div><button class="modal-close" data-close>×</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">Connected</div><div class="kv-val">14</div></div><div><div class="kv-label">Operational</div><div class="kv-val">13</div></div><div><div class="kv-label">Degraded</div><div class="kv-val">1</div></div><div><div class="kv-label">Offline</div><div class="kv-val">0</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+<div class="modal-backdrop" id="navCustomersModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Customers</h3><div class="modal-sub">Customer directory</div></div><button class="modal-close" data-close>×</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">Total customers</div><div class="kv-val">128,442</div></div><div><div class="kv-label">Active (30d)</div><div class="kv-val">98,201</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+<div class="modal-backdrop" id="navAnalyticsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Analytics</h3><div class="modal-sub">Cross-platform insights</div></div><button class="modal-close" data-close>×</button></div><div class="modal-body"><div class="alert info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>Volume, revenue, and risk metrics across all rails</div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+<!-- Toast Stack -->
+<div class="toast-stack" id="toastStack"></div>
+
+<script>
+/* =================================================
+   PayMo BaaS — Fraud & Risk Management Page Logic
+   ================================================= */
+
+// ===== Sidebar
+const sidebar = document.getElementById('sidebar');
+document.getElementById('sidebarToggle').addEventListener('click', () => sidebar.classList.toggle('expanded'));
+document.getElementById('mobileMenuBtn').addEventListener('click', () => sidebar.classList.toggle('mobile-open'));
+
+// ===== Modal control
+function openModal(id) {
+  const m = document.getElementById(id);
+  if (m) m.classList.add('show');
+}
+function closeAll() {
+  document.querySelectorAll('.modal-backdrop.show').forEach(m => m.classList.remove('show'));
+}
+document.querySelectorAll('[data-modal]').forEach(el => {
+  el.addEventListener('click', (e) => {
+    if (e.target.closest('[data-close]') || e.target.closest('.btn')?.dataset?.close) return;
+    openModal(el.dataset.modal);
+  });
+});
+document.querySelectorAll('[data-close]').forEach(el => {
+  el.addEventListener('click', (e) => { e.stopPropagation(); closeAll(); });
+});
+document.querySelectorAll('.modal-backdrop').forEach(bd => {
+  bd.addEventListener('click', (e) => { if (e.target === bd) closeAll(); });
+});
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeAll(); });
+
+// ===== Tabs
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.dataset.panel === name));
+}
+document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => switchTab(t.dataset.tab)));
+
+// ===== Choice rows toggle
+document.querySelectorAll('.choice-row').forEach(row => {
+  row.addEventListener('click', (e) => {
+    const input = row.querySelector('input[type=radio]');
+    if (input) {
+      document.querySelectorAll(`input[name="${input.name}"]`).forEach(i => i.closest('.choice-row')?.classList.remove('selected'));
+      row.classList.add('selected');
+      input.checked = true;
+    }
+  });
+});
+
+// ===== Multi-step (Create Rule)
+(function setupStepper(modalId, stepperId, backBtnId, nextBtnId, totalSteps) {
+  const modal = document.getElementById(modalId);
+  if (!modal) return;
+  let current = 1;
+  const update = () => {
+    const stepper = document.getElementById(stepperId);
+    const steps = stepper.querySelectorAll('.step');
+    steps.forEach((s, i) => {
+      s.classList.remove('active', 'done');
+      if (i + 1 < current) s.classList.add('done');
+      if (i + 1 === current) s.classList.add('active');
+    });
+    modal.querySelectorAll('.step-panel').forEach(p => p.classList.toggle('active', +p.dataset.step === current));
+    document.getElementById(backBtnId).disabled = current === 1;
+    document.getElementById(nextBtnId).textContent = current === totalSteps ? '✓ Create Rule' : 'Next →';
+  };
+  document.getElementById(backBtnId).addEventListener('click', () => { if (current > 1) { current--; update(); } });
+  document.getElementById(nextBtnId).addEventListener('click', () => {
+    if (current < totalSteps) { current++; update(); }
+    else { closeAll(); showToast('Rule created'); current = 1; update(); }
+  });
+  // reset on open
+  document.querySelectorAll(`[data-modal="${modalId}"]`).forEach(t => t.addEventListener('click', () => { current = 1; update(); }));
+})('createRuleModal', 'createRuleStepper', 'ruleBackBtn', 'ruleNextBtn', 4);
+
+(function setupStepper(modalId, stepperId, backBtnId, nextBtnId, totalSteps) {
+  const modal = document.getElementById(modalId);
+  if (!modal) return;
+  let current = 1;
+  const update = () => {
+    const stepper = document.getElementById(stepperId);
+    const steps = stepper.querySelectorAll('.step');
+    steps.forEach((s, i) => {
+      s.classList.remove('active', 'done');
+      if (i + 1 < current) s.classList.add('done');
+      if (i + 1 === current) s.classList.add('active');
+    });
+    modal.querySelectorAll('.step-panel').forEach(p => p.classList.toggle('active', +p.dataset.step === current));
+    document.getElementById(backBtnId).disabled = current === 1;
+    document.getElementById(nextBtnId).textContent = current === totalSteps ? '✓ Deploy' : 'Next →';
+  };
+  document.getElementById(backBtnId).addEventListener('click', () => { if (current > 1) { current--; update(); } });
+  document.getElementById(nextBtnId).addEventListener('click', () => {
+    if (current < totalSteps) { current++; update(); }
+    else { closeAll(); showToast('Retrain scheduled'); current = 1; update(); }
+  });
+  document.querySelectorAll(`[data-modal="${modalId}"]`).forEach(t => t.addEventListener('click', () => { current = 1; update(); }));
+})('retrainModal', 'retrainStepper', 'retrainBackBtn', 'retrainNextBtn', 4);
+
+// ===== Period buttons
+document.querySelectorAll('.period-btn').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('.period-btn').forEach(x => x.classList.remove('active'));
+  b.classList.add('active');
+}));
+
+// ===== Case filters
+document.querySelectorAll('.case-filter').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('.case-filter').forEach(x => x.classList.remove('active'));
+  b.classList.add('active');
+}));
+
+// ===== Friction slider
+const fs = document.getElementById('frictionSlider');
+if (fs) fs.addEventListener('input', (e) => {
+  const v = +e.target.value;
+  document.getElementById('convVal').textContent = (98 - v * 0.1).toFixed(1) + '%';
+  document.getElementById('stopVal').textContent = (90 + v * 0.08).toFixed(1) + '%';
+  document.getElementById('latVal').textContent = (500 + v * 5) + 'ms';
+});
+
+// ===== Toast (used sparingly)
+function showToast(text) {
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>${text}`;
+  document.getElementById('toastStack').appendChild(t);
+  setTimeout(() => t.remove(), 2400);
+}
+
+// ===== Drag-drop builder (simple visual)
+const canvas = document.getElementById('builderCanvas');
+if (canvas) {
+  document.querySelectorAll('.palette-item').forEach(item => {
+    item.addEventListener('dragstart', (e) => { e.dataTransfer.setData('text/plain', item.textContent.trim()); });
+  });
+  canvas.addEventListener('dragover', (e) => { e.preventDefault(); canvas.style.borderColor = 'var(--primary)'; });
+  canvas.addEventListener('dragleave', () => { canvas.style.borderColor = ''; });
+  canvas.addEventListener('drop', (e) => {
+    e.preventDefault(); canvas.style.borderColor = '';
+    const text = e.dataTransfer.getData('text/plain');
+    const block = document.createElement('div');
+    block.className = 'canvas-block';
+    block.innerHTML = `<span class="grip">⋮⋮</span>${text} <button class="btn-ghost" style="margin-left:auto;" onclick="this.parentElement.remove()">×</button>`;
+    canvas.appendChild(block);
+  });
+}
+</script>
+
+</body>
+</html>

@@ -446,7 +446,7 @@ This dashboard provides value-added financial services, utility functions, and e
    - AI-powered service recommendations per client
    - Revenue opportunity scoring
    - Personalized service bundles
-
+==========
 <!-- ---
 
 ## Page 2.2 — Bill Pay & Utilities
@@ -487,7 +487,7 @@ This dashboard provides value-added financial services, utility functions, and e
    - Refund request management
    - Biller dispute resolution -->
 
----
+---=======================
 
 <!-- ## Page 2.3 — Collections & Invoicing
 
@@ -527,8 +527,8 @@ This dashboard provides value-added financial services, utility functions, and e
    - Overpayment management
    - Credit note generation
 
----
-
+---============-->
+==============================================
 <!-- ## Page 2.4 — Virtual Accounts & Sub-Accounts
 
 **Purpose:** Programmatic account creation for clients, merchants, and use-case segregation.
@@ -610,6 +610,7 @@ This dashboard provides value-added financial services, utility functions, and e
    - P&L from FX operations
 
 --- -->
+======================
 <!-- 
 ## Page 2.6 — Payroll & Disbursements
 
@@ -650,7 +651,7 @@ This dashboard provides value-added financial services, utility functions, and e
    - Audit trail for all disbursements
 
 --- -->
-
+====================================================================================================
 
 
  <!-- ## Page 2.7 — Open Banking & Account Aggregation
@@ -691,7 +692,7 @@ This dashboard provides value-added financial services, utility functions, and e
 
 ---
 
-## Page 2.8 — Fraud & Risk Management
+<!-- ## Page 2.8 — Fraud & Risk Management
 
 **Purpose:** Comprehensive risk detection and fraud prevention across all services.
 
@@ -728,9 +729,9 @@ This dashboard provides value-added financial services, utility functions, and e
    - Authentication success rates
    - Friction vs. security balance tuning
 
----
+--- -->
 
-## Page 2.9 — Client & Partner Management
+<!-- ## Page 2.9 — Client & Partner Management
 
 **Purpose:** B2B client onboarding, relationship management, and partner bank administration.
 
@@ -768,9 +769,9 @@ This dashboard provides value-added financial services, utility functions, and e
    - Knowledge base access
    - Escalation matrix
 
----
+--- -->
 
-## Page 2.10 — Reporting & Business Intelligence
+<!-- ## Page 2.10 — Reporting & Business Intelligence
 
 **Purpose:** Enterprise-grade analytics and executive reporting.
 
@@ -807,9 +808,9 @@ This dashboard provides value-added financial services, utility functions, and e
    - Dashboard sharing and scheduling
    - Data export and API access
 
----
+--- -->
 
-## Page 2.11 — System Administration & Settings
+<!-- ## Page 2.11 — System Administration & Settings
 
 **Purpose:** Platform configuration, user management, and system health.
 
@@ -848,11 +849,11 @@ This dashboard provides value-added financial services, utility functions, and e
    - CRM integrations (Salesforce, HubSpot)
    - Custom webhook integrations
 
----
+--- -->
 
 ## Page 2.12 — Notifications & Communication Center
 
-**Purpose:** Multi-channel communication management with clients and stakeholders.
+<!-- **Purpose:** Multi-channel communication management with clients and stakeholders.
 
 ### Sections & Content:
 
@@ -880,7 +881,7 @@ This dashboard provides value-added financial services, utility functions, and e
    - On-call rotation integration
    - Alert severity classification
 
----
+--- -->
 
 ## Cross-Cutting Features (Both Dashboards)
 

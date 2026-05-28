@@ -1,0 +1,3337 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Administration & Settings - PayMo BaaS</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="master.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        .kv-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px 18px;
+        }
+
+        .kv-label {
+            font-size: 11px;
+            color: var(--text-3);
+            text-transform: uppercase;
+            letter-spacing: .06em;
+        }
+
+        .kv-val {
+            font-size: 13px;
+            font-weight: 600;
+            margin-top: 2px;
+        }
+
+        .config-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--border-soft);
+        }
+
+        .config-row:last-child {
+            border-bottom: 0;
+        }
+
+        .config-label {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .config-desc {
+            font-size: 11px;
+            color: var(--text-3);
+            margin-top: 2px;
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 24px;
+        }
+
+        .timeline:before {
+            content: "";
+            position: absolute;
+            top: 6px;
+            bottom: 6px;
+            left: 8px;
+            width: 2px;
+            background: var(--border);
+        }
+
+        .tl-item {
+            position: relative;
+            padding-bottom: 16px;
+        }
+
+        .tl-item:before {
+            content: "";
+            position: absolute;
+            left: -20px;
+            top: 4px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--primary);
+            border: 2px solid #fff;
+        }
+
+        .tl-item.ok:before {
+            background: var(--success);
+        }
+
+        .tl-item.warn:before {
+            background: var(--warning);
+        }
+
+        .tl-item.err:before {
+            background: var(--danger);
+        }
+
+        .tl-time {
+            font-size: 11px;
+            color: var(--text-3);
+        }
+
+        .tl-text {
+            font-size: 13px;
+            margin-top: 2px;
+        }
+
+        .two-col {
+            display: grid;
+            grid-template-columns: 1.3fr 1fr;
+            gap: 16px;
+        }
+
+        .three-col {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+        }
+
+        .sub-card {
+            background: var(--surface);
+            border: 1px solid var(--border-soft);
+            border-radius: var(--radius);
+            padding: 18px;
+        }
+
+        .service-card {
+            background: var(--surface);
+            border: 1px solid var(--border-soft);
+            border-radius: var(--radius);
+            padding: 16px;
+            cursor: pointer;
+            transition: all .15s;
+        }
+
+        .service-card:hover {
+            border-color: var(--primary);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .matrix {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        .matrix th,
+        .matrix td {
+            padding: 10px 12px;
+            text-align: center;
+            border-bottom: 1px solid var(--border-soft);
+        }
+
+        .matrix th:first-child,
+        .matrix td:first-child {
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .matrix thead th {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            color: var(--text-3);
+            background: var(--surface-2);
+        }
+
+        .perm-dot {
+            width: 18px;
+            height: 18px;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .perm-full {
+            background: var(--success-soft);
+            color: var(--success);
+        }
+
+        .perm-read {
+            background: var(--warning-soft);
+            color: var(--warning);
+        }
+
+        .perm-none {
+            background: var(--surface-3);
+            color: var(--text-4);
+        }
+
+        .gauge-mini {
+            width: 100%;
+            height: 6px;
+            border-radius: 999px;
+            background: var(--surface-3);
+            overflow: hidden;
+        }
+
+        .gauge-mini span {
+            display: block;
+            height: 100%;
+            border-radius: 999px;
+        }
+
+        .integration-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+        }
+
+        .integration-card {
+            background: var(--surface);
+            border: 1px solid var(--border-soft);
+            border-radius: var(--radius);
+            padding: 18px;
+            cursor: pointer;
+            transition: all .15s;
+        }
+
+        .integration-card:hover {
+            border-color: var(--primary);
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-1px);
+        }
+
+        .int-logo {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            border: 1px solid var(--border);
+            background: var(--surface-2);
+            margin-bottom: 12px;
+        }
+
+        .user-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: var(--primary-soft);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 13px;
+        }
+
+        .mini-spark {
+            width: 100%;
+            height: 44px;
+        }
+
+        .filter-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 13px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            background: var(--surface);
+        }
+
+        .filter-chip.active {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+        }
+
+        .stepper-line {
+            flex: 1;
+            height: 2px;
+            background: var(--border);
+        }
+
+        .res-ring {
+            width: 84px;
+            height: 84px;
+            position: relative;
+        }
+
+        .res-ring .label {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @media (max-width: 1100px) {
+
+            .three-col,
+            .integration-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .two-col {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+
+            .three-col,
+            .integration-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .kv-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-logo">P</div>
+            <nav class="sidebar-nav">
+                <button class="sidebar-item" title="Dashboard" data-modal="navDashboardModal"><svg viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                    </svg><span class="sidebar-label">Dashboard</span></button>
+                <button class="sidebar-item" title="Payment Rails" data-modal="navRailsModal"><svg viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="6" cy="19" r="3"></circle>
+                        <circle cx="18" cy="5" r="3"></circle>
+                        <path d="M6 16V8a4 4 0 0 1 4-4h8"></path>
+                    </svg><span class="sidebar-label">Rails</span></button>
+                <button class="sidebar-item" title="Open Banking" data-modal="navOpenBankingModal"><svg
+                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 21h18"></path>
+                        <path d="M3 10h18"></path>
+                        <path d="M5 6l7-3 7 3"></path>
+                        <path d="M4 10v11"></path>
+                        <path d="M20 10v11"></path>
+                    </svg><span class="sidebar-label">Open Banking</span></button>
+                <button class="sidebar-item" title="Wallets" data-modal="navWalletsModal"><svg viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path>
+                        <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path>
+                        <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"></path>
+                    </svg><span class="sidebar-label">Wallets</span></button>
+                <button class="sidebar-item" title="Risk" data-modal="navRiskModal"><svg viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <path
+                            d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z">
+                        </path>
+                        <line x1="12" y1="9" x2="12" y2="13"></line>
+                    </svg><span class="sidebar-label">Risk</span></button>
+                <button class="sidebar-item" title="Analytics" data-modal="navAnalyticsModal"><svg viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="20" x2="12" y2="10"></line>
+                        <line x1="18" y1="20" x2="18" y2="4"></line>
+                        <line x1="6" y1="20" x2="6" y2="16"></line>
+                    </svg><span class="sidebar-label">Analytics</span></button>
+                <button class="sidebar-item" title="Customers" data-modal="navCustomersModal"><svg viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    </svg><span class="sidebar-label">Customers</span></button>
+                <button class="sidebar-item active" title="Administration"><svg viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path
+                            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z">
+                        </path>
+                    </svg><span class="sidebar-label">Administration</span></button>
+            </nav>
+            <button class="sidebar-expand" id="sidebarToggle"><svg width="12" height="12" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg><span class="sidebar-label">Collapse</span></button>
+        </aside>
+
+        <main class="main">
+            <div class="topbar">
+                <div>
+                    <div class="crumb">
+                        <button class="mobile-menu-btn btn btn-light btn-sm" id="mobileMenuBtn"
+                            style="margin-right:8px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2">
+                                <line x1="3" y1="12" x2="21" y2="12"></line>
+                                <line x1="3" y1="6" x2="21" y2="6"></line>
+                                <line x1="3" y1="18" x2="21" y2="18"></line>
+                            </svg></button>
+                        <span>Dashboard</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg><span>System Administration & Settings</span>
+                    </div>
+                    <h1 class="page-title">System Administration & Settings</h1>
+                </div>
+                <div class="topbar-actions">
+                    <button class="btn btn-light btn-icon" title="Notifications" data-modal="notificationsModal"><svg
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                        </svg></button>
+                    <button class="btn btn-light" data-modal="auditLogModal"><svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                        </svg><span class="btn-text">Audit Log</span></button>
+                    <button class="btn btn-light" data-modal="exportModal"><svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg><span class="btn-text">Export</span></button>
+                    <button class="btn btn-primary" data-modal="inviteUserModal"><svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>Invite User</button>
+                </div>
+            </div>
+
+            <div class="stats-row">
+                <div class="stat-card" data-modal="usersSummaryModal">
+                    <div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                        </svg></div>
+                    <div class="stat-label">Active Users</div>
+                    <div class="stat-value">128</div>
+                    <div class="stat-trend up"><span>+6 this month</span></div>
+                </div>
+                <div class="stat-card" data-modal="rolesSummaryModal">
+                    <div class="stat-icon purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                        </svg></div>
+                    <div class="stat-label">Roles Defined</div>
+                    <div class="stat-value">9</div>
+                    <div class="stat-trend neutral"><span>RBAC enforced</span></div>
+                </div>
+                <div class="stat-card" data-modal="systemHealthModal">
+                    <div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                        </svg></div>
+                    <div class="stat-label">System Uptime</div>
+                    <div class="stat-value">99.98%</div>
+                    <div class="stat-trend up"><span>All services healthy</span></div>
+                </div>
+                <div class="stat-card" data-modal="backupStatusModal">
+                    <div class="stat-icon amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+                            <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+                            <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+                        </svg></div>
+                    <div class="stat-label">Last Backup</div>
+                    <div class="stat-value">12m</div>
+                    <div class="stat-trend up"><span>RPO 15m on target</span></div>
+                </div>
+                <div class="stat-card" data-modal="integrationsSummaryModal">
+                    <div class="stat-icon red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                        </svg></div>
+                    <div class="stat-label">Integrations</div>
+                    <div class="stat-value">14</div>
+                    <div class="stat-trend up"><span>2 pending setup</span></div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="tabs" id="mainTabs">
+                    <button class="tab active" data-tab="users"><svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                        </svg>User & Roles <span class="tab-badge">128</span></button>
+                    <button class="tab" data-tab="org"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M3 21h18"></path>
+                            <path d="M5 21V7l8-4v18"></path>
+                            <path d="M19 21V11l-6-4"></path>
+                        </svg>Organization</button>
+                    <button class="tab" data-tab="health"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                        </svg>System Health</button>
+                    <button class="tab" data-tab="backup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+                            <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+                        </svg>Backup & DR</button>
+                    <button class="tab" data-tab="integrations"><svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                        </svg>Integrations <span class="tab-badge">14</span></button>
+                </div>
+
+                <!-- USERS & ROLES -->
+                <section class="tab-panel active" data-panel="users">
+                    <div class="panel-body">
+                        <div
+                            style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:16px;">
+                            <h2 class="panel-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="9" cy="7" r="4"></circle>
+                                </svg>User Directory</h2>
+                            <div class="panel-actions">
+                                <div class="search-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <circle cx="11" cy="11" r="8"></circle>
+                                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                    </svg><input id="userSearch" placeholder="Search users..."></div>
+                                <select class="select" id="roleFilter">
+                                    <option>All Roles</option>
+                                    <option>Administrator</option>
+                                    <option>Finance Manager</option>
+                                    <option>Compliance Officer</option>
+                                    <option>Analyst</option>
+                                    <option>Read Only</option>
+                                </select>
+                                <button class="btn btn-light btn-sm" data-modal="permissionMatrixModal">Permission
+                                    Matrix</button>
+                            </div>
+                        </div>
+                        <div class="table-wrap">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>User</th>
+                                        <th>Role</th>
+                                        <th>Department</th>
+                                        <th>Last Active</th>
+                                        <th>Status</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="userTable">
+                                    <tr data-role="Administrator" data-modal="userDetailModal">
+                                        <td>
+                                            <div style="display:flex;gap:10px;align-items:center;">
+                                                <div class="user-avatar">AM</div>
+                                                <div>
+                                                    <div style="font-weight:600;">Amara Mwangi</div>
+                                                    <div class="list-sub">amara@paymo.io</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td><span class="badge purple">Administrator</span></td>
+                                        <td>Platform Ops</td>
+                                        <td>2 min ago</td>
+                                        <td><span class="badge success"><span class="badge-dot"></span>Active</span>
+                                        </td>
+                                        <td class="right"><button class="btn btn-light btn-sm"
+                                                data-modal="userDetailModal">Manage</button></td>
+                                    </tr>
+                                    <tr data-role="Finance Manager" data-modal="userDetailModal">
+                                        <td>
+                                            <div style="display:flex;gap:10px;align-items:center;">
+                                                <div class="user-avatar">JD</div>
+                                                <div>
+                                                    <div style="font-weight:600;">James Doyle</div>
+                                                    <div class="list-sub">james@paymo.io</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td><span class="badge primary">Finance Manager</span></td>
+                                        <td>Treasury</td>
+                                        <td>18 min ago</td>
+                                        <td><span class="badge success"><span class="badge-dot"></span>Active</span>
+                                        </td>
+                                        <td class="right"><button class="btn btn-light btn-sm"
+                                                data-modal="userDetailModal">Manage</button></td>
+                                    </tr>
+                                    <tr data-role="Compliance Officer" data-modal="userDetailModal">
+                                        <td>
+                                            <div style="display:flex;gap:10px;align-items:center;">
+                                                <div class="user-avatar">LK</div>
+                                                <div>
+                                                    <div style="font-weight:600;">Lina Kamau</div>
+                                                    <div class="list-sub">lina@paymo.io</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td><span class="badge info">Compliance Officer</span></td>
+                                        <td>Risk & AML</td>
+                                        <td>1 hour ago</td>
+                                        <td><span class="badge success"><span class="badge-dot"></span>Active</span>
+                                        </td>
+                                        <td class="right"><button class="btn btn-light btn-sm"
+                                                data-modal="userDetailModal">Manage</button></td>
+                                    </tr>
+                                    <tr data-role="Analyst" data-modal="userDetailModal">
+                                        <td>
+                                            <div style="display:flex;gap:10px;align-items:center;">
+                                                <div class="user-avatar">RO</div>
+                                                <div>
+                                                    <div style="font-weight:600;">Robert Otieno</div>
+                                                    <div class="list-sub">robert@paymo.io</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td><span class="badge gray">Analyst</span></td>
+                                        <td>Data</td>
+                                        <td>3 hours ago</td>
+                                        <td><span class="badge warning"><span class="badge-dot"></span>Idle</span></td>
+                                        <td class="right"><button class="btn btn-light btn-sm"
+                                                data-modal="userDetailModal">Manage</button></td>
+                                    </tr>
+                                    <tr data-role="Read Only" data-modal="userDetailModal">
+                                        <td>
+                                            <div style="display:flex;gap:10px;align-items:center;">
+                                                <div class="user-avatar">SP</div>
+                                                <div>
+                                                    <div style="font-weight:600;">Sara Patel</div>
+                                                    <div class="list-sub">sara@paymo.io</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td><span class="badge gray">Read Only</span></td>
+                                        <td>Audit</td>
+                                        <td>2 days ago</td>
+                                        <td><span class="badge danger"><span class="badge-dot"></span>Suspended</span>
+                                        </td>
+                                        <td class="right"><button class="btn btn-light btn-sm"
+                                                data-modal="userDetailModal">Manage</button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="three-col" style="margin-top:18px;">
+                            <div class="sub-card" style="cursor:pointer;" data-modal="rbacModal">
+                                <div class="stat-icon purple" style="margin-bottom:12px;"><svg viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="3" y="11" width="18" height="11" rx="2"></rect>
+                                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                    </svg></div>
+                                <div style="font-weight:600;">Role-Based Access</div>
+                                <div class="list-sub">9 roles, 42 permission scopes mapped</div><button
+                                    class="btn btn-light btn-sm" style="margin-top:12px;"
+                                    data-modal="rbacModal">Configure RBAC</button>
+                            </div>
+                            <div class="sub-card" style="cursor:pointer;" data-modal="ssoModal">
+                                <div class="stat-icon blue" style="margin-bottom:12px;"><svg viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+                                        <polyline points="10 17 15 12 10 7"></polyline>
+                                        <line x1="15" y1="12" x2="3" y2="12"></line>
+                                    </svg></div>
+                                <div style="font-weight:600;">SSO / SAML</div>
+                                <div class="list-sub">Okta connected, SCIM provisioning on</div><button
+                                    class="btn btn-light btn-sm" style="margin-top:12px;"
+                                    data-modal="ssoModal">Configure SSO</button>
+                            </div>
+                            <div class="sub-card" style="cursor:pointer;" data-modal="sessionPolicyModal">
+                                <div class="stat-icon green" style="margin-bottom:12px;"><svg viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <polyline points="12 6 12 12 16 14"></polyline>
+                                    </svg></div>
+                                <div style="font-weight:600;">Session & Password</div>
+                                <div class="list-sub">30 min idle, MFA required, 90 day rotation</div><button
+                                    class="btn btn-light btn-sm" style="margin-top:12px;"
+                                    data-modal="sessionPolicyModal">Edit policies</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ORGANIZATION -->
+                <section class="tab-panel" data-panel="org">
+                    <div class="panel-body">
+                        <div class="two-col">
+                            <div>
+                                <h2 class="panel-title" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" stroke-width="2">
+                                        <path d="M3 21h18"></path>
+                                        <path d="M5 21V7l8-4v18"></path>
+                                    </svg>Company Profile & Branding</h2>
+                                <div class="sub-card">
+                                    <div style="display:flex;gap:14px;align-items:center;margin-bottom:16px;">
+                                        <div class="int-logo"
+                                            style="margin:0;width:56px;height:56px;font-size:20px;background:var(--primary);color:#fff;border:0;">
+                                            PB</div>
+                                        <div>
+                                            <div style="font-weight:700;font-size:16px;">PayMo Banking Ltd</div>
+                                            <div class="list-sub">Enterprise plan - 128 seats</div>
+                                        </div>
+                                        <button class="btn btn-light btn-sm" style="margin-left:auto;"
+                                            data-modal="brandingModal">Edit branding</button>
+                                    </div>
+                                    <div class="kv-grid">
+                                        <div>
+                                            <div class="kv-label">Legal name</div>
+                                            <div class="kv-val">PayMo Banking Ltd</div>
+                                        </div>
+                                        <div>
+                                            <div class="kv-label">Registration</div>
+                                            <div class="kv-val">PVT-KE-2019-44210</div>
+                                        </div>
+                                        <div>
+                                            <div class="kv-label">Primary domain</div>
+                                            <div class="kv-val">paymo.io</div>
+                                        </div>
+                                        <div>
+                                            <div class="kv-label">Support email</div>
+                                            <div class="kv-val">ops@paymo.io</div>
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-primary btn-sm" style="margin-top:16px;"
+                                        data-modal="companyProfileModal">Manage company profile</button>
+                                </div>
+                                <h2 class="panel-title" style="margin:20px 0 14px;"><svg viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <path d="M2 12h20"></path>
+                                        <path
+                                            d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+                                        </path>
+                                    </svg>Regional Defaults</h2>
+                                <div class="sub-card">
+                                    <div class="config-row">
+                                        <div>
+                                            <div class="config-label">Time zone</div>
+                                            <div class="config-desc">Africa/Nairobi (GMT+3)</div>
+                                        </div><button class="btn btn-light btn-sm"
+                                            data-modal="regionalModal">Change</button>
+                                    </div>
+                                    <div class="config-row">
+                                        <div>
+                                            <div class="config-label">Base currency</div>
+                                            <div class="config-desc">USD with multi-currency display</div>
+                                        </div><button class="btn btn-light btn-sm"
+                                            data-modal="regionalModal">Change</button>
+                                    </div>
+                                    <div class="config-row">
+                                        <div>
+                                            <div class="config-label">Default language</div>
+                                            <div class="config-desc">English (US)</div>
+                                        </div><button class="btn btn-light btn-sm"
+                                            data-modal="regionalModal">Change</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <h2 class="panel-title" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" stroke-width="2">
+                                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                                    </svg>Notification Preferences</h2>
+                                <div class="sub-card">
+                                    <div class="config-row">
+                                        <div>
+                                            <div class="config-label">Transaction alerts</div>
+                                            <div class="config-desc">Email + in-app for failed payments</div>
+                                        </div><label class="toggle"><input type="checkbox" checked><span
+                                                class="toggle-slider"></span></label>
+                                    </div>
+                                    <div class="config-row">
+                                        <div>
+                                            <div class="config-label">Security events</div>
+                                            <div class="config-desc">New logins, role changes</div>
+                                        </div><label class="toggle"><input type="checkbox" checked><span
+                                                class="toggle-slider"></span></label>
+                                    </div>
+                                    <div class="config-row">
+                                        <div>
+                                            <div class="config-label">System maintenance</div>
+                                            <div class="config-desc">Scheduled downtime notices</div>
+                                        </div><label class="toggle"><input type="checkbox" checked><span
+                                                class="toggle-slider"></span></label>
+                                    </div>
+                                    <div class="config-row">
+                                        <div>
+                                            <div class="config-label">Weekly digest</div>
+                                            <div class="config-desc">Summary every Monday 08:00</div>
+                                        </div><label class="toggle"><input type="checkbox"><span
+                                                class="toggle-slider"></span></label>
+                                    </div>
+                                    <button class="btn btn-primary btn-sm" style="margin-top:14px;"
+                                        data-modal="notifPrefsModal">Manage all preferences</button>
+                                </div>
+                                <h2 class="panel-title" style="margin:20px 0 14px;"><svg viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" stroke-width="2">
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                    </svg>Audit Log Retention</h2>
+                                <div class="sub-card">
+                                    <div class="kv-grid" style="margin-bottom:14px;">
+                                        <div>
+                                            <div class="kv-label">Retention period</div>
+                                            <div class="kv-val">7 years</div>
+                                        </div>
+                                        <div>
+                                            <div class="kv-label">Storage region</div>
+                                            <div class="kv-val">EU + KE replicas</div>
+                                        </div>
+                                        <div>
+                                            <div class="kv-label">Log volume</div>
+                                            <div class="kv-val">42.8 GB</div>
+                                        </div>
+                                        <div>
+                                            <div class="kv-label">Immutable WORM</div>
+                                            <div class="kv-val">Enabled</div>
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-light btn-sm" data-modal="retentionModal">Edit retention
+                                        policy</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SYSTEM HEALTH -->
+                <section class="tab-panel" data-panel="health">
+                    <div class="panel-body">
+                        <div
+                            style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:16px;">
+                            <h2 class="panel-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                                </svg>Service Status</h2>
+                            <div style="display:flex;gap:8px;"><button class="btn btn-light btn-sm"
+                                    data-modal="incidentLogModal">Incident Log</button><button
+                                    class="btn btn-primary btn-sm" data-modal="statusPageModal">Public Status
+                                    Page</button></div>
+                        </div>
+                        <div class="three-col" style="margin-bottom:18px;">
+                            <div class="service-card" data-modal="serviceDetailModal">
+                                <div
+                                    style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                                    <strong>Core Payments API</strong><span class="badge success"><span
+                                            class="badge-dot"></span>Operational</span></div>
+                                <div class="kv-label">Latency p95</div>
+                                <div class="kv-val" style="margin-bottom:8px;">82 ms</div><svg class="mini-spark"
+                                    viewBox="0 0 200 44" preserveAspectRatio="none">
+                                    <path d="M0,34 L25,28 L50,30 L75,22 L100,26 L125,18 L150,24 L175,16 L200,20"
+                                        fill="none" stroke="#16a34a" stroke-width="2"></path>
+                                </svg>
+                            </div>
+                            <div class="service-card" data-modal="serviceDetailModal">
+                                <div
+                                    style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                                    <strong>Open Banking Gateway</strong><span class="badge success"><span
+                                            class="badge-dot"></span>Operational</span></div>
+                                <div class="kv-label">Latency p95</div>
+                                <div class="kv-val" style="margin-bottom:8px;">140 ms</div><svg class="mini-spark"
+                                    viewBox="0 0 200 44" preserveAspectRatio="none">
+                                    <path d="M0,30 L25,32 L50,26 L75,30 L100,24 L125,28 L150,20 L175,26 L200,22"
+                                        fill="none" stroke="#16a34a" stroke-width="2"></path>
+                                </svg>
+                            </div>
+                            <div class="service-card" data-modal="serviceDetailModal">
+                                <div
+                                    style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                                    <strong>FX Rate Engine</strong><span class="badge warning"><span
+                                            class="badge-dot"></span>Degraded</span></div>
+                                <div class="kv-label">Latency p95</div>
+                                <div class="kv-val" style="margin-bottom:8px;">310 ms</div><svg class="mini-spark"
+                                    viewBox="0 0 200 44" preserveAspectRatio="none">
+                                    <path d="M0,28 L25,22 L50,30 L75,18 L100,32 L125,14 L150,34 L175,20 L200,36"
+                                        fill="none" stroke="#d97706" stroke-width="2"></path>
+                                </svg>
+                            </div>
+                            <div class="service-card" data-modal="serviceDetailModal">
+                                <div
+                                    style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                                    <strong>Notification Service</strong><span class="badge success"><span
+                                            class="badge-dot"></span>Operational</span></div>
+                                <div class="kv-label">Error rate</div>
+                                <div class="kv-val" style="margin-bottom:8px;">0.02%</div><svg class="mini-spark"
+                                    viewBox="0 0 200 44" preserveAspectRatio="none">
+                                    <path d="M0,36 L25,34 L50,36 L75,32 L100,34 L125,30 L150,34 L175,28 L200,32"
+                                        fill="none" stroke="#16a34a" stroke-width="2"></path>
+                                </svg>
+                            </div>
+                            <div class="service-card" data-modal="dbPerfModal">
+                                <div
+                                    style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                                    <strong>Primary Database</strong><span class="badge success"><span
+                                            class="badge-dot"></span>Operational</span></div>
+                                <div class="kv-label">Query p95</div>
+                                <div class="kv-val" style="margin-bottom:8px;">11 ms</div><svg class="mini-spark"
+                                    viewBox="0 0 200 44" preserveAspectRatio="none">
+                                    <path d="M0,34 L25,30 L50,32 L75,28 L100,30 L125,26 L150,30 L175,24 L200,28"
+                                        fill="none" stroke="#5b5bf5" stroke-width="2"></path>
+                                </svg>
+                            </div>
+                            <div class="service-card" data-modal="serviceDetailModal">
+                                <div
+                                    style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                                    <strong>Webhook Dispatcher</strong><span class="badge success"><span
+                                            class="badge-dot"></span>Operational</span></div>
+                                <div class="kv-label">Delivery rate</div>
+                                <div class="kv-val" style="margin-bottom:8px;">99.96%</div><svg class="mini-spark"
+                                    viewBox="0 0 200 44" preserveAspectRatio="none">
+                                    <path d="M0,30 L25,28 L50,30 L75,26 L100,28 L125,24 L150,28 L175,22 L200,26"
+                                        fill="none" stroke="#16a34a" stroke-width="2"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="two-col">
+                            <div class="sub-card" style="cursor:pointer;" data-modal="resourceModal">
+                                <div
+                                    style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+                                    <strong>Infrastructure Utilization</strong><button class="btn btn-light btn-sm"
+                                        data-modal="resourceModal">Details</button></div>
+                                <div style="margin-bottom:14px;">
+                                    <div
+                                        style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px;">
+                                        <span>CPU</span><strong>58%</strong></div>
+                                    <div class="gauge-mini"><span style="width:58%;background:#5b5bf5;"></span></div>
+                                </div>
+                                <div style="margin-bottom:14px;">
+                                    <div
+                                        style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px;">
+                                        <span>Memory</span><strong>71%</strong></div>
+                                    <div class="gauge-mini"><span style="width:71%;background:#d97706;"></span></div>
+                                </div>
+                                <div style="margin-bottom:14px;">
+                                    <div
+                                        style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px;">
+                                        <span>Disk I/O</span><strong>34%</strong></div>
+                                    <div class="gauge-mini"><span style="width:34%;background:#16a34a;"></span></div>
+                                </div>
+                                <div>
+                                    <div
+                                        style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px;">
+                                        <span>Network</span><strong>46%</strong></div>
+                                    <div class="gauge-mini"><span style="width:46%;background:#16a34a;"></span></div>
+                                </div>
+                            </div>
+                            <div class="sub-card">
+                                <div
+                                    style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+                                    <strong>Recent Incidents</strong><button class="btn btn-light btn-sm"
+                                        data-modal="incidentLogModal">View all</button></div>
+                                <div class="timeline">
+                                    <div class="tl-item warn">
+                                        <div class="tl-time">Today 09:14</div>
+                                        <div class="tl-text">FX Rate Engine elevated latency - investigating</div>
+                                    </div>
+                                    <div class="tl-item ok">
+                                        <div class="tl-time">Yesterday 22:40</div>
+                                        <div class="tl-text">Database failover drill completed successfully</div>
+                                    </div>
+                                    <div class="tl-item ok">
+                                        <div class="tl-time">Mar 18 14:02</div>
+                                        <div class="tl-text">Webhook backlog cleared, all delivered</div>
+                                    </div>
+                                    <div class="tl-item err">
+                                        <div class="tl-time">Mar 16 03:11</div>
+                                        <div class="tl-text">Payments API outage 6m - resolved, RCA published</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- BACKUP & DR -->
+                <section class="tab-panel" data-panel="backup">
+                    <div class="panel-body">
+                        <div
+                            style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:16px;">
+                            <h2 class="panel-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+                                    <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+                                </svg>Backup & Disaster Recovery</h2>
+                            <div style="display:flex;gap:8px;"><button class="btn btn-light btn-sm"
+                                    data-modal="drDrillModal">DR Drill History</button><button
+                                    class="btn btn-primary btn-sm" data-modal="runBackupModal">Run Backup Now</button>
+                            </div>
+                        </div>
+                        <div class="three-col" style="margin-bottom:18px;">
+                            <div class="sub-card">
+                                <div class="kv-label">Backup Schedule</div>
+                                <div class="kv-val" style="margin:6px 0 12px;font-size:15px;">Every 15 minutes</div>
+                                <span class="badge success"><span class="badge-dot"></span>On schedule</span><button
+                                    class="btn btn-light btn-sm" style="margin-top:14px;width:100%;"
+                                    data-modal="backupScheduleModal">Edit schedule</button>
+                            </div>
+                            <div class="sub-card">
+                                <div class="kv-label">Recovery Point (RPO)</div>
+                                <div class="kv-val" style="margin:6px 0 12px;font-size:15px;">Target 15m / Actual 12m
+                                </div>
+                                <div class="gauge-mini"><span style="width:80%;background:#16a34a;"></span></div><button
+                                    class="btn btn-light btn-sm" style="margin-top:14px;width:100%;"
+                                    data-modal="rpoModal">RPO monitoring</button>
+                            </div>
+                            <div class="sub-card">
+                                <div class="kv-label">Recovery Time (RTO)</div>
+                                <div class="kv-val" style="margin:6px 0 12px;font-size:15px;">Target 30m / Actual 22m
+                                </div>
+                                <div class="gauge-mini"><span style="width:73%;background:#5b5bf5;"></span></div><button
+                                    class="btn btn-light btn-sm" style="margin-top:14px;width:100%;"
+                                    data-modal="failoverModal">Failover config</button>
+                            </div>
+                        </div>
+                        <div class="two-col">
+                            <div class="sub-card">
+                                <div
+                                    style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+                                    <strong>Recent Backups</strong><button class="btn btn-light btn-sm"
+                                        data-modal="backupStatusModal">All backups</button></div>
+                                <div class="table-wrap">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>Backup ID</th>
+                                                <th>Type</th>
+                                                <th>Size</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr data-modal="backupDetailModal">
+                                                <td class="mono">BK-44892</td>
+                                                <td>Incremental</td>
+                                                <td>1.2 GB</td>
+                                                <td><span class="badge success">Complete</span></td>
+                                            </tr>
+                                            <tr data-modal="backupDetailModal">
+                                                <td class="mono">BK-44891</td>
+                                                <td>Incremental</td>
+                                                <td>0.9 GB</td>
+                                                <td><span class="badge success">Complete</span></td>
+                                            </tr>
+                                            <tr data-modal="backupDetailModal">
+                                                <td class="mono">BK-44880</td>
+                                                <td>Full</td>
+                                                <td>48.2 GB</td>
+                                                <td><span class="badge success">Complete</span></td>
+                                            </tr>
+                                            <tr data-modal="backupDetailModal">
+                                                <td class="mono">BK-44879</td>
+                                                <td>Incremental</td>
+                                                <td>1.1 GB</td>
+                                                <td><span class="badge warning">Verifying</span></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="sub-card">
+                                <div
+                                    style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+                                    <strong>DR Drill History</strong><button class="btn btn-light btn-sm"
+                                        data-modal="drDrillModal">View detail</button></div>
+                                <div class="timeline">
+                                    <div class="tl-item ok">
+                                        <div class="tl-time">Mar 19</div>
+                                        <div class="tl-text">Full region failover drill - passed (22m RTO)</div>
+                                    </div>
+                                    <div class="tl-item ok">
+                                        <div class="tl-time">Feb 19</div>
+                                        <div class="tl-text">Database restore drill - passed</div>
+                                    </div>
+                                    <div class="tl-item warn">
+                                        <div class="tl-time">Jan 19</div>
+                                        <div class="tl-text">Failover drill - passed with 1 finding</div>
+                                    </div>
+                                    <div class="tl-item ok">
+                                        <div class="tl-time">Dec 18</div>
+                                        <div class="tl-text">Backup integrity verification - passed</div>
+                                    </div>
+                                </div>
+                                <button class="btn btn-primary btn-sm" style="margin-top:14px;"
+                                    data-modal="scheduleDrillModal">Schedule new drill</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- INTEGRATIONS -->
+                <section class="tab-panel" data-panel="integrations">
+                    <div class="panel-body">
+                        <div
+                            style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:16px;">
+                            <h2 class="panel-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                                </svg>Integration Marketplace</h2>
+                            <button class="btn btn-primary" data-modal="addWebhookModal"><svg viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                </svg>Custom Webhook</button>
+                        </div>
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;" id="intFilters">
+                            <button class="filter-chip active" data-cat="all">All</button>
+                            <button class="filter-chip" data-cat="Accounting">Accounting</button>
+                            <button class="filter-chip" data-cat="ERP">ERP</button>
+                            <button class="filter-chip" data-cat="CRM">CRM</button>
+                            <button class="filter-chip" data-cat="Webhook">Webhooks</button>
+                        </div>
+                        <div class="integration-grid" id="intGrid">
+                            <div class="integration-card" data-cat="Accounting" data-modal="integrationDetailModal">
+                                <div class="int-logo" style="color:#2ca01c;">QB</div>
+                                <div style="display:flex;justify-content:space-between;align-items:center;">
+                                    <strong>QuickBooks</strong><span class="badge success"><span
+                                            class="badge-dot"></span>Connected</span></div>
+                                <div class="list-sub" style="margin-top:6px;">Auto-sync ledger and invoices</div><button
+                                    class="btn btn-light btn-sm" style="margin-top:12px;"
+                                    data-modal="integrationDetailModal">Manage</button>
+                            </div>
+                            <div class="integration-card" data-cat="Accounting" data-modal="integrationDetailModal">
+                                <div class="int-logo" style="color:#13b5ea;">XE</div>
+                                <div style="display:flex;justify-content:space-between;align-items:center;">
+                                    <strong>Xero</strong><span class="badge success"><span
+                                            class="badge-dot"></span>Connected</span></div>
+                                <div class="list-sub" style="margin-top:6px;">Reconciliation and reporting</div><button
+                                    class="btn btn-light btn-sm" style="margin-top:12px;"
+                                    data-modal="integrationDetailModal">Manage</button>
+                            </div>
+                            <div class="integration-card" data-cat="ERP" data-modal="connectIntegrationModal">
+                                <div class="int-logo" style="color:#0faaff;">SAP</div>
+                                <div style="display:flex;justify-content:space-between;align-items:center;">
+                                    <strong>SAP</strong><span class="badge gray">Available</span></div>
+                                <div class="list-sub" style="margin-top:6px;">ERP connector for GL postings</div><button
+                                    class="btn btn-primary btn-sm" style="margin-top:12px;"
+                                    data-modal="connectIntegrationModal">Connect</button>
+                            </div>
+                            <div class="integration-card" data-cat="ERP" data-modal="connectIntegrationModal">
+                                <div class="int-logo" style="color:#f80000;">OR</div>
+                                <div style="display:flex;justify-content:space-between;align-items:center;">
+                                    <strong>Oracle ERP</strong><span class="badge gray">Available</span></div>
+                                <div class="list-sub" style="margin-top:6px;">Finance and procurement sync</div><button
+                                    class="btn btn-primary btn-sm" style="margin-top:12px;"
+                                    data-modal="connectIntegrationModal">Connect</button>
+                            </div>
+                            <div class="integration-card" data-cat="CRM" data-modal="integrationDetailModal">
+                                <div class="int-logo" style="color:#00a1e0;">SF</div>
+                                <div style="display:flex;justify-content:space-between;align-items:center;">
+                                    <strong>Salesforce</strong><span class="badge success"><span
+                                            class="badge-dot"></span>Connected</span></div>
+                                <div class="list-sub" style="margin-top:6px;">Customer + payment objects sync</div>
+                                <button class="btn btn-light btn-sm" style="margin-top:12px;"
+                                    data-modal="integrationDetailModal">Manage</button>
+                            </div>
+                            <div class="integration-card" data-cat="CRM" data-modal="connectIntegrationModal">
+                                <div class="int-logo" style="color:#ff7a59;">HS</div>
+                                <div style="display:flex;justify-content:space-between;align-items:center;">
+                                    <strong>HubSpot</strong><span class="badge warning"><span
+                                            class="badge-dot"></span>Pending</span></div>
+                                <div class="list-sub" style="margin-top:6px;">Marketing and deal sync</div><button
+                                    class="btn btn-light btn-sm" style="margin-top:12px;"
+                                    data-modal="connectIntegrationModal">Complete setup</button>
+                            </div>
+                            <div class="integration-card" data-cat="Webhook" data-modal="webhookDetailModal">
+                                <div class="int-logo" style="color:var(--primary);">WH</div>
+                                <div style="display:flex;justify-content:space-between;align-items:center;">
+                                    <strong>Payment Events Hook</strong><span class="badge success"><span
+                                            class="badge-dot"></span>Active</span></div>
+                                <div class="list-sub" style="margin-top:6px;">POST to ops.paymo.io/events</div><button
+                                    class="btn btn-light btn-sm" style="margin-top:12px;"
+                                    data-modal="webhookDetailModal">Manage</button>
+                            </div>
+                            <div class="integration-card" data-cat="Webhook" data-modal="webhookDetailModal">
+                                <div class="int-logo" style="color:var(--purple);">WH</div>
+                                <div style="display:flex;justify-content:space-between;align-items:center;">
+                                    <strong>Compliance Alerts Hook</strong><span class="badge success"><span
+                                            class="badge-dot"></span>Active</span></div>
+                                <div class="list-sub" style="margin-top:6px;">Streams AML and KYC events</div><button
+                                    class="btn btn-light btn-sm" style="margin-top:12px;"
+                                    data-modal="webhookDetailModal">Manage</button>
+                            </div>
+                            <div class="integration-card" data-cat="Webhook" data-modal="addWebhookModal">
+                                <div
+                                    style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;">
+                                    <div class="stat-icon purple" style="margin:0;"><svg viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2">
+                                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                                        </svg></div><strong>Add custom webhook</strong><span class="list-sub">Stream any
+                                        platform event</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- ============ MODALS ============ -->
+
+    <!-- Stats summaries -->
+    <div class="modal-backdrop" id="usersSummaryModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">User Summary</h3>
+                    <div class="modal-sub">Active accounts and access levels</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="kv-grid">
+                    <div>
+                        <div class="kv-label">Total users</div>
+                        <div class="kv-val">128</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Active today</div>
+                        <div class="kv-val">94</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Pending invites</div>
+                        <div class="kv-val">3</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Suspended</div>
+                        <div class="kv-val">2</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button
+                    class="btn btn-primary" data-modal="inviteUserModal">Invite user</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="rolesSummaryModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Roles Overview</h3>
+                    <div class="modal-sub">9 RBAC roles configured</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">Administrator</div>
+                        <div class="config-desc">Full platform access</div>
+                    </div><span class="badge purple">4 users</span>
+                </div>
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">Finance Manager</div>
+                        <div class="config-desc">Treasury and payments</div>
+                    </div><span class="badge primary">22 users</span>
+                </div>
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">Compliance Officer</div>
+                        <div class="config-desc">AML, KYC, audit</div>
+                    </div><span class="badge info">11 users</span>
+                </div>
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">Analyst</div>
+                        <div class="config-desc">Read + reporting</div>
+                    </div><span class="badge gray">68 users</span>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button
+                    class="btn btn-primary" data-modal="rbacModal">Configure RBAC</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="integrationsSummaryModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Integrations Summary</h3>
+                    <div class="modal-sub">Connected third-party systems</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="kv-grid">
+                    <div>
+                        <div class="kv-label">Connected</div>
+                        <div class="kv-val">10</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Pending</div>
+                        <div class="kv-val">2</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Available</div>
+                        <div class="kv-val">2</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Custom webhooks</div>
+                        <div class="kv-val">3</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button
+                    class="btn btn-primary" onclick="switchTab('integrations');closeAll();">Open marketplace</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Invite user (multistep) -->
+    <div class="modal-backdrop" id="inviteUserModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Invite New User</h3>
+                    <div class="modal-sub">Provision access with role and scopes</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="stepper" id="inviteStepper">
+                <div class="step active">
+                    <div class="step-num">1</div>Details
+                </div>
+                <div class="stepper-line"></div>
+                <div class="step">
+                    <div class="step-num">2</div>Role
+                </div>
+                <div class="stepper-line"></div>
+                <div class="step">
+                    <div class="step-num">3</div>Access
+                </div>
+                <div class="stepper-line"></div>
+                <div class="step">
+                    <div class="step-num">4</div>Review
+                </div>
+            </div>
+            <div class="modal-body">
+                <div class="step-panel active" data-step="1">
+                    <div class="field-row">
+                        <div class="field"><label class="field-label">Full name</label><input class="input"
+                                placeholder="Jane Doe"></div>
+                        <div class="field"><label class="field-label">Email</label><input class="input"
+                                placeholder="jane@paymo.io"></div>
+                    </div>
+                    <div class="field"><label class="field-label">Department</label><select class="select-field">
+                            <option>Platform Ops</option>
+                            <option>Treasury</option>
+                            <option>Risk & AML</option>
+                            <option>Data</option>
+                            <option>Audit</option>
+                        </select></div>
+                </div>
+                <div class="step-panel" data-step="2"><label class="choice-row selected"><input type="radio"
+                            name="inviteRole" checked>
+                        <div>
+                            <div class="choice-title">Finance Manager</div>
+                            <div class="choice-desc">Treasury and payment operations</div>
+                        </div>
+                    </label><label class="choice-row"><input type="radio" name="inviteRole">
+                        <div>
+                            <div class="choice-title">Compliance Officer</div>
+                            <div class="choice-desc">AML, KYC, audit access</div>
+                        </div>
+                    </label><label class="choice-row"><input type="radio" name="inviteRole">
+                        <div>
+                            <div class="choice-title">Analyst</div>
+                            <div class="choice-desc">Read access and reporting</div>
+                        </div>
+                    </label><label class="choice-row"><input type="radio" name="inviteRole">
+                        <div>
+                            <div class="choice-title">Read Only</div>
+                            <div class="choice-desc">View dashboards only</div>
+                        </div>
+                    </label></div>
+                <div class="step-panel" data-step="3"><label class="choice-row selected"><input type="checkbox" checked>
+                        <div>
+                            <div class="choice-title">Require MFA</div>
+                            <div class="choice-desc">Enforce app or hardware key</div>
+                        </div>
+                    </label><label class="choice-row selected"><input type="checkbox" checked>
+                        <div>
+                            <div class="choice-title">SSO provisioning</div>
+                            <div class="choice-desc">Link account via Okta SAML</div>
+                        </div>
+                    </label>
+                    <div class="field" style="margin-top:8px;"><label class="field-label">Data access
+                            level</label><select class="select-field">
+                            <option>Organization-wide</option>
+                            <option>Department only</option>
+                            <option>Assigned entities only</option>
+                        </select></div>
+                </div>
+                <div class="step-panel" data-step="4">
+                    <div class="alert success" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>Invitation ready to send.</div>
+                    <div class="kv-grid">
+                        <div>
+                            <div class="kv-label">Role</div>
+                            <div class="kv-val">Finance Manager</div>
+                        </div>
+                        <div>
+                            <div class="kv-label">MFA</div>
+                            <div class="kv-val">Required</div>
+                        </div>
+                        <div>
+                            <div class="kv-label">SSO</div>
+                            <div class="kv-val">Okta SAML</div>
+                        </div>
+                        <div>
+                            <div class="kv-label">Data scope</div>
+                            <div class="kv-val">Organization-wide</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-light" id="inviteBack" disabled>Back</button><button
+                    class="btn btn-primary" id="inviteNext">Next</button></div>
+        </div>
+    </div>
+
+    <!-- User detail -->
+    <div class="modal-backdrop" id="userDetailModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Amara Mwangi</h3>
+                    <div class="modal-sub">amara@paymo.io - Administrator</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="kv-grid" style="margin-bottom:16px;">
+                    <div>
+                        <div class="kv-label">Role</div>
+                        <div class="kv-val">Administrator</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Department</div>
+                        <div class="kv-val">Platform Ops</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">MFA</div>
+                        <div class="kv-val">Hardware key enrolled</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Last login</div>
+                        <div class="kv-val">2 min ago - Nairobi</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Created</div>
+                        <div class="kv-val">Jan 12, 2024</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Sessions</div>
+                        <div class="kv-val">2 active</div>
+                    </div>
+                </div>
+                <div style="font-weight:600;margin-bottom:8px;">Recent activity</div>
+                <div class="timeline">
+                    <div class="tl-item ok">
+                        <div class="tl-time">2 min ago</div>
+                        <div class="tl-text">Updated FX rate engine config</div>
+                    </div>
+                    <div class="tl-item ok">
+                        <div class="tl-time">1 hour ago</div>
+                        <div class="tl-text">Approved user invite for J. Doyle</div>
+                    </div>
+                    <div class="tl-item ok">
+                        <div class="tl-time">Yesterday</div>
+                        <div class="tl-text">Rotated API signing key</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-danger" data-modal="suspendUserModal">Suspend user</button>
+                <div style="display:flex;gap:8px;"><button class="btn btn-light" data-modal="resetMfaModal">Reset
+                        MFA</button><button class="btn btn-primary" data-modal="editRoleModal">Edit role</button></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="editRoleModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Edit User Role</h3>
+                    <div class="modal-sub">Change role and data scope</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="field"><label class="field-label">Role</label><select class="select-field">
+                        <option>Administrator</option>
+                        <option>Finance Manager</option>
+                        <option>Compliance Officer</option>
+                        <option>Analyst</option>
+                        <option>Read Only</option>
+                    </select></div>
+                <div class="field"><label class="field-label">Data access level</label><select class="select-field">
+                        <option>Organization-wide</option>
+                        <option>Department only</option>
+                        <option>Assigned entities</option>
+                    </select></div><label class="choice-row selected"><input type="checkbox" checked>
+                    <div>
+                        <div class="choice-title">Notify user of change</div>
+                        <div class="choice-desc">Send email + in-app alert</div>
+                    </div>
+                </label>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button
+                    class="btn btn-primary" data-result="User role updated successfully">Save changes</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="suspendUserModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Suspend User</h3>
+                    <div class="modal-sub">Temporarily revoke access</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="alert danger" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                    </svg>All active sessions will be terminated immediately.</div>
+                <div class="field"><label class="field-label">Reason</label><select class="select-field">
+                        <option>Security concern</option>
+                        <option>Offboarding</option>
+                        <option>Policy violation</option>
+                        <option>Inactive account</option>
+                    </select></div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button
+                    class="btn btn-danger" data-result="User suspended and sessions terminated">Suspend user</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="resetMfaModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Reset MFA</h3>
+                    <div class="modal-sub">Re-enroll multi-factor device</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="alert warning"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                    </svg>The user must re-enroll an MFA device on next login.</div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button
+                    class="btn btn-primary" data-result="MFA reset link sent to user">Send reset</button></div>
+        </div>
+    </div>
+
+    <!-- RBAC permission matrix -->
+    <div class="modal-backdrop" id="rbacModal">
+        <div class="modal xl">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Role-Based Access Control</h3>
+                    <div class="modal-sub">Configure roles and scopes</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;"><button
+                        class="filter-chip active">Administrator</button><button class="filter-chip">Finance
+                        Manager</button><button class="filter-chip">Compliance Officer</button><button
+                        class="filter-chip">Analyst</button><button class="filter-chip">Read Only</button></div>
+                <div class="alert info" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                    </svg>Toggle scopes for the selected role. Changes require an approver.</div>
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">Payments - Initiate</div>
+                        <div class="config-desc">Create and authorize payments</div>
+                    </div><label class="toggle"><input type="checkbox" checked><span
+                            class="toggle-slider"></span></label>
+                </div>
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">Users - Manage</div>
+                        <div class="config-desc">Invite, suspend, edit roles</div>
+                    </div><label class="toggle"><input type="checkbox" checked><span
+                            class="toggle-slider"></span></label>
+                </div>
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">Settings - Configure</div>
+                        <div class="config-desc">Organization and system settings</div>
+                    </div><label class="toggle"><input type="checkbox" checked><span
+                            class="toggle-slider"></span></label>
+                </div>
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">Backups - Trigger</div>
+                        <div class="config-desc">Run and restore backups</div>
+                    </div><label class="toggle"><input type="checkbox" checked><span
+                            class="toggle-slider"></span></label>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light"
+                    data-modal="permissionMatrixModal">Full matrix</button><button class="btn btn-primary"
+                    data-result="RBAC role updated">Save role</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="permissionMatrixModal">
+        <div class="modal xl">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Permission Matrix</h3>
+                    <div class="modal-sub">Page, action, and data level by role</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="table-wrap">
+                    <table class="matrix">
+                        <thead>
+                            <tr>
+                                <th>Capability</th>
+                                <th>Admin</th>
+                                <th>Finance</th>
+                                <th>Compliance</th>
+                                <th>Analyst</th>
+                                <th>Read Only</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Payments</td>
+                                <td><span class="perm-dot perm-full">F</span></td>
+                                <td><span class="perm-dot perm-full">F</span></td>
+                                <td><span class="perm-dot perm-read">R</span></td>
+                                <td><span class="perm-dot perm-read">R</span></td>
+                                <td><span class="perm-dot perm-read">R</span></td>
+                            </tr>
+                            <tr>
+                                <td>User Management</td>
+                                <td><span class="perm-dot perm-full">F</span></td>
+                                <td><span class="perm-dot perm-none">-</span></td>
+                                <td><span class="perm-dot perm-none">-</span></td>
+                                <td><span class="perm-dot perm-none">-</span></td>
+                                <td><span class="perm-dot perm-none">-</span></td>
+                            </tr>
+                            <tr>
+                                <td>Compliance Data</td>
+                                <td><span class="perm-dot perm-full">F</span></td>
+                                <td><span class="perm-dot perm-read">R</span></td>
+                                <td><span class="perm-dot perm-full">F</span></td>
+                                <td><span class="perm-dot perm-read">R</span></td>
+                                <td><span class="perm-dot perm-none">-</span></td>
+                            </tr>
+                            <tr>
+                                <td>System Settings</td>
+                                <td><span class="perm-dot perm-full">F</span></td>
+                                <td><span class="perm-dot perm-none">-</span></td>
+                                <td><span class="perm-dot perm-none">-</span></td>
+                                <td><span class="perm-dot perm-none">-</span></td>
+                                <td><span class="perm-dot perm-none">-</span></td>
+                            </tr>
+                            <tr>
+                                <td>Reports & Export</td>
+                                <td><span class="perm-dot perm-full">F</span></td>
+                                <td><span class="perm-dot perm-full">F</span></td>
+                                <td><span class="perm-dot perm-full">F</span></td>
+                                <td><span class="perm-dot perm-full">F</span></td>
+                                <td><span class="perm-dot perm-read">R</span></td>
+                            </tr>
+                            <tr>
+                                <td>Backups & DR</td>
+                                <td><span class="perm-dot perm-full">F</span></td>
+                                <td><span class="perm-dot perm-none">-</span></td>
+                                <td><span class="perm-dot perm-none">-</span></td>
+                                <td><span class="perm-dot perm-none">-</span></td>
+                                <td><span class="perm-dot perm-none">-</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="legend" style="margin-top:14px;display:flex;gap:14px;font-size:12px;"><span><span
+                            class="perm-dot perm-full" style="vertical-align:middle;">F</span> Full</span><span><span
+                            class="perm-dot perm-read" style="vertical-align:middle;">R</span> Read</span><span><span
+                            class="perm-dot perm-none" style="vertical-align:middle;">-</span> None</span></div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button
+                    class="btn btn-primary" data-modal="exportModal">Export matrix</button></div>
+        </div>
+    </div>
+
+    <!-- SSO/SAML -->
+    <div class="modal-backdrop" id="ssoModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">SSO / SAML Configuration</h3>
+                    <div class="modal-sub">Single sign-on and provisioning</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">Identity provider</div>
+                        <div class="config-desc">Okta - Verified</div>
+                    </div><span class="badge success"><span class="badge-dot"></span>Connected</span>
+                </div>
+                <div class="field" style="margin-top:14px;"><label class="field-label">SAML SSO URL</label><input
+                        class="input mono" value="https://paymo.okta.com/app/saml/sso" readonly></div>
+                <div class="field"><label class="field-label">Entity ID</label><input class="input mono"
+                        value="https://app.paymo.io/saml/metadata" readonly></div>
+                <div class="field"><label class="field-label">x509 certificate fingerprint</label><input
+                        class="input mono" value="2A:7F:E1:9C:44:..." readonly></div>
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">SCIM provisioning</div>
+                        <div class="config-desc">Auto provision and deprovision users</div>
+                    </div><label class="toggle"><input type="checkbox" checked><span
+                            class="toggle-slider"></span></label>
+                </div>
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">Enforce SSO only</div>
+                        <div class="config-desc">Disable password login</div>
+                    </div><label class="toggle"><input type="checkbox" checked><span
+                            class="toggle-slider"></span></label>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light"
+                    data-result="SSO connection tested successfully">Test connection</button><button
+                    class="btn btn-primary" data-result="SSO configuration saved">Save config</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="sessionPolicyModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Session & Password Policies</h3>
+                    <div class="modal-sub">Security controls for all users</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="field"><label class="field-label">Idle session timeout</label><select class="select-field">
+                        <option>15 minutes</option>
+                        <option selected>30 minutes</option>
+                        <option>60 minutes</option>
+                    </select></div>
+                <div class="field"><label class="field-label">Password rotation</label><select class="select-field">
+                        <option>60 days</option>
+                        <option selected>90 days</option>
+                        <option>180 days</option>
+                    </select></div>
+                <div class="field"><label class="field-label">Minimum password length</label><select
+                        class="select-field">
+                        <option>10 characters</option>
+                        <option selected>12 characters</option>
+                        <option>16 characters</option>
+                    </select></div>
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">Require MFA for all</div>
+                        <div class="config-desc">No exceptions for admins</div>
+                    </div><label class="toggle"><input type="checkbox" checked><span
+                            class="toggle-slider"></span></label>
+                </div>
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">Block reused passwords</div>
+                        <div class="config-desc">Remember last 10</div>
+                    </div><label class="toggle"><input type="checkbox" checked><span
+                            class="toggle-slider"></span></label>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button
+                    class="btn btn-primary" data-result="Security policies updated">Save policies</button></div>
+        </div>
+    </div>
+
+    <!-- Organization modals -->
+    <div class="modal-backdrop" id="companyProfileModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Company Profile</h3>
+                    <div class="modal-sub">Legal and contact information</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="field-row">
+                    <div class="field"><label class="field-label">Legal name</label><input class="input"
+                            value="PayMo Banking Ltd"></div>
+                    <div class="field"><label class="field-label">Registration no.</label><input class="input"
+                            value="PVT-KE-2019-44210"></div>
+                </div>
+                <div class="field-row">
+                    <div class="field"><label class="field-label">Primary domain</label><input class="input"
+                            value="paymo.io"></div>
+                    <div class="field"><label class="field-label">Support email</label><input class="input"
+                            value="ops@paymo.io"></div>
+                </div>
+                <div class="field"><label class="field-label">Registered address</label><textarea
+                        class="textarea">Westlands Tower, Nairobi, Kenya</textarea></div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button
+                    class="btn btn-primary" data-result="Company profile saved">Save profile</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="brandingModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Branding</h3>
+                    <div class="modal-sub">Logo, colors, and theme</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="field"><label class="field-label">Brand logo</label>
+                    <div style="border:2px dashed var(--border);border-radius:12px;padding:24px;text-align:center;">
+                        <div class="int-logo" style="margin:0 auto 8px;background:var(--primary);color:#fff;border:0;">
+                            PB</div>
+                        <div class="list-sub">Drop SVG/PNG or click to upload</div>
+                    </div>
+                </div>
+                <div class="field"><label class="field-label">Primary color</label><input class="input" value="#5b5bf5">
+                </div>
+                <div class="field"><label class="field-label">Theme</label><select class="select-field">
+                        <option>Light (default)</option>
+                        <option>Auto (system)</option>
+                        <option>Dark</option>
+                    </select></div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button
+                    class="btn btn-primary" data-result="Branding updated">Save branding</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="regionalModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Regional Defaults</h3>
+                    <div class="modal-sub">Time zone, currency, language</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="field"><label class="field-label">Time zone</label><select class="select-field">
+                        <option selected>Africa/Nairobi (GMT+3)</option>
+                        <option>UTC</option>
+                        <option>America/New_York</option>
+                        <option>Europe/London</option>
+                    </select></div>
+                <div class="field"><label class="field-label">Base currency</label><select class="select-field">
+                        <option selected>USD</option>
+                        <option>KES</option>
+                        <option>EUR</option>
+                        <option>GBP</option>
+                    </select></div>
+                <div class="field"><label class="field-label">Default language</label><select class="select-field">
+                        <option selected>English (US)</option>
+                        <option>English (UK)</option>
+                        <option>Swahili</option>
+                        <option>French</option>
+                    </select></div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button
+                    class="btn btn-primary" data-result="Regional defaults saved">Save defaults</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="notifPrefsModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Notification Preferences</h3>
+                    <div class="modal-sub">Choose channels per event type</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="table-wrap">
+                    <table class="matrix">
+                        <thead>
+                            <tr>
+                                <th>Event</th>
+                                <th>Email</th>
+                                <th>In-app</th>
+                                <th>SMS</th>
+                                <th>Webhook</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Failed payments</td>
+                                <td><label class="toggle"><input type="checkbox" checked><span
+                                            class="toggle-slider"></span></label></td>
+                                <td><label class="toggle"><input type="checkbox" checked><span
+                                            class="toggle-slider"></span></label></td>
+                                <td><label class="toggle"><input type="checkbox"><span
+                                            class="toggle-slider"></span></label></td>
+                                <td><label class="toggle"><input type="checkbox" checked><span
+                                            class="toggle-slider"></span></label></td>
+                            </tr>
+                            <tr>
+                                <td>Security events</td>
+                                <td><label class="toggle"><input type="checkbox" checked><span
+                                            class="toggle-slider"></span></label></td>
+                                <td><label class="toggle"><input type="checkbox" checked><span
+                                            class="toggle-slider"></span></label></td>
+                                <td><label class="toggle"><input type="checkbox" checked><span
+                                            class="toggle-slider"></span></label></td>
+                                <td><label class="toggle"><input type="checkbox"><span
+                                            class="toggle-slider"></span></label></td>
+                            </tr>
+                            <tr>
+                                <td>Maintenance</td>
+                                <td><label class="toggle"><input type="checkbox" checked><span
+                                            class="toggle-slider"></span></label></td>
+                                <td><label class="toggle"><input type="checkbox" checked><span
+                                            class="toggle-slider"></span></label></td>
+                                <td><label class="toggle"><input type="checkbox"><span
+                                            class="toggle-slider"></span></label></td>
+                                <td><label class="toggle"><input type="checkbox"><span
+                                            class="toggle-slider"></span></label></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button
+                    class="btn btn-primary" data-result="Notification preferences saved">Save preferences</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="retentionModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Audit Log Retention</h3>
+                    <div class="modal-sub">Compliance and storage policy</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="field"><label class="field-label">Retention period</label><select class="select-field">
+                        <option>1 year</option>
+                        <option>3 years</option>
+                        <option>5 years</option>
+                        <option selected>7 years</option>
+                    </select></div>
+                <div class="field"><label class="field-label">Storage region</label><select class="select-field">
+                        <option selected>EU + KE replicas</option>
+                        <option>EU only</option>
+                        <option>US only</option>
+                    </select></div>
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">Immutable WORM storage</div>
+                        <div class="config-desc">Write once, read many</div>
+                    </div><label class="toggle"><input type="checkbox" checked><span
+                            class="toggle-slider"></span></label>
+                </div>
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">Auto-archive to cold storage</div>
+                        <div class="config-desc">After 90 days</div>
+                    </div><label class="toggle"><input type="checkbox" checked><span
+                            class="toggle-slider"></span></label>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button
+                    class="btn btn-primary" data-result="Retention policy updated">Save policy</button></div>
+        </div>
+    </div>
+
+    <!-- Health modals -->
+    <div class="modal-backdrop" id="systemHealthModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">System Health Overview</h3>
+                    <div class="modal-sub">All monitored services</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">Core Payments API</div>
+                        <div class="config-desc">p95 82ms - error 0.01%</div>
+                    </div><span class="badge success"><span class="badge-dot"></span>Operational</span>
+                </div>
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">Open Banking Gateway</div>
+                        <div class="config-desc">p95 140ms - error 0.03%</div>
+                    </div><span class="badge success"><span class="badge-dot"></span>Operational</span>
+                </div>
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">FX Rate Engine</div>
+                        <div class="config-desc">p95 310ms - elevated latency</div>
+                    </div><span class="badge warning"><span class="badge-dot"></span>Degraded</span>
+                </div>
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">Primary Database</div>
+                        <div class="config-desc">Query p95 11ms</div>
+                    </div><span class="badge success"><span class="badge-dot"></span>Operational</span>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button
+                    class="btn btn-primary" data-modal="incidentLogModal">Incident log</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="serviceDetailModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Core Payments API</h3>
+                    <div class="modal-sub">Service health detail</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="kv-grid" style="margin-bottom:16px;">
+                    <div>
+                        <div class="kv-label">Status</div>
+                        <div class="kv-val"><span class="badge success">Operational</span></div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Latency p50 / p95</div>
+                        <div class="kv-val">38ms / 82ms</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Error rate</div>
+                        <div class="kv-val">0.01%</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Requests / min</div>
+                        <div class="kv-val">12,480</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Region</div>
+                        <div class="kv-val">eu-west-1, af-east-1</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Version</div>
+                        <div class="kv-val">v4.2.1</div>
+                    </div>
+                </div><svg class="mini-spark" viewBox="0 0 400 60" preserveAspectRatio="none" style="height:60px;">
+                    <path d="M0,44 L50,38 L100,40 L150,30 L200,36 L250,24 L300,32 L350,20 L400,26" fill="none"
+                        stroke="#16a34a" stroke-width="2"></path>
+                </svg>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-modal="incidentLogModal">View
+                    incidents</button><button class="btn btn-primary" data-close>Close</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="dbPerfModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Database Performance</h3>
+                    <div class="modal-sub">Primary cluster metrics</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="kv-grid" style="margin-bottom:16px;">
+                    <div>
+                        <div class="kv-label">Query p95</div>
+                        <div class="kv-val">11 ms</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Connections</div>
+                        <div class="kv-val">412 / 800</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Replication lag</div>
+                        <div class="kv-val">0.3 s</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Cache hit ratio</div>
+                        <div class="kv-val">98.7%</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Storage used</div>
+                        <div class="kv-val">1.8 TB / 4 TB</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Slow queries (1h)</div>
+                        <div class="kv-val">2</div>
+                    </div>
+                </div>
+                <div class="alert success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>Database operating within healthy thresholds.</div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button
+                    class="btn btn-primary" data-modal="exportModal">Export metrics</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="resourceModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Infrastructure Resources</h3>
+                    <div class="modal-sub">Cluster utilization across nodes</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">CPU (16 nodes)</div>
+                        <div class="config-desc">58% avg, peak 81%</div>
+                    </div>
+                    <div style="width:160px;">
+                        <div class="gauge-mini"><span style="width:58%;background:#5b5bf5;"></span></div>
+                    </div>
+                </div>
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">Memory</div>
+                        <div class="config-desc">71% of 512 GB</div>
+                    </div>
+                    <div style="width:160px;">
+                        <div class="gauge-mini"><span style="width:71%;background:#d97706;"></span></div>
+                    </div>
+                </div>
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">Disk I/O</div>
+                        <div class="config-desc">34% throughput</div>
+                    </div>
+                    <div style="width:160px;">
+                        <div class="gauge-mini"><span style="width:34%;background:#16a34a;"></span></div>
+                    </div>
+                </div>
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">Network</div>
+                        <div class="config-desc">46% of 10 Gbps</div>
+                    </div>
+                    <div style="width:160px;">
+                        <div class="gauge-mini"><span style="width:46%;background:#16a34a;"></span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button
+                    class="btn btn-primary" data-result="Auto-scaling policy review opened">Review autoscaling</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="incidentLogModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Incident Management Log</h3>
+                    <div class="modal-sub">Recent operational incidents</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="table-wrap">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Service</th>
+                                <th>Severity</th>
+                                <th>Duration</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr data-modal="incidentDetailModal">
+                                <td class="mono">INC-1042</td>
+                                <td>FX Rate Engine</td>
+                                <td><span class="badge warning">P2</span></td>
+                                <td>Ongoing</td>
+                                <td><span class="badge warning">Investigating</span></td>
+                            </tr>
+                            <tr data-modal="incidentDetailModal">
+                                <td class="mono">INC-1041</td>
+                                <td>Webhook Dispatcher</td>
+                                <td><span class="badge info">P3</span></td>
+                                <td>14m</td>
+                                <td><span class="badge success">Resolved</span></td>
+                            </tr>
+                            <tr data-modal="incidentDetailModal">
+                                <td class="mono">INC-1038</td>
+                                <td>Payments API</td>
+                                <td><span class="badge danger">P1</span></td>
+                                <td>6m</td>
+                                <td><span class="badge success">Resolved</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button
+                    class="btn btn-primary" data-modal="createIncidentModal">Log incident</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="incidentDetailModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">INC-1042 - FX Rate Engine</h3>
+                    <div class="modal-sub">P2 - Investigating</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="kv-grid" style="margin-bottom:16px;">
+                    <div>
+                        <div class="kv-label">Started</div>
+                        <div class="kv-val">Today 09:14</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Impact</div>
+                        <div class="kv-val">Elevated FX latency</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Owner</div>
+                        <div class="kv-val">Platform Ops</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Affected users</div>
+                        <div class="kv-val">~4%</div>
+                    </div>
+                </div>
+                <div class="timeline">
+                    <div class="tl-item warn">
+                        <div class="tl-time">09:14</div>
+                        <div class="tl-text">Latency alert triggered, paged on-call</div>
+                    </div>
+                    <div class="tl-item">
+                        <div class="tl-time">09:20</div>
+                        <div class="tl-text">Identified upstream provider slowdown</div>
+                    </div>
+                    <div class="tl-item">
+                        <div class="tl-time">09:28</div>
+                        <div class="tl-text">Failover to secondary rate provider in progress</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-light" data-modal="createIncidentModal">Add update</button>
+                <div style="display:flex;gap:8px;"><button class="btn btn-light" data-close>Close</button><button
+                        class="btn btn-primary" data-result="Incident marked resolved">Mark resolved</button></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="createIncidentModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Log Incident</h3>
+                    <div class="modal-sub">Create incident record</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="field"><label class="field-label">Title</label><input class="input"
+                        placeholder="Short summary"></div>
+                <div class="field-row">
+                    <div class="field"><label class="field-label">Service</label><select class="select-field">
+                            <option>Core Payments API</option>
+                            <option>FX Rate Engine</option>
+                            <option>Open Banking Gateway</option>
+                            <option>Primary Database</option>
+                        </select></div>
+                    <div class="field"><label class="field-label">Severity</label><select class="select-field">
+                            <option>P1 - Critical</option>
+                            <option>P2 - Major</option>
+                            <option>P3 - Minor</option>
+                        </select></div>
+                </div>
+                <div class="field"><label class="field-label">Description</label><textarea class="textarea"
+                        placeholder="What happened"></textarea></div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button
+                    class="btn btn-primary" data-result="Incident logged and team notified">Create incident</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="statusPageModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Public Status Page</h3>
+                    <div class="modal-sub">status.paymo.io</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="alert success" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>All systems operational on public page.</div>
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">Show uptime history</div>
+                        <div class="config-desc">90-day rolling</div>
+                    </div><label class="toggle"><input type="checkbox" checked><span
+                            class="toggle-slider"></span></label>
+                </div>
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">Subscriber notifications</div>
+                        <div class="config-desc">Email + RSS</div>
+                    </div><label class="toggle"><input type="checkbox" checked><span
+                            class="toggle-slider"></span></label>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button
+                    class="btn btn-primary" data-result="Status page settings saved">Save settings</button></div>
+        </div>
+    </div>
+
+    <!-- Backup modals -->
+    <div class="modal-backdrop" id="backupStatusModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Backup Status</h3>
+                    <div class="modal-sub">Recent backup jobs</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="table-wrap">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Backup ID</th>
+                                <th>Type</th>
+                                <th>Started</th>
+                                <th>Size</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr data-modal="backupDetailModal">
+                                <td class="mono">BK-44892</td>
+                                <td>Incremental</td>
+                                <td>12m ago</td>
+                                <td>1.2 GB</td>
+                                <td><span class="badge success">Complete</span></td>
+                            </tr>
+                            <tr data-modal="backupDetailModal">
+                                <td class="mono">BK-44891</td>
+                                <td>Incremental</td>
+                                <td>27m ago</td>
+                                <td>0.9 GB</td>
+                                <td><span class="badge success">Complete</span></td>
+                            </tr>
+                            <tr data-modal="backupDetailModal">
+                                <td class="mono">BK-44880</td>
+                                <td>Full</td>
+                                <td>6h ago</td>
+                                <td>48.2 GB</td>
+                                <td><span class="badge success">Complete</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button
+                    class="btn btn-primary" data-modal="runBackupModal">Run backup now</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="backupDetailModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Backup BK-44892</h3>
+                    <div class="modal-sub">Incremental backup detail</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="kv-grid">
+                    <div>
+                        <div class="kv-label">Type</div>
+                        <div class="kv-val">Incremental</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Size</div>
+                        <div class="kv-val">1.2 GB</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Duration</div>
+                        <div class="kv-val">42 s</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Encryption</div>
+                        <div class="kv-val">AES-256</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Destination</div>
+                        <div class="kv-val">EU + KE replicas</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Integrity</div>
+                        <div class="kv-val">Verified</div>
+                    </div>
+                </div>
+                <div class="alert success" style="margin-top:16px;"><svg viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>Backup verified and replicated successfully.</div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-light" data-modal="restoreModal">Restore</button><button
+                    class="btn btn-primary" data-close>Close</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="runBackupModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Run Backup Now</h3>
+                    <div class="modal-sub">Trigger on-demand backup</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body"><label class="choice-row selected"><input type="radio" name="bkType" checked>
+                    <div>
+                        <div class="choice-title">Incremental</div>
+                        <div class="choice-desc">Changes since last backup (fast)</div>
+                    </div>
+                </label><label class="choice-row"><input type="radio" name="bkType">
+                    <div>
+                        <div class="choice-title">Full backup</div>
+                        <div class="choice-desc">Complete snapshot of all data</div>
+                    </div>
+                </label>
+                <div class="field" style="margin-top:8px;"><label class="field-label">Destination</label><select
+                        class="select-field">
+                        <option>EU + KE replicas</option>
+                        <option>EU only</option>
+                        <option>Cold storage archive</option>
+                    </select></div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button
+                    class="btn btn-primary" data-result="Backup job started">Start backup</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="backupScheduleModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Backup Schedule</h3>
+                    <div class="modal-sub">Automated backup cadence</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="field"><label class="field-label">Incremental frequency</label><select class="select-field">
+                        <option selected>Every 15 minutes</option>
+                        <option>Every 30 minutes</option>
+                        <option>Every hour</option>
+                    </select></div>
+                <div class="field"><label class="field-label">Full backup</label><select class="select-field">
+                        <option selected>Daily at 02:00</option>
+                        <option>Every 12 hours</option>
+                        <option>Weekly</option>
+                    </select></div>
+                <div class="field"><label class="field-label">Retention</label><select class="select-field">
+                        <option>30 days</option>
+                        <option selected>90 days</option>
+                        <option>1 year</option>
+                    </select></div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button
+                    class="btn btn-primary" data-result="Backup schedule updated">Save schedule</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="restoreModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Restore From Backup</h3>
+                    <div class="modal-sub">Point-in-time recovery</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="alert warning" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                    </svg>Restoring will create a staging environment. Production is not overwritten automatically.
+                </div>
+                <div class="field"><label class="field-label">Restore target</label><select class="select-field">
+                        <option>Staging environment</option>
+                        <option>New isolated instance</option>
+                        <option>Production (requires approval)</option>
+                    </select></div>
+                <div class="field"><label class="field-label">Restore point</label><input class="input"
+                        value="BK-44892 - 12m ago"></div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button
+                    class="btn btn-primary" data-result="Restore job initiated to staging">Begin restore</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="rpoModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">RPO Monitoring</h3>
+                    <div class="modal-sub">Recovery point objective</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="kv-grid" style="margin-bottom:14px;">
+                    <div>
+                        <div class="kv-label">Target RPO</div>
+                        <div class="kv-val">15 minutes</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Current RPO</div>
+                        <div class="kv-val">12 minutes</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Worst (30d)</div>
+                        <div class="kv-val">18 minutes</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Compliance</div>
+                        <div class="kv-val">99.4%</div>
+                    </div>
+                </div>
+                <div class="gauge-mini"><span style="width:80%;background:#16a34a;"></span></div>
+                <div class="alert success" style="margin-top:14px;"><svg viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>RPO within target for 99.4% of the last 30 days.</div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button
+                    class="btn btn-primary" data-modal="backupScheduleModal">Tune schedule</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="failoverModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Failover Configuration</h3>
+                    <div class="modal-sub">Multi-region redundancy</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">Primary region</div>
+                        <div class="config-desc">eu-west-1 (Active)</div>
+                    </div><span class="badge success"><span class="badge-dot"></span>Active</span>
+                </div>
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">Secondary region</div>
+                        <div class="config-desc">af-east-1 (Standby)</div>
+                    </div><span class="badge info"><span class="badge-dot"></span>Standby</span>
+                </div>
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">Automatic failover</div>
+                        <div class="config-desc">Trigger on health check failure</div>
+                    </div><label class="toggle"><input type="checkbox" checked><span
+                            class="toggle-slider"></span></label>
+                </div>
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">Health check interval</div>
+                        <div class="config-desc">Every 10 seconds</div>
+                    </div><label class="toggle"><input type="checkbox" checked><span
+                            class="toggle-slider"></span></label>
+                </div>
+                <div class="field" style="margin-top:14px;"><label class="field-label">Target RTO</label><select
+                        class="select-field">
+                        <option selected>30 minutes</option>
+                        <option>15 minutes</option>
+                        <option>60 minutes</option>
+                    </select></div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light"
+                    data-result="Failover test simulated successfully">Test failover</button><button
+                    class="btn btn-primary" data-result="Failover configuration saved">Save config</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="drDrillModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">DR Drill History</h3>
+                    <div class="modal-sub">Disaster recovery exercises</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="table-wrap">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>RTO</th>
+                                <th>Result</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Mar 19</td>
+                                <td>Full region failover</td>
+                                <td>22m</td>
+                                <td><span class="badge success">Passed</span></td>
+                            </tr>
+                            <tr>
+                                <td>Feb 19</td>
+                                <td>Database restore</td>
+                                <td>18m</td>
+                                <td><span class="badge success">Passed</span></td>
+                            </tr>
+                            <tr>
+                                <td>Jan 19</td>
+                                <td>Failover drill</td>
+                                <td>26m</td>
+                                <td><span class="badge warning">1 finding</span></td>
+                            </tr>
+                            <tr>
+                                <td>Dec 18</td>
+                                <td>Integrity verification</td>
+                                <td>-</td>
+                                <td><span class="badge success">Passed</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button
+                    class="btn btn-primary" data-modal="scheduleDrillModal">Schedule drill</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="scheduleDrillModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Schedule DR Drill</h3>
+                    <div class="modal-sub">Plan a recovery exercise</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="field"><label class="field-label">Drill type</label><select class="select-field">
+                        <option>Full region failover</option>
+                        <option>Database restore</option>
+                        <option>Backup integrity check</option>
+                    </select></div>
+                <div class="field"><label class="field-label">Scheduled date</label><input class="input"
+                        value="2026-04-19 22:00"></div><label class="choice-row selected"><input type="checkbox"
+                        checked>
+                    <div>
+                        <div class="choice-title">Notify stakeholders</div>
+                        <div class="choice-desc">Send calendar invites</div>
+                    </div>
+                </label>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button
+                    class="btn btn-primary" data-result="DR drill scheduled and team notified">Schedule drill</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Integration modals -->
+    <div class="modal-backdrop" id="integrationDetailModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">QuickBooks Integration</h3>
+                    <div class="modal-sub">Accounting sync - Connected</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="kv-grid" style="margin-bottom:16px;">
+                    <div>
+                        <div class="kv-label">Status</div>
+                        <div class="kv-val"><span class="badge success">Connected</span></div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Last sync</div>
+                        <div class="kv-val">6 min ago</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Records synced</div>
+                        <div class="kv-val">42,180</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Direction</div>
+                        <div class="kv-val">Two-way</div>
+                    </div>
+                </div>
+                <div style="font-weight:600;margin-bottom:8px;">Sync settings</div>
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">Auto-sync transactions</div>
+                        <div class="config-desc">Every 15 minutes</div>
+                    </div><label class="toggle"><input type="checkbox" checked><span
+                            class="toggle-slider"></span></label>
+                </div>
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">Sync invoices</div>
+                        <div class="config-desc">Push paid invoices</div>
+                    </div><label class="toggle"><input type="checkbox" checked><span
+                            class="toggle-slider"></span></label>
+                </div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-danger" data-modal="disconnectModal">Disconnect</button>
+                <div style="display:flex;gap:8px;"><button class="btn btn-light" data-result="Manual sync started">Sync
+                        now</button><button class="btn btn-primary" data-result="Integration settings saved">Save
+                        settings</button></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="connectIntegrationModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Connect Integration</h3>
+                    <div class="modal-sub">Authorize and configure</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="stepper" id="connectStepper">
+                <div class="step active">
+                    <div class="step-num">1</div>Authorize
+                </div>
+                <div class="stepper-line"></div>
+                <div class="step">
+                    <div class="step-num">2</div>Scope
+                </div>
+                <div class="stepper-line"></div>
+                <div class="step">
+                    <div class="step-num">3</div>Confirm
+                </div>
+            </div>
+            <div class="modal-body">
+                <div class="step-panel active" data-step="1">
+                    <div class="alert info" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                        </svg>You will be redirected to authorize PayMo access.</div>
+                    <div class="field"><label class="field-label">Instance / tenant URL</label><input class="input"
+                            placeholder="https://company.sap.com"></div>
+                    <div class="field"><label class="field-label">Environment</label><select class="select-field">
+                            <option>Production</option>
+                            <option>Sandbox</option>
+                        </select></div>
+                </div>
+                <div class="step-panel" data-step="2"><label class="choice-row selected"><input type="checkbox" checked>
+                        <div>
+                            <div class="choice-title">Read GL postings</div>
+                            <div class="choice-desc">Import general ledger entries</div>
+                        </div>
+                    </label><label class="choice-row selected"><input type="checkbox" checked>
+                        <div>
+                            <div class="choice-title">Write payment records</div>
+                            <div class="choice-desc">Post settled payments</div>
+                        </div>
+                    </label><label class="choice-row"><input type="checkbox">
+                        <div>
+                            <div class="choice-title">Sync vendor master</div>
+                            <div class="choice-desc">Import supplier records</div>
+                        </div>
+                    </label></div>
+                <div class="step-panel" data-step="3">
+                    <div class="alert success" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>Ready to connect.</div>
+                    <div class="kv-grid">
+                        <div>
+                            <div class="kv-label">Environment</div>
+                            <div class="kv-val">Production</div>
+                        </div>
+                        <div>
+                            <div class="kv-label">Scopes</div>
+                            <div class="kv-val">GL read, Payment write</div>
+                        </div>
+                        <div>
+                            <div class="kv-label">Sync</div>
+                            <div class="kv-val">Every 15 min</div>
+                        </div>
+                        <div>
+                            <div class="kv-label">Direction</div>
+                            <div class="kv-val">Two-way</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-light" id="connectBack" disabled>Back</button><button
+                    class="btn btn-primary" id="connectNext">Next</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="webhookDetailModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Payment Events Hook</h3>
+                    <div class="modal-sub">Custom webhook - Active</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="field"><label class="field-label">Endpoint URL</label><input class="input mono"
+                        value="https://ops.paymo.io/events"></div>
+                <div class="kv-grid" style="margin:14px 0;">
+                    <div>
+                        <div class="kv-label">Events</div>
+                        <div class="kv-val">payment.settled, payment.failed</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Delivery rate</div>
+                        <div class="kv-val">99.96%</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Signing secret</div>
+                        <div class="kv-val mono">whsec_***42a</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Retries</div>
+                        <div class="kv-val">Exponential, max 5</div>
+                    </div>
+                </div>
+                <div style="font-weight:600;margin-bottom:8px;">Recent deliveries</div>
+                <div class="timeline">
+                    <div class="tl-item ok">
+                        <div class="tl-time">2 min ago</div>
+                        <div class="tl-text">payment.settled - 200 OK</div>
+                    </div>
+                    <div class="tl-item ok">
+                        <div class="tl-time">9 min ago</div>
+                        <div class="tl-text">payment.failed - 200 OK</div>
+                    </div>
+                    <div class="tl-item warn">
+                        <div class="tl-time">22 min ago</div>
+                        <div class="tl-text">payment.settled - retried then 200 OK</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-danger" data-modal="disconnectModal">Delete
+                    webhook</button>
+                <div style="display:flex;gap:8px;"><button class="btn btn-light"
+                        data-result="Test event sent to endpoint">Send test event</button><button
+                        class="btn btn-primary" data-result="Webhook updated">Save webhook</button></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="addWebhookModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Add Custom Webhook</h3>
+                    <div class="modal-sub">Stream platform events to your endpoint</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="field"><label class="field-label">Endpoint URL</label><input class="input"
+                        placeholder="https://example.com/webhooks/paymo"></div>
+                <div class="field"><label class="field-label">Events to subscribe</label>
+                    <div class="scope-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"><label
+                            class="choice-row selected" style="margin:0;"><input type="checkbox" checked>
+                            <div>
+                                <div class="choice-title">payment.settled</div>
+                            </div>
+                        </label><label class="choice-row selected" style="margin:0;"><input type="checkbox" checked>
+                            <div>
+                                <div class="choice-title">payment.failed</div>
+                            </div>
+                        </label><label class="choice-row" style="margin:0;"><input type="checkbox">
+                            <div>
+                                <div class="choice-title">user.created</div>
+                            </div>
+                        </label><label class="choice-row" style="margin:0;"><input type="checkbox">
+                            <div>
+                                <div class="choice-title">consent.revoked</div>
+                            </div>
+                        </label></div>
+                </div>
+                <div class="field"><label class="field-label">Secret</label><input class="input mono"
+                        value="whsec_generate_on_save"></div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button
+                    class="btn btn-primary" data-result="Custom webhook created and verified">Create webhook</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="disconnectModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Disconnect Integration</h3>
+                    <div class="modal-sub">Remove this connection</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="alert danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                    </svg>Data sync will stop immediately. Historical records are retained.</div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button
+                    class="btn btn-danger" data-result="Integration disconnected">Disconnect</button></div>
+        </div>
+    </div>
+
+    <!-- Shared modals -->
+    <div class="modal-backdrop" id="auditLogModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Audit Log</h3>
+                    <div class="modal-sub">Administrative activity trail</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="search-box" style="width:100%;margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                    </svg><input placeholder="Search audit events..."></div>
+                <div class="timeline">
+                    <div class="tl-item ok">
+                        <div class="tl-time">10:42 - Amara Mwangi</div>
+                        <div class="tl-text">Updated session timeout to 30 minutes</div>
+                    </div>
+                    <div class="tl-item ok">
+                        <div class="tl-time">09:58 - James Doyle</div>
+                        <div class="tl-text">Connected Xero integration</div>
+                    </div>
+                    <div class="tl-item warn">
+                        <div class="tl-time">09:14 - System</div>
+                        <div class="tl-text">Incident INC-1042 opened automatically</div>
+                    </div>
+                    <div class="tl-item ok">
+                        <div class="tl-time">Yesterday - Amara Mwangi</div>
+                        <div class="tl-text">Suspended user Sara Patel</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button
+                    class="btn btn-primary" data-modal="exportModal">Export log</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="exportModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Export Report</h3>
+                    <div class="modal-sub">Generate admin or system report</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="field"><label class="field-label">Report type</label><select class="select-field">
+                        <option>User & role report</option>
+                        <option>Permission matrix</option>
+                        <option>System health report</option>
+                        <option>Backup & DR report</option>
+                        <option>Audit log export</option>
+                    </select></div>
+                <div class="field"><label class="field-label">Format</label><select class="select-field">
+                        <option>PDF</option>
+                        <option>CSV</option>
+                        <option>JSON</option>
+                    </select></div>
+                <div class="field"><label class="field-label">Period</label><select class="select-field">
+                        <option>Last 24 hours</option>
+                        <option>Last 7 days</option>
+                        <option>Last 30 days</option>
+                        <option>Quarter to date</option>
+                    </select></div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button
+                    class="btn btn-primary" data-result="Export generated and queued for download">Generate
+                    export</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="filterModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Filters</h3>
+                    <div class="modal-sub">Refine the admin view</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="field"><label class="field-label">Department</label><select class="select-field">
+                        <option>All departments</option>
+                        <option>Platform Ops</option>
+                        <option>Treasury</option>
+                        <option>Risk & AML</option>
+                        <option>Data</option>
+                    </select></div>
+                <div class="field"><label class="field-label">Status</label><select class="select-field">
+                        <option>All statuses</option>
+                        <option>Active</option>
+                        <option>Idle</option>
+                        <option>Suspended</option>
+                    </select></div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-ghost" data-result="Filters reset">Reset</button>
+                <div style="display:flex;gap:8px;"><button class="btn btn-light" data-close>Cancel</button><button
+                        class="btn btn-primary" data-result="Filters applied">Apply</button></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="notificationsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Notifications</h3>
+                    <div class="modal-sub">Admin alerts</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body" style="padding:0;">
+                <div class="list-item">
+                    <div class="list-left">
+                        <div class="list-icon" style="background:var(--warning-soft);color:var(--warning);"><svg
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                            </svg></div>
+                        <div>
+                            <div class="list-title">FX Rate Engine degraded</div>
+                            <div class="list-sub">Incident INC-1042 active</div>
+                        </div>
+                    </div><button class="btn btn-light btn-sm" data-modal="incidentDetailModal">View</button>
+                </div>
+                <div class="list-item">
+                    <div class="list-left">
+                        <div class="list-icon" style="background:var(--success-soft);color:var(--success);"><svg
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg></div>
+                        <div>
+                            <div class="list-title">DR drill passed</div>
+                            <div class="list-sub">22m RTO on Mar 19</div>
+                        </div>
+                    </div><button class="btn btn-light btn-sm" data-modal="drDrillModal">View</button>
+                </div>
+                <div class="list-item">
+                    <div class="list-left">
+                        <div class="list-icon" style="background:var(--primary-soft);color:var(--primary);"><svg
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                            </svg></div>
+                        <div>
+                            <div class="list-title">3 invites pending</div>
+                            <div class="list-sub">Awaiting acceptance</div>
+                        </div>
+                    </div><button class="btn btn-light btn-sm" data-modal="usersSummaryModal">View</button>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light"
+                    data-result="Notifications marked as read">Mark read</button><button class="btn btn-light"
+                    data-close>Close</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="resultModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Action Complete</h3>
+                    <div class="modal-sub">Operation completed successfully</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="alert success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg><span id="resultMessage">Action completed.</span></div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Done</button></div>
+        </div>
+    </div>
+
+    <!-- Sidebar nav modals -->
+    <div class="modal-backdrop" id="navDashboardModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Dashboard</h3>
+                    <div class="modal-sub">Platform overview</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="kv-grid">
+                    <div>
+                        <div class="kv-label">Daily volume</div>
+                        <div class="kv-val">$8.4M</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Services online</div>
+                        <div class="kv-val">14 of 14</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="navRailsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Payment Rails</h3>
+                    <div class="modal-sub">Rail health and routing</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="alert info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                    </svg>ACH, Wire, SWIFT, RTGS, PesaLink, SEPA, FPS, CHAPS monitored.</div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="navOpenBankingModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Open Banking</h3>
+                    <div class="modal-sub">Account aggregation</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="kv-grid">
+                    <div>
+                        <div class="kv-label">Connected accounts</div>
+                        <div class="kv-val">36</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Active consents</div>
+                        <div class="kv-val">91</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="navWalletsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Wallets</h3>
+                    <div class="modal-sub">Virtual accounts</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="kv-grid">
+                    <div>
+                        <div class="kv-label">Wallets</div>
+                        <div class="kv-val">48,221</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Balance</div>
+                        <div class="kv-val">$182M</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="navRiskModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Risk & Fraud</h3>
+                    <div class="modal-sub">Risk controls</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="alert warning"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                    </svg>47 high-risk alerts pending review.</div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="navAnalyticsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Analytics</h3>
+                    <div class="modal-sub">Platform analytics</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="kv-grid">
+                    <div>
+                        <div class="kv-label">Reports</div>
+                        <div class="kv-val">128</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Scheduled</div>
+                        <div class="kv-val">22</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="navCustomersModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Customers</h3>
+                    <div class="modal-sub">Customer directory</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="kv-grid">
+                    <div>
+                        <div class="kv-label">Customers</div>
+                        <div class="kv-val">128,442</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Active</div>
+                        <div class="kv-val">98,201</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+        </div>
+    </div>
+
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        document.getElementById('sidebarToggle').addEventListener('click', () => sidebar.classList.toggle('expanded'));
+        document.getElementById('mobileMenuBtn').addEventListener('click', () => sidebar.classList.toggle('mobile-open'));
+
+        function openModal(id) { const m = document.getElementById(id); if (m) m.classList.add('show'); }
+        function closeAll() { document.querySelectorAll('.modal-backdrop.show').forEach(m => m.classList.remove('show')); }
+        document.addEventListener('click', e => {
+            const close = e.target.closest('[data-close]');
+            if (close) { e.preventDefault(); e.stopPropagation(); closeAll(); return; }
+            const result = e.target.closest('[data-result]');
+            if (result) { e.preventDefault(); e.stopPropagation(); setResult(result.dataset.result); return; }
+            const opener = e.target.closest('[data-modal]');
+            if (opener) { e.preventDefault(); e.stopPropagation(); openModal(opener.dataset.modal); }
+        });
+        document.querySelectorAll('.modal-backdrop').forEach(b => b.addEventListener('click', e => { if (e.target === b) closeAll(); }));
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAll(); });
+
+        function setResult(message) {
+            closeAll();
+            document.getElementById('resultMessage').textContent = message;
+            openModal('resultModal');
+        }
+
+        function switchTab(name) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.dataset.panel === name));
+        }
+        document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => switchTab(tab.dataset.tab)));
+
+        document.querySelectorAll('.choice-row').forEach(row => {
+            row.addEventListener('click', () => {
+                const radio = row.querySelector('input[type="radio"]');
+                if (radio) {
+                    document.querySelectorAll(`input[name="${radio.name}"]`).forEach(i => i.closest('.choice-row')?.classList.remove('selected'));
+                    radio.checked = true;
+                    row.classList.add('selected');
+                }
+                const checkbox = row.querySelector('input[type="checkbox"]');
+                if (checkbox && !radio) row.classList.toggle('selected', checkbox.checked);
+            });
+        });
+
+        function setupStepper(rootId, stepperId, backId, nextId, total, doneMessage) {
+            const root = document.getElementById(rootId);
+            let current = 1;
+            const render = () => {
+                document.querySelectorAll(`#${stepperId} .step`).forEach((s, i) => { s.classList.toggle('active', i + 1 === current); s.classList.toggle('done', i + 1 < current); });
+                root.querySelectorAll('.step-panel').forEach(p => p.classList.toggle('active', Number(p.dataset.step) === current));
+                document.getElementById(backId).disabled = current === 1;
+                document.getElementById(nextId).textContent = current === total ? 'Submit' : 'Next';
+            };
+            document.getElementById(backId).addEventListener('click', () => { if (current > 1) { current--; render(); } });
+            document.getElementById(nextId).addEventListener('click', () => { if (current < total) { current++; render(); } else { current = 1; render(); setResult(doneMessage); } });
+            render();
+        }
+        setupStepper('inviteUserModal', 'inviteStepper', 'inviteBack', 'inviteNext', 4, 'User invitation sent successfully');
+        setupStepper('connectIntegrationModal', 'connectStepper', 'connectBack', 'connectNext', 3, 'Integration connected successfully');
+
+        const userSearch = document.getElementById('userSearch');
+        const roleFilter = document.getElementById('roleFilter');
+        function filterUsers() {
+            const q = (userSearch.value || '').toLowerCase();
+            const r = roleFilter.value;
+            document.querySelectorAll('#userTable tr').forEach(row => {
+                const matchesText = row.textContent.toLowerCase().includes(q);
+                const matchesRole = r === 'All Roles' || row.dataset.role === r;
+                row.style.display = matchesText && matchesRole ? '' : 'none';
+            });
+        }
+        userSearch.addEventListener('input', filterUsers);
+        roleFilter.addEventListener('change', filterUsers);
+
+        document.querySelectorAll('#intFilters .filter-chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                document.querySelectorAll('#intFilters .filter-chip').forEach(c => c.classList.remove('active'));
+                chip.classList.add('active');
+                const cat = chip.dataset.cat;
+                document.querySelectorAll('#intGrid .integration-card').forEach(card => {
+                    card.style.display = (cat === 'all' || card.dataset.cat === cat) ? '' : 'none';
+                });
+            });
+        });
+
+        document.querySelectorAll('#rbacModal .filter-chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                document.querySelectorAll('#rbacModal .filter-chip').forEach(c => c.classList.remove('active'));
+                chip.classList.add('active');
+            });
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,2741 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Open Banking & Account Aggregation - PayMo BaaS</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="./master.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        .account-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+        }
+
+        .account-card {
+            background: var(--surface);
+            border: 1px solid var(--border-soft);
+            border-radius: var(--radius);
+            padding: 18px;
+            cursor: pointer;
+            transition: all .15s;
+        }
+
+        .account-card:hover {
+            border-color: var(--primary);
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-1px);
+        }
+
+        .bank-mark {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            border: 1px solid var(--border);
+            background: var(--surface-2);
+        }
+
+        .balance-ledger {
+            display: grid;
+            grid-template-columns: 1.4fr 1fr;
+            gap: 16px;
+        }
+
+        .mini-chart {
+            width: 100%;
+            height: 160px;
+        }
+
+        .money-large {
+            font-size: 34px;
+            font-weight: 700;
+            letter-spacing: -.04em;
+        }
+
+        .rail-flow {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+        }
+
+        .flow-node {
+            background: var(--surface-2);
+            border: 1px solid var(--border-soft);
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            min-height: 86px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .flow-node.active {
+            border-color: var(--primary);
+            background: var(--primary-soft);
+            color: var(--primary);
+        }
+
+        .flow-node svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .bank-search-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .bank-option {
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px;
+            background: var(--surface);
+            cursor: pointer;
+            transition: all .15s;
+        }
+
+        .bank-option:hover,
+        .bank-option.selected {
+            border-color: var(--primary);
+            background: var(--primary-soft);
+        }
+
+        .consent-meter {
+            height: 8px;
+            border-radius: 999px;
+            background: var(--surface-3);
+            overflow: hidden;
+        }
+
+        .consent-meter span {
+            display: block;
+            height: 100%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, var(--success), var(--primary));
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 24px;
+        }
+
+        .timeline:before {
+            content: "";
+            position: absolute;
+            top: 6px;
+            bottom: 6px;
+            left: 8px;
+            width: 2px;
+            background: var(--border);
+        }
+
+        .tl-item {
+            position: relative;
+            padding-bottom: 16px;
+        }
+
+        .tl-item:before {
+            content: "";
+            position: absolute;
+            left: -20px;
+            top: 4px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--primary);
+            border: 2px solid #fff;
+        }
+
+        .tl-time {
+            font-size: 11px;
+            color: var(--text-3);
+        }
+
+        .tl-text {
+            font-size: 13px;
+            margin-top: 2px;
+        }
+
+        .kv-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px 18px;
+        }
+
+        .kv-label {
+            font-size: 11px;
+            color: var(--text-3);
+            text-transform: uppercase;
+            letter-spacing: .06em;
+        }
+
+        .kv-val {
+            font-size: 13px;
+            font-weight: 600;
+            margin-top: 2px;
+        }
+
+        .payee-strip {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        .payee-card {
+            background: var(--surface);
+            border: 1px solid var(--border-soft);
+            border-radius: 14px;
+            padding: 14px;
+            cursor: pointer;
+            transition: all .15s;
+        }
+
+        .payee-card:hover {
+            border-color: var(--primary);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .scope-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .scope-card {
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            cursor: pointer;
+        }
+
+        .scope-card.selected {
+            border-color: var(--primary);
+            background: var(--primary-soft);
+        }
+
+        .auth-code {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .auth-code input {
+            width: 42px;
+            height: 48px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: 700;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+        }
+
+        .map-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 6px;
+        }
+
+        .map-cell {
+            aspect-ratio: 1;
+            border-radius: 8px;
+            background: var(--surface-3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: var(--text-3);
+        }
+
+        .legend {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+            font-size: 11px;
+            color: var(--text-3);
+        }
+
+        .legend-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+            vertical-align: middle;
+        }
+
+        .dist-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .dist-label {
+            width: 90px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .dist-bar {
+            flex: 1;
+            height: 8px;
+            border-radius: 999px;
+            background: var(--surface-3);
+            overflow: hidden;
+        }
+
+        .dist-bar span {
+            display: block;
+            height: 100%;
+            border-radius: 999px;
+        }
+
+        .dist-val {
+            width: 72px;
+            text-align: right;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .config-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-soft);
+        }
+
+        .config-row:last-child {
+            border-bottom: 0;
+        }
+
+        .config-label {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .config-desc {
+            font-size: 11px;
+            color: var(--text-3);
+            margin-top: 2px;
+        }
+
+        @media (max-width: 1100px) {
+            .account-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .balance-ledger {
+                grid-template-columns: 1fr;
+            }
+
+            .payee-strip {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+
+            .account-grid,
+            .bank-search-grid,
+            .scope-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .rail-flow {
+                grid-template-columns: 1fr;
+            }
+
+            .payee-strip {
+                grid-template-columns: 1fr;
+            }
+
+            .money-large {
+                font-size: 26px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-logo">P</div>
+            <nav class="sidebar-nav">
+                <button class="sidebar-item" title="Dashboard" data-modal="navDashboardModal"><svg viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                    </svg><span class="sidebar-label">Dashboard</span></button>
+                <button class="sidebar-item" title="Payment Rails" data-modal="navRailsModal"><svg viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="6" cy="19" r="3"></circle>
+                        <circle cx="18" cy="5" r="3"></circle>
+                        <path d="M6 16V8a4 4 0 0 1 4-4h8"></path>
+                    </svg><span class="sidebar-label">Rails</span></button>
+                <button class="sidebar-item active" title="Open Banking"><svg viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <path d="M3 21h18"></path>
+                        <path d="M3 10h18"></path>
+                        <path d="M5 6l7-3 7 3"></path>
+                        <path d="M4 10v11"></path>
+                        <path d="M20 10v11"></path>
+                        <path d="M8 14v3"></path>
+                        <path d="M12 14v3"></path>
+                        <path d="M16 14v3"></path>
+                    </svg><span class="sidebar-label">Open Banking</span></button>
+                <button class="sidebar-item" title="Wallets" data-modal="navWalletsModal"><svg viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path>
+                        <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path>
+                        <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"></path>
+                    </svg><span class="sidebar-label">Wallets</span></button>
+                <button class="sidebar-item" title="Payments" data-modal="navPaymentsModal"><svg viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg><span class="sidebar-label">Payments</span></button>
+                <button class="sidebar-item" title="Consents" data-modal="navConsentsModal"><svg viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                        <path d="M9 12l2 2 4-4"></path>
+                    </svg><span class="sidebar-label">Consents</span></button>
+                <button class="sidebar-item" title="Customers" data-modal="navCustomersModal"><svg viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    </svg><span class="sidebar-label">Customers</span></button>
+                <button class="sidebar-item" title="Risk" data-modal="navRiskModal"><svg viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <path
+                            d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z">
+                        </path>
+                        <line x1="12" y1="9" x2="12" y2="13"></line>
+                    </svg><span class="sidebar-label">Risk</span></button>
+                <button class="sidebar-item" title="Analytics" data-modal="navAnalyticsModal"><svg viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="20" x2="12" y2="10"></line>
+                        <line x1="18" y1="20" x2="18" y2="4"></line>
+                        <line x1="6" y1="20" x2="6" y2="16"></line>
+                    </svg><span class="sidebar-label">Analytics</span></button>
+            </nav>
+            <button class="sidebar-expand" id="sidebarToggle"><svg width="12" height="12" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg><span class="sidebar-label">Collapse</span></button>
+        </aside>
+
+        <main class="main">
+            <div class="topbar">
+                <div>
+                    <div class="crumb">
+                        <button class="mobile-menu-btn btn btn-light btn-sm" id="mobileMenuBtn"
+                            style="margin-right:8px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2">
+                                <line x1="3" y1="12" x2="21" y2="12"></line>
+                                <line x1="3" y1="6" x2="21" y2="6"></line>
+                                <line x1="3" y1="18" x2="21" y2="18"></line>
+                            </svg></button>
+                        <span>Dashboard</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg><span>Open Banking & Account Aggregation</span>
+                    </div>
+                    <h1 class="page-title">Open Banking & Account Aggregation</h1>
+                </div>
+                <div class="topbar-actions">
+                    <button class="btn btn-light btn-icon" title="Notifications" data-modal="notificationsModal"><svg
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                        </svg></button>
+                    <button class="btn btn-light" data-modal="filterModal"><svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                        </svg><span class="btn-text">Filters</span></button>
+                    <button class="btn btn-light" data-modal="exportModal"><svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg><span class="btn-text">Export</span></button>
+                    <button class="btn btn-primary" data-modal="linkBankModal"><svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>Link Account</button>
+                </div>
+            </div>
+
+            <div class="stats-row">
+                <div class="stat-card" data-modal="accountHealthSummaryModal">
+                    <div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M3 21h18"></path>
+                            <path d="M5 6l7-3 7 3"></path>
+                            <path d="M3 10h18"></path>
+                        </svg></div>
+                    <div class="stat-label">Connected Accounts</div>
+                    <div class="stat-value">36</div>
+                    <div class="stat-trend up"><span>32 healthy connections</span></div>
+                </div>
+                <div class="stat-card" data-modal="balanceDetailModal">
+                    <div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <line x1="12" y1="1" x2="12" y2="23"></line>
+                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"></path>
+                        </svg></div>
+                    <div class="stat-label">Aggregated Balance</div>
+                    <div class="stat-value">$2.8M</div>
+                    <div class="stat-trend up"><span>+4.8% this week</span></div>
+                </div>
+                <div class="stat-card" data-modal="syncNowModal">
+                    <div class="stat-icon purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polyline points="23 4 23 10 17 10"></polyline>
+                            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                        </svg></div>
+                    <div class="stat-label">Sync Health</div>
+                    <div class="stat-value">98.7%</div>
+                    <div class="stat-trend up"><span>1.8s avg refresh</span></div>
+                </div>
+                <div class="stat-card" data-modal="consentExpiryModal">
+                    <div class="stat-icon amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg></div>
+                    <div class="stat-label">Active Consents</div>
+                    <div class="stat-value">91</div>
+                    <div class="stat-trend neutral"><span>7 expire in 10 days</span></div>
+                </div>
+                <div class="stat-card" data-modal="paymentStatusModal">
+                    <div class="stat-icon red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <line x1="22" y1="2" x2="11" y2="13"></line>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                        </svg></div>
+                    <div class="stat-label">PIS Initiated</div>
+                    <div class="stat-value">428</div>
+                    <div class="stat-trend up"><span>99.1% authorized</span></div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="tabs" id="mainTabs">
+                    <button class="tab active" data-tab="connected"><svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <path d="M3 21h18"></path>
+                            <path d="M3 10h18"></path>
+                        </svg>Connected Accounts <span class="tab-badge">36</span></button>
+                    <button class="tab" data-tab="linking"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>Account Linking</button>
+                    <button class="tab" data-tab="aggregation"><svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="20" x2="12" y2="10"></line>
+                            <line x1="18" y1="20" x2="18" y2="4"></line>
+                            <line x1="6" y1="20" x2="6" y2="16"></line>
+                        </svg>Data Aggregation</button>
+                    <button class="tab" data-tab="pis"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <line x1="22" y1="2" x2="11" y2="13"></line>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                        </svg>Payment Initiation</button>
+                    <button class="tab" data-tab="consent"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                            <path d="M9 12l2 2 4-4"></path>
+                        </svg>Data Permissions</button>
+                </div>
+
+                <section class="tab-panel active" data-panel="connected">
+                    <div class="panel-body">
+                        <div class="panel-header" style="padding:0 0 18px;border-bottom:0;">
+                            <h2 class="panel-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M3 21h18"></path>
+                                    <path d="M5 6l7-3 7 3"></path>
+                                </svg>User-linked External Bank Accounts</h2>
+                            <div class="panel-actions">
+                                <div class="search-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <circle cx="11" cy="11" r="8"></circle>
+                                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                    </svg><input id="accountSearch" placeholder="Search accounts..."></div>
+                                <select class="select" id="healthFilter">
+                                    <option>All Health</option>
+                                    <option>Healthy</option>
+                                    <option>Warning</option>
+                                    <option>Action Needed</option>
+                                </select>
+                                <button class="btn btn-light btn-sm" data-modal="syncNowModal">Sync All</button>
+                            </div>
+                        </div>
+                        <div class="account-grid" id="accountGrid">
+                            <div class="account-card" data-bank="Chase" data-health="Healthy"
+                                data-modal="accountDetailModal">
+                                <div class="dir-card-head">
+                                    <div class="dir-card-left">
+                                        <div class="bank-mark">CH</div>
+                                        <div>
+                                            <h4>Chase Bank</h4>
+                                            <div class="sub">Checking ending 2081</div>
+                                        </div>
+                                    </div><span class="badge success"><span class="badge-dot"></span>Healthy</span>
+                                </div>
+                                <div class="dir-metrics">
+                                    <div>
+                                        <div class="dir-metric-label">Balance</div>
+                                        <div class="dir-metric-value">$248,920.44</div>
+                                    </div>
+                                    <div>
+                                        <div class="dir-metric-label">Last sync</div>
+                                        <div class="dir-metric-value">2 min ago</div>
+                                    </div>
+                                    <div>
+                                        <div class="dir-metric-label">Type</div>
+                                        <div class="dir-metric-value">Business checking</div>
+                                    </div>
+                                    <div>
+                                        <div class="dir-metric-label">Consent</div>
+                                        <div class="dir-metric-value">82 days</div>
+                                    </div>
+                                </div><span class="pill">Balances</span><span class="pill">Transactions</span><span
+                                    class="pill">PIS</span>
+                            </div>
+                            <div class="account-card" data-bank="Barclays" data-health="Healthy"
+                                data-modal="accountDetailModal">
+                                <div class="dir-card-head">
+                                    <div class="dir-card-left">
+                                        <div class="bank-mark">BK</div>
+                                        <div>
+                                            <h4>Barclays UK</h4>
+                                            <div class="sub">Operating ending 7784</div>
+                                        </div>
+                                    </div><span class="badge success"><span class="badge-dot"></span>Healthy</span>
+                                </div>
+                                <div class="dir-metrics">
+                                    <div>
+                                        <div class="dir-metric-label">Balance</div>
+                                        <div class="dir-metric-value">GBP 812,450</div>
+                                    </div>
+                                    <div>
+                                        <div class="dir-metric-label">Last sync</div>
+                                        <div class="dir-metric-value">5 min ago</div>
+                                    </div>
+                                    <div>
+                                        <div class="dir-metric-label">Type</div>
+                                        <div class="dir-metric-value">Current</div>
+                                    </div>
+                                    <div>
+                                        <div class="dir-metric-label">Consent</div>
+                                        <div class="dir-metric-value">64 days</div>
+                                    </div>
+                                </div><span class="pill">AIS</span><span class="pill">Standing Orders</span>
+                            </div>
+                            <div class="account-card" data-bank="Equity" data-health="Warning"
+                                data-modal="accountDetailModal">
+                                <div class="dir-card-head">
+                                    <div class="dir-card-left">
+                                        <div class="bank-mark">EQ</div>
+                                        <div>
+                                            <h4>Equity Bank</h4>
+                                            <div class="sub">Collections ending 1142</div>
+                                        </div>
+                                    </div><span class="badge warning"><span class="badge-dot"></span>Warning</span>
+                                </div>
+                                <div class="dir-metrics">
+                                    <div>
+                                        <div class="dir-metric-label">Balance</div>
+                                        <div class="dir-metric-value">KES 45.2M</div>
+                                    </div>
+                                    <div>
+                                        <div class="dir-metric-label">Last sync</div>
+                                        <div class="dir-metric-value">41 min ago</div>
+                                    </div>
+                                    <div>
+                                        <div class="dir-metric-label">Type</div>
+                                        <div class="dir-metric-value">Business</div>
+                                    </div>
+                                    <div>
+                                        <div class="dir-metric-label">Consent</div>
+                                        <div class="dir-metric-value">9 days</div>
+                                    </div>
+                                </div><span class="pill">PesaLink</span><span class="pill">MFA Due</span>
+                            </div>
+                            <div class="account-card" data-bank="HSBC" data-health="Healthy"
+                                data-modal="accountDetailModal">
+                                <div class="dir-card-head">
+                                    <div class="dir-card-left">
+                                        <div class="bank-mark">HS</div>
+                                        <div>
+                                            <h4>HSBC</h4>
+                                            <div class="sub">Treasury ending 6901</div>
+                                        </div>
+                                    </div><span class="badge success"><span class="badge-dot"></span>Healthy</span>
+                                </div>
+                                <div class="dir-metrics">
+                                    <div>
+                                        <div class="dir-metric-label">Balance</div>
+                                        <div class="dir-metric-value">EUR 1.3M</div>
+                                    </div>
+                                    <div>
+                                        <div class="dir-metric-label">Last sync</div>
+                                        <div class="dir-metric-value">8 min ago</div>
+                                    </div>
+                                    <div>
+                                        <div class="dir-metric-label">Type</div>
+                                        <div class="dir-metric-value">Treasury</div>
+                                    </div>
+                                    <div>
+                                        <div class="dir-metric-label">Consent</div>
+                                        <div class="dir-metric-value">71 days</div>
+                                    </div>
+                                </div><span class="pill">FX</span><span class="pill">AIS</span><span
+                                    class="pill">PIS</span>
+                            </div>
+                            <div class="account-card" data-bank="KCB" data-health="Healthy"
+                                data-modal="accountDetailModal">
+                                <div class="dir-card-head">
+                                    <div class="dir-card-left">
+                                        <div class="bank-mark">KC</div>
+                                        <div>
+                                            <h4>KCB Bank</h4>
+                                            <div class="sub">Payroll ending 9271</div>
+                                        </div>
+                                    </div><span class="badge success"><span class="badge-dot"></span>Healthy</span>
+                                </div>
+                                <div class="dir-metrics">
+                                    <div>
+                                        <div class="dir-metric-label">Balance</div>
+                                        <div class="dir-metric-value">KES 28.9M</div>
+                                    </div>
+                                    <div>
+                                        <div class="dir-metric-label">Last sync</div>
+                                        <div class="dir-metric-value">12 min ago</div>
+                                    </div>
+                                    <div>
+                                        <div class="dir-metric-label">Type</div>
+                                        <div class="dir-metric-value">Payroll</div>
+                                    </div>
+                                    <div>
+                                        <div class="dir-metric-label">Consent</div>
+                                        <div class="dir-metric-value">77 days</div>
+                                    </div>
+                                </div><span class="pill">Salaries</span><span class="pill">Bulk PIS</span>
+                            </div>
+                            <div class="account-card" data-bank="Co-operative" data-health="Action Needed"
+                                data-modal="accountDetailModal">
+                                <div class="dir-card-head">
+                                    <div class="dir-card-left">
+                                        <div class="bank-mark">CO</div>
+                                        <div>
+                                            <h4>Co-operative Bank</h4>
+                                            <div class="sub">Reserve ending 4190</div>
+                                        </div>
+                                    </div><span class="badge danger"><span class="badge-dot"></span>Re-auth</span>
+                                </div>
+                                <div class="dir-metrics">
+                                    <div>
+                                        <div class="dir-metric-label">Balance</div>
+                                        <div class="dir-metric-value">KES 8.4M</div>
+                                    </div>
+                                    <div>
+                                        <div class="dir-metric-label">Last sync</div>
+                                        <div class="dir-metric-value">2 days ago</div>
+                                    </div>
+                                    <div>
+                                        <div class="dir-metric-label">Type</div>
+                                        <div class="dir-metric-value">Savings</div>
+                                    </div>
+                                    <div>
+                                        <div class="dir-metric-label">Consent</div>
+                                        <div class="dir-metric-value">Expired</div>
+                                    </div>
+                                </div><span class="pill gray">AIS paused</span><span class="pill gray">PIS paused</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="tab-panel" data-panel="linking">
+                    <div class="panel-body">
+                        <div class="balance-ledger">
+                            <div>
+                                <h2 class="panel-title" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" stroke-width="2">
+                                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                                    </svg>Account Linking Flow</h2>
+                                <div class="rail-flow">
+                                    <div class="flow-node active"><svg viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2">
+                                            <circle cx="11" cy="11" r="8"></circle>
+                                        </svg><strong>1</strong><span>Search bank</span></div>
+                                    <div class="flow-node"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                            stroke-width="2">
+                                            <path d="M3 21h18"></path>
+                                        </svg><strong>2</strong><span>Select method</span></div>
+                                    <div class="flow-node"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                            stroke-width="2">
+                                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                                        </svg><strong>3</strong><span>Consent</span></div>
+                                    <div class="flow-node"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                            stroke-width="2">
+                                            <rect x="3" y="11" width="18" height="11" rx="2"></rect>
+                                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                        </svg><strong>4</strong><span>MFA</span></div>
+                                    <div class="flow-node"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                            stroke-width="2">
+                                            <polyline points="20 6 9 17 4 12"></polyline>
+                                        </svg><strong>5</strong><span>Connected</span></div>
+                                </div>
+                                <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;">
+                                    <button class="btn btn-primary" data-modal="linkBankModal">Start guided
+                                        linking</button>
+                                    <button class="btn btn-light" data-modal="bankSearchModal">Open bank
+                                        directory</button>
+                                    <button class="btn btn-light" data-modal="oauthModal">OAuth connection</button>
+                                    <button class="btn btn-light" data-modal="credentialModal">Credential
+                                        connection</button>
+                                    <button class="btn btn-light" data-modal="consentScopeModal">Consent
+                                        templates</button>
+                                </div>
+                            </div>
+                            <div>
+                                <h2 class="panel-title" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" stroke-width="2">
+                                        <path d="M18 8A6 6 0 0 0 6 8"></path>
+                                    </svg>Current Link Requests</h2>
+                                <div class="list-item" style="padding-left:0;padding-right:0;">
+                                    <div class="list-left">
+                                        <div class="list-icon"
+                                            style="background:var(--primary-soft);color:var(--primary);"><svg
+                                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M3 21h18"></path>
+                                            </svg></div>
+                                        <div>
+                                            <div class="list-title">Standard Chartered</div>
+                                            <div class="list-sub">Waiting for bank app authorization</div>
+                                        </div>
+                                    </div><button class="btn btn-light btn-sm"
+                                        data-modal="bankAuthorizationModal">Track</button>
+                                </div>
+                                <div class="list-item" style="padding-left:0;padding-right:0;">
+                                    <div class="list-left">
+                                        <div class="list-icon"
+                                            style="background:var(--warning-soft);color:var(--warning);"><svg
+                                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <circle cx="12" cy="12" r="10"></circle>
+                                            </svg></div>
+                                        <div>
+                                            <div class="list-title">Absa Bank</div>
+                                            <div class="list-sub">MFA challenge sent to customer</div>
+                                        </div>
+                                    </div><button class="btn btn-light btn-sm" data-modal="mfaModal">Complete</button>
+                                </div>
+                                <div class="list-item" style="padding-left:0;padding-right:0;">
+                                    <div class="list-left">
+                                        <div class="list-icon"
+                                            style="background:var(--success-soft);color:var(--success);"><svg
+                                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <polyline points="20 6 9 17 4 12"></polyline>
+                                            </svg></div>
+                                        <div>
+                                            <div class="list-title">Citibank</div>
+                                            <div class="list-sub">Connected 18 minutes ago</div>
+                                        </div>
+                                    </div><button class="btn btn-light btn-sm"
+                                        data-modal="accountDetailModal">View</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="tab-panel" data-panel="aggregation">
+                    <div class="panel-body">
+                        <div class="balance-ledger">
+                            <div>
+                                <div
+                                    style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:12px;flex-wrap:wrap;">
+                                    <h2 class="panel-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                            stroke-width="2">
+                                            <line x1="12" y1="20" x2="12" y2="10"></line>
+                                        </svg>Consolidated Balance View</h2><button class="btn btn-light btn-sm"
+                                        data-modal="balanceDetailModal">View ledger detail</button>
+                                </div>
+                                <div
+                                    style="background:var(--surface-2);border-radius:14px;padding:18px;margin-bottom:14px;">
+                                    <div class="kv-label">Total available liquidity</div>
+                                    <div class="money-large">$2,846,220.12</div>
+                                    <div class="legend" style="margin-top:10px;"><span><span class="legend-dot"
+                                                style="background:#16a34a;"></span>Available $2.31M</span><span><span
+                                                class="legend-dot" style="background:#d97706;"></span>Pending
+                                            $412K</span><span><span class="legend-dot"
+                                                style="background:#5b5bf5;"></span>Reserved $121K</span></div><svg
+                                        class="mini-chart" viewBox="0 0 700 160" preserveAspectRatio="none">
+                                        <g stroke="#e8e6df">
+                                            <line x1="0" y1="40" x2="700" y2="40"></line>
+                                            <line x1="0" y1="80" x2="700" y2="80"></line>
+                                            <line x1="0" y1="120" x2="700" y2="120"></line>
+                                        </g>
+                                        <path
+                                            d="M0,110 L60,95 L120,105 L180,82 L240,90 L300,62 L360,78 L420,54 L480,68 L540,42 L600,58 L660,38 L700,48 L700,160 L0,160 Z"
+                                            fill="#eef0ff"></path>
+                                        <path
+                                            d="M0,110 L60,95 L120,105 L180,82 L240,90 L300,62 L360,78 L420,54 L480,68 L540,42 L600,58 L660,38 L700,48"
+                                            fill="none" stroke="#5b5bf5" stroke-width="3"></path>
+                                    </svg>
+                                </div>
+                                <div class="table-wrap">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>Institution</th>
+                                                <th>Currency</th>
+                                                <th>Available</th>
+                                                <th>Pending</th>
+                                                <th>Category</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr data-modal="cashPositionModal">
+                                                <td>Chase Bank</td>
+                                                <td>USD</td>
+                                                <td>$248,920</td>
+                                                <td>$18,400</td>
+                                                <td><span class="badge success">Operating</span></td>
+                                            </tr>
+                                            <tr data-modal="cashPositionModal">
+                                                <td>Barclays UK</td>
+                                                <td>GBP</td>
+                                                <td>GBP 812,450</td>
+                                                <td>GBP 22,800</td>
+                                                <td><span class="badge primary">Treasury</span></td>
+                                            </tr>
+                                            <tr data-modal="cashPositionModal">
+                                                <td>Equity Bank</td>
+                                                <td>KES</td>
+                                                <td>KES 45.2M</td>
+                                                <td>KES 1.4M</td>
+                                                <td><span class="badge warning">Collections</span></td>
+                                            </tr>
+                                            <tr data-modal="cashPositionModal">
+                                                <td>HSBC</td>
+                                                <td>EUR</td>
+                                                <td>EUR 1.3M</td>
+                                                <td>EUR 48,000</td>
+                                                <td><span class="badge primary">Treasury</span></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div>
+                                <h2 class="panel-title" style="margin-bottom:12px;"><svg viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" stroke-width="2">
+                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    </svg>Net Worth & Transaction Categorization</h2>
+                                <div
+                                    style="background:var(--surface-2);border-radius:14px;padding:18px;text-align:center;margin-bottom:14px;">
+                                    <svg width="150" height="150" viewBox="0 0 150 150" class="donut">
+                                        <circle cx="75" cy="75" r="56" stroke="#eef0ff"></circle>
+                                        <circle cx="75" cy="75" r="56" stroke="#5b5bf5" stroke-dasharray="351"
+                                            stroke-dashoffset="82"></circle>
+                                        <circle cx="75" cy="75" r="42" stroke="#dcfce7" stroke-dasharray="264"
+                                            stroke-dashoffset="120"></circle>
+                                    </svg>
+                                    <div style="margin-top:-92px;margin-bottom:52px;">
+                                        <div class="kv-label">Net worth</div>
+                                        <div style="font-size:24px;font-weight:700;">$3.42M</div>
+                                    </div><button class="btn btn-light btn-sm" data-modal="netWorthModal">Net worth
+                                        breakdown</button>
+                                </div>
+                                <div class="table-wrap">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>Category</th>
+                                                <th>Count</th>
+                                                <th>Spend</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr data-modal="categorizeModal">
+                                                <td>Payroll</td>
+                                                <td>42</td>
+                                                <td>$184,220</td>
+                                            </tr>
+                                            <tr data-modal="categorizeModal">
+                                                <td>Supplier payments</td>
+                                                <td>89</td>
+                                                <td>$412,000</td>
+                                            </tr>
+                                            <tr data-modal="categorizeModal">
+                                                <td>Customer receipts</td>
+                                                <td>320</td>
+                                                <td>$981,450</td>
+                                            </tr>
+                                            <tr data-modal="categorizeModal">
+                                                <td>Bank fees</td>
+                                                <td>18</td>
+                                                <td>$4,810</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="tab-panel" data-panel="pis">
+                    <div class="panel-body">
+                        <div
+                            style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:16px;">
+                            <h2 class="panel-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                                </svg>Payment Initiation Service</h2>
+                            <div style="display:flex;gap:8px;"><button class="btn btn-light"
+                                    data-modal="payeeModal">Manage Payees</button><button class="btn btn-primary"
+                                    data-modal="initiatePaymentModal">Initiate Payment</button></div>
+                        </div>
+                        <div class="payee-strip" style="margin-bottom:18px;">
+                            <div class="payee-card" data-modal="payeeModal">
+                                <div class="dir-card-head">
+                                    <div class="bank-mark">SV</div><span class="badge success">Verified</span>
+                                </div>
+                                <div style="font-weight:600;">Savanna Logistics</div>
+                                <div class="list-sub">Supplier payments</div>
+                                <div style="margin-top:12px;font-weight:700;">$18,400 due</div>
+                            </div>
+                            <div class="payee-card" data-modal="payeeModal">
+                                <div class="dir-card-head">
+                                    <div class="bank-mark">NX</div><span class="badge success">Verified</span>
+                                </div>
+                                <div style="font-weight:600;">Nexus Payroll</div>
+                                <div class="list-sub">Payroll processor</div>
+                                <div style="margin-top:12px;font-weight:700;">$92,000 due</div>
+                            </div>
+                            <div class="payee-card" data-modal="payeeModal">
+                                <div class="dir-card-head">
+                                    <div class="bank-mark">AT</div><span class="badge warning">Review</span>
+                                </div>
+                                <div style="font-weight:600;">Atlas Cloud</div>
+                                <div class="list-sub">Infrastructure vendor</div>
+                                <div style="margin-top:12px;font-weight:700;">$12,900 due</div>
+                            </div>
+                            <div class="payee-card" data-modal="addPayeeModal">
+                                <div
+                                    style="height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;">
+                                    <div class="stat-icon purple" style="margin:0;"><svg viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2">
+                                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                                        </svg></div><strong>Add payee</strong><span class="list-sub">Bank verified
+                                        beneficiary</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="table-wrap">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Payment ID</th>
+                                        <th>From</th>
+                                        <th>Payee</th>
+                                        <th>Amount</th>
+                                        <th>Authorization</th>
+                                        <th>Status</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr data-modal="paymentStatusModal">
+                                        <td class="mono">PIS-8842</td>
+                                        <td>Chase Checking</td>
+                                        <td>Savanna Logistics</td>
+                                        <td>$18,400</td>
+                                        <td>Bank app approved</td>
+                                        <td><span class="badge success">Settled</span></td>
+                                        <td class="right"><button class="btn btn-light btn-sm"
+                                                data-modal="paymentStatusModal">Track</button></td>
+                                    </tr>
+                                    <tr data-modal="paymentStatusModal">
+                                        <td class="mono">PIS-8841</td>
+                                        <td>KCB Payroll</td>
+                                        <td>Nexus Payroll</td>
+                                        <td>KES 11.9M</td>
+                                        <td>Waiting for CFO</td>
+                                        <td><span class="badge warning">Pending</span></td>
+                                        <td class="right"><button class="btn btn-light btn-sm"
+                                                data-modal="bankAuthorizationModal">Authorize</button></td>
+                                    </tr>
+                                    <tr data-modal="paymentStatusModal">
+                                        <td class="mono">PIS-8840</td>
+                                        <td>HSBC Treasury</td>
+                                        <td>Atlas Cloud</td>
+                                        <td>EUR 10,250</td>
+                                        <td>OAuth redirect done</td>
+                                        <td><span class="badge info">Processing</span></td>
+                                        <td class="right"><button class="btn btn-light btn-sm"
+                                                data-modal="paymentStatusModal">Track</button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="tab-panel" data-panel="consent">
+                    <div class="panel-body">
+                        <div
+                            style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:16px;">
+                            <h2 class="panel-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                                </svg>Data Permissions & Consent</h2>
+                            <div style="display:flex;gap:8px;"><button class="btn btn-light"
+                                    data-modal="permissionAuditModal">Audit log</button><button class="btn btn-light"
+                                    data-modal="consentExpiryModal">Expirations</button><button class="btn btn-primary"
+                                    data-modal="consentScopeModal">New template</button></div>
+                        </div>
+                        <div class="table-wrap">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Consent ID</th>
+                                        <th>Bank</th>
+                                        <th>Scopes</th>
+                                        <th>Duration</th>
+                                        <th>Health</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr data-modal="consentDetailModal">
+                                        <td class="mono">CNS-93201</td>
+                                        <td>Chase Bank</td>
+                                        <td>Balances, Transactions, PIS</td>
+                                        <td>
+                                            <div class="consent-meter"><span style="width:72%;"></span></div><span
+                                                class="list-sub">82 days remaining</span>
+                                        </td>
+                                        <td><span class="badge success">Active</span></td>
+                                        <td><button class="btn btn-light btn-sm"
+                                                data-modal="modifyConsentModal">Modify</button></td>
+                                    </tr>
+                                    <tr data-modal="consentDetailModal">
+                                        <td class="mono">CNS-93200</td>
+                                        <td>Equity Bank</td>
+                                        <td>Balances, Transactions</td>
+                                        <td>
+                                            <div class="consent-meter"><span
+                                                    style="width:10%;background:var(--warning);"></span></div><span
+                                                class="list-sub">9 days remaining</span>
+                                        </td>
+                                        <td><span class="badge warning">Renew soon</span></td>
+                                        <td><button class="btn btn-light btn-sm" data-modal="reauthModal">Renew</button>
+                                        </td>
+                                    </tr>
+                                    <tr data-modal="consentDetailModal">
+                                        <td class="mono">CNS-93188</td>
+                                        <td>Co-operative Bank</td>
+                                        <td>Balances</td>
+                                        <td>
+                                            <div class="consent-meter"><span style="width:0%;"></span></div><span
+                                                class="list-sub">Expired</span>
+                                        </td>
+                                        <td><span class="badge danger">Expired</span></td>
+                                        <td><button class="btn btn-light btn-sm"
+                                                data-modal="reauthModal">Re-auth</button></td>
+                                    </tr>
+                                    <tr data-modal="consentDetailModal">
+                                        <td class="mono">CNS-93180</td>
+                                        <td>HSBC</td>
+                                        <td>Balances, Transactions, PIS, FX</td>
+                                        <td>
+                                            <div class="consent-meter"><span style="width:65%;"></span></div><span
+                                                class="list-sub">71 days remaining</span>
+                                        </td>
+                                        <td><span class="badge success">Active</span></td>
+                                        <td><button class="btn btn-light btn-sm"
+                                                data-modal="modifyConsentModal">Modify</button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <div class="modal-backdrop" id="accountHealthSummaryModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Connection Health Summary</h3>
+                    <div class="modal-sub">All linked accounts monitored in real time</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="stats-row" style="grid-template-columns:repeat(4,1fr);margin-bottom:16px;">
+                    <div style="background:var(--success-soft);padding:14px;border-radius:12px;">
+                        <div class="kv-label">Healthy</div>
+                        <div style="font-size:24px;font-weight:700;color:var(--success);">32</div>
+                    </div>
+                    <div style="background:var(--warning-soft);padding:14px;border-radius:12px;">
+                        <div class="kv-label">Warning</div>
+                        <div style="font-size:24px;font-weight:700;color:var(--warning);">3</div>
+                    </div>
+                    <div style="background:var(--danger-soft);padding:14px;border-radius:12px;">
+                        <div class="kv-label">Action</div>
+                        <div style="font-size:24px;font-weight:700;color:var(--danger);">1</div>
+                    </div>
+                    <div style="background:var(--primary-soft);padding:14px;border-radius:12px;">
+                        <div class="kv-label">Avg sync</div>
+                        <div style="font-size:24px;font-weight:700;color:var(--primary);">1.8s</div>
+                    </div>
+                </div>
+                <div class="alert info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                    </svg>Co-operative Bank requires re-authentication. Equity Bank consent expires in 9 days.</div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button
+                    class="btn btn-primary" data-modal="reauthModal">Resolve issues</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="accountDetailModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Chase Bank - Business Checking</h3>
+                    <div class="modal-sub">External account ending 2081</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="kv-grid" style="margin-bottom:18px;">
+                    <div>
+                        <div class="kv-label">Available balance</div>
+                        <div class="kv-val">$248,920.44</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Current balance</div>
+                        <div class="kv-val">$267,320.44</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Last sync</div>
+                        <div class="kv-val">2 min ago</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Connection health</div>
+                        <div class="kv-val"><span class="badge success">Healthy</span></div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Consent scopes</div>
+                        <div class="kv-val">Balances, Transactions, PIS</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Provider</div>
+                        <div class="kv-val">OAuth 2.1 / FAPI</div>
+                    </div>
+                </div>
+                <div class="timeline">
+                    <div class="tl-item">
+                        <div class="tl-time">2 min ago</div>
+                        <div class="tl-text">Balance refresh completed successfully</div>
+                    </div>
+                    <div class="tl-item">
+                        <div class="tl-time">14 min ago</div>
+                        <div class="tl-text">12 new transactions categorized</div>
+                    </div>
+                    <div class="tl-item">
+                        <div class="tl-time">1h ago</div>
+                        <div class="tl-text">PIS payment PIS-8842 authorized</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-danger" data-modal="revokeConsentModal">Revoke
+                    consent</button>
+                <div style="display:flex;gap:8px;"><button class="btn btn-light"
+                        data-modal="connectionHealthModal">Health detail</button><button class="btn btn-light"
+                        data-modal="syncNowModal">Sync now</button><button class="btn btn-primary"
+                        data-modal="modifyConsentModal">Modify consent</button></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="connectionHealthModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Connection Health</h3>
+                    <div class="modal-sub">Diagnostics for linked account</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">OAuth token</div>
+                        <div class="config-desc">Valid, refresh token rotates every 24h</div>
+                    </div><span class="badge success">Healthy</span>
+                </div>
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">Bank API latency</div>
+                        <div class="config-desc">p95 430ms over last 24h</div>
+                    </div><span class="badge success">Normal</span>
+                </div>
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">Consent validity</div>
+                        <div class="config-desc">82 days remaining</div>
+                    </div><span class="badge success">Active</span>
+                </div>
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">Webhook delivery</div>
+                        <div class="config-desc">99.98% success rate</div>
+                    </div><span class="badge success">Healthy</span>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="syncNowModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Sync Accounts</h3>
+                    <div class="modal-sub">Refresh balances, transactions, and account metadata</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="field"><label class="field-label">Sync scope</label><select class="select-field">
+                        <option>All connected accounts</option>
+                        <option>Selected account only</option>
+                        <option>Accounts with warnings</option>
+                    </select></div><label class="choice-row selected"><input type="radio" name="syncMode" checked>
+                    <div>
+                        <div class="choice-title">Incremental sync</div>
+                        <div class="choice-desc">Fetch changes since last cursor</div>
+                    </div>
+                </label><label class="choice-row"><input type="radio" name="syncMode">
+                    <div>
+                        <div class="choice-title">Full resync</div>
+                        <div class="choice-desc">Rebuild transaction ledger and categories</div>
+                    </div>
+                </label>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button
+                    class="btn btn-primary" data-result="Sync started for selected accounts">Start sync</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="reauthModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Re-authentication Required</h3>
+                    <div class="modal-sub">Renew expired or expiring bank consents</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="alert warning" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                    </svg>Co-operative Bank access expired and Equity Bank expires in 9 days.</div><label
+                    class="choice-row selected"><input type="checkbox" checked>
+                    <div>
+                        <div class="choice-title">Co-operative Bank</div>
+                        <div class="choice-desc">Balances and transactions paused</div>
+                    </div>
+                </label><label class="choice-row selected"><input type="checkbox" checked>
+                    <div>
+                        <div class="choice-title">Equity Bank</div>
+                        <div class="choice-desc">Renew early to avoid data gap</div>
+                    </div>
+                </label>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button
+                    class="btn btn-primary" data-modal="bankAuthorizationModal">Begin re-auth</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="linkBankModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Link External Bank Account</h3>
+                    <div class="modal-sub">Guided AIS and PIS setup</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="stepper" id="linkStepper">
+                <div class="step active">
+                    <div class="step-num">1</div>Bank
+                </div>
+                <div class="step-line"></div>
+                <div class="step">
+                    <div class="step-num">2</div>Method
+                </div>
+                <div class="step-line"></div>
+                <div class="step">
+                    <div class="step-num">3</div>Consent
+                </div>
+                <div class="step-line"></div>
+                <div class="step">
+                    <div class="step-num">4</div>MFA
+                </div>
+                <div class="step-line"></div>
+                <div class="step">
+                    <div class="step-num">5</div>Confirm
+                </div>
+            </div>
+            <div class="modal-body">
+                <div class="step-panel active" data-step="1">
+                    <div class="field"><label class="field-label">Search bank</label><input class="input"
+                            value="Equity Bank"></div>
+                    <div class="bank-search-grid">
+                        <div class="bank-option selected">
+                            <div class="bank-mark">EQ</div><strong>Equity Bank</strong>
+                            <div class="list-sub">OAuth, PesaLink, PIS</div>
+                        </div>
+                        <div class="bank-option">
+                            <div class="bank-mark">KC</div><strong>KCB Bank</strong>
+                            <div class="list-sub">OAuth and AIS</div>
+                        </div>
+                        <div class="bank-option">
+                            <div class="bank-mark">AB</div><strong>Absa Bank</strong>
+                            <div class="list-sub">Credential fallback</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="step-panel" data-step="2"><label class="choice-row selected"><input type="radio"
+                            name="linkMethod" checked>
+                        <div>
+                            <div class="choice-title">OAuth redirect</div>
+                            <div class="choice-desc">Recommended secure bank-hosted authorization</div>
+                        </div>
+                    </label><label class="choice-row"><input type="radio" name="linkMethod">
+                        <div>
+                            <div class="choice-title">Credential-based connection</div>
+                            <div class="choice-desc">Encrypted credential vault with MFA handling</div>
+                        </div>
+                    </label><label class="choice-row"><input type="radio" name="linkMethod">
+                        <div>
+                            <div class="choice-title">Manual statement upload</div>
+                            <div class="choice-desc">Fallback for non-supported institutions</div>
+                        </div>
+                    </label></div>
+                <div class="step-panel" data-step="3">
+                    <div class="scope-grid"><label class="scope-card selected"><input type="checkbox" checked>
+                            <div><strong>Balances</strong>
+                                <div class="list-sub">Current and available balances</div>
+                            </div>
+                        </label><label class="scope-card selected"><input type="checkbox" checked>
+                            <div><strong>Transactions</strong>
+                                <div class="list-sub">Ledger entries and metadata</div>
+                            </div>
+                        </label><label class="scope-card selected"><input type="checkbox" checked>
+                            <div><strong>Payment initiation</strong>
+                                <div class="list-sub">Create and authorize payments</div>
+                            </div>
+                        </label><label class="scope-card"><input type="checkbox">
+                            <div><strong>Identity</strong>
+                                <div class="list-sub">Account holder verification</div>
+                            </div>
+                        </label></div>
+                    <div class="field" style="margin-top:12px;"><label class="field-label">Consent
+                            duration</label><select class="select-field">
+                            <option>90 days</option>
+                            <option>180 days</option>
+                            <option>365 days</option>
+                        </select></div>
+                </div>
+                <div class="step-panel" data-step="4">
+                    <div class="alert info" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                        </svg>Enter the 6 digit code delivered by the bank app.</div>
+                    <div class="auth-code"><input maxlength="1" value="4"><input maxlength="1" value="1"><input
+                            maxlength="1" value="8"><input maxlength="1"><input maxlength="1"><input maxlength="1">
+                    </div>
+                </div>
+                <div class="step-panel" data-step="5">
+                    <div class="alert success" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>Equity Bank account is ready to connect.</div>
+                    <div class="kv-grid">
+                        <div>
+                            <div class="kv-label">Bank</div>
+                            <div class="kv-val">Equity Bank</div>
+                        </div>
+                        <div>
+                            <div class="kv-label">Method</div>
+                            <div class="kv-val">OAuth redirect</div>
+                        </div>
+                        <div>
+                            <div class="kv-label">Scopes</div>
+                            <div class="kv-val">Balances, Transactions, PIS</div>
+                        </div>
+                        <div>
+                            <div class="kv-label">Duration</div>
+                            <div class="kv-val">90 days</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-light" id="linkBack" disabled>Back</button><button
+                    class="btn btn-primary" id="linkNext">Next</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="bankSearchModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Bank Search & Selection</h3>
+                    <div class="modal-sub">Supported open banking institutions</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="search-box" style="width:100%;margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                    </svg><input id="bankSearchInput" placeholder="Search by bank, country, or rail"></div>
+                <div class="bank-search-grid" id="bankDirectory">
+                    <div class="bank-option selected">
+                        <div class="bank-mark">EQ</div><strong>Equity Bank</strong>
+                        <div class="list-sub">Kenya - PesaLink, OAuth</div>
+                    </div>
+                    <div class="bank-option">
+                        <div class="bank-mark">KC</div><strong>KCB Bank</strong>
+                        <div class="list-sub">Kenya - OAuth</div>
+                    </div>
+                    <div class="bank-option">
+                        <div class="bank-mark">CH</div><strong>Chase Bank</strong>
+                        <div class="list-sub">US - Plaid, OAuth</div>
+                    </div>
+                    <div class="bank-option">
+                        <div class="bank-mark">BK</div><strong>Barclays UK</strong>
+                        <div class="list-sub">UK - OBIE</div>
+                    </div>
+                    <div class="bank-option">
+                        <div class="bank-mark">HS</div><strong>HSBC</strong>
+                        <div class="list-sub">EU - PSD2</div>
+                    </div>
+                    <div class="bank-option">
+                        <div class="bank-mark">AB</div><strong>Absa Bank</strong>
+                        <div class="list-sub">Kenya - credential fallback</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button
+                    class="btn btn-primary" data-modal="linkBankModal">Use selected bank</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="oauthModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">OAuth Connection</h3>
+                    <div class="modal-sub">Bank-hosted authorization flow</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">Redirect URI</div>
+                        <div class="config-desc mono">https://app.paymo.com/callback/open-banking</div>
+                    </div><span class="badge success">Verified</span>
+                </div>
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">PKCE</div>
+                        <div class="config-desc">S256 code challenge required</div>
+                    </div><span class="badge success">On</span>
+                </div>
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">Token storage</div>
+                        <div class="config-desc">Encrypted vault with rotation</div>
+                    </div><span class="badge success">Compliant</span>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button
+                    class="btn btn-primary" data-modal="bankAuthorizationModal">Launch OAuth</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="credentialModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Credential-based Connection</h3>
+                    <div class="modal-sub">Encrypted fallback for banks without OAuth</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="alert warning" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                    </svg>Use only where OAuth is unavailable. Credentials are tokenized and never stored in plain text.
+                </div>
+                <div class="field"><label class="field-label">Online banking username</label><input class="input"
+                        placeholder="user@example.com"></div>
+                <div class="field"><label class="field-label">Password</label><input class="input" type="password"
+                        value="secured-demo"></div>
+                <div class="field"><label class="field-label">MFA preference</label><select class="select-field">
+                        <option>Bank app prompt</option>
+                        <option>SMS OTP</option>
+                        <option>Email OTP</option>
+                    </select></div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button
+                    class="btn btn-primary" data-modal="mfaModal">Continue to MFA</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="consentScopeModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Consent Scope Template</h3>
+                    <div class="modal-sub">Define reusable permissions for AIS and PIS</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="scope-grid"><label class="scope-card selected"><input type="checkbox" checked>
+                        <div><strong>Read balances</strong>
+                            <div class="list-sub">Current and available balance data</div>
+                        </div>
+                    </label><label class="scope-card selected"><input type="checkbox" checked>
+                        <div><strong>Read transactions</strong>
+                            <div class="list-sub">Historical and pending ledger entries</div>
+                        </div>
+                    </label><label class="scope-card selected"><input type="checkbox" checked>
+                        <div><strong>Payment initiation</strong>
+                            <div class="list-sub">Initiate payments from linked accounts</div>
+                        </div>
+                    </label><label class="scope-card"><input type="checkbox">
+                        <div><strong>Standing orders</strong>
+                            <div class="list-sub">Read scheduled bank instructions</div>
+                        </div>
+                    </label></div>
+                <div class="field-row" style="margin-top:14px;">
+                    <div class="field"><label class="field-label">Default duration</label><select class="select-field">
+                            <option>90 days</option>
+                            <option>180 days</option>
+                            <option>365 days</option>
+                        </select></div>
+                    <div class="field"><label class="field-label">Reconfirmation trigger</label><select
+                            class="select-field">
+                            <option>15 days before expiry</option>
+                            <option>7 days before expiry</option>
+                            <option>On expiry only</option>
+                        </select></div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button
+                    class="btn btn-primary" data-result="Consent template saved">Save template</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="mfaModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Multi-factor Authentication</h3>
+                    <div class="modal-sub">Complete bank challenge</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="alert info" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                    </svg>A challenge was sent to the customer's registered bank app and SMS number.</div>
+                <div class="auth-code"><input maxlength="1" value="3"><input maxlength="1" value="7"><input
+                        maxlength="1"><input maxlength="1"><input maxlength="1"><input maxlength="1"></div><button
+                    class="btn btn-light btn-sm" style="margin-top:14px;width:100%;"
+                    data-result="MFA code resent">Resend code</button>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button
+                    class="btn btn-primary" data-result="MFA verified successfully">Verify</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="addInstitutionModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Request New Institution</h3>
+                    <div class="modal-sub">Add a bank to the connector roadmap</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="field"><label class="field-label">Institution name</label><input class="input"
+                        placeholder="Bank name"></div>
+                <div class="field"><label class="field-label">Country</label><input class="input" placeholder="Country">
+                </div>
+                <div class="field"><label class="field-label">Required capabilities</label><select class="select-field">
+                        <option>AIS and PIS</option>
+                        <option>AIS only</option>
+                        <option>PIS only</option>
+                    </select></div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button
+                    class="btn btn-primary" data-result="Institution request submitted">Submit request</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="balanceDetailModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Consolidated Balance Detail</h3>
+                    <div class="modal-sub">Balances normalized to USD at current FX rates</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Bank</th>
+                            <th>Native</th>
+                            <th>USD equivalent</th>
+                            <th>Liquidity class</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>HSBC</td>
+                            <td>EUR 1.3M</td>
+                            <td>$1.41M</td>
+                            <td><span class="badge primary">Treasury</span></td>
+                        </tr>
+                        <tr>
+                            <td>Barclays UK</td>
+                            <td>GBP 812,450</td>
+                            <td>$1.03M</td>
+                            <td><span class="badge primary">Treasury</span></td>
+                        </tr>
+                        <tr>
+                            <td>Equity Bank</td>
+                            <td>KES 45.2M</td>
+                            <td>$349K</td>
+                            <td><span class="badge warning">Collections</span></td>
+                        </tr>
+                        <tr>
+                            <td>Chase Bank</td>
+                            <td>$248,920</td>
+                            <td>$248,920</td>
+                            <td><span class="badge success">Operating</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button
+                    class="btn btn-primary" data-modal="exportModal">Export ledger</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="transactionDetailModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Aggregated Transaction</h3>
+                    <div class="modal-sub mono">TRX-AGG-884219</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="kv-grid">
+                    <div>
+                        <div class="kv-label">Amount</div>
+                        <div class="kv-val">$18,400.00</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Category</div>
+                        <div class="kv-val">Supplier payments</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Bank</div>
+                        <div class="kv-val">Chase Bank</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Status</div>
+                        <div class="kv-val"><span class="badge success">Posted</span></div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Counterparty</div>
+                        <div class="kv-val">Savanna Logistics</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Confidence</div>
+                        <div class="kv-val">97.1%</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-modal="categorizeModal">Change
+                    category</button><button class="btn btn-primary" data-close>Close</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="categorizeModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Transaction Categorization</h3>
+                    <div class="modal-sub">Adjust category rules and labels</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="field"><label class="field-label">Category</label><select class="select-field">
+                        <option>Supplier payments</option>
+                        <option>Payroll</option>
+                        <option>Customer receipts</option>
+                        <option>Bank fees</option>
+                        <option>Tax payments</option>
+                    </select></div>
+                <div class="field"><label class="field-label">Rule</label><input class="input"
+                        value="Counterparty contains Savanna"></div><label class="choice-row selected"><input
+                        type="checkbox" checked>
+                    <div>
+                        <div class="choice-title">Apply to future transactions</div>
+                        <div class="choice-desc">Update auto-categorization model</div>
+                    </div>
+                </label>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button
+                    class="btn btn-primary" data-result="Category rule updated">Save category</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="cashPositionModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Cash Position Across Institutions</h3>
+                    <div class="modal-sub">Operating, reserve, pending, and sweep balances</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="dist-row">
+                    <div class="dist-label" style="width:130px;">Operating</div>
+                    <div class="dist-bar"><span style="width:42%;background:#16a34a;"></span></div>
+                    <div class="dist-val">$1.19M</div>
+                </div>
+                <div class="dist-row">
+                    <div class="dist-label" style="width:130px;">Treasury</div>
+                    <div class="dist-bar"><span style="width:38%;background:#5b5bf5;"></span></div>
+                    <div class="dist-val">$1.08M</div>
+                </div>
+                <div class="dist-row">
+                    <div class="dist-label" style="width:130px;">Collections</div>
+                    <div class="dist-bar"><span style="width:15%;background:#d97706;"></span></div>
+                    <div class="dist-val">$427K</div>
+                </div>
+                <div class="dist-row">
+                    <div class="dist-label" style="width:130px;">Reserved</div>
+                    <div class="dist-bar"><span style="width:5%;background:#7c3aed;"></span></div>
+                    <div class="dist-val">$121K</div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button
+                    class="btn btn-primary" data-modal="initiatePaymentModal">Move funds</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="netWorthModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Net Worth Calculation</h3>
+                    <div class="modal-sub">Assets less linked liabilities</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="kv-grid">
+                    <div>
+                        <div class="kv-label">Cash assets</div>
+                        <div class="kv-val">$2.85M</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Receivables</div>
+                        <div class="kv-val">$920K</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Credit facilities</div>
+                        <div class="kv-val">-$312K</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Pending fees</div>
+                        <div class="kv-val">-$31K</div>
+                    </div>
+                </div>
+                <div class="alert success" style="margin-top:16px;"><svg viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>Net worth updated using 36 accounts and 4 currencies.</div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="initiatePaymentModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Initiate Payment From Linked Account</h3>
+                    <div class="modal-sub">PIS flow with bank app authorization</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="stepper" id="payStepper">
+                <div class="step active">
+                    <div class="step-num">1</div>Source
+                </div>
+                <div class="step-line"></div>
+                <div class="step">
+                    <div class="step-num">2</div>Payee
+                </div>
+                <div class="step-line"></div>
+                <div class="step">
+                    <div class="step-num">3</div>Amount
+                </div>
+                <div class="step-line"></div>
+                <div class="step">
+                    <div class="step-num">4</div>Authorize
+                </div>
+            </div>
+            <div class="modal-body">
+                <div class="step-panel active" data-step="1"><label class="choice-row selected"><input type="radio"
+                            name="sourceAcct" checked>
+                        <div>
+                            <div class="choice-title">Chase Business Checking</div>
+                            <div class="choice-desc">Available $248,920.44</div>
+                        </div>
+                    </label><label class="choice-row"><input type="radio" name="sourceAcct">
+                        <div>
+                            <div class="choice-title">KCB Payroll</div>
+                            <div class="choice-desc">Available KES 28.9M</div>
+                        </div>
+                    </label><label class="choice-row"><input type="radio" name="sourceAcct">
+                        <div>
+                            <div class="choice-title">HSBC Treasury</div>
+                            <div class="choice-desc">Available EUR 1.3M</div>
+                        </div>
+                    </label></div>
+                <div class="step-panel" data-step="2"><label class="choice-row selected"><input type="radio"
+                            name="payee" checked>
+                        <div>
+                            <div class="choice-title">Savanna Logistics</div>
+                            <div class="choice-desc">Verified supplier ending 5501</div>
+                        </div>
+                    </label><label class="choice-row"><input type="radio" name="payee">
+                        <div>
+                            <div class="choice-title">Nexus Payroll</div>
+                            <div class="choice-desc">Verified payroll account</div>
+                        </div>
+                    </label><button class="btn btn-light" data-modal="addPayeeModal"
+                        style="width:100%;margin-top:8px;">Add new payee</button></div>
+                <div class="step-panel" data-step="3">
+                    <div class="field-row">
+                        <div class="field"><label class="field-label">Amount</label><input class="input"
+                                value="18400.00"></div>
+                        <div class="field"><label class="field-label">Currency</label><select class="select-field">
+                                <option>USD</option>
+                                <option>KES</option>
+                                <option>GBP</option>
+                                <option>EUR</option>
+                            </select></div>
+                    </div>
+                    <div class="field"><label class="field-label">Reference</label><input class="input"
+                            value="INV-77218 logistics settlement"></div>
+                    <div class="field"><label class="field-label">Schedule</label><select class="select-field">
+                            <option>Send now</option>
+                            <option>Schedule for tomorrow</option>
+                            <option>Recurring monthly</option>
+                        </select></div>
+                </div>
+                <div class="step-panel" data-step="4">
+                    <div class="alert info" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                        </svg>Bank app authorization will be required before payment submission.</div>
+                    <div class="kv-grid">
+                        <div>
+                            <div class="kv-label">Source</div>
+                            <div class="kv-val">Chase Business Checking</div>
+                        </div>
+                        <div>
+                            <div class="kv-label">Payee</div>
+                            <div class="kv-val">Savanna Logistics</div>
+                        </div>
+                        <div>
+                            <div class="kv-label">Amount</div>
+                            <div class="kv-val">$18,400.00</div>
+                        </div>
+                        <div>
+                            <div class="kv-label">Fee</div>
+                            <div class="kv-val">$2.80</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-light" id="payBack" disabled>Back</button><button
+                    class="btn btn-primary" id="payNext">Next</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="payeeModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Payee Management</h3>
+                    <div class="modal-sub">Verified beneficiaries available for PIS</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Payee</th>
+                            <th>Bank</th>
+                            <th>Account</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Savanna Logistics</td>
+                            <td>Chase Bank</td>
+                            <td>****5501</td>
+                            <td><span class="badge success">Verified</span></td>
+                        </tr>
+                        <tr>
+                            <td>Nexus Payroll</td>
+                            <td>KCB Bank</td>
+                            <td>****8129</td>
+                            <td><span class="badge success">Verified</span></td>
+                        </tr>
+                        <tr>
+                            <td>Atlas Cloud</td>
+                            <td>HSBC</td>
+                            <td>****4412</td>
+                            <td><span class="badge warning">Review</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button
+                    class="btn btn-primary" data-modal="addPayeeModal">Add payee</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="addPayeeModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Add Payee</h3>
+                    <div class="modal-sub">Verify beneficiary before payment initiation</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="field"><label class="field-label">Payee name</label><input class="input"
+                        placeholder="Business or person name"></div>
+                <div class="field-row">
+                    <div class="field"><label class="field-label">Bank</label><select class="select-field">
+                            <option>Chase Bank</option>
+                            <option>KCB Bank</option>
+                            <option>HSBC</option>
+                            <option>Equity Bank</option>
+                        </select></div>
+                    <div class="field"><label class="field-label">Currency</label><select class="select-field">
+                            <option>USD</option>
+                            <option>KES</option>
+                            <option>GBP</option>
+                            <option>EUR</option>
+                        </select></div>
+                </div>
+                <div class="field"><label class="field-label">Account number / IBAN</label><input class="input"
+                        placeholder="Account or IBAN"></div><label class="choice-row selected"><input type="checkbox"
+                        checked>
+                    <div>
+                        <div class="choice-title">Run beneficiary verification</div>
+                        <div class="choice-desc">Name match, account status, risk screen</div>
+                    </div>
+                </label>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button
+                    class="btn btn-primary" data-result="Payee verification started">Add and verify</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="bankAuthorizationModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Bank App Authorization</h3>
+                    <div class="modal-sub">Waiting for customer approval</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div
+                    style="text-align:center;background:var(--surface-2);padding:22px;border-radius:14px;margin-bottom:14px;">
+                    <div class="stat-icon purple" style="margin:0 auto 12px;"><svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <rect x="5" y="2" width="14" height="20" rx="2"></rect>
+                        </svg></div>
+                    <div style="font-weight:600;">Open the bank app and approve</div>
+                    <div class="list-sub">Approval expires in 04:38</div>
+                </div>
+                <div class="timeline">
+                    <div class="tl-item">
+                        <div class="tl-time">Now</div>
+                        <div class="tl-text">Authorization request sent</div>
+                    </div>
+                    <div class="tl-item">
+                        <div class="tl-time">Next</div>
+                        <div class="tl-text">Customer approves in bank app</div>
+                    </div>
+                    <div class="tl-item">
+                        <div class="tl-time">Final</div>
+                        <div class="tl-text">Payment submitted to bank rail</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light"
+                    data-result="Authorization reminder sent">Send reminder</button><button class="btn btn-primary"
+                    data-result="Authorization simulated as approved">Mark approved</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="paymentStatusModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Payment Status Tracking</h3>
+                    <div class="modal-sub mono">PIS-8842</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="timeline">
+                    <div class="tl-item">
+                        <div class="tl-time">10:02</div>
+                        <div class="tl-text">Payment request created from linked Chase account</div>
+                    </div>
+                    <div class="tl-item">
+                        <div class="tl-time">10:03</div>
+                        <div class="tl-text">Customer authorized via bank app</div>
+                    </div>
+                    <div class="tl-item">
+                        <div class="tl-time">10:03</div>
+                        <div class="tl-text">Bank accepted instruction</div>
+                    </div>
+                    <div class="tl-item">
+                        <div class="tl-time">10:06</div>
+                        <div class="tl-text">Settlement confirmed by receiving bank</div>
+                    </div>
+                </div>
+                <div class="alert success" style="margin-top:14px;"><svg viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>Payment settled successfully. Confirmation sent to beneficiary.</div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-modal="exportModal">Download
+                    receipt</button><button class="btn btn-primary" data-close>Close</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="consentDetailModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Consent Detail</h3>
+                    <div class="modal-sub mono">CNS-93201</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="kv-grid">
+                    <div>
+                        <div class="kv-label">Bank</div>
+                        <div class="kv-val">Chase Bank</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Customer</div>
+                        <div class="kv-val">Corporate Treasury User</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Scopes</div>
+                        <div class="kv-val">Balances, Transactions, PIS</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Expires</div>
+                        <div class="kv-val">82 days</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Refresh cadence</div>
+                        <div class="kv-val">Every 15 minutes</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Legal basis</div>
+                        <div class="kv-val">Explicit user consent</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-danger" data-modal="revokeConsentModal">Revoke</button>
+                <div style="display:flex;gap:8px;"><button class="btn btn-light" data-close>Close</button><button
+                        class="btn btn-primary" data-modal="modifyConsentModal">Modify</button></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="modifyConsentModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Modify Data Scope</h3>
+                    <div class="modal-sub">Changes require customer reconfirmation</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body"><label class="choice-row selected"><input type="checkbox" checked>
+                    <div>
+                        <div class="choice-title">Balances</div>
+                        <div class="choice-desc">Account balances and currency</div>
+                    </div>
+                </label><label class="choice-row selected"><input type="checkbox" checked>
+                    <div>
+                        <div class="choice-title">Transactions</div>
+                        <div class="choice-desc">Ledger and pending transactions</div>
+                    </div>
+                </label><label class="choice-row selected"><input type="checkbox" checked>
+                    <div>
+                        <div class="choice-title">Payment initiation</div>
+                        <div class="choice-desc">Create and authorize payments</div>
+                    </div>
+                </label><label class="choice-row"><input type="checkbox">
+                    <div>
+                        <div class="choice-title">Identity</div>
+                        <div class="choice-desc">Name and verified account holder</div>
+                    </div>
+                </label></div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button
+                    class="btn btn-primary" data-result="Consent modification request sent">Request
+                    reconfirmation</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="revokeConsentModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Revoke Consent</h3>
+                    <div class="modal-sub">Stop data access and payment initiation</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="alert danger" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                    </svg>Revocation is immediate. PayMo will delete active access tokens and stop future refreshes.
+                </div>
+                <div class="field"><label class="field-label">Reason</label><select class="select-field">
+                        <option>Customer requested revocation</option>
+                        <option>Security concern</option>
+                        <option>Account closed</option>
+                        <option>Consent no longer needed</option>
+                    </select></div>
+                <div class="field"><label class="field-label">Audit note</label><textarea class="textarea"
+                        placeholder="Add audit note"></textarea></div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button
+                    class="btn btn-danger" data-result="Consent revoked and tokens deleted">Revoke consent</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="consentExpiryModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Consent Expiration Tracking</h3>
+                    <div class="modal-sub">Upcoming renewals and expired access</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Bank</th>
+                            <th>Consent</th>
+                            <th>Expires</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Co-operative Bank</td>
+                            <td class="mono">CNS-93188</td>
+                            <td><span class="badge danger">Expired</span></td>
+                            <td><button class="btn btn-light btn-sm" data-modal="reauthModal">Re-auth</button></td>
+                        </tr>
+                        <tr>
+                            <td>Equity Bank</td>
+                            <td class="mono">CNS-93200</td>
+                            <td><span class="badge warning">9 days</span></td>
+                            <td><button class="btn btn-light btn-sm" data-modal="reauthModal">Renew</button></td>
+                        </tr>
+                        <tr>
+                            <td>DTB Kenya</td>
+                            <td class="mono">CNS-93171</td>
+                            <td><span class="badge warning">10 days</span></td>
+                            <td><button class="btn btn-light btn-sm" data-modal="reauthModal">Renew</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button
+                    class="btn btn-primary" data-result="Renewal reminders scheduled">Schedule reminders</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="permissionAuditModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Permission Audit Log</h3>
+                    <div class="modal-sub">Consent and data-access activity</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="timeline">
+                    <div class="tl-item">
+                        <div class="tl-time">Today 10:42</div>
+                        <div class="tl-text">Chase Bank balance scope refreshed by system</div>
+                    </div>
+                    <div class="tl-item">
+                        <div class="tl-time">Today 09:17</div>
+                        <div class="tl-text">Equity Bank consent expiry reminder sent</div>
+                    </div>
+                    <div class="tl-item">
+                        <div class="tl-time">Yesterday 16:04</div>
+                        <div class="tl-text">HSBC PIS scope added by treasury admin</div>
+                    </div>
+                    <div class="tl-item">
+                        <div class="tl-time">Yesterday 12:30</div>
+                        <div class="tl-text">Co-operative Bank tokens deleted after consent expiry</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button
+                    class="btn btn-primary" data-modal="exportModal">Export audit</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="filterModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Dashboard Filters</h3>
+                    <div class="modal-sub">Filter accounts, consents, and payment data</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="field"><label class="field-label">Region</label><select class="select-field">
+                        <option>All regions</option>
+                        <option>Kenya</option>
+                        <option>United States</option>
+                        <option>United Kingdom</option>
+                        <option>European Union</option>
+                    </select></div>
+                <div class="field"><label class="field-label">Provider type</label><select class="select-field">
+                        <option>All providers</option>
+                        <option>OAuth</option>
+                        <option>Credential fallback</option>
+                        <option>Manual</option>
+                    </select></div>
+                <div class="field"><label class="field-label">Health</label><select class="select-field">
+                        <option>All health states</option>
+                        <option>Healthy</option>
+                        <option>Warning</option>
+                        <option>Action needed</option>
+                    </select></div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-ghost" data-result="Filters reset">Reset</button>
+                <div style="display:flex;gap:8px;"><button class="btn btn-light" data-close>Cancel</button><button
+                        class="btn btn-primary" data-result="Filters applied">Apply filters</button></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="exportModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Export Open Banking Report</h3>
+                    <div class="modal-sub">Generate account, payment, or consent report</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="field"><label class="field-label">Report type</label><select class="select-field">
+                        <option>Connected account summary</option>
+                        <option>Balance ledger</option>
+                        <option>Transaction aggregation</option>
+                        <option>PIS payment status</option>
+                        <option>Consent audit</option>
+                    </select></div>
+                <div class="field"><label class="field-label">Format</label><select class="select-field">
+                        <option>PDF</option>
+                        <option>CSV</option>
+                        <option>JSON</option>
+                    </select></div>
+                <div class="field"><label class="field-label">Period</label><select class="select-field">
+                        <option>Last 24 hours</option>
+                        <option>Last 7 days</option>
+                        <option>Last 30 days</option>
+                        <option>Quarter to date</option>
+                    </select></div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button
+                    class="btn btn-primary" data-result="Export generated and queued for download">Generate
+                    export</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="notificationsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Notifications</h3>
+                    <div class="modal-sub">Open banking operational events</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body" style="padding:0;">
+                <div class="list-item">
+                    <div class="list-left">
+                        <div class="list-icon" style="background:var(--danger-soft);color:var(--danger);"><svg
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                            </svg></div>
+                        <div>
+                            <div class="list-title">Co-operative Bank needs re-auth</div>
+                            <div class="list-sub">Consent expired 2 days ago</div>
+                        </div>
+                    </div><button class="btn btn-light btn-sm" data-modal="reauthModal">Fix</button>
+                </div>
+                <div class="list-item">
+                    <div class="list-left">
+                        <div class="list-icon" style="background:var(--warning-soft);color:var(--warning);"><svg
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                            </svg></div>
+                        <div>
+                            <div class="list-title">Equity Bank consent expires soon</div>
+                            <div class="list-sub">9 days remaining</div>
+                        </div>
+                    </div><button class="btn btn-light btn-sm" data-modal="consentExpiryModal">View</button>
+                </div>
+                <div class="list-item">
+                    <div class="list-left">
+                        <div class="list-icon" style="background:var(--success-soft);color:var(--success);"><svg
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg></div>
+                        <div>
+                            <div class="list-title">PIS-8842 settled</div>
+                            <div class="list-sub">Savanna Logistics paid successfully</div>
+                        </div>
+                    </div><button class="btn btn-light btn-sm" data-modal="paymentStatusModal">Track</button>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light"
+                    data-result="Notifications marked as read">Mark read</button><button class="btn btn-light"
+                    data-close>Close</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="resultModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title" id="resultTitle">Action Complete</h3>
+                    <div class="modal-sub">PayMo operation completed successfully</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="alert success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg><span id="resultMessage">Action completed.</span></div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Done</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="navDashboardModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Dashboard</h3>
+                    <div class="modal-sub">Main PayMo platform overview</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="kv-grid">
+                    <div>
+                        <div class="kv-label">Daily volume</div>
+                        <div class="kv-val">$8.4M</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Services online</div>
+                        <div class="kv-val">14 of 14</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="navRailsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Payment Rails</h3>
+                    <div class="modal-sub">Rail availability and routing health</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="alert info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                    </svg>ACH, Wire, SWIFT, RTGS, PesaLink, SEPA, FPS, and CHAPS are monitored.</div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="navWalletsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Wallets</h3>
+                    <div class="modal-sub">Virtual accounts and ledger balances</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="kv-grid">
+                    <div>
+                        <div class="kv-label">Wallets</div>
+                        <div class="kv-val">48,221</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Balance</div>
+                        <div class="kv-val">$182M</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="navPaymentsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Payments</h3>
+                    <div class="modal-sub">Payment initiation and tracking</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body"><button class="btn btn-primary" style="width:100%;"
+                    data-modal="initiatePaymentModal">Start payment from linked account</button></div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="navConsentsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Consents</h3>
+                    <div class="modal-sub">Active customer data permissions</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="kv-grid">
+                    <div>
+                        <div class="kv-label">Active</div>
+                        <div class="kv-val">91</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Expiring</div>
+                        <div class="kv-val">7</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button
+                    class="btn btn-primary" onclick="switchTab('consent');closeAll();">Open consent tab</button></div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="navCustomersModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Customers</h3>
+                    <div class="modal-sub">Customer-linked account directory</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="kv-grid">
+                    <div>
+                        <div class="kv-label">Customers with links</div>
+                        <div class="kv-val">11,482</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Avg accounts</div>
+                        <div class="kv-val">2.8</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="navRiskModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Risk</h3>
+                    <div class="modal-sub">Open banking risk controls</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="alert warning"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                    </svg>3 payees require beneficiary risk review before PIS.</div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="navAnalyticsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Analytics</h3>
+                    <div class="modal-sub">Aggregation and payment analytics</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="kv-grid">
+                    <div>
+                        <div class="kv-label">Categorized txns</div>
+                        <div class="kv-val">42,891</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Accuracy</div>
+                        <div class="kv-val">97.1%</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+        </div>
+    </div>
+
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        document.getElementById('sidebarToggle').addEventListener('click', () => sidebar.classList.toggle('expanded'));
+        document.getElementById('mobileMenuBtn').addEventListener('click', () => sidebar.classList.toggle('mobile-open'));
+
+        function openModal(id) { const m = document.getElementById(id); if (m) m.classList.add('show'); }
+        function closeAll() { document.querySelectorAll('.modal-backdrop.show').forEach(m => m.classList.remove('show')); }
+        document.addEventListener('click', e => {
+            const close = e.target.closest('[data-close]');
+            if (close) { e.preventDefault(); e.stopPropagation(); closeAll(); return; }
+            const result = e.target.closest('[data-result]');
+            if (result) { e.preventDefault(); e.stopPropagation(); setResult(result.dataset.result); return; }
+            const opener = e.target.closest('[data-modal]');
+            if (opener) { e.preventDefault(); e.stopPropagation(); openModal(opener.dataset.modal); }
+        });
+        document.querySelectorAll('.modal-backdrop').forEach(b => b.addEventListener('click', e => { if (e.target === b) closeAll(); }));
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAll(); });
+
+        function setResult(message) {
+            closeAll();
+            document.getElementById('resultMessage').textContent = message;
+            openModal('resultModal');
+        }
+
+        function switchTab(name) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.dataset.panel === name));
+        }
+        document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => switchTab(tab.dataset.tab)));
+
+        document.querySelectorAll('.choice-row, .scope-card, .bank-option').forEach(row => {
+            row.addEventListener('click', () => {
+                const radio = row.querySelector('input[type="radio"]');
+                if (radio) {
+                    document.querySelectorAll(`input[name="${radio.name}"]`).forEach(i => i.closest('.choice-row, .scope-card, .bank-option')?.classList.remove('selected'));
+                    radio.checked = true;
+                    row.classList.add('selected');
+                }
+                const checkbox = row.querySelector('input[type="checkbox"]');
+                if (checkbox && !radio) row.classList.toggle('selected', checkbox.checked);
+            });
+        });
+
+        function setupStepper(rootId, stepperId, backId, nextId, total, doneMessage) {
+            const root = document.getElementById(rootId);
+            let current = 1;
+            const render = () => {
+                document.querySelectorAll(`#${stepperId} .step`).forEach((s, i) => { s.classList.toggle('active', i + 1 === current); s.classList.toggle('done', i + 1 < current); });
+                root.querySelectorAll('.step-panel').forEach(p => p.classList.toggle('active', Number(p.dataset.step) === current));
+                document.getElementById(backId).disabled = current === 1;
+                document.getElementById(nextId).textContent = current === total ? 'Submit' : 'Next';
+            };
+            document.getElementById(backId).addEventListener('click', () => { if (current > 1) { current--; render(); } });
+            document.getElementById(nextId).addEventListener('click', () => { if (current < total) { current++; render(); } else { current = 1; render(); setResult(doneMessage); } });
+            render();
+        }
+        setupStepper('linkBankModal', 'linkStepper', 'linkBack', 'linkNext', 5, 'External bank account linked and first sync started');
+        setupStepper('initiatePaymentModal', 'payStepper', 'payBack', 'payNext', 4, 'Payment initiated and sent for bank authorization');
+
+        const accountSearch = document.getElementById('accountSearch');
+        const healthFilter = document.getElementById('healthFilter');
+        function filterAccounts() {
+            const q = (accountSearch.value || '').toLowerCase();
+            const h = healthFilter.value;
+            document.querySelectorAll('#accountGrid .account-card').forEach(card => {
+                const matchesText = card.dataset.bank.toLowerCase().includes(q) || card.textContent.toLowerCase().includes(q);
+                const matchesHealth = h === 'All Health' || card.dataset.health === h;
+                card.style.display = matchesText && matchesHealth ? '' : 'none';
+            });
+        }
+        accountSearch.addEventListener('input', filterAccounts);
+        healthFilter.addEventListener('change', filterAccounts);
+    </script>
+</body>
+
+</html>
