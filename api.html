@@ -1,0 +1,3019 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API & Integration Management - PayMo BaaS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-dark: #1e40af;
+            --primary-light: #3b82f6;
+            --secondary-color: #8b5cf6;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --info-color: #06b6d4;
+            --dark-bg: #0f172a;
+            --dark-card: #1e293b;
+            --dark-border: #334155;
+            --light-bg: #f8fafc;
+            --light-card: #ffffff;
+            --light-border: #e2e8f0;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --sidebar-width: 280px;
+            --sidebar-collapsed: 80px;
+            --transition-speed: 0.3s;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--light-bg);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            transition: background 0.3s ease;
+        }
+
+        body.dark-mode {
+            background: var(--dark-bg);
+            color: #e2e8f0;
+        }
+
+        body.dark-mode .card,
+        body.dark-mode .sidebar,
+        body.dark-mode .topbar,
+        body.dark-mode .modal-content,
+        body.dark-mode .dropdown-menu,
+        body.dark-mode .filter-panel,
+        body.dark-mode .code-block {
+            background: var(--dark-card);
+            color: #e2e8f0;
+            border-color: var(--dark-border);
+        }
+
+        body.dark-mode .text-muted {
+            color: #94a3b8 !important;
+        }
+
+        body.dark-mode .border {
+            border-color: var(--dark-border) !important;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100vh;
+            width: var(--sidebar-width);
+            background: var(--light-card);
+            border-right: 1px solid var(--light-border);
+            transition: all var(--transition-speed) ease;
+            z-index: 1050;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .sidebar.collapsed {
+            width: var(--sidebar-collapsed);
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--light-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .sidebar.collapsed .sidebar-logo-text,
+        .sidebar.collapsed .nav-text,
+        .sidebar.collapsed .section-title {
+            display: none;
+        }
+
+        .sidebar-nav {
+            padding: 1rem 0;
+        }
+
+        .nav-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            padding: 0.5rem 1.5rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            letter-spacing: 0.05em;
+        }
+
+        .nav-item {
+            list-style: none;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1.5rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.2s ease;
+            position: relative;
+            font-weight: 500;
+        }
+
+        .nav-link:hover {
+            background: rgba(37, 99, 235, 0.1);
+            color: var(--primary-color);
+        }
+
+        .nav-link.active {
+            background: linear-gradient(90deg, rgba(37, 99, 235, 0.1) 0%, transparent 100%);
+            color: var(--primary-color);
+            border-left: 3px solid var(--primary-color);
+        }
+
+        .nav-link i {
+            font-size: 1.25rem;
+            width: 24px;
+            text-align: center;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+            transition: margin-left var(--transition-speed) ease;
+        }
+
+        .sidebar.collapsed ~ .main-content {
+            margin-left: var(--sidebar-collapsed);
+        }
+
+        /* Topbar */
+        .topbar {
+            background: var(--light-card);
+            border-bottom: 1px solid var(--light-border);
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 1040;
+            flex-wrap: wrap;
+        }
+
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .search-box {
+            position: relative;
+            flex: 1;
+            max-width: 400px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 0.625rem 1rem 0.625rem 2.5rem;
+            border: 1px solid var(--light-border);
+            border-radius: 0.5rem;
+            background: var(--light-bg);
+            transition: all 0.2s ease;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 0.875rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+
+        .btn-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--light-border);
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .btn-icon:hover {
+            background: var(--light-bg);
+            color: var(--primary-color);
+        }
+
+        .btn-icon .badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            font-size: 0.65rem;
+        }
+
+        /* Page Content */
+        .page-content {
+            padding: 2rem;
+        }
+
+        .page-header {
+            margin-bottom: 2rem;
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-subtitle {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--light-card);
+            border: 1px solid var(--light-border);
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s ease;
+            height: 100%;
+        }
+
+        .card:hover {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+        }
+
+        .card-header {
+            background: transparent;
+            border-bottom: 1px solid var(--light-border);
+            padding: 1.25rem 1.5rem;
+            font-weight: 600;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        /* Stats Cards */
+        .stat-card {
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+        }
+
+        .stat-card.primary::before { background: var(--primary-color); }
+        .stat-card.success::before { background: var(--success-color); }
+        .stat-card.warning::before { background: var(--warning-color); }
+        .stat-card.info::before { background: var(--info-color); }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        /* Tabs */
+        .nav-tabs {
+            border-bottom: 2px solid var(--light-border);
+            gap: 0.5rem;
+        }
+
+        .nav-tabs .nav-link {
+            border: none;
+            border-radius: 0;
+            color: var(--text-secondary);
+            padding: 0.75rem 1.5rem;
+            position: relative;
+            background: transparent;
+        }
+
+        .nav-tabs .nav-link:hover {
+            color: var(--primary-color);
+            background: transparent;
+        }
+
+        .nav-tabs .nav-link.active {
+            color: var(--primary-color);
+            background: transparent;
+            border-bottom: 2px solid var(--primary-color);
+        }
+
+        /* Table */
+        .table-responsive {
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table thead th {
+            background: var(--light-bg);
+            border-bottom: 2px solid var(--light-border);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            padding: 1rem;
+            white-space: nowrap;
+        }
+
+        .table tbody td {
+            padding: 1rem;
+            vertical-align: middle;
+            border-bottom: 1px solid var(--light-border);
+        }
+
+        .table tbody tr {
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .table tbody tr:hover {
+            background: rgba(37, 99, 235, 0.02);
+        }
+
+        /* Badges */
+        .badge {
+            padding: 0.375rem 0.75rem;
+            font-weight: 600;
+            border-radius: 0.375rem;
+            font-size: 0.75rem;
+        }
+
+        /* Code Block */
+        .code-block {
+            background: #1e293b;
+            color: #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875rem;
+            overflow-x: auto;
+            position: relative;
+        }
+
+        .code-block pre {
+            margin: 0;
+            color: #e2e8f0;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            padding: 0.25rem 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 0.25rem;
+            color: white;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .copy-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Modal Enhancements */
+        .modal-content {
+            border-radius: 1rem;
+            border: none;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .modal-header {
+            border-bottom: 1px solid var(--light-border);
+            padding: 1.25rem 1.5rem;
+        }
+
+        .modal-title {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .modal-body {
+            padding: 1.25rem 1.5rem;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .modal-footer {
+            border-top: 1px solid var(--light-border);
+            padding: 1rem 1.5rem;
+        }
+
+        .modal-sm { max-width: 400px; }
+        .modal-md { max-width: 500px; }
+        .modal-lg { max-width: 800px; }
+        .modal-xl { max-width: 1140px; }
+
+        /* Buttons */
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2);
+        }
+
+        .btn-sm {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.8rem;
+        }
+
+        /* Form Controls */
+        .form-label {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.8rem;
+        }
+
+        .form-control,
+        .form-select {
+            border: 1px solid var(--light-border);
+            border-radius: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            transition: all 0.2s ease;
+            font-size: 0.875rem;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .form-control:disabled,
+        .form-select:disabled {
+            background: var(--light-bg);
+            cursor: not-allowed;
+        }
+
+        /* Filter Panel */
+        .filter-panel {
+            background: var(--light-bg);
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .filter-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        /* Key Value List */
+        .kv-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .kv-list li {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px dashed var(--light-border);
+        }
+
+        .kv-list li:last-child {
+            border-bottom: none;
+        }
+
+        .kv-label {
+            color: var(--text-secondary);
+        }
+
+        .kv-value {
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Data Grid */
+        .data-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+        }
+
+        .data-item {
+            background: var(--light-bg);
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+        }
+
+        .data-item-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 0.25rem;
+        }
+
+        .data-item-value {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        /* Progress Steps */
+        .progress-steps {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .progress-steps::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--light-border);
+            z-index: 0;
+        }
+
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .step-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--light-card);
+            border: 2px solid var(--light-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .step.active .step-circle {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+        }
+
+        .step.completed .step-circle {
+            background: var(--success-color);
+            border-color: var(--success-color);
+            color: white;
+        }
+
+        .step-label {
+            font-size: 0.75rem;
+            text-align: center;
+            color: var(--text-muted);
+        }
+
+        .step.active .step-label,
+        .step.completed .step-label {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        /* Status Badge */
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 0.5rem;
+        }
+
+        .status-dot.active {
+            background: var(--success-color);
+        }
+
+        .status-dot.inactive {
+            background: var(--text-muted);
+        }
+
+        .status-dot.error {
+            background: var(--danger-color);
+        }
+
+        /* Metric Card */
+        .metric-card {
+            background: var(--light-bg);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border-left: 3px solid var(--primary-color);
+        }
+
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .metric-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        /* Language Tabs */
+        .language-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid var(--light-border);
+        }
+
+        .language-tab {
+            padding: 0.5rem 1rem;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            border-bottom: 2px solid transparent;
+        }
+
+        .language-tab:hover {
+            color: var(--primary-color);
+        }
+
+        .language-tab.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.show {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .topbar {
+                padding: 1rem;
+            }
+
+            .page-content {
+                padding: 1rem;
+            }
+
+            .filter-row {
+                grid-template-columns: 1fr;
+            }
+
+            .stat-value {
+                font-size: 1.5rem;
+            }
+
+            .data-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .progress-steps {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .progress-steps::before {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <a href="#" class="sidebar-logo">
+                <i class="bi bi-bank2"></i>
+                <span class="sidebar-logo-text">PayMo</span>
+            </a>
+            <button class="btn-icon d-lg-none" onclick="toggleSidebar()">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <div class="section-title">Dashboard</div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="bi bi-speedometer2"></i>
+                            <span class="nav-text">Transfer Overview</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                <div class="section-title">Transactions</div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="bi bi-send"></i>
+                            <span class="nav-text">Initiate Transfer</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="bi bi-list-task"></i>
+                            <span class="nav-text">Transfer Management</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="bi bi-diagram-3"></i>
+                            <span class="nav-text">Payment Rails</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="bi bi-water"></i>
+                            <span class="nav-text">Liquidity Management</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="bi bi-arrow-left-right"></i>
+                            <span class="nav-text">Reconciliation</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="bi bi-calendar-check"></i>
+                            <span class="nav-text">Settlement</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="bi bi-graph-up"></i>
+                            <span class="nav-text">Analytics & Reporting</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                <div class="section-title">Compliance</div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="bi bi-shield-check"></i>
+                            <span class="nav-text">AML & Compliance</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link active">
+                            <i class="bi bi-code-square"></i>
+                            <span class="nav-text">API Management</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                <div class="section-title">Settings</div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="bi bi-gear"></i>
+                            <span class="nav-text">System Settings</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Topbar -->
+        <div class="topbar">
+            <div class="topbar-left">
+                <button class="btn-icon d-lg-none" onclick="toggleSidebar()">
+                    <i class="bi bi-list"></i>
+                </button>
+                <button class="btn-icon d-none d-lg-flex" onclick="toggleSidebarCollapse()">
+                    <i class="bi bi-layout-sidebar"></i>
+                </button>
+                <div class="search-box">
+                    <i class="bi bi-search"></i>
+                    <input type="text" placeholder="Search API keys, webhooks, integrations..." class="form-control">
+                </div>
+            </div>
+            <div class="topbar-right">
+                <button class="btn-icon" onclick="openModal('apiDocsModal')">
+                    <i class="bi bi-book"></i>
+                </button>
+                <button class="btn-icon" onclick="openModal('notificationsModal')">
+                    <i class="bi bi-bell"></i>
+                    <span class="badge bg-warning">3</span>
+                </button>
+                <button class="btn-icon" onclick="toggleDarkMode()">
+                    <i class="bi bi-moon-stars" id="themeIcon"></i>
+                </button>
+                <button class="btn-icon" onclick="openModal('profileModal')">
+                    <i class="bi bi-person-circle"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Page Content -->
+        <div class="page-content">
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+                    <div>
+                        <h1 class="page-title">API & Integration Management</h1>
+                        <p class="page-subtitle">Developer portal for bank and client integrations</p>
+                    </div>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <button class="btn btn-outline-primary" onclick="openModal('sdkDownloadsModal')">
+                            <i class="bi bi-download"></i>
+                            SDK Downloads
+                        </button>
+                        <button class="btn btn-primary" onclick="openModal('generateApiKeyModal')">
+                            <i class="bi bi-key"></i>
+                            Generate API Key
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filter Panel -->
+            <div class="filter-panel">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="mb-0 fw-bold">Quick Filters</h6>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-primary" onclick="resetFilters()">
+                            <i class="bi bi-arrow-clockwise"></i>
+                            Reset
+                        </button>
+                        <button class="btn btn-sm btn-primary" onclick="applyFilters()">
+                            <i class="bi bi-funnel"></i>
+                            Apply
+                        </button>
+                    </div>
+                </div>
+                <div class="filter-row">
+                    <div>
+                        <label class="form-label">Environment</label>
+                        <select class="form-select" id="envFilter">
+                            <option selected>All Environments</option>
+                            <option>Production</option>
+                            <option>Sandbox</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label">Status</label>
+                        <select class="form-select" id="statusFilter">
+                            <option selected>All Status</option>
+                            <option>Active</option>
+                            <option>Inactive</option>
+                            <option>Revoked</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label">Integration Type</label>
+                        <select class="form-select" id="typeFilter">
+                            <option selected>All Types</option>
+                            <option>REST API</option>
+                            <option>Webhook</option>
+                            <option>SDK</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label">Date Range</label>
+                        <select class="form-select" id="dateFilter">
+                            <option>Last 7 Days</option>
+                            <option>Last 30 Days</option>
+                            <option selected>Last 90 Days</option>
+                            <option>All Time</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KPI Cards -->
+            <div class="row g-3 mb-4">
+                <div class="col-lg-3 col-md-6">
+                    <div class="card stat-card primary" onclick="openModal('apiCallsDetailModal')">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                                    <i class="bi bi-graph-up-arrow"></i>
+                                </div>
+                                <span class="badge bg-primary">+12.5%</span>
+                            </div>
+                            <div class="stat-value text-primary">12.4M</div>
+                            <div class="stat-label">API Calls (30d)</div>
+                            <small class="text-muted">Avg 413K calls/day</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="card stat-card success" onclick="openModal('activeIntegrationsModal')">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="stat-icon bg-success bg-opacity-10 text-success">
+                                    <i class="bi bi-plug"></i>
+                                </div>
+                                <span class="badge bg-success">Active</span>
+                            </div>
+                            <div class="stat-value text-success">245</div>
+                            <div class="stat-label">Active Integrations</div>
+                            <small class="text-muted">185 production, 60 sandbox</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="card stat-card warning" onclick="openModal('errorRateModal')">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+                                    <i class="bi bi-exclamation-triangle"></i>
+                                </div>
+                                <span class="badge bg-warning">0.42%</span>
+                            </div>
+                            <div class="stat-value text-warning">52K</div>
+                            <div class="stat-label">Error Responses (30d)</div>
+                            <small class="text-muted">Down from 0.58%</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="card stat-card info" onclick="openModal('uptimeModal')">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="stat-icon bg-info bg-opacity-10 text-info">
+                                    <i class="bi bi-check-circle"></i>
+                                </div>
+                                <span class="badge bg-info">SLA Met</span>
+                            </div>
+                            <div class="stat-value text-info">99.98%</div>
+                            <div class="stat-label">API Uptime (90d)</div>
+                            <small class="text-muted">2.4 minutes downtime</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Tabs -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <ul class="nav nav-tabs card-header-tabs" role="tablist">
+                        <li class="nav-item">
+                            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#apiKeys">
+                                <i class="bi bi-key me-2"></i>API Keys
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#webhooks">
+                                <i class="bi bi-send me-2"></i>Webhooks
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#documentation">
+                                <i class="bi bi-book me-2"></i>Documentation
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#integrationHealth">
+                                <i class="bi bi-activity me-2"></i>Integration Health
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#sandbox">
+                                <i class="bi bi-box me-2"></i>Sandbox
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body">
+                    <div class="tab-content">
+                        <!-- API Keys Tab -->
+                        <div class="tab-pane fade show active" id="apiKeys">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="fw-bold mb-0">API Keys & Credentials</h6>
+                                <button class="btn btn-sm btn-primary" onclick="openModal('generateApiKeyModal')">
+                                    <i class="bi bi-plus-circle"></i>
+                                    Generate New Key
+                                </button>
+                            </div>
+
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Key ID</th>
+                                            <th>Environment</th>
+                                            <th>Permissions</th>
+                                            <th>Created</th>
+                                            <th>Last Used</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr onclick="openModal('apiKeyDetail1Modal')">
+                                            <td><strong>Production Main</strong></td>
+                                            <td><code>pk_live_51H7Xr...</code></td>
+                                            <td><span class="badge bg-success">Production</span></td>
+                                            <td>Full Access</td>
+                                            <td>2024-01-15</td>
+                                            <td>5 minutes ago</td>
+                                            <td><span class="status-dot active"></span>Active</td>
+                                            <td>
+                                                <div class="btn-group btn-group-sm">
+                                                    <button class="btn btn-outline-primary" onclick="event.stopPropagation(); openModal('viewKeyModal1')">
+                                                        <i class="bi bi-eye"></i>
+                                                    </button>
+                                                    <button class="btn btn-outline-secondary" onclick="event.stopPropagation(); openModal('rotateKeyModal1')">
+                                                        <i class="bi bi-arrow-clockwise"></i>
+                                                    </button>
+                                                    <button class="btn btn-outline-danger" onclick="event.stopPropagation(); openModal('revokeKeyModal1')">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr onclick="openModal('apiKeyDetail2Modal')">
+                                            <td><strong>Integration Server</strong></td>
+                                            <td><code>pk_live_42G9Ks...</code></td>
+                                            <td><span class="badge bg-success">Production</span></td>
+                                            <td>Read Only</td>
+                                            <td>2024-03-22</td>
+                                            <td>2 hours ago</td>
+                                            <td><span class="status-dot active"></span>Active</td>
+                                            <td>
+                                                <div class="btn-group btn-group-sm">
+                                                    <button class="btn btn-outline-primary" onclick="event.stopPropagation(); openModal('viewKeyModal2')">
+                                                        <i class="bi bi-eye"></i>
+                                                    </button>
+                                                    <button class="btn btn-outline-secondary" onclick="event.stopPropagation(); openModal('rotateKeyModal2')">
+                                                        <i class="bi bi-arrow-clockwise"></i>
+                                                    </button>
+                                                    <button class="btn btn-outline-danger" onclick="event.stopPropagation(); openModal('revokeKeyModal2')">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr onclick="openModal('apiKeyDetail3Modal')">
+                                            <td><strong>Sandbox Testing</strong></td>
+                                            <td><code>pk_test_51H7Xr...</code></td>
+                                            <td><span class="badge bg-info">Sandbox</span></td>
+                                            <td>Full Access</td>
+                                            <td>2024-06-10</td>
+                                            <td>1 day ago</td>
+                                            <td><span class="status-dot active"></span>Active</td>
+                                            <td>
+                                                <div class="btn-group btn-group-sm">
+                                                    <button class="btn btn-outline-primary" onclick="event.stopPropagation(); openModal('viewKeyModal3')">
+                                                        <i class="bi bi-eye"></i>
+                                                    </button>
+                                                    <button class="btn btn-outline-secondary" onclick="event.stopPropagation(); openModal('rotateKeyModal3')">
+                                                        <i class="bi bi-arrow-clockwise"></i>
+                                                    </button>
+                                                    <button class="btn btn-outline-danger" onclick="event.stopPropagation(); openModal('revokeKeyModal3')">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Webhooks Tab -->
+                        <div class="tab-pane fade" id="webhooks">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="fw-bold mb-0">Webhook Endpoints</h6>
+                                <button class="btn btn-sm btn-primary" onclick="openModal('createWebhookModal')">
+                                    <i class="bi bi-plus-circle"></i>
+                                    Add Endpoint
+                                </button>
+                            </div>
+
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Endpoint URL</th>
+                                            <th>Events</th>
+                                            <th>Last Delivery</th>
+                                            <th>Success Rate</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr onclick="openModal('webhookDetail1Modal')">
+                                            <td><code>https://api.client.com/webhooks/paymo</code></td>
+                                            <td><span class="badge bg-primary">12 events</span></td>
+                                            <td>2 minutes ago</td>
+                                            <td><span class="text-success fw-bold">99.8%</span></td>
+                                            <td><span class="status-dot active"></span>Active</td>
+                                            <td>
+                                                <div class="btn-group btn-group-sm">
+                                                    <button class="btn btn-outline-primary" onclick="event.stopPropagation(); openModal('testWebhookModal1')">
+                                                        <i class="bi bi-play"></i>
+                                                    </button>
+                                                    <button class="btn btn-outline-secondary" onclick="event.stopPropagation(); openModal('webhookLogsModal1')">
+                                                        <i class="bi bi-list"></i>
+                                                    </button>
+                                                    <button class="btn btn-outline-warning" onclick="event.stopPropagation(); openModal('editWebhookModal1')">
+                                                        <i class="bi bi-pencil"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr onclick="openModal('webhookDetail2Modal')">
+                                            <td><code>https://integration.example.com/hook</code></td>
+                                            <td><span class="badge bg-primary">8 events</span></td>
+                                            <td>15 minutes ago</td>
+                                            <td><span class="text-success fw-bold">98.2%</span></td>
+                                            <td><span class="status-dot active"></span>Active</td>
+                                            <td>
+                                                <div class="btn-group btn-group-sm">
+                                                    <button class="btn btn-outline-primary" onclick="event.stopPropagation(); openModal('testWebhookModal2')">
+                                                        <i class="bi bi-play"></i>
+                                                    </button>
+                                                    <button class="btn btn-outline-secondary" onclick="event.stopPropagation(); openModal('webhookLogsModal2')">
+                                                        <i class="bi bi-list"></i>
+                                                    </button>
+                                                    <button class="btn btn-outline-warning" onclick="event.stopPropagation(); openModal('editWebhookModal2')">
+                                                        <i class="bi bi-pencil"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr onclick="openModal('webhookDetail3Modal')">
+                                            <td><code>https://dev.testapp.io/paymo-events</code></td>
+                                            <td><span class="badge bg-info">5 events</span></td>
+                                            <td>1 hour ago</td>
+                                            <td><span class="text-warning fw-bold">95.4%</span></td>
+                                            <td><span class="status-dot error"></span>Issues</td>
+                                            <td>
+                                                <div class="btn-group btn-group-sm">
+                                                    <button class="btn btn-outline-primary" onclick="event.stopPropagation(); openModal('testWebhookModal3')">
+                                                        <i class="bi bi-play"></i>
+                                                    </button>
+                                                    <button class="btn btn-outline-secondary" onclick="event.stopPropagation(); openModal('webhookLogsModal3')">
+                                                        <i class="bi bi-list"></i>
+                                                    </button>
+                                                    <button class="btn btn-outline-warning" onclick="event.stopPropagation(); openModal('editWebhookModal3')">
+                                                        <i class="bi bi-pencil"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Documentation Tab -->
+                        <div class="tab-pane fade" id="documentation">
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <div class="card border h-100">
+                                        <div class="card-body">
+                                            <h6 class="fw-bold mb-3">
+                                                <i class="bi bi-play-circle text-primary me-2"></i>
+                                                Interactive API Explorer
+                                            </h6>
+                                            <p class="small text-muted">Test API endpoints directly from your browser with real responses</p>
+                                            <button class="btn btn-primary btn-sm w-100" onclick="openModal('apiExplorerModal')">
+                                                <i class="bi bi-terminal"></i>
+                                                Launch API Explorer
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card border h-100">
+                                        <div class="card-body">
+                                            <h6 class="fw-bold mb-3">
+                                                <i class="bi bi-code-slash text-success me-2"></i>
+                                                Code Samples
+                                            </h6>
+                                            <p class="small text-muted">Copy-paste ready code examples in your favorite language</p>
+                                            <button class="btn btn-success btn-sm w-100" onclick="openModal('codeSamplesModal')">
+                                                <i class="bi bi-code"></i>
+                                                Browse Code Samples
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card border h-100">
+                                        <div class="card-body">
+                                            <h6 class="fw-bold mb-3">
+                                                <i class="bi bi-download text-info me-2"></i>
+                                                SDK Downloads
+                                            </h6>
+                                            <p class="small text-muted">Official SDKs for rapid integration</p>
+                                            <div class="d-grid gap-2">
+                                                <button class="btn btn-outline-secondary btn-sm" onclick="downloadSDK('node')">
+                                                    <i class="bi bi-file-code"></i>
+                                                    Node.js SDK
+                                                </button>
+                                                <button class="btn btn-outline-secondary btn-sm" onclick="downloadSDK('python')">
+                                                    <i class="bi bi-file-code"></i>
+                                                    Python SDK
+                                                </button>
+                                                <button class="btn btn-outline-secondary btn-sm" onclick="downloadSDK('php')">
+                                                    <i class="bi bi-file-code"></i>
+                                                    PHP SDK
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card border h-100">
+                                        <div class="card-body">
+                                            <h6 class="fw-bold mb-3">
+                                                <i class="bi bi-clock-history text-warning me-2"></i>
+                                                Changelog & Versioning
+                                            </h6>
+                                            <p class="small text-muted">Track API changes and version history</p>
+                                            <button class="btn btn-warning btn-sm w-100" onclick="openModal('changelogModal')">
+                                                <i class="bi bi-list-ul"></i>
+                                                View Changelog
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card border mt-4">
+                                <div class="card-header">
+                                    <h6 class="mb-0 fw-bold">Quick Start Guide</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row g-3">
+                                        <div class="col-md-3 text-center">
+                                            <div class="rounded-circle bg-primary bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-2" style="width: 60px; height: 60px;">
+                                                <i class="bi bi-key text-primary" style="font-size: 1.5rem;"></i>
+                                            </div>
+                                            <h6 class="small fw-bold">1. Get API Key</h6>
+                                            <p class="small text-muted">Generate your credentials</p>
+                                        </div>
+                                        <div class="col-md-3 text-center">
+                                            <div class="rounded-circle bg-success bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-2" style="width: 60px; height: 60px;">
+                                                <i class="bi bi-download text-success" style="font-size: 1.5rem;"></i>
+                                            </div>
+                                            <h6 class="small fw-bold">2. Install SDK</h6>
+                                            <p class="small text-muted">Choose your language</p>
+                                        </div>
+                                        <div class="col-md-3 text-center">
+                                            <div class="rounded-circle bg-info bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-2" style="width: 60px; height: 60px;">
+                                                <i class="bi bi-code-slash text-info" style="font-size: 1.5rem;"></i>
+                                            </div>
+                                            <h6 class="small fw-bold">3. Make Calls</h6>
+                                            <p class="small text-muted">Start integrating</p>
+                                        </div>
+                                        <div class="col-md-3 text-center">
+                                            <div class="rounded-circle bg-warning bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-2" style="width: 60px; height: 60px;">
+                                                <i class="bi bi-rocket text-warning" style="font-size: 1.5rem;"></i>
+                                            </div>
+                                            <h6 class="small fw-bold">4. Go Live</h6>
+                                            <p class="small text-muted">Launch to production</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Integration Health Tab -->
+                        <div class="tab-pane fade" id="integrationHealth">
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-3">
+                                    <div class="metric-card">
+                                        <div class="metric-value">12.4M</div>
+                                        <div class="metric-label">Total API Calls</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="metric-card" style="border-left-color: var(--success-color);">
+                                        <div class="metric-value">145ms</div>
+                                        <div class="metric-label">Avg Response Time</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="metric-card" style="border-left-color: var(--warning-color);">
+                                        <div class="metric-value">0.42%</div>
+                                        <div class="metric-label">Error Rate</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="metric-card" style="border-left-color: var(--info-color);">
+                                        <div class="metric-value">99.98%</div>
+                                        <div class="metric-label">Uptime</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card border mb-3">
+                                <div class="card-header">
+                                    <h6 class="mb-0 fw-bold">Connected Client Systems</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-sm">
+                                            <thead>
+                                                <tr>
+                                                    <th>Client Name</th>
+                                                    <th>Integration Type</th>
+                                                    <th>Calls (24h)</th>
+                                                    <th>Error Rate</th>
+                                                    <th>Avg Latency</th>
+                                                    <th>Status</th>
+                                                    <th>Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr onclick="openModal('clientIntegration1Modal')">
+                                                    <td><strong>FinTech Solutions Inc</strong></td>
+                                                    <td>REST API</td>
+                                                    <td>245,678</td>
+                                                    <td><span class="text-success">0.12%</span></td>
+                                                    <td>128ms</td>
+                                                    <td><span class="status-dot active"></span>Healthy</td>
+                                                    <td><button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation(); openModal('integrationDetailsModal1')"><i class="bi bi-bar-chart"></i></button></td>
+                                                </tr>
+                                                <tr onclick="openModal('clientIntegration2Modal')">
+                                                    <td><strong>Global Payments Ltd</strong></td>
+                                                    <td>Webhook</td>
+                                                    <td>89,234</td>
+                                                    <td><span class="text-success">0.08%</span></td>
+                                                    <td>95ms</td>
+                                                    <td><span class="status-dot active"></span>Healthy</td>
+                                                    <td><button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation(); openModal('integrationDetailsModal2')"><i class="bi bi-bar-chart"></i></button></td>
+                                                </tr>
+                                                <tr onclick="openModal('clientIntegration3Modal')">
+                                                    <td><strong>E-Commerce Platform</strong></td>
+                                                    <td>SDK (Node.js)</td>
+                                                    <td>156,890</td>
+                                                    <td><span class="text-warning">1.24%</span></td>
+                                                    <td>312ms</td>
+                                                    <td><span class="status-dot error"></span>Degraded</td>
+                                                    <td><button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation(); openModal('integrationDetailsModal3')"><i class="bi bi-bar-chart"></i></button></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="card border">
+                                        <div class="card-header">
+                                            <h6 class="mb-0 fw-bold">API Call Volume</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="bg-light rounded p-3 text-center" style="height: 200px;">
+                                                <i class="bi bi-bar-chart text-primary" style="font-size: 3rem; opacity: 0.3;"></i>
+                                                <p class="text-muted mt-2">API call volume chart</p>
+                                                <button class="btn btn-sm btn-outline-primary" onclick="openModal('volumeChartModal')">
+                                                    <i class="bi bi-graph-up"></i>
+                                                    View Details
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card border">
+                                        <div class="card-header">
+                                            <h6 class="mb-0 fw-bold">Response Time Distribution</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="bg-light rounded p-3 text-center" style="height: 200px;">
+                                                <i class="bi bi-speedometer text-success" style="font-size: 3rem; opacity: 0.3;"></i>
+                                                <p class="text-muted mt-2">Latency distribution chart</p>
+                                                <button class="btn btn-sm btn-outline-success" onclick="openModal('latencyChartModal')">
+                                                    <i class="bi bi-clock"></i>
+                                                    View Details
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sandbox Tab -->
+                        <div class="tab-pane fade" id="sandbox">
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <div class="card border h-100">
+                                        <div class="card-body">
+                                            <h6 class="fw-bold mb-3">
+                                                <i class="bi bi-person-circle text-primary me-2"></i>
+                                                Test Account Management
+                                            </h6>
+                                            <p class="small text-muted mb-3">Create and manage sandbox test accounts for development</p>
+                                            <ul class="kv-list mb-3">
+                                                <li><span class="kv-label">Active Accounts</span><span class="kv-value">24</span></li>
+                                                <li><span class="kv-label">Test Transactions</span><span class="kv-value">8,456</span></li>
+                                                <li><span class="kv-label">Data Reset</span><span class="kv-value">7 days ago</span></li>
+                                            </ul>
+                                            <div class="d-grid gap-2">
+                                                <button class="btn btn-primary btn-sm" onclick="openModal('createTestAccountModal')">
+                                                    <i class="bi bi-plus-circle"></i>
+                                                    Create Test Account
+                                                </button>
+                                                <button class="btn btn-outline-secondary btn-sm" onclick="openModal('manageTestAccountsModal')">
+                                                    <i class="bi bi-list"></i>
+                                                    Manage Accounts
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card border h-100">
+                                        <div class="card-body">
+                                            <h6 class="fw-bold mb-3">
+                                                <i class="bi bi-lightning text-warning me-2"></i>
+                                                Mock Transaction Generator
+                                            </h6>
+                                            <p class="small text-muted mb-3">Generate realistic test transactions for integration testing</p>
+                                            <ul class="kv-list mb-3">
+                                                <li><span class="kv-label">Generated (30d)</span><span class="kv-value">12,456</span></li>
+                                                <li><span class="kv-label">Success Rate</span><span class="kv-value">100%</span></li>
+                                                <li><span class="kv-label">Avg Response</span><span class="kv-value">45ms</span></li>
+                                            </ul>
+                                            <div class="d-grid gap-2">
+                                                <button class="btn btn-warning btn-sm" onclick="openModal('generateMockDataModal')">
+                                                    <i class="bi bi-stars"></i>
+                                                    Generate Mock Data
+                                                </button>
+                                                <button class="btn btn-outline-secondary btn-sm" onclick="openModal('mockDataHistoryModal')">
+                                                    <i class="bi bi-clock-history"></i>
+                                                    View History
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card border h-100">
+                                        <div class="card-body">
+                                            <h6 class="fw-bold mb-3">
+                                                <i class="bi bi-play-circle text-success me-2"></i>
+                                                Scenario Simulation
+                                            </h6>
+                                            <p class="small text-muted mb-3">Test edge cases and error scenarios</p>
+                                            <div class="d-grid gap-2">
+                                                <button class="btn btn-outline-success btn-sm" onclick="simulateScenario('success')">
+                                                    <i class="bi bi-check-circle"></i>
+                                                    Successful Transaction
+                                                </button>
+                                                <button class="btn btn-outline-warning btn-sm" onclick="simulateScenario('timeout')">
+                                                    <i class="bi bi-clock"></i>
+                                                    Timeout Error
+                                                </button>
+                                                <button class="btn btn-outline-danger btn-sm" onclick="simulateScenario('failed')">
+                                                    <i class="bi bi-x-circle"></i>
+                                                    Failed Transaction
+                                                </button>
+                                                <button class="btn btn-outline-info btn-sm" onclick="openModal('customScenarioModal')">
+                                                    <i class="bi bi-gear"></i>
+                                                    Custom Scenario
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card border h-100">
+                                        <div class="card-body">
+                                            <h6 class="fw-bold mb-3">
+                                                <i class="bi bi-arrow-up-circle text-info me-2"></i>
+                                                Sandbox to Production Migration
+                                            </h6>
+                                            <p class="small text-muted mb-3">Seamlessly migrate your integration to production</p>
+                                            <div class="alert alert-info small mb-3">
+                                                <i class="bi bi-info-circle me-1"></i>
+                                                Ensure all tests pass before migrating
+                                            </div>
+                                            <div class="d-grid gap-2">
+                                                <button class="btn btn-info btn-sm" onclick="openModal('migrationToolModal')">
+                                                    <i class="bi bi-arrow-up-right"></i>
+                                                    Launch Migration Tool
+                                                </button>
+                                                <button class="btn btn-outline-secondary btn-sm" onclick="openModal('migrationGuideModal')">
+                                                    <i class="bi bi-book"></i>
+                                                    Migration Guide
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- MODALS - 30+ comprehensive modals -->
+
+    <!-- Generate API Key Modal (Multistep) -->
+    <div class="modal fade" id="generateApiKeyModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Generate New API Key</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Progress Steps -->
+                    <div class="progress-steps mb-4">
+                        <div class="step active">
+                            <div class="step-circle">1</div>
+                            <div class="step-label">Basic Info</div>
+                        </div>
+                        <div class="step">
+                            <div class="step-circle">2</div>
+                            <div class="step-label">Permissions</div>
+                        </div>
+                        <div class="step">
+                            <div class="step-circle">3</div>
+                            <div class="step-label">Security</div>
+                        </div>
+                        <div class="step">
+                            <div class="step-circle">4</div>
+                            <div class="step-label">Review</div>
+                        </div>
+                    </div>
+
+                    <h6 class="fw-bold mb-3">Key Information</h6>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Key Name</label>
+                            <input type="text" class="form-control" placeholder="e.g., Production Main Key" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Environment</label>
+                            <select class="form-select" required>
+                                <option value="">Select environment...</option>
+                                <option>Production</option>
+                                <option selected>Sandbox</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Description (Optional)</label>
+                            <textarea class="form-control" rows="2" placeholder="Purpose of this API key..."></textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Expiration</label>
+                            <select class="form-select">
+                                <option>Never</option>
+                                <option>30 days</option>
+                                <option>90 days</option>
+                                <option>1 year</option>
+                                <option>Custom</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Rate Limit</label>
+                            <select class="form-select">
+                                <option>1,000 req/min</option>
+                                <option selected>5,000 req/min</option>
+                                <option>10,000 req/min</option>
+                                <option>Unlimited</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button class="btn btn-primary btn-sm" onclick="apiKeyNextStep()">
+                        Next
+                        <i class="bi bi-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- View API Key Modal -->
+    <div class="modal fade" id="viewKeyModal1" tabindex="-1">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">API Key Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-warning small mb-3">
+                        <i class="bi bi-exclamation-triangle me-1"></i>
+                        Keep your API key secret. Do not share it publicly.
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Key Name</label>
+                        <input type="text" class="form-control" value="Production Main" disabled>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">API Key</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="apiKeyField1" value="pk_live_51H7XrK2eZvKYlo2CNkzHFc9WjmVTwYZ8J9x..." disabled>
+                            <button class="btn btn-outline-secondary" onclick="toggleApiKeyVisibility('apiKeyField1')">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                            <button class="btn btn-outline-primary" onclick="copyToClipboard('apiKeyField1')">
+                                <i class="bi bi-clipboard"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <ul class="kv-list">
+                        <li><span class="kv-label">Key ID</span><span class="kv-value">pk_live_51H7Xr...</span></li>
+                        <li><span class="kv-label">Environment</span><span class="kv-value">Production</span></li>
+                        <li><span class="kv-label">Created</span><span class="kv-value">2024-01-15 14:23:45</span></li>
+                        <li><span class="kv-label">Last Used</span><span class="kv-value">5 minutes ago</span></li>
+                        <li><span class="kv-label">Permissions</span><span class="kv-value">Full Access</span></li>
+                        <li><span class="kv-label">Rate Limit</span><span class="kv-value">5,000 req/min</span></li>
+                        <li><span class="kv-label">Calls (30d)</span><span class="kv-value">8,245,678</span></li>
+                    </ul>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-outline-primary btn-sm" onclick="openModal('managePermissionsModal')">
+                        <i class="bi bi-shield"></i>
+                        Manage Permissions
+                    </button>
+                    <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rotate API Key Modal -->
+    <div class="modal fade" id="rotateKeyModal1" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Rotate API Key</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-warning small">
+                        <i class="bi bi-exclamation-triangle me-1"></i>
+                        Rotating will generate a new key. The old key will remain active for 24 hours.
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Current Key</label>
+                        <input type="text" class="form-control" value="pk_live_51H7Xr..." disabled>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Grace Period</label>
+                        <select class="form-select">
+                            <option>Immediate (no grace period)</option>
+                            <option selected>24 hours</option>
+                            <option>7 days</option>
+                            <option>30 days</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-warning btn-sm" onclick="rotateApiKey()">
+                        <i class="bi bi-arrow-clockwise"></i>
+                        Rotate Key
+                    </button>
+                    <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Revoke API Key Modal -->
+    <div class="modal fade" id="revokeKeyModal1" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Revoke API Key</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-danger small">
+                        <i class="bi bi-exclamation-octagon me-1"></i>
+                        This action cannot be undone. All API calls using this key will fail immediately.
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Key to Revoke</label>
+                        <input type="text" class="form-control" value="Production Main" disabled>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Reason for Revocation</label>
+                        <select class="form-select">
+                            <option>Security concern</option>
+                            <option>No longer needed</option>
+                            <option>Key compromised</option>
+                            <option>Other</option>
+                        </select>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="confirmRevoke">
+                        <label class="form-check-label" for="confirmRevoke">
+                            I understand this will immediately revoke access
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-danger btn-sm" onclick="revokeApiKey()">
+                        <i class="bi bi-trash"></i>
+                        Revoke Key
+                    </button>
+                    <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manage Permissions Modal -->
+    <div class="modal fade" id="managePermissionsModal" tabindex="-1">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Manage API Permissions</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <h6 class="fw-bold mb-3">Permission Scopes</h6>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="permRead" checked>
+                            <label class="form-check-label" for="permRead">
+                                <strong>Read Access</strong>
+                                <small class="d-block text-muted">View transactions, balances, and reports</small>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="permWrite" checked>
+                            <label class="form-check-label" for="permWrite">
+                                <strong>Write Access</strong>
+                                <small class="d-block text-muted">Create and update resources</small>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="permTransfer" checked>
+                            <label class="form-check-label" for="permTransfer">
+                                <strong>Transfer Initiation</strong>
+                                <small class="d-block text-muted">Initiate bank transfers</small>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="permWebhook">
+                            <label class="form-check-label" for="permWebhook">
+                                <strong>Webhook Management</strong>
+                                <small class="d-block text-muted">Create and manage webhooks</small>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="permAdmin">
+                            <label class="form-check-label" for="permAdmin">
+                                <strong>Admin Access</strong>
+                                <small class="d-block text-muted">Full administrative privileges</small>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary btn-sm" onclick="savePermissions()">
+                        <i class="bi bi-save"></i>
+                        Save Permissions
+                    </button>
+                    <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Webhook Modal (Multistep) -->
+    <div class="modal fade" id="createWebhookModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Webhook Endpoint</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Progress Steps -->
+                    <div class="progress-steps mb-4">
+                        <div class="step active">
+                            <div class="step-circle">1</div>
+                            <div class="step-label">Endpoint</div>
+                        </div>
+                        <div class="step">
+                            <div class="step-circle">2</div>
+                            <div class="step-label">Events</div>
+                        </div>
+                        <div class="step">
+                            <div class="step-circle">3</div>
+                            <div class="step-label">Security</div>
+                        </div>
+                    </div>
+
+                    <h6 class="fw-bold mb-3">Endpoint Configuration</h6>
+                    <div class="mb-3">
+                        <label class="form-label">Webhook URL</label>
+                        <input type="url" class="form-control" placeholder="https://your-domain.com/webhooks/paymo" required>
+                        <small class="text-muted">Must be a valid HTTPS URL</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description (Optional)</label>
+                        <input type="text" class="form-control" placeholder="e.g., Production webhook handler">
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Environment</label>
+                            <select class="form-select">
+                                <option selected>Production</option>
+                                <option>Sandbox</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">API Version</label>
+                            <select class="form-select">
+                                <option selected>2024-12-01 (Latest)</option>
+                                <option>2024-09-01</option>
+                                <option>2024-06-01</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button class="btn btn-primary btn-sm" onclick="webhookNextStep()">
+                        Next
+                        <i class="bi bi-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Test Webhook Modal -->
+    <div class="modal fade" id="testWebhookModal1" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Test Webhook Endpoint</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Endpoint URL</label>
+                        <input type="text" class="form-control" value="https://api.client.com/webhooks/paymo" disabled>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Test Event Type</label>
+                        <select class="form-select" id="testEventType">
+                            <option>transaction.created</option>
+                            <option>transaction.completed</option>
+                            <option>transaction.failed</option>
+                            <option>transfer.pending</option>
+                            <option>transfer.settled</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Sample Payload</label>
+                        <div class="code-block">
+                            <button class="copy-btn" onclick="copyCode('webhookPayload')"><i class="bi bi-clipboard"></i></button>
+                            <pre id="webhookPayload">{
+  "event": "transaction.created",
+  "timestamp": "2024-12-28T15:45:00Z",
+  "data": {
+    "transaction_id": "txn_2024_892341",
+    "amount": 125000,
+    "currency": "USD",
+    "status": "pending"
+  }
+}</pre>
+                        </div>
+                    </div>
+                    <div id="testResult" class="d-none">
+                        <h6 class="fw-bold mb-2">Test Result</h6>
+                        <div class="alert alert-success">
+                            <i class="bi bi-check-circle me-2"></i>
+                            <strong>Success!</strong> Webhook received and returned 200 OK
+                            <ul class="mt-2 mb-0">
+                                <li>Response Time: 245ms</li>
+                                <li>Status Code: 200</li>
+                                <li>Response: {"success": true}</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary btn-sm" onclick="sendTestWebhook()">
+                        <i class="bi bi-send"></i>
+                        Send Test Event
+                    </button>
+                    <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Webhook Logs Modal -->
+    <div class="modal fade" id="webhookLogsModal1" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Webhook Delivery Logs</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <div class="row g-2">
+                            <div class="col-md-6">
+                                <select class="form-select form-select-sm">
+                                    <option>All Events</option>
+                                    <option>transaction.created</option>
+                                    <option>transaction.completed</option>
+                                    <option>transfer.settled</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <select class="form-select form-select-sm">
+                                    <option>All Status</option>
+                                    <option>Successful</option>
+                                    <option>Failed</option>
+                                    <option>Retrying</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Timestamp</th>
+                                    <th>Event</th>
+                                    <th>Status</th>
+                                    <th>Response</th>
+                                    <th>Latency</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>2024-12-28 15:42</td>
+                                    <td>transaction.created</td>
+                                    <td><span class="badge bg-success">200</span></td>
+                                    <td>OK</td>
+                                    <td>245ms</td>
+                                    <td><button class="btn btn-sm btn-outline-primary" onclick="openModal('webhookLogDetailModal')"><i class="bi bi-eye"></i></button></td>
+                                </tr>
+                                <tr>
+                                    <td>2024-12-28 15:38</td>
+                                    <td>transfer.settled</td>
+                                    <td><span class="badge bg-success">200</span></td>
+                                    <td>OK</td>
+                                    <td>198ms</td>
+                                    <td><button class="btn btn-sm btn-outline-primary" onclick="openModal('webhookLogDetailModal')"><i class="bi bi-eye"></i></button></td>
+                                </tr>
+                                <tr>
+                                    <td>2024-12-28 15:30</td>
+                                    <td>transaction.failed</td>
+                                    <td><span class="badge bg-danger">500</span></td>
+                                    <td>Server Error</td>
+                                    <td>5002ms</td>
+                                    <td><button class="btn btn-sm btn-outline-primary" onclick="openModal('webhookLogDetailModal')"><i class="bi bi-eye"></i></button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-outline-primary btn-sm" onclick="exportWebhookLogs()">
+                        <i class="bi bi-download"></i>
+                        Export Logs
+                    </button>
+                    <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- API Explorer Modal -->
+    <div class="modal fade" id="apiExplorerModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Interactive API Explorer</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <h6 class="fw-bold mb-3">Endpoints</h6>
+                            <div class="list-group">
+                                <button class="list-group-item list-group-item-action active">
+                                    <span class="badge bg-primary me-2">POST</span>
+                                    /api/v1/transfers
+                                </button>
+                                <button class="list-group-item list-group-item-action">
+                                    <span class="badge bg-success me-2">GET</span>
+                                    /api/v1/transfers/:id
+                                </button>
+                                <button class="list-group-item list-group-item-action">
+                                    <span class="badge bg-success me-2">GET</span>
+                                    /api/v1/accounts
+                                </button>
+                                <button class="list-group-item list-group-item-action">
+                                    <span class="badge bg-warning me-2">PUT</span>
+                                    /api/v1/webhooks/:id
+                                </button>
+                                <button class="list-group-item list-group-item-action">
+                                    <span class="badge bg-danger me-2">DELETE</span>
+                                    /api/v1/api-keys/:id
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <h6 class="fw-bold mb-3">POST /api/v1/transfers</h6>
+                            <p class="small text-muted">Create a new transfer between accounts</p>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Request Body</label>
+                                <div class="code-block">
+                                    <button class="copy-btn" onclick="copyCode('apiRequest')"><i class="bi bi-clipboard"></i></button>
+                                    <pre id="apiRequest">{
+  "source_account": "acc_123456",
+  "destination_account": "acc_789012",
+  "amount": 10000,
+  "currency": "USD",
+  "reference": "Invoice #1234"
+}</pre>
+                                </div>
+                            </div>
+
+                            <button class="btn btn-primary btn-sm mb-3" onclick="executeApiCall()">
+                                <i class="bi bi-play-fill"></i>
+                                Execute Request
+                            </button>
+
+                            <div id="apiResponse" class="d-none">
+                                <h6 class="fw-bold mb-2">Response (200 OK)</h6>
+                                <div class="code-block">
+                                    <button class="copy-btn" onclick="copyCode('apiResponseBody')"><i class="bi bi-clipboard"></i></button>
+                                    <pre id="apiResponseBody">{
+  "transfer_id": "txn_2024_892567",
+  "status": "pending",
+  "created_at": "2024-12-28T15:45:00Z",
+  "estimated_settlement": "2024-12-28T17:00:00Z"
+}</pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-outline-primary btn-sm" onclick="openModal('apiDocsModal')">
+                        <i class="bi bi-book"></i>
+                        Full Documentation
+                    </button>
+                    <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Code Samples Modal -->
+    <div class="modal fade" id="codeSamplesModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Code Samples</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <h6 class="fw-bold mb-3">Create Transfer</h6>
+                    
+                    <div class="language-tabs">
+                        <button class="language-tab active" onclick="switchLanguage('node')">Node.js</button>
+                        <button class="language-tab" onclick="switchLanguage('python')">Python</button>
+                        <button class="language-tab" onclick="switchLanguage('php')">PHP</button>
+                        <button class="language-tab" onclick="switchLanguage('curl')">cURL</button>
+                    </div>
+
+                    <div id="nodeSample" class="code-sample">
+                        <div class="code-block">
+                            <button class="copy-btn" onclick="copyCode('nodeCode')"><i class="bi bi-clipboard"></i></button>
+                            <pre id="nodeCode">const paymo = require('@paymo/node-sdk');
+
+paymo.configure({
+  apiKey: 'pk_live_51H7Xr...'
+});
+
+const transfer = await paymo.transfers.create({
+  source_account: 'acc_123456',
+  destination_account: 'acc_789012',
+  amount: 10000,
+  currency: 'USD',
+  reference: 'Invoice #1234'
+});
+
+console.log(transfer);</pre>
+                        </div>
+                    </div>
+
+                    <div id="pythonSample" class="code-sample d-none">
+                        <div class="code-block">
+                            <button class="copy-btn" onclick="copyCode('pythonCode')"><i class="bi bi-clipboard"></i></button>
+                            <pre id="pythonCode">import paymo
+
+paymo.api_key = 'pk_live_51H7Xr...'
+
+transfer = paymo.Transfer.create(
+    source_account='acc_123456',
+    destination_account='acc_789012',
+    amount=10000,
+    currency='USD',
+    reference='Invoice #1234'
+)
+
+print(transfer)</pre>
+                        </div>
+                    </div>
+
+                    <div id="phpSample" class="code-sample d-none">
+                        <div class="code-block">
+                            <button class="copy-btn" onclick="copyCode('phpCode')"><i class="bi bi-clipboard"></i></button>
+                            <pre id="phpCode">require_once('vendor/autoload.php');
+
+\Paymo\Paymo::setApiKey('pk_live_51H7Xr...');
+
+$transfer = \Paymo\Transfer::create([
+  'source_account' => 'acc_123456',
+  'destination_account' => 'acc_789012',
+  'amount' => 10000,
+  'currency' => 'USD',
+  'reference' => 'Invoice #1234'
+]);
+
+echo $transfer;</pre>
+                        </div>
+                    </div>
+
+                    <div id="curlSample" class="code-sample d-none">
+                        <div class="code-block">
+                            <button class="copy-btn" onclick="copyCode('curlCode')"><i class="bi bi-clipboard"></i></button>
+                            <pre id="curlCode">curl https://api.paymo.com/v1/transfers \
+  -H "Authorization: Bearer pk_live_51H7Xr..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "source_account": "acc_123456",
+    "destination_account": "acc_789012",
+    "amount": 10000,
+    "currency": "USD",
+    "reference": "Invoice #1234"
+  }'</pre>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SDK Downloads Modal -->
+    <div class="modal fade" id="sdkDownloadsModal" tabindex="-1">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">SDK Downloads</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <h6 class="fw-bold mb-3">Official SDKs</h6>
+                    <div class="list-group">
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="bi bi-nodejs text-success me-2" style="font-size: 1.5rem;"></i>
+                                    <strong>Node.js SDK</strong>
+                                    <span class="badge bg-primary ms-2">v3.2.1</span>
+                                    <br>
+                                    <small class="text-muted">npm install @paymo/node-sdk</small>
+                                </div>
+                                <div>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="downloadSDK('node')">
+                                        <i class="bi bi-download"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-secondary" onclick="openSDKDocs('node')">
+                                        <i class="bi bi-book"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="bi bi-python text-info me-2" style="font-size: 1.5rem;"></i>
+                                    <strong>Python SDK</strong>
+                                    <span class="badge bg-primary ms-2">v2.1.4</span>
+                                    <br>
+                                    <small class="text-muted">pip install paymo</small>
+                                </div>
+                                <div>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="downloadSDK('python')">
+                                        <i class="bi bi-download"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-secondary" onclick="openSDKDocs('python')">
+                                        <i class="bi bi-book"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="bi bi-filetype-php text-primary me-2" style="font-size: 1.5rem;"></i>
+                                    <strong>PHP SDK</strong>
+                                    <span class="badge bg-primary ms-2">v4.0.2</span>
+                                    <br>
+                                    <small class="text-muted">composer require paymo/php-sdk</small>
+                                </div>
+                                <div>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="downloadSDK('php')">
+                                        <i class="bi bi-download"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-secondary" onclick="openSDKDocs('php')">
+                                        <i class="bi bi-book"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="bi bi-filetype-java text-danger me-2" style="font-size: 1.5rem;"></i>
+                                    <strong>Java SDK</strong>
+                                    <span class="badge bg-primary ms-2">v1.8.3</span>
+                                    <br>
+                                    <small class="text-muted">Maven dependency available</small>
+                                </div>
+                                <div>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="downloadSDK('java')">
+                                        <i class="bi bi-download"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-secondary" onclick="openSDKDocs('java')">
+                                        <i class="bi bi-book"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Changelog Modal -->
+    <div class="modal fade" id="changelogModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">API Changelog</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="fw-bold mb-0">Version 2024-12-01</h6>
+                                <span class="badge bg-success">Latest</span>
+                            </div>
+                            <small class="text-muted d-block mb-2">Released December 1, 2024</small>
+                            <ul class="small mb-0">
+                                <li>Added support for multi-currency transactions</li>
+                                <li>New webhook event: transfer.pending_approval</li>
+                                <li>Improved error messages for failed transfers</li>
+                                <li>Performance improvements: 30% faster API responses</li>
+                            </ul>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="fw-bold mb-0">Version 2024-09-01</h6>
+                                <span class="badge bg-secondary">Stable</span>
+                            </div>
+                            <small class="text-muted d-block mb-2">Released September 1, 2024</small>
+                            <ul class="small mb-0">
+                                <li>Added pagination to list endpoints</li>
+                                <li>New API: /api/v1/balances</li>
+                                <li>Deprecated: transfer_type field (use payment_rail instead)</li>
+                            </ul>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="fw-bold mb-0">Version 2024-06-01</h6>
+                                <span class="badge bg-warning">Deprecated</span>
+                            </div>
+                            <small class="text-muted d-block mb-2">Released June 1, 2024</small>
+                            <ul class="small mb-0">
+                                <li>Initial public release</li>
+                                <li>Core transfer APIs</li>
+                                <li>Webhook support</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Test Account Modal -->
+    <div class="modal fade" id="createTestAccountModal" tabindex="-1">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Create Test Account</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Account Type</label>
+                        <select class="form-select">
+                            <option>Individual Account</option>
+                            <option selected>Business Account</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Account Name</label>
+                        <input type="text" class="form-control" placeholder="e.g., Test Business Account">
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Currency</label>
+                            <select class="form-select">
+                                <option selected>USD</option>
+                                <option>EUR</option>
+                                <option>GBP</option>
+                                <option>KES</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Initial Balance</label>
+                            <input type="number" class="form-control" value="100000" step="1000">
+                        </div>
+                    </div>
+                    <div class="form-check mt-3">
+                        <input class="form-check-input" type="checkbox" id="autoReset" checked>
+                        <label class="form-check-label" for="autoReset">
+                            Auto-reset balance daily
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary btn-sm" onclick="createTestAccount()">
+                        <i class="bi bi-plus-circle"></i>
+                        Create Account
+                    </button>
+                    <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Generate Mock Data Modal -->
+    <div class="modal fade" id="generateMockDataModal" tabindex="-1">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Generate Mock Transaction Data</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Number of Transactions</label>
+                        <input type="number" class="form-control" value="100" min="1" max="1000">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Transaction Type</label>
+                        <select class="form-select">
+                            <option selected>All Types</option>
+                            <option>Transfers Only</option>
+                            <option>Payments Only</option>
+                            <option>Withdrawals Only</option>
+                        </select>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Min Amount</label>
+                            <input type="number" class="form-control" value="10" step="10">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Max Amount</label>
+                            <input type="number" class="form-control" value="10000" step="100">
+                        </div>
+                    </div>
+                    <div class="mb-3 mt-3">
+                        <label class="form-label">Date Range</label>
+                        <select class="form-select">
+                            <option>Last 24 Hours</option>
+                            <option selected>Last 7 Days</option>
+                            <option>Last 30 Days</option>
+                            <option>Custom Range</option>
+                        </select>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="includeFailed">
+                        <label class="form-check-label" for="includeFailed">
+                            Include failed transactions (10%)
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-warning btn-sm" onclick="generateMockData()">
+                        <i class="bi bi-stars"></i>
+                        Generate Data
+                    </button>
+                    <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Migration Tool Modal -->
+    <div class="modal fade" id="migrationToolModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Sandbox to Production Migration</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info small mb-3">
+                        <i class="bi bi-info-circle me-1"></i>
+                        This tool helps you migrate your sandbox integration to production safely.
+                    </div>
+
+                    <h6 class="fw-bold mb-3">Pre-Migration Checklist</h6>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="check1" checked disabled>
+                            <label class="form-check-label" for="check1">
+                                <strong>API Integration Tested</strong>
+                                <small class="d-block text-muted">All API endpoints working correctly</small>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="check2" checked disabled>
+                            <label class="form-check-label" for="check2">
+                                <strong>Webhook Endpoints Configured</strong>
+                                <small class="d-block text-muted">Production webhooks set up and tested</small>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="check3">
+                            <label class="form-check-label" for="check3">
+                                <strong>Production API Keys Generated</strong>
+                                <small class="d-block text-muted">Replace sandbox keys with production keys</small>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="check4">
+                            <label class="form-check-label" for="check4">
+                                <strong>Error Handling Implemented</strong>
+                                <small class="d-block text-muted">Proper error handling and retry logic</small>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="check5">
+                            <label class="form-check-label" for="check5">
+                                <strong>Compliance Requirements Met</strong>
+                                <small class="d-block text-muted">KYC/AML checks in place</small>
+                            </label>
+                        </div>
+                    </div>
+
+                    <h6 class="fw-bold mb-2 mt-4">Migration Steps</h6>
+                    <ol class="small">
+                        <li>Review and complete the checklist above</li>
+                        <li>Generate production API keys</li>
+                        <li>Update your application configuration</li>
+                        <li>Test with small production transaction</li>
+                        <li>Monitor for 24 hours</li>
+                        <li>Gradually increase traffic</li>
+                    </ol>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-outline-primary btn-sm" onclick="openModal('migrationGuideModal')">
+                        <i class="bi bi-book"></i>
+                        View Full Guide
+                    </button>
+                    <button class="btn btn-info btn-sm" onclick="startMigration()">
+                        <i class="bi bi-arrow-up-right"></i>
+                        Start Migration
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notifications Modal -->
+    <div class="modal fade" id="notificationsModal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Developer Notifications</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" style="max-height: 400px; overflow-y: auto;">
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between">
+                                <h6 class="mb-1 small">API Rate Limit Warning</h6>
+                                <small class="text-warning">15 min</small>
+                            </div>
+                            <p class="mb-1 small text-muted">Approaching 80% of rate limit</p>
+                            <span class="badge bg-warning">Warning</span>
+                        </div>
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between">
+                                <h6 class="mb-1 small">New SDK Release</h6>
+                                <small class="text-muted">2 hours</small>
+                            </div>
+                            <p class="mb-1 small text-muted">Node.js SDK v3.2.1 available</p>
+                            <span class="badge bg-info">Update</span>
+                        </div>
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between">
+                                <h6 class="mb-1 small">Webhook Delivery Failed</h6>
+                                <small class="text-danger">5 hours</small>
+                            </div>
+                            <p class="mb-1 small text-muted">Endpoint returning 500 errors</p>
+                            <span class="badge bg-danger">Critical</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-sm btn-outline-primary" onclick="markAllNotificationsRead()">Mark All Read</button>
+                    <button class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Modal -->
+    <div class="modal fade" id="profileModal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Developer Account</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-3">
+                        <div class="rounded-circle bg-primary bg-opacity-10 d-inline-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                            <i class="bi bi-person-circle text-primary" style="font-size: 2rem;"></i>
+                        </div>
+                        <h6 class="mt-2 mb-0">Sarah Developer</h6>
+                        <small class="text-muted">API Integration Specialist</small>
+                    </div>
+                    <hr>
+                    <div class="list-group list-group-flush">
+                        <button class="list-group-item list-group-item-action border-0" onclick="openModal('settingsModal')">
+                            <i class="bi bi-gear me-2"></i>Settings
+                        </button>
+                        <button class="list-group-item list-group-item-action border-0" onclick="openModal('apiDocsModal')">
+                            <i class="bi bi-book me-2"></i>Documentation
+                        </button>
+                        <button class="list-group-item list-group-item-action border-0 text-danger" onclick="logout()">
+                            <i class="bi bi-box-arrow-right me-2"></i>Logout
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Additional Modals (placeholders for completeness - all have content) -->
+    <div class="modal fade" id="apiKeyDetail1Modal" tabindex="-1"><div class="modal-dialog modal-md"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">API Key: Production Main</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><ul class="kv-list"><li><span class="kv-label">Name</span><span class="kv-value">Production Main</span></li><li><span class="kv-label">Key ID</span><span class="kv-value">pk_live_51H7Xr...</span></li><li><span class="kv-label">Environment</span><span class="kv-value">Production</span></li><li><span class="kv-label">Permissions</span><span class="kv-value">Full Access</span></li><li><span class="kv-label">Created</span><span class="kv-value">2024-01-15</span></li><li><span class="kv-label">Last Used</span><span class="kv-value">5 minutes ago</span></li><li><span class="kv-label">Total Calls (30d)</span><span class="kv-value">8,245,678</span></li></ul></div><div class="modal-footer"><button class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button></div></div></div></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Theme Management
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            const icon = document.getElementById('themeIcon');
+            if (document.body.classList.contains('dark-mode')) {
+                icon.className = 'bi bi-sun';
+                localStorage.setItem('theme', 'dark');
+            } else {
+                icon.className = 'bi bi-moon-stars';
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-mode');
+                document.getElementById('themeIcon').className = 'bi bi-sun';
+            }
+        });
+
+        // Sidebar Management
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('show');
+        }
+
+        function toggleSidebarCollapse() {
+            document.getElementById('sidebar').classList.toggle('collapsed');
+        }
+
+        // Modal Management
+        function openModal(modalId) {
+            const existingModal = bootstrap.Modal.getInstance(document.querySelector('.modal.show'));
+            if (existingModal) {
+                existingModal.hide();
+            }
+            setTimeout(() => {
+                const modal = new bootstrap.Modal(document.getElementById(modalId));
+                modal.show();
+            }, existingModal ? 300 : 0);
+        }
+
+        // Filter Functions
+        function applyFilters() {
+            const spinner = showLoadingSpinner('Applying filters...');
+            setTimeout(() => {
+                hideLoadingSpinner(spinner);
+                showSuccessMessage('Filters applied successfully');
+            }, 800);
+        }
+
+        function resetFilters() {
+            document.getElementById('envFilter').value = 'All Environments';
+            document.getElementById('statusFilter').value = 'All Status';
+            document.getElementById('typeFilter').value = 'All Types';
+            document.getElementById('dateFilter').value = 'Last 90 Days';
+            showSuccessMessage('Filters reset');
+        }
+
+        // API Key Functions
+        function apiKeyNextStep() {
+            showSuccessMessage('Moving to next step...');
+        }
+
+        function toggleApiKeyVisibility(fieldId) {
+            const field = document.getElementById(fieldId);
+            field.type = field.type === 'password' ? 'text' : 'password';
+        }
+
+        function copyToClipboard(fieldId) {
+            const field = document.getElementById(fieldId);
+            navigator.clipboard.writeText(field.value);
+            showSuccessMessage('API key copied to clipboard');
+        }
+
+        function rotateApiKey() {
+            const spinner = showLoadingSpinner('Rotating API key...');
+            setTimeout(() => {
+                hideLoadingSpinner(spinner);
+                showSuccessMessage('New API key generated successfully');
+                closeAllModals();
+            }, 1500);
+        }
+
+        function revokeApiKey() {
+            const spinner = showLoadingSpinner('Revoking API key...');
+            setTimeout(() => {
+                hideLoadingSpinner(spinner);
+                showSuccessMessage('API key revoked');
+                closeAllModals();
+            }, 1000);
+        }
+
+        function savePermissions() {
+            const spinner = showLoadingSpinner('Saving permissions...');
+            setTimeout(() => {
+                hideLoadingSpinner(spinner);
+                showSuccessMessage('Permissions updated');
+                bootstrap.Modal.getInstance(document.getElementById('managePermissionsModal')).hide();
+            }, 1000);
+        }
+
+        // Webhook Functions
+        function webhookNextStep() {
+            showSuccessMessage('Moving to next step...');
+        }
+
+        function sendTestWebhook() {
+            const spinner = showLoadingSpinner('Sending test webhook...');
+            setTimeout(() => {
+                hideLoadingSpinner(spinner);
+                document.getElementById('testResult').classList.remove('d-none');
+            }, 1500);
+        }
+
+        function exportWebhookLogs() {
+            const spinner = showLoadingSpinner('Exporting logs...');
+            setTimeout(() => {
+                hideLoadingSpinner(spinner);
+                showSuccessMessage('Webhook logs exported');
+            }, 1000);
+        }
+
+        // Code Functions
+        function copyCode(elementId) {
+            const code = document.getElementById(elementId).textContent;
+            navigator.clipboard.writeText(code);
+            showSuccessMessage('Code copied to clipboard');
+        }
+
+        function switchLanguage(lang) {
+            document.querySelectorAll('.language-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.code-sample').forEach(sample => sample.classList.add('d-none'));
+            event.target.classList.add('active');
+            document.getElementById(lang + 'Sample').classList.remove('d-none');
+        }
+
+        function executeApiCall() {
+            const spinner = showLoadingSpinner('Executing API request...');
+            setTimeout(() => {
+                hideLoadingSpinner(spinner);
+                document.getElementById('apiResponse').classList.remove('d-none');
+            }, 1000);
+        }
+
+        // SDK Functions
+        function downloadSDK(lang) {
+            const spinner = showLoadingSpinner(`Preparing ${lang} SDK download...`);
+            setTimeout(() => {
+                hideLoadingSpinner(spinner);
+                showSuccessMessage(`${lang} SDK download started`);
+            }, 1000);
+        }
+
+        function openSDKDocs(lang) {
+            showSuccessMessage(`Opening ${lang} SDK documentation...`);
+        }
+
+        // Sandbox Functions
+        function createTestAccount() {
+            const spinner = showLoadingSpinner('Creating test account...');
+            setTimeout(() => {
+                hideLoadingSpinner(spinner);
+                showSuccessMessage('Test account created successfully');
+                bootstrap.Modal.getInstance(document.getElementById('createTestAccountModal')).hide();
+            }, 1000);
+        }
+
+        function generateMockData() {
+            const spinner = showLoadingSpinner('Generating mock transaction data...');
+            setTimeout(() => {
+                hideLoadingSpinner(spinner);
+                showSuccessMessage('100 mock transactions generated');
+                bootstrap.Modal.getInstance(document.getElementById('generateMockDataModal')).hide();
+            }, 2000);
+        }
+
+        function simulateScenario(scenario) {
+            const spinner = showLoadingSpinner(`Simulating ${scenario} scenario...`);
+            setTimeout(() => {
+                hideLoadingSpinner(spinner);
+                showSuccessMessage(`${scenario} scenario executed`);
+            }, 1000);
+        }
+
+        function startMigration() {
+            const spinner = showLoadingSpinner('Preparing migration...');
+            setTimeout(() => {
+                hideLoadingSpinner(spinner);
+                showSuccessMessage('Migration wizard launched');
+            }, 1500);
+        }
+
+        // Utility Functions
+        function showLoadingSpinner(message) {
+            const overlay = document.createElement('div');
+            overlay.className = 'position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center';
+            overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+            overlay.style.zIndex = '9999';
+            overlay.innerHTML = `
+                <div class="bg-white rounded p-4 text-center">
+                    <div class="spinner-border text-primary mb-3" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <div>${message}</div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+            return overlay;
+        }
+
+        function hideLoadingSpinner(spinner) {
+            if (spinner && spinner.parentNode) {
+                spinner.parentNode.removeChild(spinner);
+            }
+        }
+
+        function showSuccessMessage(message) {
+            const toast = document.createElement('div');
+            toast.className = 'position-fixed top-0 end-0 p-3';
+            toast.style.zIndex = '9999';
+            toast.innerHTML = `
+                <div class="toast show" role="alert">
+                    <div class="toast-header bg-success text-white">
+                        <i class="bi bi-check-circle me-2"></i>
+                        <strong class="me-auto">Success</strong>
+                        <button type="button" class="btn-close btn-close-white" onclick="this.closest('.position-fixed').remove()"></button>
+                    </div>
+                    <div class="toast-body">
+                        ${message}
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.parentNode.removeChild(toast);
+                }
+            }, 2500);
+        }
+
+        function closeAllModals() {
+            document.querySelectorAll('.modal.show').forEach(modal => {
+                bootstrap.Modal.getInstance(modal)?.hide();
+            });
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                const spinner = showLoadingSpinner('Logging out...');
+                setTimeout(() => {
+                    hideLoadingSpinner(spinner);
+                    window.location.href = '/login';
+                }, 1000);
+            }
+        }
+
+        function markAllNotificationsRead() {
+            showSuccessMessage('All notifications marked as read');
+            const badge = document.querySelector('.topbar .btn-icon .badge');
+            if (badge) badge.remove();
+        }
+
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', function(event) {
+            const sidebar = document.getElementById('sidebar');
+            const isClickInside = sidebar.contains(event.target);
+            const isToggleButton = event.target.closest('.btn-icon');
+            
+            if (!isClickInside && !isToggleButton && window.innerWidth <= 992) {
+                sidebar.classList.remove('show');
+            }
+        });
+    </script>
+</body>
+</html>

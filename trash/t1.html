@@ -1,0 +1,3716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transaction Analytics & Reporting - PayMo BaaS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-dark: #1e40af;
+            --primary-light: #3b82f6;
+            --secondary-color: #8b5cf6;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --info-color: #06b6d4;
+            --dark-bg: #0f172a;
+            --dark-card: #1e293b;
+            --dark-border: #334155;
+            --light-bg: #f8fafc;
+            --light-card: #ffffff;
+            --light-border: #e2e8f0;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --sidebar-width: 280px;
+            --sidebar-collapsed: 80px;
+            --transition-speed: 0.3s;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--light-bg);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            transition: background 0.3s ease;
+        }
+
+        body.dark-mode {
+            background: var(--dark-bg);
+            color: #e2e8f0;
+        }
+
+        body.dark-mode .card,
+        body.dark-mode .sidebar,
+        body.dark-mode .topbar,
+        body.dark-mode .modal-content,
+        body.dark-mode .dropdown-menu {
+            background: var(--dark-card);
+            color: #e2e8f0;
+            border-color: var(--dark-border);
+        }
+
+        body.dark-mode .text-muted {
+            color: #94a3b8 !important;
+        }
+
+        body.dark-mode .border {
+            border-color: var(--dark-border) !important;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100vh;
+            width: var(--sidebar-width);
+            background: var(--light-card);
+            border-right: 1px solid var(--light-border);
+            transition: all var(--transition-speed) ease;
+            z-index: 1050;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .sidebar.collapsed {
+            width: var(--sidebar-collapsed);
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--light-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .sidebar.collapsed .sidebar-logo-text,
+        .sidebar.collapsed .nav-text,
+        .sidebar.collapsed .section-title {
+            display: none;
+        }
+
+        .sidebar-nav {
+            padding: 1rem 0;
+        }
+
+        .nav-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            padding: 0.5rem 1.5rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            letter-spacing: 0.05em;
+        }
+
+        .nav-item {
+            list-style: none;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1.5rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.2s ease;
+            position: relative;
+            font-weight: 500;
+        }
+
+        .nav-link:hover {
+            background: rgba(37, 99, 235, 0.1);
+            color: var(--primary-color);
+        }
+
+        .nav-link.active {
+            background: linear-gradient(90deg, rgba(37, 99, 235, 0.1) 0%, transparent 100%);
+            color: var(--primary-color);
+            border-left: 3px solid var(--primary-color);
+        }
+
+        .nav-link i {
+            font-size: 1.25rem;
+            width: 24px;
+            text-align: center;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+            transition: margin-left var(--transition-speed) ease;
+        }
+
+        .sidebar.collapsed ~ .main-content {
+            margin-left: var(--sidebar-collapsed);
+        }
+
+        /* Topbar */
+        .topbar {
+            background: var(--light-card);
+            border-bottom: 1px solid var(--light-border);
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 1040;
+            flex-wrap: wrap;
+        }
+
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .search-box {
+            position: relative;
+            flex: 1;
+            max-width: 400px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 0.625rem 1rem 0.625rem 2.5rem;
+            border: 1px solid var(--light-border);
+            border-radius: 0.5rem;
+            background: var(--light-bg);
+            transition: all 0.2s ease;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 0.875rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+
+        .btn-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--light-border);
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .btn-icon:hover {
+            background: var(--light-bg);
+            color: var(--primary-color);
+        }
+
+        .btn-icon .badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            font-size: 0.65rem;
+        }
+
+        /* Page Content */
+        .page-content {
+            padding: 2rem;
+        }
+
+        .page-header {
+            margin-bottom: 2rem;
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-subtitle {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--light-card);
+            border: 1px solid var(--light-border);
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s ease;
+            height: 100%;
+        }
+
+        .card:hover {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+        }
+
+        .card-header {
+            background: transparent;
+            border-bottom: 1px solid var(--light-border);
+            padding: 1.25rem 1.5rem;
+            font-weight: 600;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        /* Stats Cards */
+        .stat-card {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--primary-color);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .stat-change {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.625rem;
+            border-radius: 0.375rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .stat-change.positive {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+        }
+
+        .stat-change.negative {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger-color);
+        }
+
+        /* Tabs */
+        .nav-tabs {
+            border-bottom: 2px solid var(--light-border);
+            gap: 0.5rem;
+        }
+
+        .nav-tabs .nav-link {
+            border: none;
+            border-radius: 0;
+            color: var(--text-secondary);
+            padding: 0.75rem 1.5rem;
+            position: relative;
+            background: transparent;
+        }
+
+        .nav-tabs .nav-link:hover {
+            color: var(--primary-color);
+            background: transparent;
+        }
+
+        .nav-tabs .nav-link.active {
+            color: var(--primary-color);
+            background: transparent;
+            border-bottom: 2px solid var(--primary-color);
+        }
+
+        /* Table */
+        .table-responsive {
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table thead th {
+            background: var(--light-bg);
+            border-bottom: 2px solid var(--light-border);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            padding: 1rem;
+            white-space: nowrap;
+        }
+
+        .table tbody td {
+            padding: 1rem;
+            vertical-align: middle;
+            border-bottom: 1px solid var(--light-border);
+        }
+
+        .table tbody tr:hover {
+            background: rgba(37, 99, 235, 0.02);
+        }
+
+        /* Badges */
+        .badge {
+            padding: 0.375rem 0.75rem;
+            font-weight: 600;
+            border-radius: 0.375rem;
+            font-size: 0.75rem;
+        }
+
+        /* Chart Container */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 1rem;
+        }
+
+        .chart-placeholder {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--light-bg) 0%, rgba(37, 99, 235, 0.05) 100%);
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .chart-placeholder i {
+            font-size: 3rem;
+            color: var(--primary-color);
+            opacity: 0.5;
+        }
+
+        /* Filter Panel */
+        .filter-panel {
+            background: var(--light-bg);
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .filter-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .filter-row:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Modal Enhancements */
+        .modal-content {
+            border-radius: 1rem;
+            border: none;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .modal-header {
+            border-bottom: 1px solid var(--light-border);
+            padding: 1.5rem;
+        }
+
+        .modal-title {
+            font-weight: 700;
+            font-size: 1.25rem;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .modal-footer {
+            border-top: 1px solid var(--light-border);
+            padding: 1.25rem 1.5rem;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.625rem 1.25rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2);
+        }
+
+        .btn-outline-primary {
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+            background: transparent;
+        }
+
+        .btn-outline-primary:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 0.375rem 0.875rem;
+            font-size: 0.875rem;
+        }
+
+        /* Loading Spinner */
+        .spinner-border-sm {
+            width: 1rem;
+            height: 1rem;
+            border-width: 2px;
+        }
+
+        /* Form Controls */
+        .form-label {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .form-control,
+        .form-select {
+            border: 1px solid var(--light-border);
+            border-radius: 0.5rem;
+            padding: 0.625rem 0.875rem;
+            transition: all 0.2s ease;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        /* Heatmap */
+        .heatmap-container {
+            display: grid;
+            grid-template-columns: repeat(24, 1fr);
+            gap: 4px;
+            margin-top: 1rem;
+        }
+
+        .heatmap-cell {
+            aspect-ratio: 1;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .heatmap-cell:hover {
+            transform: scale(1.2);
+            z-index: 10;
+        }
+
+        /* Report Builder */
+        .builder-canvas {
+            min-height: 400px;
+            border: 2px dashed var(--light-border);
+            border-radius: 0.75rem;
+            padding: 2rem;
+            text-align: center;
+            background: var(--light-bg);
+        }
+
+        .builder-item {
+            background: white;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--light-border);
+            margin-bottom: 0.75rem;
+            cursor: move;
+        }
+
+        .builder-item:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 2px 4px rgba(37, 99, 235, 0.1);
+        }
+
+        /* Geographic Map */
+        .geo-map {
+            width: 100%;
+            height: 400px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 0.75rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .flow-line {
+            position: absolute;
+            width: 2px;
+            background: rgba(255, 255, 255, 0.3);
+            animation: flow 2s infinite;
+        }
+
+        @keyframes flow {
+            0% { opacity: 0; }
+            50% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.show {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .topbar {
+                padding: 1rem;
+            }
+
+            .page-content {
+                padding: 1rem;
+            }
+
+            .filter-row {
+                grid-template-columns: 1fr;
+            }
+
+            .stat-value {
+                font-size: 1.5rem;
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--light-bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--light-border);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+
+        /* Dark mode scrollbar */
+        body.dark-mode ::-webkit-scrollbar-track {
+            background: var(--dark-bg);
+        }
+
+        body.dark-mode ::-webkit-scrollbar-thumb {
+            background: var(--dark-border);
+        }
+
+        /* Metric Card Icon */
+        .metric-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        /* Timeline */
+        .timeline {
+            position: relative;
+            padding-left: 2rem;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--light-border);
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -2.375rem;
+            top: 0.25rem;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            border: 2px solid var(--light-card);
+        }
+
+        /* Progress Ring */
+        .progress-ring {
+            width: 120px;
+            height: 120px;
+            position: relative;
+        }
+
+        .progress-ring svg {
+            transform: rotate(-90deg);
+        }
+
+        .progress-ring-circle {
+            fill: none;
+            stroke-width: 8;
+            stroke-linecap: round;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <a href="#" class="sidebar-logo">
+                <i class="bi bi-bank2"></i>
+                <span class="sidebar-logo-text">PayMo</span>
+            </a>
+            <button class="btn-icon d-lg-none" onclick="toggleSidebar()">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <div class="section-title">Dashboard</div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a href="#overview" class="nav-link">
+                            <i class="bi bi-speedometer2"></i>
+                            <span class="nav-text">Transfer Overview</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                <div class="section-title">Transactions</div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a href="#initiate" class="nav-link">
+                            <i class="bi bi-send"></i>
+                            <span class="nav-text">Initiate Transfer</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#management" class="nav-link">
+                            <i class="bi bi-list-task"></i>
+                            <span class="nav-text">Transfer Management</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#rails" class="nav-link">
+                            <i class="bi bi-diagram-3"></i>
+                            <span class="nav-text">Payment Rails</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#liquidity" class="nav-link">
+                            <i class="bi bi-water"></i>
+                            <span class="nav-text">Liquidity Management</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#reconciliation" class="nav-link">
+                            <i class="bi bi-arrow-left-right"></i>
+                            <span class="nav-text">Reconciliation</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#settlement" class="nav-link">
+                            <i class="bi bi-calendar-check"></i>
+                            <span class="nav-text">Settlement</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#analytics" class="nav-link active">
+                            <i class="bi bi-graph-up"></i>
+                            <span class="nav-text">Analytics & Reporting</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                <div class="section-title">Compliance</div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a href="#compliance" class="nav-link">
+                            <i class="bi bi-shield-check"></i>
+                            <span class="nav-text">AML & Compliance</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#api" class="nav-link">
+                            <i class="bi bi-code-square"></i>
+                            <span class="nav-text">API Management</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                <div class="section-title">Settings</div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a href="#settings" class="nav-link">
+                            <i class="bi bi-gear"></i>
+                            <span class="nav-text">System Settings</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Topbar -->
+        <div class="topbar">
+            <div class="topbar-left">
+                <button class="btn-icon d-lg-none" onclick="toggleSidebar()">
+                    <i class="bi bi-list"></i>
+                </button>
+                <button class="btn-icon d-none d-lg-flex" onclick="toggleSidebarCollapse()">
+                    <i class="bi bi-layout-sidebar"></i>
+                </button>
+                <div class="search-box">
+                    <i class="bi bi-search"></i>
+                    <input type="text" placeholder="Search transactions, reports, metrics..." class="form-control">
+                </div>
+            </div>
+            <div class="topbar-right">
+                <button class="btn-icon" onclick="openModal('quickExportModal')">
+                    <i class="bi bi-download"></i>
+                </button>
+                <button class="btn-icon" onclick="openModal('notificationsModal')">
+                    <i class="bi bi-bell"></i>
+                    <span class="badge bg-danger">3</span>
+                </button>
+                <button class="btn-icon" onclick="toggleDarkMode()">
+                    <i class="bi bi-moon-stars" id="themeIcon"></i>
+                </button>
+                <button class="btn-icon" onclick="openModal('profileModal')">
+                    <i class="bi bi-person-circle"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Page Content -->
+        <div class="page-content">
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+                    <div>
+                        <h1 class="page-title">Transaction Analytics & Reporting</h1>
+                        <p class="page-subtitle">Deep insights into transfer patterns, performance, and trends</p>
+                    </div>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <button class="btn btn-outline-primary" onclick="openModal('customReportModal')">
+                            <i class="bi bi-file-earmark-plus"></i>
+                            Create Custom Report
+                        </button>
+                        <button class="btn btn-primary" onclick="openModal('reportBuilderModal')">
+                            <i class="bi bi-tools"></i>
+                            Report Builder
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filter Panel -->
+            <div class="filter-panel">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="mb-0 fw-bold">Analytics Filters</h6>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-primary" onclick="resetFilters()">
+                            <i class="bi bi-arrow-clockwise"></i>
+                            Reset
+                        </button>
+                        <button class="btn btn-sm btn-primary" onclick="applyFilters()">
+                            <i class="bi bi-funnel"></i>
+                            Apply Filters
+                        </button>
+                    </div>
+                </div>
+                <div class="filter-row">
+                    <div>
+                        <label class="form-label">Date Range</label>
+                        <select class="form-select" id="dateRange">
+                            <option>Last 7 Days</option>
+                            <option>Last 30 Days</option>
+                            <option selected>Last 90 Days</option>
+                            <option>Last 12 Months</option>
+                            <option>Year to Date</option>
+                            <option>Custom Range</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label">Payment Rail</label>
+                        <select class="form-select" id="railFilter">
+                            <option selected>All Rails</option>
+                            <option>ACH</option>
+                            <option>SWIFT</option>
+                            <option>SEPA</option>
+                            <option>Wire</option>
+                            <option>Real-time</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label">Currency</label>
+                        <select class="form-select" id="currencyFilter">
+                            <option selected>All Currencies</option>
+                            <option>USD</option>
+                            <option>EUR</option>
+                            <option>GBP</option>
+                            <option>KES</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label">Metric Type</label>
+                        <select class="form-select" id="metricType">
+                            <option selected>All Metrics</option>
+                            <option>Volume</option>
+                            <option>Value</option>
+                            <option>Performance</option>
+                            <option>Revenue</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KPI Cards -->
+            <div class="row g-3 mb-4">
+                <div class="col-lg-3 col-md-6">
+                    <div class="card stat-card" onclick="openModal('volumeDetailsModal')">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="metric-icon bg-primary bg-opacity-10 text-primary">
+                                    <i class="bi bi-arrow-up-circle"></i>
+                                </div>
+                                <span class="stat-change positive">
+                                    <i class="bi bi-arrow-up"></i>
+                                    12.5%
+                                </span>
+                            </div>
+                            <div class="stat-value">2.4M</div>
+                            <div class="stat-label">Total Transactions (90d)</div>
+                            <small class="text-muted">Click for detailed breakdown</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="card stat-card" onclick="openModal('valueDetailsModal')">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="metric-icon bg-success bg-opacity-10 text-success">
+                                    <i class="bi bi-cash-stack"></i>
+                                </div>
+                                <span class="stat-change positive">
+                                    <i class="bi bi-arrow-up"></i>
+                                    18.3%
+                                </span>
+                            </div>
+                            <div class="stat-value">$845M</div>
+                            <div class="stat-label">Transaction Value (90d)</div>
+                            <small class="text-muted">Click for currency breakdown</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="card stat-card" onclick="openModal('successRateModal')">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="metric-icon bg-info bg-opacity-10 text-info">
+                                    <i class="bi bi-check-circle"></i>
+                                </div>
+                                <span class="stat-change positive">
+                                    <i class="bi bi-arrow-up"></i>
+                                    2.1%
+                                </span>
+                            </div>
+                            <div class="stat-value">98.7%</div>
+                            <div class="stat-label">Success Rate</div>
+                            <small class="text-muted">Click for failure analysis</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="card stat-card" onclick="openModal('settlementTimeModal')">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="metric-icon bg-warning bg-opacity-10 text-warning">
+                                    <i class="bi bi-clock-history"></i>
+                                </div>
+                                <span class="stat-change negative">
+                                    <i class="bi bi-arrow-down"></i>
+                                    8.2%
+                                </span>
+                            </div>
+                            <div class="stat-value">2.4h</div>
+                            <div class="stat-label">Avg Settlement Time</div>
+                            <small class="text-muted">Click for rail comparison</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Analytics Tabs -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <ul class="nav nav-tabs card-header-tabs" id="analyticsTab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="volume-tab" data-bs-toggle="tab" data-bs-target="#volume" type="button" role="tab">
+                                <i class="bi bi-bar-chart-line me-2"></i>Volume & Value
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="performance-tab" data-bs-toggle="tab" data-bs-target="#performance" type="button" role="tab">
+                                <i class="bi bi-speedometer me-2"></i>Performance
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="revenue-tab" data-bs-toggle="tab" data-bs-target="#revenue" type="button" role="tab">
+                                <i class="bi bi-currency-dollar me-2"></i>Revenue & Cost
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="geographic-tab" data-bs-toggle="tab" data-bs-target="#geographic" type="button" role="tab">
+                                <i class="bi bi-geo-alt me-2"></i>Geographic Flow
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="monitoring-tab" data-bs-toggle="tab" data-bs-target="#monitoring" type="button" role="tab">
+                                <i class="bi bi-activity me-2"></i>Real-Time
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body">
+                    <div class="tab-content" id="analyticsTabContent">
+                        <!-- Volume & Value Tab -->
+                        <div class="tab-pane fade show active" id="volume" role="tabpanel">
+                            <div class="row g-4">
+                                <div class="col-lg-8">
+                                    <h6 class="fw-bold mb-3">Transaction Volume Trend</h6>
+                                    <div class="chart-container">
+                                        <div class="chart-placeholder">
+                                            <i class="bi bi-graph-up"></i>
+                                            <div class="text-center">
+                                                <p class="mb-2 fw-bold">Transaction Volume Chart</p>
+                                                <small class="text-muted">Daily transaction count over time</small>
+                                            </div>
+                                            <button class="btn btn-sm btn-primary" onclick="openModal('chartConfigModal')">
+                                                <i class="bi bi-gear"></i>
+                                                Configure Chart
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex gap-3 mt-3">
+                                        <button class="btn btn-sm btn-outline-primary" onclick="openModal('trendAnalysisModal')">
+                                            <i class="bi bi-graph-up-arrow"></i>
+                                            Trend Analysis
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-primary" onclick="openModal('peakHoursModal')">
+                                            <i class="bi bi-clock"></i>
+                                            Peak Hours
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-primary" onclick="openModal('growthRateModal')">
+                                            <i class="bi bi-arrow-up-right"></i>
+                                            Growth Rate
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-lg-4">
+                                    <h6 class="fw-bold mb-3">Transaction Breakdown</h6>
+                                    <div class="chart-container">
+                                        <div class="chart-placeholder">
+                                            <i class="bi bi-pie-chart"></i>
+                                            <div class="text-center">
+                                                <p class="mb-2 fw-bold">Rail Distribution</p>
+                                                <small class="text-muted">By payment rail</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="mt-3">
+                                        <button class="btn btn-sm btn-outline-primary w-100" onclick="openModal('railBreakdownModal')">
+                                            <i class="bi bi-diagram-3"></i>
+                                            View Detailed Breakdown
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row mt-4">
+                                <div class="col-12">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h6 class="fw-bold mb-0">Value Analytics</h6>
+                                        <button class="btn btn-sm btn-outline-primary" onclick="openModal('valueMetricsModal')">
+                                            <i class="bi bi-plus-circle"></i>
+                                            Add Metric
+                                        </button>
+                                    </div>
+                                    <div class="row g-3">
+                                        <div class="col-md-3">
+                                            <div class="card border" onclick="openModal('avgTransactionModal')">
+                                                <div class="card-body">
+                                                    <small class="text-muted d-block mb-1">Average Transaction</small>
+                                                    <h5 class="mb-0">$352</h5>
+                                                    <small class="text-success">
+                                                        <i class="bi bi-arrow-up"></i> 5.2%
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="card border" onclick="openModal('medianValueModal')">
+                                                <div class="card-body">
+                                                    <small class="text-muted d-block mb-1">Median Value</small>
+                                                    <h5 class="mb-0">$175</h5>
+                                                    <small class="text-success">
+                                                        <i class="bi bi-arrow-up"></i> 3.1%
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="card border" onclick="openModal('largestTransactionModal')">
+                                                <div class="card-body">
+                                                    <small class="text-muted d-block mb-1">Largest Transaction</small>
+                                                    <h5 class="mb-0">$2.5M</h5>
+                                                    <small class="text-muted">Today</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="card border" onclick="openModal('currencyDistributionModal')">
+                                                <div class="card-body">
+                                                    <small class="text-muted d-block mb-1">Top Currency</small>
+                                                    <h5 class="mb-0">USD</h5>
+                                                    <small class="text-muted">62.4%</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Performance Tab -->
+                        <div class="tab-pane fade" id="performance" role="tabpanel">
+                            <div class="row g-4">
+                                <div class="col-lg-6">
+                                    <h6 class="fw-bold mb-3">Success Rate Trends</h6>
+                                    <div class="chart-container">
+                                        <div class="chart-placeholder">
+                                            <i class="bi bi-check2-circle"></i>
+                                            <div class="text-center">
+                                                <p class="mb-2 fw-bold">Success Rate Over Time</p>
+                                                <small class="text-muted">Per payment rail comparison</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-sm btn-outline-primary mt-3" onclick="openModal('successRateDetailsModal')">
+                                        <i class="bi bi-graph-up"></i>
+                                        View Detailed Analysis
+                                    </button>
+                                </div>
+                                <div class="col-lg-6">
+                                    <h6 class="fw-bold mb-3">Settlement Time Distribution</h6>
+                                    <div class="chart-container">
+                                        <div class="chart-placeholder">
+                                            <i class="bi bi-clock-history"></i>
+                                            <div class="text-center">
+                                                <p class="mb-2 fw-bold">Settlement Time Histogram</p>
+                                                <small class="text-muted">Distribution by time buckets</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-sm btn-outline-primary mt-3" onclick="openModal('settlementDistributionModal')">
+                                        <i class="bi bi-bar-chart"></i>
+                                        View Distribution
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="mt-4">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h6 class="fw-bold mb-0">Failure Analysis</h6>
+                                    <button class="btn btn-sm btn-primary" onclick="openModal('failureAnalysisModal')">
+                                        <i class="bi bi-exclamation-triangle"></i>
+                                        Full Analysis
+                                    </button>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>Failure Reason</th>
+                                                <th>Count</th>
+                                                <th>Percentage</th>
+                                                <th>Trend</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr onclick="openModal('failureDetailModal1')">
+                                                <td>Insufficient Funds</td>
+                                                <td>1,245</td>
+                                                <td>42.3%</td>
+                                                <td><span class="text-danger"><i class="bi bi-arrow-up"></i> 5.2%</span></td>
+                                                <td><button class="btn btn-sm btn-outline-primary">View</button></td>
+                                            </tr>
+                                            <tr onclick="openModal('failureDetailModal2')">
+                                                <td>Invalid Account</td>
+                                                <td>892</td>
+                                                <td>30.3%</td>
+                                                <td><span class="text-success"><i class="bi bi-arrow-down"></i> 2.1%</span></td>
+                                                <td><button class="btn btn-sm btn-outline-primary">View</button></td>
+                                            </tr>
+                                            <tr onclick="openModal('failureDetailModal3')">
+                                                <td>Timeout</td>
+                                                <td>456</td>
+                                                <td>15.5%</td>
+                                                <td><span class="text-danger"><i class="bi bi-arrow-up"></i> 8.7%</span></td>
+                                                <td><button class="btn btn-sm btn-outline-primary">View</button></td>
+                                            </tr>
+                                            <tr onclick="openModal('failureDetailModal4')">
+                                                <td>Compliance Hold</td>
+                                                <td>234</td>
+                                                <td>8.0%</td>
+                                                <td><span class="text-muted"><i class="bi bi-dash"></i> 0.0%</span></td>
+                                                <td><button class="btn btn-sm btn-outline-primary">View</button></td>
+                                            </tr>
+                                            <tr onclick="openModal('failureDetailModal5')">
+                                                <td>Other</td>
+                                                <td>115</td>
+                                                <td>3.9%</td>
+                                                <td><span class="text-success"><i class="bi bi-arrow-down"></i> 1.5%</span></td>
+                                                <td><button class="btn btn-sm btn-outline-primary">View</button></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div class="row mt-4">
+                                <div class="col-12">
+                                    <h6 class="fw-bold mb-3">Retry Success Rates</h6>
+                                    <div class="row g-3">
+                                        <div class="col-md-3">
+                                            <div class="card border" onclick="openModal('retryDetailsModal')">
+                                                <div class="card-body text-center">
+                                                    <div class="progress-ring mb-2 mx-auto">
+                                                        <div class="text-center pt-4">
+                                                            <h4>67%</h4>
+                                                            <small class="text-muted">1st Retry</small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="card border" onclick="openModal('retryDetailsModal')">
+                                                <div class="card-body text-center">
+                                                    <div class="progress-ring mb-2 mx-auto">
+                                                        <div class="text-center pt-4">
+                                                            <h4>45%</h4>
+                                                            <small class="text-muted">2nd Retry</small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="card border" onclick="openModal('retryDetailsModal')">
+                                                <div class="card-body text-center">
+                                                    <div class="progress-ring mb-2 mx-auto">
+                                                        <div class="text-center pt-4">
+                                                            <h4>23%</h4>
+                                                            <small class="text-muted">3rd Retry</small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="card border" onclick="openModal('retryDetailsModal')">
+                                                <div class="card-body text-center">
+                                                    <div class="progress-ring mb-2 mx-auto">
+                                                        <div class="text-center pt-4">
+                                                            <h4>82%</h4>
+                                                            <small class="text-muted">Overall</small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Revenue & Cost Tab -->
+                        <div class="tab-pane fade" id="revenue" role="tabpanel">
+                            <div class="row g-4">
+                                <div class="col-lg-8">
+                                    <h6 class="fw-bold mb-3">Revenue Overview</h6>
+                                    <div class="chart-container">
+                                        <div class="chart-placeholder">
+                                            <i class="bi bi-currency-dollar"></i>
+                                            <div class="text-center">
+                                                <p class="mb-2 fw-bold">Revenue Trends</p>
+                                                <small class="text-muted">Fee revenue by source</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex gap-2 mt-3">
+                                        <button class="btn btn-sm btn-outline-primary" onclick="openModal('revenueBreakdownModal')">
+                                            <i class="bi bi-pie-chart"></i>
+                                            Revenue Breakdown
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-primary" onclick="openModal('marginAnalysisModal')">
+                                            <i class="bi bi-percent"></i>
+                                            Margin Analysis
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-lg-4">
+                                    <h6 class="fw-bold mb-3">Revenue Summary (90d)</h6>
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span class="text-muted">Transaction Fees</span>
+                                            <span class="fw-bold">$2.4M</span>
+                                        </div>
+                                        <div class="progress" style="height: 8px;">
+                                            <div class="progress-bar bg-primary" style="width: 65%"></div>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span class="text-muted">FX Spread</span>
+                                            <span class="fw-bold">$845K</span>
+                                        </div>
+                                        <div class="progress" style="height: 8px;">
+                                            <div class="progress-bar bg-success" style="width: 23%"></div>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span class="text-muted">Service Fees</span>
+                                            <span class="fw-bold">$445K</span>
+                                        </div>
+                                        <div class="progress" style="height: 8px;">
+                                            <div class="progress-bar bg-info" style="width: 12%"></div>
+                                        </div>
+                                    </div>
+                                    <hr>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="fw-bold">Total Revenue</span>
+                                        <span class="fw-bold text-success">$3.69M</span>
+                                    </div>
+                                    <button class="btn btn-sm btn-primary w-100 mt-3" onclick="openModal('revenueDrilldownModal')">
+                                        <i class="bi bi-arrow-down-circle"></i>
+                                        Drill Down
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="mt-4">
+                                <h6 class="fw-bold mb-3">Cost Analysis by Payment Rail</h6>
+                                <div class="table-responsive">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>Payment Rail</th>
+                                                <th>Transactions</th>
+                                                <th>Total Cost</th>
+                                                <th>Cost/Txn</th>
+                                                <th>Revenue</th>
+                                                <th>Margin</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr onclick="openModal('railCostDetailsModal')">
+                                                <td><span class="badge bg-primary">ACH</span></td>
+                                                <td>1.2M</td>
+                                                <td>$145K</td>
+                                                <td>$0.12</td>
+                                                <td>$1.45M</td>
+                                                <td><span class="text-success fw-bold">90.0%</span></td>
+                                                <td><button class="btn btn-sm btn-outline-primary">Details</button></td>
+                                            </tr>
+                                            <tr onclick="openModal('railCostDetailsModal')">
+                                                <td><span class="badge bg-success">Real-time</span></td>
+                                                <td>650K</td>
+                                                <td>$195K</td>
+                                                <td>$0.30</td>
+                                                <td>$975K</td>
+                                                <td><span class="text-success fw-bold">80.0%</span></td>
+                                                <td><button class="btn btn-sm btn-outline-primary">Details</button></td>
+                                            </tr>
+                                            <tr onclick="openModal('railCostDetailsModal')">
+                                                <td><span class="badge bg-info">Wire</span></td>
+                                                <td>425K</td>
+                                                <td>$340K</td>
+                                                <td>$0.80</td>
+                                                <td>$850K</td>
+                                                <td><span class="text-success fw-bold">60.0%</span></td>
+                                                <td><button class="btn btn-sm btn-outline-primary">Details</button></td>
+                                            </tr>
+                                            <tr onclick="openModal('railCostDetailsModal')">
+                                                <td><span class="badge bg-warning">SWIFT</span></td>
+                                                <td>125K</td>
+                                                <td>$187K</td>
+                                                <td>$1.50</td>
+                                                <td>$375K</td>
+                                                <td><span class="text-warning fw-bold">50.1%</span></td>
+                                                <td><button class="btn btn-sm btn-outline-primary">Details</button></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div class="row mt-4">
+                                <div class="col-12">
+                                    <h6 class="fw-bold mb-3">Profitability by Payment Corridor</h6>
+                                    <button class="btn btn-sm btn-outline-primary mb-3" onclick="openModal('corridorDetailsModal')">
+                                        <i class="bi bi-map"></i>
+                                        View All Corridors
+                                    </button>
+                                    <div class="row g-3">
+                                        <div class="col-md-4">
+                                            <div class="card border" onclick="openModal('corridorDetailsModal')">
+                                                <div class="card-body">
+                                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                                        <div>
+                                                            <small class="text-muted">US → UK</small>
+                                                            <h6 class="mb-0">USD/GBP</h6>
+                                                        </div>
+                                                        <span class="badge bg-success">High</span>
+                                                    </div>
+                                                    <div class="mt-3">
+                                                        <div class="d-flex justify-content-between">
+                                                            <small>Margin:</small>
+                                                            <small class="fw-bold">85.2%</small>
+                                                        </div>
+                                                        <div class="d-flex justify-content-between">
+                                                            <small>Volume:</small>
+                                                            <small>$125M</small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="card border" onclick="openModal('corridorDetailsModal')">
+                                                <div class="card-body">
+                                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                                        <div>
+                                                            <small class="text-muted">US → EU</small>
+                                                            <h6 class="mb-0">USD/EUR</h6>
+                                                        </div>
+                                                        <span class="badge bg-success">High</span>
+                                                    </div>
+                                                    <div class="mt-3">
+                                                        <div class="d-flex justify-content-between">
+                                                            <small>Margin:</small>
+                                                            <small class="fw-bold">82.7%</small>
+                                                        </div>
+                                                        <div class="d-flex justify-content-between">
+                                                            <small>Volume:</small>
+                                                            <small>$245M</small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="card border" onclick="openModal('corridorDetailsModal')">
+                                                <div class="card-body">
+                                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                                        <div>
+                                                            <small class="text-muted">UK → KE</small>
+                                                            <h6 class="mb-0">GBP/KES</h6>
+                                                        </div>
+                                                        <span class="badge bg-warning">Medium</span>
+                                                    </div>
+                                                    <div class="mt-3">
+                                                        <div class="d-flex justify-content-between">
+                                                            <small>Margin:</small>
+                                                            <small class="fw-bold">65.4%</small>
+                                                        </div>
+                                                        <div class="d-flex justify-content-between">
+                                                            <small>Volume:</small>
+                                                            <small>$45M</small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Geographic Flow Tab -->
+                        <div class="tab-pane fade" id="geographic" role="tabpanel">
+                            <div class="row g-4">
+                                <div class="col-lg-8">
+                                    <h6 class="fw-bold mb-3">Transaction Flow Map</h6>
+                                    <div class="geo-map">
+                                        <div class="position-absolute top-50 start-50 translate-middle text-center text-white">
+                                            <i class="bi bi-globe" style="font-size: 4rem; opacity: 0.7;"></i>
+                                            <h5 class="mt-3">Interactive Geographic Flow</h5>
+                                            <p class="mb-3">Visual representation of cross-border transactions</p>
+                                            <button class="btn btn-light btn-sm" onclick="openModal('geoMapModal')">
+                                                <i class="bi bi-arrows-fullscreen"></i>
+                                                View Full Map
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex gap-2 mt-3">
+                                        <button class="btn btn-sm btn-outline-primary" onclick="openModal('corridorDetailsModal')">
+                                            <i class="bi bi-diagram-3"></i>
+                                            Corridor Analysis
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-primary" onclick="openModal('regionalBreakdownModal')">
+                                            <i class="bi bi-pin-map"></i>
+                                            Regional Breakdown
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-lg-4">
+                                    <h6 class="fw-bold mb-3">Top Corridors</h6>
+                                    <div class="d-flex flex-column gap-2">
+                                        <div class="card border" onclick="openModal('corridorDetailsModal')">
+                                            <div class="card-body p-3">
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <div>
+                                                        <small class="text-muted">Corridor</small>
+                                                        <div class="fw-bold">US → UK</div>
+                                                    </div>
+                                                    <span class="badge bg-primary">1st</span>
+                                                </div>
+                                                <div class="d-flex justify-content-between text-sm">
+                                                    <span>$245M</span>
+                                                    <span class="text-muted">125K txns</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="card border" onclick="openModal('corridorDetailsModal')">
+                                            <div class="card-body p-3">
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <div>
+                                                        <small class="text-muted">Corridor</small>
+                                                        <div class="fw-bold">US → EU</div>
+                                                    </div>
+                                                    <span class="badge bg-success">2nd</span>
+                                                </div>
+                                                <div class="d-flex justify-content-between text-sm">
+                                                    <span>$198M</span>
+                                                    <span class="text-muted">98K txns</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="card border" onclick="openModal('corridorDetailsModal')">
+                                            <div class="card-body p-3">
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <div>
+                                                        <small class="text-muted">Corridor</small>
+                                                        <div class="fw-bold">UK → KE</div>
+                                                    </div>
+                                                    <span class="badge bg-info">3rd</span>
+                                                </div>
+                                                <div class="d-flex justify-content-between text-sm">
+                                                    <span>$145M</span>
+                                                    <span class="text-muted">78K txns</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <button class="btn btn-sm btn-outline-primary" onclick="openModal('corridorDetailsModal')">
+                                            <i class="bi bi-list"></i>
+                                            View All Corridors
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-4">
+                                <h6 class="fw-bold mb-3">Regional Performance</h6>
+                                <div class="table-responsive">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>Region</th>
+                                                <th>Outbound Volume</th>
+                                                <th>Inbound Volume</th>
+                                                <th>Net Flow</th>
+                                                <th>Avg Settlement</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr onclick="openModal('regionalBreakdownModal')">
+                                                <td><strong>North America</strong></td>
+                                                <td>$425M</td>
+                                                <td>$198M</td>
+                                                <td><span class="text-success">+$227M</span></td>
+                                                <td>2.1h</td>
+                                                <td><button class="btn btn-sm btn-outline-primary">Details</button></td>
+                                            </tr>
+                                            <tr onclick="openModal('regionalBreakdownModal')">
+                                                <td><strong>Europe</strong></td>
+                                                <td>$285M</td>
+                                                <td>$312M</td>
+                                                <td><span class="text-danger">-$27M</span></td>
+                                                <td>1.8h</td>
+                                                <td><button class="btn btn-sm btn-outline-primary">Details</button></td>
+                                            </tr>
+                                            <tr onclick="openModal('regionalBreakdownModal')">
+                                                <td><strong>Asia Pacific</strong></td>
+                                                <td>$145M</td>
+                                                <td>$167M</td>
+                                                <td><span class="text-danger">-$22M</span></td>
+                                                <td>3.2h</td>
+                                                <td><button class="btn btn-sm btn-outline-primary">Details</button></td>
+                                            </tr>
+                                            <tr onclick="openModal('regionalBreakdownModal')">
+                                                <td><strong>Africa</strong></td>
+                                                <td>$78M</td>
+                                                <td>$125M</td>
+                                                <td><span class="text-danger">-$47M</span></td>
+                                                <td>4.5h</td>
+                                                <td><button class="btn btn-sm btn-outline-primary">Details</button></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Real-Time Monitoring Tab -->
+                        <div class="tab-pane fade" id="monitoring" role="tabpanel">
+                            <div class="row g-4">
+                                <div class="col-lg-8">
+                                    <h6 class="fw-bold mb-3">Live Transaction Heatmap</h6>
+                                    <div class="card border">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                                <span class="text-muted">Transaction Volume by Hour (Last 24h)</span>
+                                                <button class="btn btn-sm btn-outline-primary" onclick="openModal('heatmapConfigModal')">
+                                                    <i class="bi bi-gear"></i>
+                                                    Configure
+                                                </button>
+                                            </div>
+                                            <div class="heatmap-container">
+                                                <!-- Heatmap cells would be dynamically generated -->
+                                                <div class="heatmap-cell" style="background: rgba(37, 99, 235, 0.2);" onclick="openModal('heatmapDetailModal', '00:00')"></div>
+                                                <div class="heatmap-cell" style="background: rgba(37, 99, 235, 0.15);" onclick="openModal('heatmapDetailModal', '01:00')"></div>
+                                                <div class="heatmap-cell" style="background: rgba(37, 99, 235, 0.1);" onclick="openModal('heatmapDetailModal', '02:00')"></div>
+                                                <div class="heatmap-cell" style="background: rgba(37, 99, 235, 0.1);" onclick="openModal('heatmapDetailModal', '03:00')"></div>
+                                                <div class="heatmap-cell" style="background: rgba(37, 99, 235, 0.15);" onclick="openModal('heatmapDetailModal', '04:00')"></div>
+                                                <div class="heatmap-cell" style="background: rgba(37, 99, 235, 0.25);" onclick="openModal('heatmapDetailModal', '05:00')"></div>
+                                                <div class="heatmap-cell" style="background: rgba(37, 99, 235, 0.4);" onclick="openModal('heatmapDetailModal', '06:00')"></div>
+                                                <div class="heatmap-cell" style="background: rgba(37, 99, 235, 0.55);" onclick="openModal('heatmapDetailModal', '07:00')"></div>
+                                                <div class="heatmap-cell" style="background: rgba(37, 99, 235, 0.7);" onclick="openModal('heatmapDetailModal', '08:00')"></div>
+                                                <div class="heatmap-cell" style="background: rgba(37, 99, 235, 0.85);" onclick="openModal('heatmapDetailModal', '09:00')"></div>
+                                                <div class="heatmap-cell" style="background: rgba(37, 99, 235, 1);" onclick="openModal('heatmapDetailModal', '10:00')"></div>
+                                                <div class="heatmap-cell" style="background: rgba(37, 99, 235, 0.95);" onclick="openModal('heatmapDetailModal', '11:00')"></div>
+                                                <div class="heatmap-cell" style="background: rgba(37, 99, 235, 0.85);" onclick="openModal('heatmapDetailModal', '12:00')"></div>
+                                                <div class="heatmap-cell" style="background: rgba(37, 99, 235, 0.9);" onclick="openModal('heatmapDetailModal', '13:00')"></div>
+                                                <div class="heatmap-cell" style="background: rgba(37, 99, 235, 0.95);" onclick="openModal('heatmapDetailModal', '14:00')"></div>
+                                                <div class="heatmap-cell" style="background: rgba(37, 99, 235, 0.9);" onclick="openModal('heatmapDetailModal', '15:00')"></div>
+                                                <div class="heatmap-cell" style="background: rgba(37, 99, 235, 0.75);" onclick="openModal('heatmapDetailModal', '16:00')"></div>
+                                                <div class="heatmap-cell" style="background: rgba(37, 99, 235, 0.65);" onclick="openModal('heatmapDetailModal', '17:00')"></div>
+                                                <div class="heatmap-cell" style="background: rgba(37, 99, 235, 0.5);" onclick="openModal('heatmapDetailModal', '18:00')"></div>
+                                                <div class="heatmap-cell" style="background: rgba(37, 99, 235, 0.4);" onclick="openModal('heatmapDetailModal', '19:00')"></div>
+                                                <div class="heatmap-cell" style="background: rgba(37, 99, 235, 0.35);" onclick="openModal('heatmapDetailModal', '20:00')"></div>
+                                                <div class="heatmap-cell" style="background: rgba(37, 99, 235, 0.3);" onclick="openModal('heatmapDetailModal', '21:00')"></div>
+                                                <div class="heatmap-cell" style="background: rgba(37, 99, 235, 0.25);" onclick="openModal('heatmapDetailModal', '22:00')"></div>
+                                                <div class="heatmap-cell" style="background: rgba(37, 99, 235, 0.2);" onclick="openModal('heatmapDetailModal', '23:00')"></div>
+                                            </div>
+                                            <div class="d-flex justify-content-between mt-3">
+                                                <small class="text-muted">Low Activity</small>
+                                                <small class="text-muted">High Activity</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-4">
+                                    <h6 class="fw-bold mb-3">Live Activity Feed</h6>
+                                    <div class="card border" style="max-height: 400px; overflow-y: auto;">
+                                        <div class="card-body">
+                                            <div class="timeline">
+                                                <div class="timeline-item">
+                                                    <small class="text-muted">Just now</small>
+                                                    <div class="fw-bold">Large Transaction</div>
+                                                    <small>$2.5M USD → GBP</small>
+                                                </div>
+                                                <div class="timeline-item">
+                                                    <small class="text-muted">2 min ago</small>
+                                                    <div class="fw-bold">Bulk Transfer</div>
+                                                    <small>125 transactions processed</small>
+                                                </div>
+                                                <div class="timeline-item">
+                                                    <small class="text-muted">5 min ago</small>
+                                                    <div class="fw-bold">Success Rate Alert</div>
+                                                    <small>ACH: 99.2% (+0.5%)</small>
+                                                </div>
+                                                <div class="timeline-item">
+                                                    <small class="text-muted">8 min ago</small>
+                                                    <div class="fw-bold">Settlement Complete</div>
+                                                    <small>Wire batch #4523</small>
+                                                </div>
+                                                <div class="timeline-item">
+                                                    <small class="text-muted">12 min ago</small>
+                                                    <div class="fw-bold">Peak Hour Started</div>
+                                                    <small>Volume increased 45%</small>
+                                                </div>
+                                            </div>
+                                            <button class="btn btn-sm btn-outline-primary w-100 mt-3" onclick="openModal('activityFeedModal')">
+                                                <i class="bi bi-arrow-down-circle"></i>
+                                                View Full Feed
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-4">
+                                <h6 class="fw-bold mb-3">Anomaly Detection Alerts</h6>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="card border-warning border-2" onclick="openModal('anomalyAlert1Modal')">
+                                            <div class="card-body">
+                                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                                    <div>
+                                                        <span class="badge bg-warning mb-2">Warning</span>
+                                                        <h6 class="mb-1">Unusual Volume Spike</h6>
+                                                        <small class="text-muted">ACH - Last 15 minutes</small>
+                                                    </div>
+                                                    <i class="bi bi-exclamation-triangle-fill text-warning" style="font-size: 2rem;"></i>
+                                                </div>
+                                                <p class="small mb-2">Transaction volume 3.2x above baseline</p>
+                                                <div class="d-flex gap-2">
+                                                    <button class="btn btn-sm btn-warning">Investigate</button>
+                                                    <button class="btn btn-sm btn-outline-secondary">Dismiss</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="card border-danger border-2" onclick="openModal('anomalyAlert2Modal')">
+                                            <div class="card-body">
+                                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                                    <div>
+                                                        <span class="badge bg-danger mb-2">Critical</span>
+                                                        <h6 class="mb-1">Success Rate Drop</h6>
+                                                        <small class="text-muted">SWIFT - Last hour</small>
+                                                    </div>
+                                                    <i class="bi bi-exclamation-octagon-fill text-danger" style="font-size: 2rem;"></i>
+                                                </div>
+                                                <p class="small mb-2">Success rate dropped to 87% (target: 98%)</p>
+                                                <div class="d-flex gap-2">
+                                                    <button class="btn btn-sm btn-danger">View Details</button>
+                                                    <button class="btn btn-sm btn-outline-secondary">Escalate</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="card border-info border-2" onclick="openModal('anomalyAlert3Modal')">
+                                            <div class="card-body">
+                                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                                    <div>
+                                                        <span class="badge bg-info mb-2">Info</span>
+                                                        <h6 class="mb-1">New Geographic Pattern</h6>
+                                                        <small class="text-muted">US → India corridor</small>
+                                                    </div>
+                                                    <i class="bi bi-info-circle-fill text-info" style="font-size: 2rem;"></i>
+                                                </div>
+                                                <p class="small mb-2">45% increase in transaction volume detected</p>
+                                                <div class="d-flex gap-2">
+                                                    <button class="btn btn-sm btn-info">Analyze</button>
+                                                    <button class="btn btn-sm btn-outline-secondary">Dismiss</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="card border-success border-2" onclick="openModal('anomalyAlert4Modal')">
+                                            <div class="card-body">
+                                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                                    <div>
+                                                        <span class="badge bg-success mb-2">Resolved</span>
+                                                        <h6 class="mb-1">Settlement Delay</h6>
+                                                        <small class="text-muted">Wire - Resolved 5 min ago</small>
+                                                    </div>
+                                                    <i class="bi bi-check-circle-fill text-success" style="font-size: 2rem;"></i>
+                                                </div>
+                                                <p class="small mb-2">Bank processing delay cleared, normal operations resumed</p>
+                                                <div class="d-flex gap-2">
+                                                    <button class="btn btn-sm btn-success">View Report</button>
+                                                    <button class="btn btn-sm btn-outline-secondary">Archive</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-4">
+                                <h6 class="fw-bold mb-3">SLA Compliance Tracking</h6>
+                                <div class="row g-3">
+                                    <div class="col-md-3">
+                                        <div class="card border" onclick="openModal('slaMetric1Modal')">
+                                            <div class="card-body text-center">
+                                                <div class="progress-ring mb-2 mx-auto">
+                                                    <div class="text-center pt-4">
+                                                        <h4 class="text-success">99.8%</h4>
+                                                        <small class="text-muted">Uptime</small>
+                                                    </div>
+                                                </div>
+                                                <div class="mt-2">
+                                                    <small class="text-muted">Target: 99.5%</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="card border" onclick="openModal('slaMetric2Modal')">
+                                            <div class="card-body text-center">
+                                                <div class="progress-ring mb-2 mx-auto">
+                                                    <div class="text-center pt-4">
+                                                        <h4 class="text-success">98.7%</h4>
+                                                        <small class="text-muted">Success Rate</small>
+                                                    </div>
+                                                </div>
+                                                <div class="mt-2">
+                                                    <small class="text-muted">Target: 98.0%</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="card border" onclick="openModal('slaMetric3Modal')">
+                                            <div class="card-body text-center">
+                                                <div class="progress-ring mb-2 mx-auto">
+                                                    <div class="text-center pt-4">
+                                                        <h4 class="text-warning">2.4h</h4>
+                                                        <small class="text-muted">Settlement</small>
+                                                    </div>
+                                                </div>
+                                                <div class="mt-2">
+                                                    <small class="text-muted">Target: 2.0h</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="card border" onclick="openModal('slaMetric4Modal')">
+                                            <div class="card-body text-center">
+                                                <div class="progress-ring mb-2 mx-auto">
+                                                    <div class="text-center pt-4">
+                                                        <h4 class="text-success">145ms</h4>
+                                                        <small class="text-muted">API Latency</small>
+                                                    </div>
+                                                </div>
+                                                <div class="mt-2">
+                                                    <small class="text-muted">Target: 200ms</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Custom Report Builder Section -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Scheduled Reports</h5>
+                        <button class="btn btn-sm btn-primary" onclick="openModal('scheduleReportModal')">
+                            <i class="bi bi-calendar-plus"></i>
+                            Schedule New Report
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Report Name</th>
+                                    <th>Type</th>
+                                    <th>Frequency</th>
+                                    <th>Last Run</th>
+                                    <th>Next Run</th>
+                                    <th>Recipients</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Daily Operations Summary</strong></td>
+                                    <td><span class="badge bg-primary">Daily Ops</span></td>
+                                    <td>Daily at 09:00</td>
+                                    <td>Today, 09:00</td>
+                                    <td>Tomorrow, 09:00</td>
+                                    <td>5 recipients</td>
+                                    <td><span class="badge bg-success">Active</span></td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-outline-primary" onclick="openModal('editReportModal')">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button class="btn btn-outline-success" onclick="openModal('runReportModal')">
+                                                <i class="bi bi-play-fill"></i>
+                                            </button>
+                                            <button class="btn btn-outline-secondary" onclick="showSuccessMessage('Report paused')">
+                                                <i class="bi bi-pause-fill"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Monthly Board Report</strong></td>
+                                    <td><span class="badge bg-success">Monthly Board</span></td>
+                                    <td>Monthly, 1st at 08:00</td>
+                                    <td>Dec 1, 08:00</td>
+                                    <td>Jan 1, 08:00</td>
+                                    <td>3 recipients</td>
+                                    <td><span class="badge bg-success">Active</span></td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-outline-primary" onclick="openModal('editReportModal')">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button class="btn btn-outline-success" onclick="openModal('runReportModal')">
+                                                <i class="bi bi-play-fill"></i>
+                                            </button>
+                                            <button class="btn btn-outline-secondary" onclick="showSuccessMessage('Report paused')">
+                                                <i class="bi bi-pause-fill"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Regulatory Compliance</strong></td>
+                                    <td><span class="badge bg-warning">Regulatory</span></td>
+                                    <td>Weekly, Mon at 07:00</td>
+                                    <td>Mon, 07:00</td>
+                                    <td>Next Mon, 07:00</td>
+                                    <td>8 recipients</td>
+                                    <td><span class="badge bg-success">Active</span></td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-outline-primary" onclick="openModal('editReportModal')">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button class="btn btn-outline-success" onclick="openModal('runReportModal')">
+                                                <i class="bi bi-play-fill"></i>
+                                            </button>
+                                            <button class="btn btn-outline-secondary" onclick="showSuccessMessage('Report paused')">
+                                                <i class="bi bi-pause-fill"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Client Statement - ACME Corp</strong></td>
+                                    <td><span class="badge bg-info">Client Statement</span></td>
+                                    <td>Weekly, Fri at 17:00</td>
+                                    <td>Fri, 17:00</td>
+                                    <td>Next Fri, 17:00</td>
+                                    <td>2 recipients</td>
+                                    <td><span class="badge bg-warning">Paused</span></td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-outline-primary" onclick="openModal('editReportModal')">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button class="btn btn-outline-success" onclick="openModal('runReportModal')">
+                                                <i class="bi bi-play-fill"></i>
+                                            </button>
+                                            <button class="btn btn-outline-success" onclick="showSuccessMessage('Report resumed')">
+                                                <i class="bi bi-play-circle"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Report Templates -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Pre-built Report Templates</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <div class="card border h-100" onclick="openModal('templateDetailsModal')">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-file-earmark-text text-primary" style="font-size: 3rem;"></i>
+                                    <h6 class="mt-3 mb-2">Daily Operations</h6>
+                                    <p class="small text-muted mb-3">Complete daily activity summary</p>
+                                    <button class="btn btn-sm btn-outline-primary w-100">Use Template</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card border h-100" onclick="openModal('templateDetailsModal')">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-file-earmark-bar-graph text-success" style="font-size: 3rem;"></i>
+                                    <h6 class="mt-3 mb-2">Monthly Board</h6>
+                                    <p class="small text-muted mb-3">Executive summary with KPIs</p>
+                                    <button class="btn btn-sm btn-outline-success w-100">Use Template</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card border h-100" onclick="openModal('templateDetailsModal')">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-shield-check text-warning" style="font-size: 3rem;"></i>
+                                    <h6 class="mt-3 mb-2">Regulatory</h6>
+                                    <p class="small text-muted mb-3">Compliance and AML metrics</p>
+                                    <button class="btn btn-sm btn-outline-warning w-100">Use Template</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card border h-100" onclick="openModal('templateDetailsModal')">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-receipt text-info" style="font-size: 3rem;"></i>
+                                    <h6 class="mt-3 mb-2">Client Statement</h6>
+                                    <p class="small text-muted mb-3">Transaction history for clients</p>
+                                    <button class="btn btn-sm btn-outline-info w-100">Use Template</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modals -->
+    
+    <!-- Volume Details Modal -->
+    <div class="modal fade" id="volumeDetailsModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Transaction Volume Breakdown</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <ul class="nav nav-tabs mb-3" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#volumeByRail">By Rail</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#volumeByTime">By Time</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#volumeByCurrency">By Currency</button>
+                        </li>
+                    </ul>
+                    <div class="tab-content">
+                        <div class="tab-pane fade show active" id="volumeByRail">
+                            <div class="chart-container">
+                                <div class="chart-placeholder">
+                                    <i class="bi bi-bar-chart"></i>
+                                    <p>Volume breakdown by payment rail</p>
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <h6>Details:</h6>
+                                <ul>
+                                    <li>ACH: 1.2M transactions (50%)</li>
+                                    <li>Real-time: 650K transactions (27%)</li>
+                                    <li>Wire: 425K transactions (18%)</li>
+                                    <li>SWIFT: 125K transactions (5%)</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="volumeByTime">
+                            <div class="chart-container">
+                                <div class="chart-placeholder">
+                                    <i class="bi bi-graph-up"></i>
+                                    <p>Volume trends over time</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="volumeByCurrency">
+                            <div class="chart-container">
+                                <div class="chart-placeholder">
+                                    <i class="bi bi-pie-chart"></i>
+                                    <p>Volume distribution by currency</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-outline-primary" onclick="exportData('volume')">
+                        <i class="bi bi-download"></i>
+                        Export Data
+                    </button>
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Builder Modal -->
+    <div class="modal fade" id="reportBuilderModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Custom Report Builder</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <h6 class="mb-3">Report Elements</h6>
+                            <div class="list-group">
+                                <div class="builder-item" draggable="true">
+                                    <i class="bi bi-table me-2"></i>
+                                    Transaction Table
+                                </div>
+                                <div class="builder-item" draggable="true">
+                                    <i class="bi bi-graph-up me-2"></i>
+                                    Volume Chart
+                                </div>
+                                <div class="builder-item" draggable="true">
+                                    <i class="bi bi-pie-chart me-2"></i>
+                                    Distribution Chart
+                                </div>
+                                <div class="builder-item" draggable="true">
+                                    <i class="bi bi-speedometer me-2"></i>
+                                    KPI Cards
+                                </div>
+                                <div class="builder-item" draggable="true">
+                                    <i class="bi bi-text-left me-2"></i>
+                                    Summary Section
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-9">
+                            <h6 class="mb-3">Report Canvas</h6>
+                            <div class="builder-canvas">
+                                <i class="bi bi-file-earmark-plus" style="font-size: 3rem; color: var(--text-muted);"></i>
+                                <p class="text-muted mt-3">Drag elements here to build your report</p>
+                            </div>
+                            <div class="mt-3">
+                                <h6>Report Settings</h6>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Report Name</label>
+                                        <input type="text" class="form-control" placeholder="Enter report name">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Export Format</label>
+                                        <select class="form-select">
+                                            <option>PDF</option>
+                                            <option>Excel</option>
+                                            <option>CSV</option>
+                                            <option>JSON</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-outline-secondary" onclick="previewReport()">
+                        <i class="bi bi-eye"></i>
+                        Preview
+                    </button>
+                    <button class="btn btn-outline-primary" onclick="saveReportTemplate()">
+                        <i class="bi bi-save"></i>
+                        Save Template
+                    </button>
+                    <button class="btn btn-primary" onclick="generateReport()">
+                        <i class="bi bi-file-earmark-arrow-down"></i>
+                        Generate Report
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Failure Analysis Modal -->
+    <div class="modal fade" id="failureAnalysisModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Comprehensive Failure Analysis</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <ul class="nav nav-tabs mb-3">
+                        <li class="nav-item">
+                            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#failureOverview">Overview</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#failureTrends">Trends</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#failureRecommendations">Recommendations</button>
+                        </li>
+                    </ul>
+                    <div class="tab-content">
+                        <div class="tab-pane fade show active" id="failureOverview">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <div class="card bg-light">
+                                        <div class="card-body text-center">
+                                            <h3 class="text-danger">2,942</h3>
+                                            <p class="mb-0 text-muted">Total Failures (90d)</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card bg-light">
+                                        <div class="card-body text-center">
+                                            <h3 class="text-warning">1.23%</h3>
+                                            <p class="mb-0 text-muted">Failure Rate</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card bg-light">
+                                        <div class="card-body text-center">
+                                            <h3 class="text-info">$4.2M</h3>
+                                            <p class="mb-0 text-muted">Value at Risk</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <h6>Failure Distribution by Rail</h6>
+                                <div class="chart-container" style="height: 250px;">
+                                    <div class="chart-placeholder">
+                                        <i class="bi bi-bar-chart"></i>
+                                        <p>Failure rate comparison across rails</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="failureTrends">
+                            <div class="chart-container">
+                                <div class="chart-placeholder">
+                                    <i class="bi bi-graph-down"></i>
+                                    <p>Failure trends over the last 90 days</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="failureRecommendations">
+                            <div class="alert alert-warning">
+                                <h6 class="alert-heading"><i class="bi bi-lightbulb me-2"></i>Recommended Actions</h6>
+                                <ul class="mb-0">
+                                    <li>Implement pre-transaction account validation to reduce "Invalid Account" failures</li>
+                                    <li>Increase timeout threshold for SWIFT transactions from 30s to 45s</li>
+                                    <li>Add balance check API integration to prevent "Insufficient Funds" errors</li>
+                                    <li>Review compliance rules causing holds - 23% increase detected</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-outline-primary" onclick="exportFailureReport()">
+                        <i class="bi bi-download"></i>
+                        Export Report
+                    </button>
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Schedule Report Modal -->
+    <div class="modal fade" id="scheduleReportModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Schedule New Report</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="scheduleReportForm">
+                        <div class="mb-3">
+                            <label class="form-label">Report Name</label>
+                            <input type="text" class="form-control" placeholder="e.g., Weekly Performance Summary" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Report Type</label>
+                            <select class="form-select" required>
+                                <option value="">Select report type</option>
+                                <option>Daily Operations</option>
+                                <option>Monthly Board</option>
+                                <option>Regulatory</option>
+                                <option>Client Statement</option>
+                                <option>Custom</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Frequency</label>
+                            <select class="form-select" id="reportFrequency" required>
+                                <option value="">Select frequency</option>
+                                <option>Daily</option>
+                                <option>Weekly</option>
+                                <option>Monthly</option>
+                                <option>Quarterly</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Execution Time</label>
+                            <input type="time" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Export Format</label>
+                            <div class="d-flex gap-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="formatPDF" checked>
+                                    <label class="form-check-label" for="formatPDF">PDF</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="formatExcel">
+                                    <label class="form-check-label" for="formatExcel">Excel</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="formatCSV">
+                                    <label class="form-check-label" for="formatCSV">CSV</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Recipients (Email)</label>
+                            <textarea class="form-control" rows="3" placeholder="Enter email addresses separated by commas" required></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button class="btn btn-primary" onclick="submitScheduleReport()">
+                        <span class="spinner-border spinner-border-sm me-2 d-none" id="scheduleSpinner"></span>
+                        Schedule Report
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Export Modal -->
+    <div class="modal fade" id="quickExportModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Quick Export</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Data to Export</label>
+                        <select class="form-select">
+                            <option>Current View</option>
+                            <option>Transaction Volume Data</option>
+                            <option>Performance Metrics</option>
+                            <option>Revenue Analysis</option>
+                            <option>All Analytics Data</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Export Format</label>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <button class="btn btn-outline-primary w-100" onclick="exportAs('pdf')">
+                                    <i class="bi bi-file-pdf me-2"></i>
+                                    PDF
+                                </button>
+                            </div>
+                            <div class="col-6">
+                                <button class="btn btn-outline-success w-100" onclick="exportAs('excel')">
+                                    <i class="bi bi-file-excel me-2"></i>
+                                    Excel
+                                </button>
+                            </div>
+                            <div class="col-6">
+                                <button class="btn btn-outline-info w-100" onclick="exportAs('csv')">
+                                    <i class="bi bi-file-earmark-text me-2"></i>
+                                    CSV
+                                </button>
+                            </div>
+                            <div class="col-6">
+                                <button class="btn btn-outline-warning w-100" onclick="exportAs('json')">
+                                    <i class="bi bi-braces me-2"></i>
+                                    JSON
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="includeCharts">
+                        <label class="form-check-label" for="includeCharts">
+                            Include charts and visualizations
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notifications Modal -->
+    <div class="modal fade" id="notificationsModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Notifications</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" style="max-height: 400px; overflow-y: auto;">
+                    <div class="list-group list-group-flush">
+                        <a href="#" class="list-group-item list-group-item-action" onclick="openModal('notifDetail1Modal')">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">Success Rate Alert</h6>
+                                <small class="text-danger">5 min ago</small>
+                            </div>
+                            <p class="mb-1 small">SWIFT success rate dropped below threshold</p>
+                            <small class="text-muted">Critical Alert</small>
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action" onclick="openModal('notifDetail2Modal')">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">Report Generated</h6>
+                                <small>15 min ago</small>
+                            </div>
+                            <p class="mb-1 small">Daily Operations Summary is ready</p>
+                            <small class="text-muted">System</small>
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action" onclick="openModal('notifDetail3Modal')">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">Volume Spike Detected</h6>
+                                <small>1 hour ago</small>
+                            </div>
+                            <p class="mb-1 small">ACH volume 3.2x above baseline</p>
+                            <small class="text-muted">Warning</small>
+                        </a>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-sm btn-outline-primary" onclick="markAllRead()">Mark All Read</button>
+                    <button class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Modal -->
+    <div class="modal fade" id="profileModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">User Profile</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-4">
+                        <div class="rounded-circle bg-primary bg-opacity-10 d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                            <i class="bi bi-person-circle text-primary" style="font-size: 3rem;"></i>
+                        </div>
+                        <h5 class="mt-3 mb-1">John Anderson</h5>
+                        <p class="text-muted mb-0">Senior Analyst</p>
+                    </div>
+                    <div class="list-group list-group-flush">
+                        <a href="#" class="list-group-item list-group-item-action" onclick="openModal('profileSettingsModal')">
+                            <i class="bi bi-gear me-2"></i>
+                            Account Settings
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action" onclick="openModal('preferencesModal')">
+                            <i class="bi bi-sliders me-2"></i>
+                            Preferences
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action" onclick="openModal('helpModal')">
+                            <i class="bi bi-question-circle me-2"></i>
+                            Help & Support
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action text-danger" onclick="logout()">
+                            <i class="bi bi-box-arrow-right me-2"></i>
+                            Logout
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Additional Modal Placeholders (20+ modals total) -->
+    <div class="modal fade" id="customReportModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Create Custom Report</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="mb-3">
+                            <label class="form-label">Data Source</label>
+                            <select class="form-select">
+                                <option>Transaction History</option>
+                                <option>Settlement Logs</option>
+                                <option>Fee Revenue</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Date Range</label>
+                            <input type="date" class="form-control mb-2">
+                            <input type="date" class="form-control">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Include Columns</label>
+                            <div class="d-flex flex-wrap gap-2">
+                                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary"><i class="bi bi-check me-1"></i>Amount</span>
+                                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary"><i class="bi bi-check me-1"></i>Status</span>
+                                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary"><i class="bi bi-check me-1"></i>Rail</span>
+                                <span class="badge bg-light text-dark border"><i class="bi bi-plus me-1"></i>Sender</span>
+                                <span class="badge bg-light text-dark border"><i class="bi bi-plus me-1"></i>Receiver</span>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button class="btn btn-primary" onclick="showSuccessMessage('Report generation started')">Generate</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="valueDetailsModal" tabindex="-1">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Transaction Value Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="d-flex justify-content-between mb-3 border-bottom pb-2">
+                        <span class="text-muted">Total Value (90d)</span>
+                        <span class="fw-bold">$845,000,000</span>
+                    </div>
+                    <h6 class="mb-2">Currency Breakdown</h6>
+                    <ul class="list-group list-group-flush mb-3">
+                        <li class="list-group-item d-flex justify-content-between px-0">
+                            <span><i class="bi bi-currency-dollar me-2 text-primary"></i>USD</span>
+                            <span class="fw-bold">$524M (62%)</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between px-0">
+                            <span><i class="bi bi-currency-euro me-2 text-primary"></i>EUR</span>
+                            <span class="fw-bold">€185M (22%)</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between px-0">
+                            <span><i class="bi bi-currency-pound me-2 text-primary"></i>GBP</span>
+                            <span class="fw-bold">£92M (11%)</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between px-0">
+                            <span>Other Currencies</span>
+                            <span class="fw-bold">$44M (5%)</span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-outline-primary w-100" onclick="exportData('value_breakdown')">Export Details</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="successRateModal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Success Rate Analysis</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <div class="progress-ring mx-auto mb-3" style="width: 100px; height: 100px;">
+                        <div class="text-center pt-4">
+                            <h3 class="text-success mb-0">98.7%</h3>
+                        </div>
+                    </div>
+                    <p class="text-muted small mb-3">Up 2.1% compared to previous period</p>
+                    <ul class="list-unstyled text-start small">
+                        <li class="mb-2 d-flex justify-content-between"><span class="text-muted">Total Attempted:</span> <strong>2,431,092</strong></li>
+                        <li class="mb-2 d-flex justify-content-between"><span class="text-muted">Successful:</span> <strong class="text-success">2,399,487</strong></li>
+                        <li class="mb-2 d-flex justify-content-between"><span class="text-muted">Failed:</span> <strong class="text-danger">31,605</strong></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="settlementTimeModal" tabindex="-1">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Avg Settlement Time (2.4h)</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <h6 class="mb-3">Rail Breakdown</h6>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1 small">
+                            <span>Real-time / Instant</span>
+                            <span class="fw-bold">1.2s</span>
+                        </div>
+                        <div class="progress" style="height: 6px;"><div class="progress-bar bg-success" style="width: 5%"></div></div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1 small">
+                            <span>Wire Transfer</span>
+                            <span class="fw-bold">1.5h</span>
+                        </div>
+                        <div class="progress" style="height: 6px;"><div class="progress-bar bg-info" style="width: 45%"></div></div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1 small">
+                            <span>ACH (Same Day)</span>
+                            <span class="fw-bold">4.2h</span>
+                        </div>
+                        <div class="progress" style="height: 6px;"><div class="progress-bar bg-primary" style="width: 65%"></div></div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1 small">
+                            <span>SWIFT Cross-border</span>
+                            <span class="fw-bold">24.5h</span>
+                        </div>
+                        <div class="progress" style="height: 6px;"><div class="progress-bar bg-warning" style="width: 95%"></div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="chartConfigModal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Chart Display Options</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Chart Type</label>
+                        <select class="form-select form-select-sm">
+                            <option>Line Chart</option>
+                            <option>Bar Chart</option>
+                            <option>Area Chart</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Granularity</label>
+                        <select class="form-select form-select-sm">
+                            <option>Daily</option>
+                            <option>Weekly</option>
+                            <option>Monthly</option>
+                        </select>
+                    </div>
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" id="showMovingAvg" checked>
+                        <label class="form-check-label small" for="showMovingAvg">Show Moving Average</label>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="showCompare">
+                        <label class="form-check-label small" for="showCompare">Compare to Previous Period</label>
+                    </div>
+                </div>
+                <div class="modal-footer p-2">
+                    <button class="btn btn-sm btn-primary w-100" onclick="showSuccessMessage('Chart updated')" data-bs-dismiss="modal">Apply</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="trendAnalysisModal" tabindex="-1">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Volume Trend Analysis</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Metric</th>
+                                <th>Current</th>
+                                <th>Previous</th>
+                                <th>Change</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Month over Month</td>
+                                <td>820K txns</td>
+                                <td>780K txns</td>
+                                <td class="text-success"><i class="bi bi-arrow-up"></i> 5.1%</td>
+                            </tr>
+                            <tr>
+                                <td>Quarter over Quarter</td>
+                                <td>2.4M txns</td>
+                                <td>2.1M txns</td>
+                                <td class="text-success"><i class="bi bi-arrow-up"></i> 14.2%</td>
+                            </tr>
+                            <tr>
+                                <td>Year over Year</td>
+                                <td>8.5M txns</td>
+                                <td>6.2M txns</td>
+                                <td class="text-success"><i class="bi bi-arrow-up"></i> 37.0%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="alert alert-info py-2 mt-3 mb-0 small">
+                        <i class="bi bi-info-circle me-2"></i> Q4 projection indicates an additional 12% growth in cross-border volume.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="peakHoursModal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Peak Transaction Hours</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <div>
+                                <h6 class="mb-0">09:00 - 11:00 UTC</h6>
+                                <small class="text-muted">Morning B2B Batch</small>
+                            </div>
+                            <span class="badge bg-danger rounded-pill">35%</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <div>
+                                <h6 class="mb-0">14:00 - 16:00 UTC</h6>
+                                <small class="text-muted">US Market Open</small>
+                            </div>
+                            <span class="badge bg-warning rounded-pill">28%</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0 border-bottom-0">
+                            <div>
+                                <h6 class="mb-0">All other hours</h6>
+                                <small class="text-muted">Baseline activity</small>
+                            </div>
+                            <span class="badge bg-secondary rounded-pill">37%</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="growthRateModal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Annual Growth Rate</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <h2 class="text-primary mb-1">37.0%</h2>
+                    <p class="text-muted small mb-4">Compound Annual Growth Rate (CAGR)</p>
+                    <div class="row text-start g-2">
+                        <div class="col-6">
+                            <div class="p-2 border rounded bg-light">
+                                <small class="d-block text-muted">2024 (Actual)</small>
+                                <strong>$2.1B</strong>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-2 border rounded bg-light">
+                                <small class="d-block text-muted">2025 (Proj)</small>
+                                <strong class="text-success">$2.8B</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="railBreakdownModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Rail Distribution Breakdown</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Payment Rail</th>
+                                <th>Volume (Count)</th>
+                                <th>Value (USD)</th>
+                                <th>Share %</th>
+                                <th>Growth (MoM)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="badge bg-primary">ACH</span></td>
+                                <td>1,200,450</td>
+                                <td>$345M</td>
+                                <td>50%</td>
+                                <td class="text-success">+2.4%</td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-success">Real-time</span></td>
+                                <td>650,210</td>
+                                <td>$120M</td>
+                                <td>27%</td>
+                                <td class="text-success">+15.2%</td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-info">Wire</span></td>
+                                <td>425,100</td>
+                                <td>$280M</td>
+                                <td>18%</td>
+                                <td class="text-danger">-1.5%</td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-warning text-dark">SWIFT</span></td>
+                                <td>125,000</td>
+                                <td>$100M</td>
+                                <td>5%</td>
+                                <td class="text-success">+4.1%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="valueMetricsModal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Value Metric</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="list-group">
+                        <label class="list-group-item d-flex gap-2">
+                            <input class="form-check-input flex-shrink-0" type="checkbox" value="" checked disabled>
+                            <span>Average Transaction Value</span>
+                        </label>
+                        <label class="list-group-item d-flex gap-2">
+                            <input class="form-check-input flex-shrink-0" type="checkbox" value="" checked disabled>
+                            <span>Median Value</span>
+                        </label>
+                        <label class="list-group-item d-flex gap-2">
+                            <input class="form-check-input flex-shrink-0" type="checkbox" value="">
+                            <span>Lowest Transaction</span>
+                        </label>
+                        <label class="list-group-item d-flex gap-2">
+                            <input class="form-check-input flex-shrink-0" type="checkbox" value="">
+                            <span>Standard Deviation</span>
+                        </label>
+                        <label class="list-group-item d-flex gap-2">
+                            <input class="form-check-input flex-shrink-0" type="checkbox" value="">
+                            <span>90th Percentile Value</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer p-2">
+                    <button class="btn btn-sm btn-primary w-100" data-bs-dismiss="modal" onclick="showSuccessMessage('Dashboard updated')">Save Metrics</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="avgTransactionModal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Avg Transaction Value</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-3">
+                        <h2 class="text-primary mb-0">$352</h2>
+                        <small class="text-success"><i class="bi bi-arrow-up"></i> 5.2% vs last month</small>
+                    </div>
+                    <ul class="list-group list-group-flush small border-top pt-2">
+                        <li class="list-group-item d-flex justify-content-between px-0">
+                            <span>B2B Average</span>
+                            <span class="fw-bold">$1,250</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between px-0">
+                            <span>B2C Average</span>
+                            <span class="fw-bold">$145</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="medianValueModal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Median Value</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-3">
+                        <h2 class="text-primary mb-0">$175</h2>
+                        <small class="text-muted">Eliminates outlier impacts</small>
+                    </div>
+                    <p class="small text-muted mb-0">The median transaction value indicates that the majority of individual transactions are relatively small, despite a few massive B2B wire transfers skewing the mathematical average.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="largestTransactionModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Largest Transaction (Today)</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="card border-primary mb-3">
+                        <div class="card-body text-center">
+                            <h3 class="text-primary mb-0">$2,500,000.00</h3>
+                            <span class="badge bg-success mt-2">Settled</span>
+                        </div>
+                    </div>
+                    <ul class="list-group list-group-flush small">
+                        <li class="list-group-item px-0"><strong>ID:</strong> TXN-998-A2B</li>
+                        <li class="list-group-item px-0"><strong>Sender:</strong> Global Corp Inc. (US)</li>
+                        <li class="list-group-item px-0"><strong>Receiver:</strong> EuroTech Ltd. (DE)</li>
+                        <li class="list-group-item px-0"><strong>Rail:</strong> SWIFT</li>
+                        <li class="list-group-item px-0"><strong>Time:</strong> 09:14:22 UTC</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="currencyDistributionModal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Top Currency</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <div class="display-1 text-primary mb-2"><i class="bi bi-currency-dollar"></i></div>
+                    <h4>USD (62.4%)</h4>
+                    <p class="text-muted small">Primary settlement currency.</p>
+                    <button class="btn btn-sm btn-outline-secondary w-100" data-bs-toggle="modal" data-bs-target="#valueDetailsModal">View Full Breakdown</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="successRateDetailsModal" tabindex="-1">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Success Rate Detailed Analysis</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-sm align-middle">
+                        <thead>
+                            <tr>
+                                <th>Rail</th>
+                                <th>Success %</th>
+                                <th>Trend</th>
+                                <th>Failed Txns</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>ACH</td>
+                                <td>99.2%</td>
+                                <td class="text-success"><i class="bi bi-arrow-up"></i></td>
+                                <td>9,603</td>
+                            </tr>
+                            <tr>
+                                <td>Real-time</td>
+                                <td>99.5%</td>
+                                <td class="text-muted"><i class="bi bi-dash"></i></td>
+                                <td>3,251</td>
+                            </tr>
+                            <tr>
+                                <td>Wire</td>
+                                <td>98.1%</td>
+                                <td class="text-danger"><i class="bi bi-arrow-down"></i></td>
+                                <td>8,076</td>
+                            </tr>
+                            <tr>
+                                <td>SWIFT</td>
+                                <td>92.4%</td>
+                                <td class="text-danger"><i class="bi bi-arrow-down"></i></td>
+                                <td>9,500</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="settlementDistributionModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Settlement Time Distribution</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted small mb-3">Distribution of transaction settlement times across all rails over the last 30 days.</p>
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>Under 5 seconds (Real-time)</span>
+                            <span class="text-muted">27%</span>
+                        </div>
+                        <div class="progress" style="height: 8px;"><div class="progress-bar bg-success" style="width: 27%"></div></div>
+                    </div>
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>1 - 4 hours</span>
+                            <span class="text-muted">45%</span>
+                        </div>
+                        <div class="progress" style="height: 8px;"><div class="progress-bar bg-primary" style="width: 45%"></div></div>
+                    </div>
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>12 - 24 hours</span>
+                            <span class="text-muted">20%</span>
+                        </div>
+                        <div class="progress" style="height: 8px;"><div class="progress-bar bg-warning" style="width: 20%"></div></div>
+                    </div>
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>Over 24 hours</span>
+                            <span class="text-muted">8%</span>
+                        </div>
+                        <div class="progress" style="height: 8px;"><div class="progress-bar bg-danger" style="width: 8%"></div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="failureDetailModal1" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Failure: Insufficient Funds</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="d-flex justify-content-between mb-3 border-bottom pb-2">
+                        <span class="text-muted">Total Occurrences (90d)</span>
+                        <span class="fw-bold text-danger">1,245 (42.3%)</span>
+                    </div>
+                    <h6>Recent Occurrences</h6>
+                    <div class="list-group list-group-flush small">
+                        <div class="list-group-item px-0 py-2">
+                            <div class="d-flex justify-content-between"><strong>TXN-8812</strong> <span class="text-muted">10 mins ago</span></div>
+                            <div class="text-muted">Attempted: $450.00 (ACH)</div>
+                        </div>
+                        <div class="list-group-item px-0 py-2">
+                            <div class="d-flex justify-content-between"><strong>TXN-8745</strong> <span class="text-muted">1 hr ago</span></div>
+                            <div class="text-muted">Attempted: $1,200.00 (Wire)</div>
+                        </div>
+                        <div class="list-group-item px-0 py-2 border-bottom-0">
+                            <div class="d-flex justify-content-between"><strong>TXN-8711</strong> <span class="text-muted">2 hrs ago</span></div>
+                            <div class="text-muted">Attempted: €25.00 (SEPA)</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer p-2">
+                    <button class="btn btn-sm btn-outline-secondary w-100" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="failureDetailModal2" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Failure: Invalid Account</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="d-flex justify-content-between mb-3 border-bottom pb-2">
+                        <span class="text-muted">Total Occurrences (90d)</span>
+                        <span class="fw-bold text-danger">892 (30.3%)</span>
+                    </div>
+                    <p class="small text-muted mb-3">Accounts that failed validation checks at the destination bank or swift routing errors.</p>
+                    <button class="btn btn-sm btn-outline-primary w-100" onclick="exportData('invalid_accounts')"><i class="bi bi-download me-1"></i> Export Affected Accounts List</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="failureDetailModal3" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Failure: Timeout</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-warning small mb-3">
+                        <i class="bi bi-exclamation-triangle me-1"></i> 85% of timeouts occurred on the SWIFT network during peak hours.
+                    </div>
+                    <ul class="list-group list-group-flush small border-top pt-2">
+                        <li class="list-group-item d-flex justify-content-between px-0">
+                            <span>SWIFT Timeouts</span>
+                            <span class="fw-bold text-danger">387</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between px-0">
+                            <span>ACH Timeouts</span>
+                            <span class="fw-bold text-danger">45</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between px-0">
+                            <span>Real-time Timeouts</span>
+                            <span class="fw-bold text-danger">24</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="failureDetailModal4" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Failure: Compliance Hold</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="d-flex justify-content-between mb-3 border-bottom pb-2">
+                        <span class="text-muted">Total Occurrences (90d)</span>
+                        <span class="fw-bold text-danger">234 (8.0%)</span>
+                    </div>
+                    <h6 class="small fw-bold">Hold Categories:</h6>
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>OFAC / Sanctions Check</span>
+                            <span class="text-muted">145 cases</span>
+                        </div>
+                        <div class="progress" style="height: 6px;"><div class="progress-bar bg-danger" style="width: 62%"></div></div>
+                    </div>
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>Velocity Limit Exceeded</span>
+                            <span class="text-muted">65 cases</span>
+                        </div>
+                        <div class="progress" style="height: 6px;"><div class="progress-bar bg-warning" style="width: 28%"></div></div>
+                    </div>
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>Suspicious Activity (AML)</span>
+                            <span class="text-muted">24 cases</span>
+                        </div>
+                        <div class="progress" style="height: 6px;"><div class="progress-bar bg-primary" style="width: 10%"></div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="failureDetailModal5" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Other Failures</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <ul class="list-group list-group-flush small">
+                        <li class="list-group-item px-0 d-flex justify-content-between">
+                            <span>Account Closed</span>
+                            <strong>85</strong>
+                        </li>
+                        <li class="list-group-item px-0 d-flex justify-content-between">
+                            <span>Currency Mismatch</span>
+                            <strong>22</strong>
+                        </li>
+                        <li class="list-group-item px-0 d-flex justify-content-between border-bottom-0">
+                            <span>System Error (Internal)</span>
+                            <strong>8</strong>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="geoMapModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Geographic Flow Map (Detailed)</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <!-- High quality map placeholder with data panels -->
+                    <div class="row g-0 h-100">
+                        <div class="col-md-8 bg-light d-flex align-items-center justify-content-center" style="min-height: 500px; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); position:relative; overflow:hidden;">
+                            <i class="bi bi-globe text-white opacity-25" style="font-size: 15rem; position:absolute; right: -50px; bottom: -50px;"></i>
+                            <div class="text-center text-white z-1">
+                                <h3 class="fw-light">Interactive World Map</h3>
+                                <p class="text-white-50">Mapping integration module loading...</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 border-start p-3 overflow-auto" style="max-height: 500px;">
+                            <h6 class="fw-bold mb-3 border-bottom pb-2">Top Origin Countries</h6>
+                            <ul class="list-group list-group-flush small mb-4">
+                                <li class="list-group-item px-0 d-flex justify-content-between"><span>United States</span> <span class="fw-bold">$410M</span></li>
+                                <li class="list-group-item px-0 d-flex justify-content-between"><span>United Kingdom</span> <span class="fw-bold">$185M</span></li>
+                                <li class="list-group-item px-0 d-flex justify-content-between"><span>Germany</span> <span class="fw-bold">$95M</span></li>
+                            </ul>
+                            
+                            <h6 class="fw-bold mb-3 border-bottom pb-2">Top Destination Countries</h6>
+                            <ul class="list-group list-group-flush small">
+                                <li class="list-group-item px-0 d-flex justify-content-between"><span>India</span> <span class="fw-bold">$220M</span></li>
+                                <li class="list-group-item px-0 d-flex justify-content-between"><span>Mexico</span> <span class="fw-bold">$115M</span></li>
+                                <li class="list-group-item px-0 d-flex justify-content-between"><span>Philippines</span> <span class="fw-bold">$80M</span></li>
+                                <li class="list-group-item px-0 d-flex justify-content-between border-bottom-0"><span>Kenya</span> <span class="fw-bold">$65M</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="heatmapConfigModal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Heatmap Settings</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="mb-3">
+                            <label class="form-label small text-muted">Data Source</label>
+                            <select class="form-select form-select-sm">
+                                <option>Transaction Volume</option>
+                                <option>Transaction Value</option>
+                                <option>Failure Rates</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small text-muted">Time Frame</label>
+                            <select class="form-select form-select-sm">
+                                <option>Last 24 Hours</option>
+                                <option>Last 7 Days</option>
+                                <option>Last 30 Days</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small text-muted">Color Scale</label>
+                            <select class="form-select form-select-sm">
+                                <option>Blue (Default)</option>
+                                <option>Red/Green (Diverging)</option>
+                                <option>Monochrome</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer p-2">
+                    <button class="btn btn-sm btn-primary w-100" data-bs-dismiss="modal" onclick="showSuccessMessage('Heatmap settings applied')">Apply Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="activityFeedModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Full System Activity Log</h5>
+                    <div class="d-flex gap-2 ms-auto me-2">
+                        <select class="form-select form-select-sm w-auto">
+                            <option>All Events</option>
+                            <option>Transactions</option>
+                            <option>Alerts</option>
+                            <option>System</option>
+                        </select>
+                        <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-download"></i></button>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-0" style="max-height: 600px; overflow-y: auto;">
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item py-3">
+                            <div class="d-flex w-100 justify-content-between mb-1">
+                                <h6 class="mb-0"><span class="badge bg-primary me-2">TXN</span> Large Transaction Settled</h6>
+                                <small class="text-muted">Just now</small>
+                            </div>
+                            <p class="mb-1 small">$2,500,000 USD → GBP completed via SWIFT (TXN-998-A2B)</p>
+                        </div>
+                        <div class="list-group-item py-3 bg-light">
+                            <div class="d-flex w-100 justify-content-between mb-1">
+                                <h6 class="mb-0"><span class="badge bg-warning text-dark me-2">ALERT</span> Volume Spike Detected</h6>
+                                <small class="text-muted">12 mins ago</small>
+                            </div>
+                            <p class="mb-1 small">ACH volume increased 45% above normal baseline for this hour.</p>
+                        </div>
+                        <div class="list-group-item py-3">
+                            <div class="d-flex w-100 justify-content-between mb-1">
+                                <h6 class="mb-0"><span class="badge bg-info me-2">SYS</span> Report Generated</h6>
+                                <small class="text-muted">45 mins ago</small>
+                            </div>
+                            <p class="mb-1 small">Daily Operations Report was successfully generated and emailed to 5 recipients.</p>
+                        </div>
+                        <div class="list-group-item py-3">
+                            <div class="d-flex w-100 justify-content-between mb-1">
+                                <h6 class="mb-0"><span class="badge bg-primary me-2">TXN</span> Bulk Transfer Processing</h6>
+                                <small class="text-muted">1 hr ago</small>
+                            </div>
+                            <p class="mb-1 small">Batch #B-8874 (125 transactions) started processing.</p>
+                        </div>
+                        <div class="list-group-item py-3 bg-danger bg-opacity-10 border-danger border-start border-4">
+                            <div class="d-flex w-100 justify-content-between mb-1">
+                                <h6 class="mb-0 text-danger"><i class="bi bi-exclamation-triangle me-2"></i>SLA Breach</h6>
+                                <small class="text-danger">2 hrs ago</small>
+                            </div>
+                            <p class="mb-1 small">Wire settlement delayed over 2 hours for partner bank routing.</p>
+                        </div>
+                        <div class="list-group-item py-3 text-center">
+                            <button class="btn btn-sm btn-outline-secondary">Load More Activity</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="editReportModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Report Configuration</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="mb-3">
+                            <label class="form-label">Report Name</label>
+                            <input type="text" class="form-control" value="Operations Summary">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Frequency</label>
+                            <select class="form-select">
+                                <option selected>Daily</option>
+                                <option>Weekly</option>
+                                <option>Monthly</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Recipients (Email)</label>
+                            <textarea class="form-control" rows="2">admin@paymo.com, ops@paymo.com</textarea>
+                            <small class="text-muted">Separate multiple emails with commas</small>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="reportActive" checked>
+                            <label class="form-check-label" for="reportActive">Report Active</label>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer p-2">
+                    <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button class="btn btn-primary btn-sm" data-bs-dismiss="modal" onclick="showSuccessMessage('Report configuration updated')">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="runReportModal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header border-0 pb-0">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center pb-4">
+                    <i class="bi bi-play-circle text-success" style="font-size: 3rem;"></i>
+                    <h5 class="mt-3 mb-2">Run Report Now?</h5>
+                    <p class="text-muted small">This will generate the report immediately and send it to all configured recipients.</p>
+                    <div class="d-flex gap-2 justify-content-center mt-4">
+                        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                        <button class="btn btn-success btn-sm" data-bs-dismiss="modal" onclick="generateReport()">Run Now</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Theme Management
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            const icon = document.getElementById('themeIcon');
+            if (document.body.classList.contains('dark-mode')) {
+                icon.className = 'bi bi-sun';
+                localStorage.setItem('theme', 'dark');
+            } else {
+                icon.className = 'bi bi-moon-stars';
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        // Load saved theme
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-mode');
+                document.getElementById('themeIcon').className = 'bi bi-sun';
+            }
+        });
+
+        // Sidebar Management
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('show');
+        }
+
+        function toggleSidebarCollapse() {
+            document.getElementById('sidebar').classList.toggle('collapsed');
+        }
+
+        // Modal Management
+        function openModal(modalId, data = null) {
+            const modal = new bootstrap.Modal(document.getElementById(modalId));
+            modal.show();
+            
+            // If data is provided, you can populate modal content here
+            if (data) {
+                console.log('Modal data:', data);
+            }
+        }
+
+        // Filter Functions
+        function applyFilters() {
+            const spinner = showLoadingSpinner('Applying filters...');
+            setTimeout(() => {
+                hideLoadingSpinner(spinner);
+                showSuccessMessage('Filters applied successfully');
+                // Refresh data based on filters
+            }, 1000);
+        }
+
+        function resetFilters() {
+            document.getElementById('dateRange').value = 'Last 90 Days';
+            document.getElementById('railFilter').value = 'All Rails';
+            document.getElementById('currencyFilter').value = 'All Currencies';
+            document.getElementById('metricType').value = 'All Metrics';
+            showSuccessMessage('Filters reset');
+        }
+
+        // Export Functions
+        function exportData(type) {
+            const spinner = showLoadingSpinner(`Exporting ${type} data...`);
+            setTimeout(() => {
+                hideLoadingSpinner(spinner);
+                showSuccessMessage('Export completed successfully');
+            }, 1500);
+        }
+
+        function exportAs(format) {
+            const spinner = showLoadingSpinner(`Preparing ${format.toUpperCase()} export...`);
+            setTimeout(() => {
+                hideLoadingSpinner(spinner);
+                showSuccessMessage(`${format.toUpperCase()} file downloaded`);
+                const modal = bootstrap.Modal.getInstance(document.getElementById('quickExportModal'));
+                modal.hide();
+            }, 1500);
+        }
+
+        // Report Functions
+        function generateReport() {
+            const spinner = showLoadingSpinner('Generating report...');
+            setTimeout(() => {
+                hideLoadingSpinner(spinner);
+                showSuccessMessage('Report generated successfully');
+                const modal = bootstrap.Modal.getInstance(document.getElementById('reportBuilderModal'));
+                modal.hide();
+            }, 2000);
+        }
+
+        function saveReportTemplate() {
+            const spinner = showLoadingSpinner('Saving template...');
+            setTimeout(() => {
+                hideLoadingSpinner(spinner);
+                showSuccessMessage('Template saved successfully');
+            }, 1000);
+        }
+
+        function previewReport() {
+            const spinner = showLoadingSpinner('Generating preview...');
+            setTimeout(() => {
+                hideLoadingSpinner(spinner);
+                openModal('reportPreviewModal');
+            }, 1000);
+        }
+
+        function submitScheduleReport() {
+            const form = document.getElementById('scheduleReportForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            const spinner = document.getElementById('scheduleSpinner');
+            spinner.classList.remove('d-none');
+
+            setTimeout(() => {
+                spinner.classList.add('d-none');
+                showSuccessMessage('Report scheduled successfully');
+                const modal = bootstrap.Modal.getInstance(document.getElementById('scheduleReportModal'));
+                modal.hide();
+                form.reset();
+            }, 1500);
+        }
+
+        function exportFailureReport() {
+            const spinner = showLoadingSpinner('Exporting failure analysis...');
+            setTimeout(() => {
+                hideLoadingSpinner(spinner);
+                showSuccessMessage('Failure analysis report exported');
+            }, 1500);
+        }
+
+        // Notification Functions
+        function markAllRead() {
+            const spinner = showLoadingSpinner('Marking notifications as read...');
+            setTimeout(() => {
+                hideLoadingSpinner(spinner);
+                showSuccessMessage('All notifications marked as read');
+                document.querySelector('.btn-icon .badge').remove();
+            }, 800);
+        }
+
+        // Profile Functions
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                const spinner = showLoadingSpinner('Logging out...');
+                setTimeout(() => {
+                    hideLoadingSpinner(spinner);
+                    window.location.href = '/login';
+                }, 1000);
+            }
+        }
+
+        // Utility Functions
+        function showLoadingSpinner(message) {
+            const overlay = document.createElement('div');
+            overlay.className = 'position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center';
+            overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+            overlay.style.zIndex = '9999';
+            overlay.innerHTML = `
+                <div class="bg-white rounded p-4 text-center">
+                    <div class="spinner-border text-primary mb-3" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <div>${message}</div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+            return overlay;
+        }
+
+        function hideLoadingSpinner(spinner) {
+            if (spinner && spinner.parentNode) {
+                spinner.parentNode.removeChild(spinner);
+            }
+        }
+
+        function showSuccessMessage(message) {
+            const toast = document.createElement('div');
+            toast.className = 'position-fixed top-0 end-0 p-3';
+            toast.style.zIndex = '9999';
+            toast.innerHTML = `
+                <div class="toast show" role="alert">
+                    <div class="toast-header bg-success text-white">
+                        <i class="bi bi-check-circle me-2"></i>
+                        <strong class="me-auto">Success</strong>
+                        <button type="button" class="btn-close btn-close-white" onclick="this.closest('.position-fixed').remove()"></button>
+                    </div>
+                    <div class="toast-body">
+                        ${message}
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.parentNode.removeChild(toast);
+                }
+            }, 3000);
+        }
+
+        // Initialize tooltips
+        document.addEventListener('DOMContentLoaded', function() {
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        });
+
+        // Handle responsive sidebar on mobile
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 992) {
+                document.getElementById('sidebar').classList.remove('show');
+            }
+        });
+
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', function(event) {
+            const sidebar = document.getElementById('sidebar');
+            const isClickInside = sidebar.contains(event.target);
+            const isToggleButton = event.target.closest('.btn-icon');
+            
+            if (!isClickInside && !isToggleButton && window.innerWidth <= 992) {
+                sidebar.classList.remove('show');
+            }
+        });
+
+        // Simulate real-time data updates
+        setInterval(function() {
+            // Update live metrics (in production, this would fetch real data)
+            const updates = [
+                'New large transaction detected: $2.5M',
+                'Success rate improved to 99.1%',
+                'Peak hour activity detected',
+                'Settlement batch completed'
+            ];
+            
+            // Randomly show updates
+            if (Math.random() > 0.7) {
+                const randomUpdate = updates[Math.floor(Math.random() * updates.length)];
+                console.log('Live update:', randomUpdate);
+            }
+        }, 5000);
+    </script>
+</body>
+</html>

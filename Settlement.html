@@ -1,0 +1,3263 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+  <meta charset='UTF-8'>
+  <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+  <title>Settlement & Clearing - PayMo BaaS</title>
+  <link href='https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css' rel='stylesheet'>
+  <link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css'>
+  <link rel='preconnect' href='https://fonts.googleapis.com'>
+  <link rel='preconnect' href='https://fonts.gstatic.com' crossorigin>
+  <link href='https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap' rel='stylesheet'>
+  <style>
+    :root {
+      --glass-bg: rgba(255,255,255,0.55);
+      --glass-bg-solid: rgba(255,255,255,0.75);
+      --glass-border: rgba(255,255,255,0.6);
+      --glass-shadow: 0 8px 32px rgba(0,0,0,0.06), 0 2px 8px rgba(0,0,0,0.04);
+      --glass-shadow-lg: 0 16px 48px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04);
+      --accent: #2563eb;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --sidebar-width: 260px;
+      --sidebar-collapsed: 72px;
+
+      --primary-color: #6366f1;
+      --primary-dark: #4f46e5;
+      --primary-light: #818cf8;
+      --secondary-color: #8b5cf6;
+      --success-color: #10b981;
+      --warning-color: #f59e0b;
+      --danger-color: #ef4444;
+      --info-color: #3b82f6;
+      --dark-bg: #0f172a;
+      --dark-card: #1e293b;
+      --dark-border: #334155;
+      --light-bg: #f8fafc;
+      --light-card: #ffffff;
+      --light-border: #e2e8f0;
+      --text-dark: #0f172a;
+      --text-light: #f8fafc;
+      --text-muted: #64748b;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background-attachment: fixed;
+      min-height: 100vh;
+      overflow-x: hidden;
+      color: var(--text-dark);
+      transition: all 0.3s ease;
+    }
+    body.light-mode { background: var(--light-bg); }
+    a { color: inherit; }
+
+    .glass-card {
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.3);
+      box-shadow: var(--glass-shadow);
+      border-radius: 18px;
+      transition: all 0.25s ease;
+    }
+    .glass-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--glass-shadow-lg);
+    }
+
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      width: var(--sidebar-width);
+      background: rgba(30,41,59,0.95);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      padding: 1.5rem 0;
+      transition: all 0.3s ease;
+      z-index: 1000;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+    .sidebar.collapsed { width: var(--sidebar-collapsed); }
+    .sidebar::-webkit-scrollbar { width: 6px; }
+    .sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 999px; }
+
+    .sidebar-header {
+      padding: 0 1.25rem 1.25rem;
+      border-bottom: 1px solid var(--dark-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      color: var(--text-light);
+      font-size: 1.15rem;
+      font-weight: 800;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .logo-mark {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: 800;
+      box-shadow: 0 8px 20px rgba(118,75,162,0.35);
+      flex-shrink: 0;
+    }
+    .sidebar.collapsed .sidebar-logo span { display: none; }
+    .sidebar-toggle {
+      background: var(--primary-color);
+      border: none;
+      color: white;
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      flex-shrink: 0;
+    }
+    .sidebar-toggle:hover { background: var(--primary-dark); transform: scale(1.05); }
+
+    .sidebar-nav { padding: 1.25rem 0; }
+    .nav-section { margin-bottom: 1.35rem; }
+    .nav-section-title {
+      color: var(--text-muted);
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 0 1.25rem;
+      margin-bottom: 0.55rem;
+      letter-spacing: 0.08em;
+      transition: all 0.3s ease;
+    }
+    .sidebar.collapsed .nav-section-title {
+      opacity: 0;
+      height: 0;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+    .nav-link-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 1.25rem;
+      color: rgba(255,255,255,0.72);
+      text-decoration: none;
+      transition: all 0.2s ease;
+      position: relative;
+      font-size: 0.92rem;
+    }
+    .nav-link-item:hover {
+      background: rgba(255,255,255,0.06);
+      color: var(--text-light);
+    }
+    .nav-link-item.active {
+      background: linear-gradient(90deg, rgba(99,102,241,0.3), rgba(99,102,241,0.1));
+      color: white;
+    }
+    .nav-link-item.active::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      background: var(--primary-light);
+      border-radius: 0 4px 4px 0;
+    }
+    .nav-link-item i { font-size: 1.1rem; min-width: 22px; }
+    .nav-link-item .nav-badge {
+      margin-left: auto;
+      background: rgba(99,102,241,0.22);
+      color: #c7d2fe;
+      font-size: 0.64rem;
+      padding: 0.16rem 0.5rem;
+      border-radius: 999px;
+      font-weight: 700;
+    }
+    .sidebar.collapsed .nav-link-item span,
+    .sidebar.collapsed .nav-link-item .nav-badge { display: none; }
+
+    .main-content {
+      margin-left: var(--sidebar-width);
+      padding: 2rem;
+      transition: all 0.3s ease;
+      min-height: 100vh;
+    }
+    .main-content.expanded { margin-left: var(--sidebar-collapsed); }
+
+    .top-bar {
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 18px;
+      padding: 1.1rem 1.3rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+      box-shadow: var(--glass-shadow);
+    }
+    .breadcrumb-trail {
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      margin-bottom: 0.25rem;
+    }
+    .breadcrumb-trail a {
+      color: var(--primary-color);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .breadcrumb-trail a:hover { text-decoration: underline; }
+    .page-title {
+      font-size: 1.55rem;
+      font-weight: 800;
+      color: var(--text-dark);
+      margin: 0;
+      letter-spacing: -0.02em;
+    }
+    .page-subtitle {
+      color: var(--text-muted);
+      margin: 0.2rem 0 0;
+      font-size: 0.9rem;
+    }
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      flex-wrap: wrap;
+    }
+
+    .icon-btn, .theme-toggle {
+      background: var(--light-bg);
+      border: 1px solid var(--light-border);
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-dark);
+      cursor: pointer;
+      transition: all 0.25s ease;
+      position: relative;
+    }
+    .icon-btn:hover, .theme-toggle:hover {
+      background: var(--primary-color);
+      color: white;
+      border-color: var(--primary-color);
+      transform: scale(1.04);
+    }
+    .notif-dot {
+      position: absolute;
+      top: 8px;
+      right: 9px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--danger-color);
+      border: 2px solid white;
+    }
+
+    .btn-custom {
+      border: none;
+      border-radius: 12px;
+      padding: 0.72rem 1.15rem;
+      font-size: 0.86rem;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .btn-primary {
+      background: var(--primary-color);
+      color: white;
+      box-shadow: 0 8px 20px rgba(99,102,241,0.25);
+    }
+    .btn-primary:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+      color: white;
+    }
+    .btn-outline {
+      background: transparent;
+      color: var(--primary-color);
+      border: 2px solid var(--primary-color);
+    }
+    .btn-outline:hover {
+      background: var(--primary-color);
+      color: white;
+    }
+    .btn-ghost {
+      background: var(--light-bg);
+      border: 1px solid var(--light-border);
+      color: var(--text-dark);
+    }
+    .btn-ghost:hover {
+      border-color: var(--primary-light);
+      color: var(--primary-color);
+      background: white;
+    }
+    .btn-success-soft {
+      background: rgba(16,185,129,0.12);
+      color: var(--success-color);
+    }
+    .btn-success-soft:hover { background: rgba(16,185,129,0.2); }
+    .btn-danger-soft {
+      background: rgba(239,68,68,0.12);
+      color: var(--danger-color);
+    }
+    .btn-danger-soft:hover { background: rgba(239,68,68,0.2); }
+    .btn-warning-soft {
+      background: rgba(245,158,11,0.12);
+      color: var(--warning-color);
+    }
+    .btn-warning-soft:hover { background: rgba(245,158,11,0.2); }
+
+    .feedback-bar {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      border-radius: 16px;
+      padding: 0.9rem 1rem;
+      margin-bottom: 1.25rem;
+      box-shadow: var(--glass-shadow);
+      border: 1px solid transparent;
+      font-size: 0.88rem;
+      font-weight: 600;
+    }
+    .feedback-bar.show { display: flex; }
+    .feedback-bar.info {
+      background: rgba(59,130,246,0.1);
+      color: #1d4ed8;
+      border-color: rgba(59,130,246,0.2);
+    }
+    .feedback-bar.success {
+      background: rgba(16,185,129,0.1);
+      color: #047857;
+      border-color: rgba(16,185,129,0.2);
+    }
+    .feedback-bar.warning {
+      background: rgba(245,158,11,0.1);
+      color: #b45309;
+      border-color: rgba(245,158,11,0.2);
+    }
+    .feedback-bar.danger {
+      background: rgba(239,68,68,0.1);
+      color: #b91c1c;
+      border-color: rgba(239,68,68,0.2);
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .stat-card {
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 18px;
+      padding: 1.3rem;
+      border: 1px solid rgba(255,255,255,0.3);
+      box-shadow: var(--glass-shadow);
+      transition: all 0.25s ease;
+    }
+    .stat-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--glass-shadow-lg);
+    }
+    .stat-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 0.9rem;
+      font-size: 1.15rem;
+    }
+    .stat-value {
+      font-size: 1.7rem;
+      line-height: 1;
+      font-weight: 800;
+      color: var(--text-dark);
+      margin-bottom: 0.3rem;
+    }
+    .stat-label {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+    .stat-sub {
+      margin-top: 0.55rem;
+      font-size: 0.74rem;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+    }
+    .stat-sub.good { background: rgba(16,185,129,0.1); color: var(--success-color); }
+    .stat-sub.warn { background: rgba(245,158,11,0.1); color: var(--warning-color); }
+    .stat-sub.bad { background: rgba(239,68,68,0.1); color: var(--danger-color); }
+    .stat-sub.info { background: rgba(59,130,246,0.1); color: var(--info-color); }
+
+    .section {
+      margin-bottom: 1.5rem;
+      scroll-margin-top: 1rem;
+    }
+    .section-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 0.85rem;
+      flex-wrap: wrap;
+    }
+    .section-kicker {
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      color: rgba(255,255,255,0.75);
+      text-transform: uppercase;
+      margin-bottom: 0.35rem;
+    }
+    .section-title {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: white;
+      margin: 0;
+      letter-spacing: -0.02em;
+    }
+    .section-title-sub {
+      color: rgba(255,255,255,0.78);
+      font-size: 0.88rem;
+      margin-top: 0.18rem;
+    }
+    .section-head-actions {
+      display: flex;
+      gap: 0.65rem;
+      flex-wrap: wrap;
+    }
+
+    .content-card {
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 18px;
+      padding: 1.3rem;
+      border: 1px solid rgba(255,255,255,0.3);
+      box-shadow: var(--glass-shadow);
+      margin-bottom: 1rem;
+    }
+    .card-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+      padding-bottom: 0.9rem;
+      border-bottom: 1px solid var(--light-border);
+    }
+    .card-title {
+      font-size: 1.04rem;
+      font-weight: 800;
+      color: var(--text-dark);
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+    }
+    .card-title i { color: var(--primary-color); }
+    .card-subtitle {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 0.2rem;
+    }
+
+    .action-strip {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 0.8rem;
+    }
+    .action-tile {
+      background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(139,92,246,0.08));
+      border: 1px solid rgba(99,102,241,0.12);
+      border-radius: 16px;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .action-tile .tile-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(99,102,241,0.15);
+      color: var(--primary-color);
+      font-size: 1rem;
+    }
+    .tile-title { font-size: 0.92rem; font-weight: 800; color: var(--text-dark); }
+    .tile-copy { font-size: 0.78rem; color: var(--text-muted); line-height: 1.45; }
+
+    .mini-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 0.8rem;
+    }
+    .mini-card {
+      background: var(--light-bg);
+      border: 1px solid var(--light-border);
+      border-radius: 14px;
+      padding: 0.95rem;
+    }
+    .mini-label {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.25rem;
+    }
+    .mini-value {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--text-dark);
+      line-height: 1.1;
+    }
+    .mini-note { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; }
+
+    .countdown-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 0.8rem;
+    }
+    .countdown-card {
+      background: linear-gradient(180deg, rgba(99,102,241,0.06), rgba(99,102,241,0.02));
+      border: 1px solid rgba(99,102,241,0.14);
+      border-radius: 16px;
+      padding: 1rem;
+    }
+    .countdown-card h6 {
+      margin: 0 0 0.25rem;
+      font-size: 0.88rem;
+      font-weight: 800;
+      color: var(--text-dark);
+    }
+    .countdown-card p {
+      margin: 0;
+      color: var(--text-muted);
+      font-size: 0.74rem;
+    }
+    .timer-value {
+      margin-top: 0.7rem;
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--primary-color);
+      letter-spacing: 0.03em;
+    }
+
+    .custom-tabs {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+    .tab-btn {
+      background: transparent;
+      border: none;
+      padding: 0.62rem 1rem;
+      border-radius: 12px;
+      color: var(--text-muted);
+      font-size: 0.84rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .tab-btn:hover {
+      background: rgba(99,102,241,0.08);
+      color: var(--primary-color);
+    }
+    .tab-btn.active {
+      background: var(--primary-color);
+      color: white;
+      box-shadow: 0 8px 18px rgba(99,102,241,0.22);
+    }
+    .tab-panel { display: none; margin-top: 1rem; }
+    .tab-panel.active { display: block; }
+
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: 16px;
+      border: 1px solid var(--light-border);
+    }
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 920px;
+    }
+    .data-table thead { background: var(--light-bg); }
+    .data-table th {
+      padding: 0.85rem 1rem;
+      text-align: left;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      border-bottom: 1px solid var(--light-border);
+      white-space: nowrap;
+    }
+    .data-table td {
+      padding: 0.9rem 1rem;
+      border-bottom: 1px solid var(--light-border);
+      font-size: 0.85rem;
+      color: var(--text-dark);
+      vertical-align: middle;
+    }
+    .data-table tbody tr:last-child td { border-bottom: none; }
+    .data-table tbody tr:hover { background: rgba(99,102,241,0.03); }
+
+    .badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.24rem 0.62rem;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .badge-success { background: rgba(16,185,129,0.1); color: var(--success-color); }
+    .badge-warning { background: rgba(245,158,11,0.1); color: var(--warning-color); }
+    .badge-danger { background: rgba(239,68,68,0.1); color: var(--danger-color); }
+    .badge-info { background: rgba(59,130,246,0.1); color: var(--info-color); }
+    .badge-purple { background: rgba(139,92,246,0.1); color: var(--secondary-color); }
+    .badge-muted { background: rgba(100,116,139,0.1); color: #475569; }
+
+    .inline-actions {
+      display: flex;
+      gap: 0.45rem;
+      flex-wrap: wrap;
+    }
+    .small-btn {
+      border: none;
+      background: var(--light-bg);
+      color: var(--text-dark);
+      border: 1px solid var(--light-border);
+      border-radius: 10px;
+      padding: 0.45rem 0.7rem;
+      font-size: 0.76rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .small-btn:hover {
+      color: var(--primary-color);
+      border-color: var(--primary-light);
+      background: white;
+    }
+
+    .jurisdiction-grid,
+    .report-grid,
+    .eod-grid,
+    .overview-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1rem;
+    }
+    .jur-card,
+    .report-card,
+    .eod-card,
+    .overview-card {
+      background: var(--light-bg);
+      border: 1px solid var(--light-border);
+      border-radius: 16px;
+      padding: 1rem;
+    }
+    .jur-card h6,
+    .report-card h6,
+    .eod-card h6,
+    .overview-card h6 {
+      margin: 0;
+      font-size: 0.92rem;
+      font-weight: 800;
+      color: var(--text-dark);
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+    }
+    .muted-copy { font-size: 0.78rem; color: var(--text-muted); line-height: 1.5; }
+
+    .holiday-list,
+    .check-list,
+    .bullet-list {
+      list-style: none;
+      margin: 0.85rem 0 0;
+      padding: 0;
+      display: grid;
+      gap: 0.65rem;
+    }
+    .holiday-list li,
+    .check-list li,
+    .bullet-list li {
+      font-size: 0.82rem;
+      color: var(--text-dark);
+      display: flex;
+      justify-content: space-between;
+      gap: 0.75rem;
+      align-items: center;
+      padding-bottom: 0.55rem;
+      border-bottom: 1px dashed var(--light-border);
+    }
+    .holiday-list li:last-child,
+    .check-list li:last-child,
+    .bullet-list li:last-child { border-bottom: none; padding-bottom: 0; }
+
+    .matrix-wrap {
+      overflow-x: auto;
+      border-radius: 16px;
+      border: 1px solid var(--light-border);
+    }
+    .matrix-table {
+      border-collapse: collapse;
+      width: 100%;
+      min-width: 720px;
+    }
+    .matrix-table th,
+    .matrix-table td {
+      padding: 0.8rem;
+      text-align: center;
+      border: 1px solid var(--light-border);
+      font-size: 0.82rem;
+    }
+    .matrix-table th {
+      background: var(--light-bg);
+      font-weight: 800;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-size: 0.7rem;
+      letter-spacing: 0.06em;
+    }
+    .matrix-table td.positive { background: rgba(16,185,129,0.08); color: #047857; font-weight: 700; }
+    .matrix-table td.negative { background: rgba(239,68,68,0.08); color: #b91c1c; font-weight: 700; }
+    .matrix-table td.neutral { background: rgba(148,163,184,0.08); color: #475569; font-weight: 700; }
+
+    .chart-bars {
+      display: flex;
+      align-items: end;
+      gap: 0.7rem;
+      height: 220px;
+      padding: 0.5rem 0.25rem 0;
+      border-bottom: 2px solid var(--light-border);
+    }
+    .chart-bar {
+      flex: 1;
+      min-width: 36px;
+      background: linear-gradient(180deg, var(--primary-color), var(--secondary-color));
+      border-radius: 10px 10px 0 0;
+      position: relative;
+      transition: all 0.25s ease;
+    }
+    .chart-bar:hover { opacity: 0.88; transform: translateY(-2px); }
+    .chart-bar::after {
+      content: attr(data-value);
+      position: absolute;
+      top: -24px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.7rem;
+      font-weight: 800;
+      color: var(--text-dark);
+      white-space: nowrap;
+    }
+    .chart-labels {
+      display: flex;
+      gap: 0.7rem;
+      margin-top: 0.55rem;
+    }
+    .chart-labels span {
+      flex: 1;
+      text-align: center;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-weight: 700;
+    }
+
+    .job-row,
+    .exception-row,
+    .feed-row {
+      display: flex;
+      gap: 0.95rem;
+      padding: 0.95rem 0;
+      border-bottom: 1px solid var(--light-border);
+    }
+    .job-row:last-child,
+    .exception-row:last-child,
+    .feed-row:last-child { border-bottom: none; }
+    .row-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 1rem;
+    }
+    .row-body { flex: 1; }
+    .row-title { font-size: 0.88rem; font-weight: 800; color: var(--text-dark); margin-bottom: 0.18rem; }
+    .row-meta { font-size: 0.77rem; color: var(--text-muted); line-height: 1.45; }
+
+    .progress-track {
+      width: 100%;
+      height: 8px;
+      background: var(--light-border);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 0.45rem;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+      border-radius: 999px;
+    }
+
+    .modal-shell {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15,23,42,0.58);
+      backdrop-filter: blur(8px);
+      z-index: 2000;
+      padding: 1rem;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-shell.active { display: flex; }
+    .modal-card {
+      width: min(980px, 100%);
+      max-height: 92vh;
+      overflow: hidden;
+      background: white;
+      border-radius: 24px;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.28);
+      display: flex;
+      flex-direction: column;
+      animation: modalIn 0.22s ease;
+    }
+    .modal-card.narrow { width: min(640px, 100%); }
+    .modal-card.wide { width: min(1120px, 100%); }
+    @keyframes modalIn {
+      from { opacity: 0; transform: translateY(-14px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .modal-head {
+      padding: 1.3rem 1.4rem;
+      border-bottom: 1px solid var(--light-border);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .modal-title {
+      margin: 0;
+      font-size: 1.18rem;
+      font-weight: 800;
+      color: var(--text-dark);
+      letter-spacing: -0.02em;
+    }
+    .modal-subtitle {
+      margin-top: 0.25rem;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.45;
+    }
+    .modal-close {
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      border: none;
+      background: var(--light-bg);
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      flex-shrink: 0;
+    }
+    .modal-close:hover {
+      background: rgba(239,68,68,0.12);
+      color: var(--danger-color);
+      transform: rotate(90deg);
+    }
+    .modal-body {
+      padding: 1.35rem 1.4rem;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .modal-foot {
+      padding: 1rem 1.4rem;
+      border-top: 1px solid var(--light-border);
+      background: var(--light-bg);
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+    }
+    .form-group { margin-bottom: 1rem; }
+    .form-label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 0.4rem;
+    }
+    .form-control,
+    .form-select,
+    textarea {
+      width: 100%;
+      border: 2px solid var(--light-border);
+      border-radius: 12px;
+      padding: 0.72rem 0.9rem;
+      font-size: 0.86rem;
+      color: var(--text-dark);
+      background: white;
+      transition: all 0.2s ease;
+      font-family: inherit;
+    }
+    textarea { min-height: 96px; resize: vertical; }
+    .form-control:focus,
+    .form-select:focus,
+    textarea:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 4px rgba(99,102,241,0.08);
+    }
+
+    .alert-box {
+      display: flex;
+      gap: 0.8rem;
+      padding: 0.95rem 1rem;
+      border-radius: 16px;
+      border: 1px solid transparent;
+      margin-bottom: 1rem;
+      font-size: 0.84rem;
+      line-height: 1.5;
+    }
+    .alert-box i { font-size: 1.1rem; }
+    .alert-box.info { background: rgba(59,130,246,0.1); border-color: rgba(59,130,246,0.2); color: #1d4ed8; }
+    .alert-box.success { background: rgba(16,185,129,0.1); border-color: rgba(16,185,129,0.2); color: #047857; }
+    .alert-box.warning { background: rgba(245,158,11,0.1); border-color: rgba(245,158,11,0.2); color: #b45309; }
+    .alert-box.danger { background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.2); color: #b91c1c; }
+
+    .wizard-steps {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.6rem;
+      margin-bottom: 1.25rem;
+      position: relative;
+    }
+    .wizard-steps::before {
+      content: '';
+      position: absolute;
+      top: 18px;
+      left: 8%;
+      right: 8%;
+      height: 2px;
+      background: var(--light-border);
+      z-index: 0;
+    }
+    .wizard-step {
+      position: relative;
+      z-index: 1;
+      flex: 1;
+      text-align: center;
+    }
+    .wizard-step .dot {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 2px solid var(--light-border);
+      background: white;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 0.45rem;
+      font-size: 0.8rem;
+      font-weight: 800;
+    }
+    .wizard-step.active .dot {
+      background: var(--primary-color);
+      border-color: var(--primary-color);
+      color: white;
+      box-shadow: 0 0 0 4px rgba(99,102,241,0.15);
+    }
+    .wizard-step.completed .dot {
+      background: var(--success-color);
+      border-color: var(--success-color);
+      color: white;
+    }
+    .wizard-step span {
+      display: block;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+    .wizard-pane { display: none; }
+    .wizard-pane.active { display: block; }
+
+    .spinner {
+      border: 2px solid rgba(99,102,241,0.18);
+      border-top: 2px solid var(--primary-color);
+      border-radius: 50%;
+      width: 16px;
+      height: 16px;
+      animation: spin 0.8s linear infinite;
+      display: inline-block;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .footer-pill {
+      display: inline-flex;
+      gap: 0.5rem;
+      align-items: center;
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.75);
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.15);
+      padding: 0.45rem 0.9rem;
+      border-radius: 999px;
+      margin-top: 0.2rem;
+    }
+
+    @media (max-width: 992px) {
+      .sidebar { width: var(--sidebar-collapsed); }
+      .sidebar-logo span,
+      .nav-section-title,
+      .nav-link-item span,
+      .nav-link-item .nav-badge { display: none; }
+      .main-content { margin-left: var(--sidebar-collapsed); padding: 1rem; }
+      .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 768px) {
+      .stats-grid,
+      .mini-grid,
+      .countdown-grid,
+      .overview-grid,
+      .jurisdiction-grid,
+      .report-grid,
+      .eod-grid,
+      .action-strip { grid-template-columns: 1fr; }
+      .top-bar { align-items: flex-start; }
+      .top-actions { width: 100%; }
+      .section-title { font-size: 1.1rem; }
+      .page-title { font-size: 1.3rem; }
+      .wizard-steps::before { display: none; }
+      .wizard-steps { flex-wrap: wrap; }
+    }
+  </style>
+</head>
+<body>
+  <aside class='sidebar' id='sidebar'>
+    <div class='sidebar-header'>
+      <a class='sidebar-logo' href='#overview'>
+        <div class='logo-mark'>P</div>
+        <span>PayMo</span>
+      </a>
+      <button class='sidebar-toggle' id='sidebarToggle' type='button' aria-label='Toggle sidebar'>
+        <i class='bi bi-list'></i>
+      </button>
+    </div>
+
+    <nav class='sidebar-nav'>
+      <div class='nav-section'>
+        <div class='nav-section-title'>Command</div>
+        <a class='nav-link-item active' href='#overview'><i class='bi bi-layers'></i><span>Overview</span></a>
+        <a class='nav-link-item' href='#ops-console'><i class='bi bi-lightning-charge'></i><span>Operations Console</span></a>
+      </div>
+
+      <div class='nav-section'>
+        <div class='nav-section-title'>Settlement</div>
+        <a class='nav-link-item' href='#calendar'><i class='bi bi-calendar3'></i><span>Settlement Calendar</span></a>
+        <a class='nav-link-item' href='#netting'><i class='bi bi-diagram-3'></i><span>Netting & Batching</span></a>
+        <a class='nav-link-item' href='#reports'><i class='bi bi-file-earmark-bar-graph'></i><span>Settlement Reports</span><span class='nav-badge'>8</span></a>
+        <a class='nav-link-item' href='#eod'><i class='bi bi-moon-stars'></i><span>EOD Process</span></a>
+      </div>
+
+      <div class='nav-section'>
+        <div class='nav-section-title'>Controls</div>
+        <a class='nav-link-item' href='#calendar'><i class='bi bi-alarm'></i><span>Cut-off Timers</span></a>
+        <a class='nav-link-item' href='#netting'><i class='bi bi-calculator'></i><span>Net Position</span></a>
+        <a class='nav-link-item' href='#eod'><i class='bi bi-shield-check'></i><span>Sign-off & Audit</span></a>
+      </div>
+    </nav>
+  </aside>
+
+  <main class='main-content' id='mainContent'>
+    <div class='top-bar'>
+      <div>
+        <div class='breadcrumb-trail'><a href='#overview'>Dashboard</a> <i class='bi bi-chevron-right'></i> <a href='#overview'>Operations</a> <i class='bi bi-chevron-right'></i> Settlement & Clearing</div>
+        <h1 class='page-title'>Settlement & Clearing</h1>
+        <p class='page-subtitle'>End-of-day and real-time settlement operations across all active rails, clearing networks, and jurisdictions.</p>
+      </div>
+      <div class='top-actions'>
+        <button class='theme-toggle' id='themeToggle' type='button' title='Toggle theme'><i class='bi bi-moon-fill'></i></button>
+        <button class='icon-btn' type='button' data-open='alertsModal' title='View settlement alerts'><i class='bi bi-bell'></i><span class='notif-dot'></span></button>
+        <button class='icon-btn' type='button' data-open='helpModal' title='Open help center'><i class='bi bi-question-circle'></i></button>
+        <button class='btn-custom btn-outline' type='button' data-open='calendarExportModal'><i class='bi bi-calendar-plus'></i> Export Calendar</button>
+        <button class='btn-custom btn-primary' type='button' data-open='createBatchModal'><i class='bi bi-plus-circle'></i> Create Settlement Batch</button>
+      </div>
+    </div>
+
+    <div class='feedback-bar info' id='feedbackBar'>
+      <div id='feedbackText'><i class='bi bi-info-circle'></i> Operations feedback will appear here.</div>
+      <button class='small-btn' type='button' id='dismissFeedback'>Dismiss</button>
+    </div>
+
+    <section class='section' id='overview'>
+      <div class='stats-grid'>
+        <div class='stat-card'>
+          <div class='stat-icon' style='background: rgba(59,130,246,0.1); color: var(--info-color);'><i class='bi bi-bank2'></i></div>
+          <div class='stat-value'>$142.8M</div>
+          <div class='stat-label'>Gross Settlements Scheduled Today</div>
+          <div class='stat-sub info'><i class='bi bi-clock-history'></i> 42 windows active</div>
+        </div>
+        <div class='stat-card'>
+          <div class='stat-icon' style='background: rgba(16,185,129,0.1); color: var(--success-color);'><i class='bi bi-diagram-2-fill'></i></div>
+          <div class='stat-value'>$3.8M</div>
+          <div class='stat-label'>Netting Savings Captured</div>
+          <div class='stat-sub good'><i class='bi bi-arrow-down'></i> 11.2% lower cash usage</div>
+        </div>
+        <div class='stat-card'>
+          <div class='stat-icon' style='background: rgba(139,92,246,0.1); color: var(--secondary-color);'><i class='bi bi-lightning-charge-fill'></i></div>
+          <div class='stat-value'>97.9%</div>
+          <div class='stat-label'>Real-time Finality Success</div>
+          <div class='stat-sub good'><i class='bi bi-check2-circle'></i> 18 live streams healthy</div>
+        </div>
+        <div class='stat-card'>
+          <div class='stat-icon' style='background: rgba(245,158,11,0.1); color: var(--warning-color);'><i class='bi bi-collection-fill'></i></div>
+          <div class='stat-value'>7</div>
+          <div class='stat-label'>Pending Batch Submissions</div>
+          <div class='stat-sub warn'><i class='bi bi-hourglass-split'></i> 2 awaiting approval</div>
+        </div>
+        <div class='stat-card'>
+          <div class='stat-icon' style='background: rgba(239,68,68,0.1); color: var(--danger-color);'><i class='bi bi-exclamation-octagon-fill'></i></div>
+          <div class='stat-value'>4</div>
+          <div class='stat-label'>Settlement Failures Requiring Action</div>
+          <div class='stat-sub bad'><i class='bi bi-arrow-up'></i> 1 critical before final cut-off</div>
+        </div>
+        <div class='stat-card'>
+          <div class='stat-icon' style='background: rgba(16,185,129,0.1); color: var(--success-color);'><i class='bi bi-moon-stars-fill'></i></div>
+          <div class='stat-value'>92%</div>
+          <div class='stat-label'>EOD Readiness Score</div>
+          <div class='stat-sub good'><i class='bi bi-check-square'></i> 23 of 25 checks complete</div>
+        </div>
+      </div>
+
+      <div class='content-card' id='ops-console'>
+        <div class='card-header-row'>
+          <div>
+            <h2 class='card-title'><i class='bi bi-lightning-charge'></i> Operations Console</h2>
+            <div class='card-subtitle'>Immediate actions for cut-off management, batch control, reporting, and close-of-business sign-off.</div>
+          </div>
+        </div>
+        <div class='action-strip'>
+          <div class='action-tile'>
+            <div class='tile-icon'><i class='bi bi-plus-circle'></i></div>
+            <div class='tile-title'>Create Settlement Batch</div>
+            <div class='tile-copy'>Launch the multi-step wizard to define rail, scope, netting mode, and approval routing.</div>
+            <button class='btn-custom btn-primary' type='button' data-open='createBatchModal'><i class='bi bi-arrow-right'></i> Launch Wizard</button>
+          </div>
+          <div class='action-tile'>
+            <div class='tile-icon'><i class='bi bi-diagram-3'></i></div>
+            <div class='tile-title'>Run Netting Session</div>
+            <div class='tile-copy'>Review multi-lateral exposure offsets and simulate cash savings before submission.</div>
+            <button class='btn-custom btn-outline' type='button' data-open='multilateralModal'><i class='bi bi-calculator'></i> Open Netting</button>
+          </div>
+          <div class='action-tile'>
+            <div class='tile-icon'><i class='bi bi-journal-check'></i></div>
+            <div class='tile-title'>Pre-settlement Validation</div>
+            <div class='tile-copy'>Check balances, cut-off eligibility, account mappings, holiday conflicts, and rail limits.</div>
+            <button class='btn-custom btn-ghost' type='button' data-open='validationReportModal'><i class='bi bi-search'></i> Preview Report</button>
+          </div>
+          <div class='action-tile'>
+            <div class='tile-icon'><i class='bi bi-building-check'></i></div>
+            <div class='tile-title'>Central Bank Reporting</div>
+            <div class='tile-copy'>Prepare clearing reports, liquidity summaries, and jurisdiction-specific filing packages.</div>
+            <button class='btn-custom btn-ghost' type='button' data-open='centralBankModal'><i class='bi bi-file-earmark-text'></i> Open Packs</button>
+          </div>
+          <div class='action-tile'>
+            <div class='tile-icon'><i class='bi bi-moon-stars'></i></div>
+            <div class='tile-title'>EOD Sign-off</div>
+            <div class='tile-copy'>Run the structured close process, validate outstanding exceptions, and seal day-end books.</div>
+            <button class='btn-custom btn-primary' type='button' data-open='signoffModal'><i class='bi bi-shield-check'></i> Start Sign-off</button>
+          </div>
+          <div class='action-tile'>
+            <div class='tile-icon'><i class='bi bi-broadcast-pin'></i></div>
+            <div class='tile-title'>Configure Alerts</div>
+            <div class='tile-copy'>Set cut-off threshold reminders, failure escalation policies, and EOD breach notifications.</div>
+            <button class='btn-custom btn-warning-soft' type='button' data-open='alertRuleModal'><i class='bi bi-sliders'></i> Alert Rules</button>
+          </div>
+        </div>
+      </div>
+
+      <div class='content-card'>
+        <div class='card-header-row'>
+          <div>
+            <h2 class='card-title'><i class='bi bi-stopwatch'></i> Live Cut-off Countdowns</h2>
+            <div class='card-subtitle'>Daily settlement schedule per rail with rolling countdown to the next valid cut-off.</div>
+          </div>
+          <div class='inline-actions'>
+            <button class='small-btn' type='button' data-open='cutoffGuideModal'>Cut-off Guide</button>
+            <button class='small-btn' type='button' data-open='railScheduleModal'>Rail Schedules</button>
+            <button class='small-btn' type='button' data-open='railLimitsModal'>Intraday Limits</button>
+          </div>
+        </div>
+        <div class='countdown-grid'>
+          <div class='countdown-card'>
+            <h6>ACH • US</h6>
+            <p>Final outbound cut-off at 22:00 UTC</p>
+            <div class='timer-value' data-cutoff='22:00'>--:--:--</div>
+          </div>
+          <div class='countdown-card'>
+            <h6>SEPA • EU</h6>
+            <p>Final clearing handoff at 16:30 UTC</p>
+            <div class='timer-value' data-cutoff='16:30'>--:--:--</div>
+          </div>
+          <div class='countdown-card'>
+            <h6>SWIFT • Global</h6>
+            <p>CLS aligned funding cut-off at 18:00 UTC</p>
+            <div class='timer-value' data-cutoff='18:00'>--:--:--</div>
+          </div>
+          <div class='countdown-card'>
+            <h6>FPS • UK</h6>
+            <p>Continuous real-time clearing with review at 23:55 UTC</p>
+            <div class='timer-value' data-cutoff='23:55'>--:--:--</div>
+          </div>
+          <div class='countdown-card'>
+            <h6>PesaLink • KE</h6>
+            <p>Same-day instant clearing supervision cut-off at 20:00 UTC</p>
+            <div class='timer-value' data-cutoff='20:00'>--:--:--</div>
+          </div>
+          <div class='countdown-card'>
+            <h6>RTGS • KE</h6>
+            <p>Central bank final submission at 15:15 UTC</p>
+            <div class='timer-value' data-cutoff='15:15'>--:--:--</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class='section' id='calendar'>
+      <div class='section-head'>
+        <div>
+          <div class='section-kicker'>Page 1.7</div>
+          <h2 class='section-title'>Settlement Calendar</h2>
+          <div class='section-title-sub'>Daily settlement schedule, cut-off windows, jurisdiction holidays, and estimated settlement dates.</div>
+        </div>
+        <div class='section-head-actions'>
+          <button class='btn-custom btn-outline' type='button' data-open='calendarExportModal'><i class='bi bi-download'></i> Export Schedule</button>
+          <button class='btn-custom btn-ghost' type='button' data-open='jurisdictionHolidayModal'><i class='bi bi-globe2'></i> Jurisdiction Holidays</button>
+        </div>
+      </div>
+
+      <div class='content-card'>
+        <div class='card-header-row'>
+          <div>
+            <h3 class='card-title'><i class='bi bi-table'></i> Daily Settlement Schedule per Rail</h3>
+            <div class='card-subtitle'>Operational windows, clearing model, holiday handling, and expected settlement finality.</div>
+          </div>
+        </div>
+
+        <div class='table-wrap'>
+          <table class='data-table'>
+            <thead>
+              <tr>
+                <th>Rail</th>
+                <th>Jurisdiction</th>
+                <th>Clearing Model</th>
+                <th>Primary Window</th>
+                <th>Next Cut-off</th>
+                <th>Holiday Rule</th>
+                <th>Estimated Finality</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>ACH</strong></td>
+                <td>United States</td>
+                <td><span class='badge-pill badge-info'>Deferred Net</span></td>
+                <td>08:00 / 14:00 / 22:00 UTC</td>
+                <td><span class='badge-pill badge-warning'>22:00 UTC</span></td>
+                <td>US Fed holiday calendar applies</td>
+                <td>T+1 Business Day</td>
+                <td>
+                  <div class='inline-actions'>
+                    <button class='small-btn' type='button' data-open='railScheduleModal'>Schedule</button>
+                    <button class='small-btn' type='button' data-open='railLimitsModal'>Limits</button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><strong>SEPA</strong></td>
+                <td>Eurozone</td>
+                <td><span class='badge-pill badge-info'>Batch Net</span></td>
+                <td>06:30 / 12:30 / 16:30 UTC</td>
+                <td><span class='badge-pill badge-warning'>16:30 UTC</span></td>
+                <td>TARGET holiday calendar applies</td>
+                <td>Same Day / T+1</td>
+                <td>
+                  <div class='inline-actions'>
+                    <button class='small-btn' type='button' data-open='railScheduleModal'>Schedule</button>
+                    <button class='small-btn' type='button' data-open='holidayPolicyModal'>Holidays</button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><strong>SWIFT</strong></td>
+                <td>Global</td>
+                <td><span class='badge-pill badge-purple'>Hybrid</span></td>
+                <td>Continuous messaging; funding by corridor</td>
+                <td><span class='badge-pill badge-warning'>18:00 UTC</span></td>
+                <td>Correspondent + market holiday overlays</td>
+                <td>T+0 to T+2</td>
+                <td>
+                  <div class='inline-actions'>
+                    <button class='small-btn' type='button' data-open='railScheduleModal'>Windows</button>
+                    <button class='small-btn' type='button' data-open='estimateDateModal'>Estimate</button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><strong>FPS</strong></td>
+                <td>United Kingdom</td>
+                <td><span class='badge-pill badge-success'>Gross Real-time</span></td>
+                <td>24/7 with operational review checkpoints</td>
+                <td><span class='badge-pill badge-success'>Continuous</span></td>
+                <td>Settlement supervision on UK holiday rules</td>
+                <td>Instant Finality</td>
+                <td>
+                  <div class='inline-actions'>
+                    <button class='small-btn' type='button' data-open='cutoffGuideModal'>Guide</button>
+                    <button class='small-btn' type='button' data-open='railLimitsModal'>Limits</button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><strong>PesaLink</strong></td>
+                <td>Kenya</td>
+                <td><span class='badge-pill badge-success'>Real-time</span></td>
+                <td>24/7 participant availability</td>
+                <td><span class='badge-pill badge-warning'>20:00 UTC oversight</span></td>
+                <td>Domestic public holiday exclusions</td>
+                <td>Near-Instant</td>
+                <td>
+                  <div class='inline-actions'>
+                    <button class='small-btn' type='button' data-open='holidayPolicyModal'>Holiday Rule</button>
+                    <button class='small-btn' type='button' data-open='estimateDateModal'>Estimate</button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><strong>RTGS</strong></td>
+                <td>Kenya</td>
+                <td><span class='badge-pill badge-success'>Gross Final</span></td>
+                <td>07:00 - 15:15 UTC</td>
+                <td><span class='badge-pill badge-warning'>15:15 UTC</span></td>
+                <td>Central bank operating day only</td>
+                <td>Same Day</td>
+                <td>
+                  <div class='inline-actions'>
+                    <button class='small-btn' type='button' data-open='centralBankModal'>Regulatory</button>
+                    <button class='small-btn' type='button' data-open='railLimitsModal'>Limits</button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Wire</strong></td>
+                <td>United States</td>
+                <td><span class='badge-pill badge-success'>Gross Final</span></td>
+                <td>05:30 - 21:00 UTC</td>
+                <td><span class='badge-pill badge-warning'>21:00 UTC</span></td>
+                <td>Fedwire operating calendar applies</td>
+                <td>Same Day</td>
+                <td>
+                  <div class='inline-actions'>
+                    <button class='small-btn' type='button' data-open='railScheduleModal'>Schedule</button>
+                    <button class='small-btn' type='button' data-open='cutoffGuideModal'>Cut-off</button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class='content-card'>
+        <div class='card-header-row'>
+          <div>
+            <h3 class='card-title'><i class='bi bi-columns-gap'></i> Calendar Views</h3>
+            <div class='card-subtitle'>Switch between schedule board, jurisdiction holiday view, and estimated settlement forecasts.</div>
+          </div>
+          <div class='custom-tabs'>
+            <button class='tab-btn active' type='button' data-tab-group='calendarTabs' data-tab-target='calendarBoard'>Schedule Board</button>
+            <button class='tab-btn' type='button' data-tab-group='calendarTabs' data-tab-target='calendarJurisdictions'>Jurisdictions</button>
+            <button class='tab-btn' type='button' data-tab-group='calendarTabs' data-tab-target='calendarEstimates'>Estimated Dates</button>
+          </div>
+        </div>
+
+        <div class='tab-panel active' id='calendarBoard' data-tab-panel='calendarTabs'>
+          <div class='overview-grid'>
+            <div class='overview-card'>
+              <h6><i class='bi bi-calendar-week'></i> Monday</h6>
+              <ul class='bullet-list'>
+                <li><span>ACH batch windows</span><span class='badge-pill badge-info'>3 runs</span></li>
+                <li><span>SEPA SCT cycles</span><span class='badge-pill badge-info'>3 runs</span></li>
+                <li><span>RTGS central bank cut-off</span><span class='badge-pill badge-warning'>15:15 UTC</span></li>
+                <li><span>EOD close readiness review</span><span class='badge-pill badge-success'>Enabled</span></li>
+              </ul>
+            </div>
+            <div class='overview-card'>
+              <h6><i class='bi bi-calendar-week'></i> Tuesday</h6>
+              <ul class='bullet-list'>
+                <li><span>SWIFT corridor funding refresh</span><span class='badge-pill badge-purple'>CLS-linked</span></li>
+                <li><span>FPS 24/7 monitoring review</span><span class='badge-pill badge-success'>Always on</span></li>
+                <li><span>Liquidity rebalance sweep</span><span class='badge-pill badge-warning'>18:30 UTC</span></li>
+                <li><span>Pre-settlement validation pack</span><span class='badge-pill badge-info'>Queued</span></li>
+              </ul>
+            </div>
+            <div class='overview-card'>
+              <h6><i class='bi bi-calendar-week'></i> Wednesday</h6>
+              <ul class='bullet-list'>
+                <li><span>Domestic RTGS treasury funding</span><span class='badge-pill badge-info'>Morning</span></li>
+                <li><span>PesaLink participant health review</span><span class='badge-pill badge-success'>Green</span></li>
+                <li><span>Cross-currency settlement review</span><span class='badge-pill badge-warning'>Manual sign-off</span></li>
+                <li><span>Archive daily confirmation reports</span><span class='badge-pill badge-info'>19:00 UTC</span></li>
+              </ul>
+            </div>
+            <div class='overview-card'>
+              <h6><i class='bi bi-calendar-week'></i> Thursday</h6>
+              <ul class='bullet-list'>
+                <li><span>SEPA holiday look-ahead scan</span><span class='badge-pill badge-warning'>Pending</span></li>
+                <li><span>Wire contingency funding test</span><span class='badge-pill badge-danger'>Critical</span></li>
+                <li><span>Netting threshold review</span><span class='badge-pill badge-purple'>Ops</span></li>
+                <li><span>Regulatory reporting package build</span><span class='badge-pill badge-info'>Scheduled</span></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class='tab-panel' id='calendarJurisdictions' data-tab-panel='calendarTabs'>
+          <div class='jurisdiction-grid'>
+            <div class='jur-card'>
+              <h6><i class='bi bi-flag'></i> United States</h6>
+              <p class='muted-copy'>Fedwire and ACH rely on Federal Reserve banking days, with same-day wire closure controls and ACH next-day roll rules.</p>
+              <ul class='holiday-list'>
+                <li><span>Martin Luther King Jr. Day</span><span>Jan 20</span></li>
+                <li><span>Presidents' Day</span><span>Feb 17</span></li>
+                <li><span>Memorial Day</span><span>May 26</span></li>
+              </ul>
+              <div class='inline-actions' style='margin-top: 0.9rem;'>
+                <button class='small-btn' type='button' data-open='jurisdictionHolidayModal'>View Calendar</button>
+                <button class='small-btn' type='button' data-open='holidayPolicyModal'>Holiday Policy</button>
+              </div>
+            </div>
+            <div class='jur-card'>
+              <h6><i class='bi bi-flag'></i> Eurozone</h6>
+              <p class='muted-copy'>SEPA clearing follows TARGET holiday observance; non-TARGET business days defer same-day settlement estimates automatically.</p>
+              <ul class='holiday-list'>
+                <li><span>Good Friday (TARGET closed)</span><span>Apr 18</span></li>
+                <li><span>Easter Monday</span><span>Apr 21</span></li>
+                <li><span>Christmas Day</span><span>Dec 25</span></li>
+              </ul>
+              <div class='inline-actions' style='margin-top: 0.9rem;'>
+                <button class='small-btn' type='button' data-open='jurisdictionHolidayModal'>View Calendar</button>
+                <button class='small-btn' type='button' data-open='holidayPolicyModal'>Holiday Policy</button>
+              </div>
+            </div>
+            <div class='jur-card'>
+              <h6><i class='bi bi-flag'></i> United Kingdom</h6>
+              <p class='muted-copy'>FPS operates continuously, but reporting, reconciliation, and oversight windows align to UK banking holidays and contingency staffing rules.</p>
+              <ul class='holiday-list'>
+                <li><span>Early May Bank Holiday</span><span>May 05</span></li>
+                <li><span>Summer Bank Holiday</span><span>Aug 25</span></li>
+                <li><span>Boxing Day</span><span>Dec 26</span></li>
+              </ul>
+              <div class='inline-actions' style='margin-top: 0.9rem;'>
+                <button class='small-btn' type='button' data-open='jurisdictionHolidayModal'>View Calendar</button>
+                <button class='small-btn' type='button' data-open='holidayPolicyModal'>Holiday Policy</button>
+              </div>
+            </div>
+            <div class='jur-card'>
+              <h6><i class='bi bi-flag'></i> Kenya</h6>
+              <p class='muted-copy'>RTGS and PesaLink observance is governed by domestic public holidays, central bank operating circulars, and participant cut-off directives.</p>
+              <ul class='holiday-list'>
+                <li><span>Madaraka Day</span><span>Jun 01</span></li>
+                <li><span>Mashujaa Day</span><span>Oct 20</span></li>
+                <li><span>Jamhuri Day</span><span>Dec 12</span></li>
+              </ul>
+              <div class='inline-actions' style='margin-top: 0.9rem;'>
+                <button class='small-btn' type='button' data-open='jurisdictionHolidayModal'>View Calendar</button>
+                <button class='small-btn' type='button' data-open='holidayPolicyModal'>Holiday Policy</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class='tab-panel' id='calendarEstimates' data-tab-panel='calendarTabs'>
+          <div class='table-wrap'>
+            <table class='data-table'>
+              <thead>
+                <tr>
+                  <th>Instruction</th>
+                  <th>Submitted</th>
+                  <th>Rail</th>
+                  <th>Jurisdiction</th>
+                  <th>Market Status</th>
+                  <th>Estimated Settle</th>
+                  <th>Confidence</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>ACH Payroll Batch #ACH-2231</strong></td>
+                  <td>Today 13:14 UTC</td>
+                  <td>ACH</td>
+                  <td>US</td>
+                  <td><span class='badge-pill badge-success'>Within window</span></td>
+                  <td>Tomorrow 09:00 ET</td>
+                  <td><span class='badge-pill badge-success'>96%</span></td>
+                  <td><button class='small-btn' type='button' data-open='estimateDateModal'>Recalculate</button></td>
+                </tr>
+                <tr>
+                  <td><strong>EUR Supplier Release #SEPA-0992</strong></td>
+                  <td>Today 11:40 UTC</td>
+                  <td>SEPA</td>
+                  <td>EU</td>
+                  <td><span class='badge-pill badge-warning'>Approaching cut-off</span></td>
+                  <td>Today 18:45 CET</td>
+                  <td><span class='badge-pill badge-warning'>84%</span></td>
+                  <td><button class='small-btn' type='button' data-open='estimateDateModal'>Recalculate</button></td>
+                </tr>
+                <tr>
+                  <td><strong>Cross-border Treasury Transfer #SWF-7781</strong></td>
+                  <td>Today 16:50 UTC</td>
+                  <td>SWIFT</td>
+                  <td>Global</td>
+                  <td><span class='badge-pill badge-danger'>Funding review</span></td>
+                  <td>T+1 10:00 Local</td>
+                  <td><span class='badge-pill badge-warning'>72%</span></td>
+                  <td><button class='small-btn' type='button' data-open='estimateDateModal'>Recalculate</button></td>
+                </tr>
+                <tr>
+                  <td><strong>Domestic RTGS Treasury Move #RTGS-311</strong></td>
+                  <td>Today 09:05 UTC</td>
+                  <td>RTGS</td>
+                  <td>Kenya</td>
+                  <td><span class='badge-pill badge-success'>Eligible</span></td>
+                  <td>Today 14:30 EAT</td>
+                  <td><span class='badge-pill badge-success'>98%</span></td>
+                  <td><button class='small-btn' type='button' data-open='estimateDateModal'>Recalculate</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class='section' id='netting'>
+      <div class='section-head'>
+        <div>
+          <div class='section-kicker'>Settlement Optimization</div>
+          <h2 class='section-title'>Netting & Batching</h2>
+          <div class='section-title-sub'>Gross vs. net settlement, batch creation, multi-lateral calculations, and submission status tracking.</div>
+        </div>
+        <div class='section-head-actions'>
+          <button class='btn-custom btn-outline' type='button' data-open='nettingConfigModal'><i class='bi bi-sliders'></i> Netting Config</button>
+          <button class='btn-custom btn-primary' type='button' data-open='batchSubmissionModal'><i class='bi bi-send-check'></i> Submit Batch</button>
+        </div>
+      </div>
+
+      <div class='content-card'>
+        <div class='mini-grid'>
+          <div class='mini-card'>
+            <div class='mini-label'>Gross Obligation</div>
+            <div class='mini-value'>$61.3M</div>
+            <div class='mini-note'>All queued instructions before offsetting</div>
+          </div>
+          <div class='mini-card'>
+            <div class='mini-label'>Net Obligation</div>
+            <div class='mini-value'>$47.9M</div>
+            <div class='mini-note'>After bilateral and multi-lateral netting</div>
+          </div>
+          <div class='mini-card'>
+            <div class='mini-label'>Liquidity Released</div>
+            <div class='mini-value'>$13.4M</div>
+            <div class='mini-note'>Available for same-day treasury sweep</div>
+          </div>
+          <div class='mini-card'>
+            <div class='mini-label'>Pending Batches</div>
+            <div class='mini-value'>7</div>
+            <div class='mini-note'>4 in review · 3 ready to submit</div>
+          </div>
+        </div>
+      </div>
+
+      <div class='content-card'>
+        <div class='card-header-row'>
+          <div>
+            <h3 class='card-title'><i class='bi bi-shuffle'></i> Settlement Modes & Queues</h3>
+            <div class='card-subtitle'>Compare gross settlement, net settlement, multi-lateral exposures, and current batch queue operations.</div>
+          </div>
+          <div class='custom-tabs'>
+            <button class='tab-btn active' type='button' data-tab-group='nettingTabs' data-tab-target='grossMode'>Gross Mode</button>
+            <button class='tab-btn' type='button' data-tab-group='nettingTabs' data-tab-target='netMode'>Net Mode</button>
+            <button class='tab-btn' type='button' data-tab-group='nettingTabs' data-tab-target='multiMode'>Multi-lateral</button>
+            <button class='tab-btn' type='button' data-tab-group='nettingTabs' data-tab-target='batchQueue'>Batch Queue</button>
+          </div>
+        </div>
+
+        <div class='tab-panel active' id='grossMode' data-tab-panel='nettingTabs'>
+          <div class='overview-grid'>
+            <div class='overview-card'>
+              <h6><i class='bi bi-lightning-fill'></i> Gross Settlement Profile</h6>
+              <p class='muted-copy'>Best for urgent wires, regulatory transfers, and high-value treasury obligations requiring immediate finality and explicit funding.</p>
+              <ul class='bullet-list'>
+                <li><span>Funding pre-check</span><span class='badge-pill badge-success'>Mandatory</span></li>
+                <li><span>Intraday liquidity usage</span><span class='badge-pill badge-warning'>High</span></li>
+                <li><span>Finality</span><span class='badge-pill badge-success'>Immediate</span></li>
+              </ul>
+              <div class='inline-actions' style='margin-top: 0.9rem;'>
+                <button class='small-btn' type='button' data-open='railLimitsModal'>View Funding Limits</button>
+                <button class='small-btn' type='button' data-open='createBatchModal'>Create Gross Batch</button>
+              </div>
+            </div>
+            <div class='overview-card'>
+              <h6><i class='bi bi-table'></i> Current Gross Queue</h6>
+              <div class='table-wrap'>
+                <table class='data-table' style='min-width: 640px;'>
+                  <thead>
+                    <tr><th>Queue</th><th>Items</th><th>Value</th><th>Urgency</th><th>Action</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr><td>Fedwire High Value</td><td>12</td><td>$18.4M</td><td><span class='badge-pill badge-danger'>Critical</span></td><td><button class='small-btn' type='button' data-open='batchDetailsModal'>Inspect</button></td></tr>
+                    <tr><td>RTGS Treasury</td><td>9</td><td>KES 1.9B</td><td><span class='badge-pill badge-warning'>Priority</span></td><td><button class='small-btn' type='button' data-open='batchDetailsModal'>Inspect</button></td></tr>
+                    <tr><td>FPS Real-time Reviews</td><td>24</td><td>£3.2M</td><td><span class='badge-pill badge-info'>Standard</span></td><td><button class='small-btn' type='button' data-open='batchDetailsModal'>Inspect</button></td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class='tab-panel' id='netMode' data-tab-panel='nettingTabs'>
+          <div class='table-wrap'>
+            <table class='data-table'>
+              <thead>
+                <tr>
+                  <th>Counterparty Pair</th>
+                  <th>Gross Debit</th>
+                  <th>Gross Credit</th>
+                  <th>Net Position</th>
+                  <th>Threshold</th>
+                  <th>Settlement Rail</th>
+                  <th>Review</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>PayMo ↔ Chase Bank</strong></td>
+                  <td>$8.2M</td>
+                  <td>$5.7M</td>
+                  <td><span class='badge-pill badge-warning'>Pay $2.5M</span></td>
+                  <td>$500K</td>
+                  <td>ACH + Wire</td>
+                  <td><button class='small-btn' type='button' data-open='nettingConfigModal'>Adjust</button></td>
+                </tr>
+                <tr>
+                  <td><strong>PayMo ↔ Barclays</strong></td>
+                  <td>£4.6M</td>
+                  <td>£6.1M</td>
+                  <td><span class='badge-pill badge-success'>Receive £1.5M</span></td>
+                  <td>£300K</td>
+                  <td>FPS</td>
+                  <td><button class='small-btn' type='button' data-open='nettingConfigModal'>Adjust</button></td>
+                </tr>
+                <tr>
+                  <td><strong>PayMo ↔ Deutsche Bank</strong></td>
+                  <td>€9.4M</td>
+                  <td>€9.1M</td>
+                  <td><span class='badge-pill badge-muted'>Pay €0.3M</span></td>
+                  <td>€250K</td>
+                  <td>SEPA</td>
+                  <td><button class='small-btn' type='button' data-open='nettingConfigModal'>Adjust</button></td>
+                </tr>
+                <tr>
+                  <td><strong>PayMo ↔ KCB Bank</strong></td>
+                  <td>KES 840M</td>
+                  <td>KES 1.1B</td>
+                  <td><span class='badge-pill badge-success'>Receive KES 260M</span></td>
+                  <td>KES 90M</td>
+                  <td>RTGS</td>
+                  <td><button class='small-btn' type='button' data-open='nettingConfigModal'>Adjust</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class='tab-panel' id='multiMode' data-tab-panel='nettingTabs'>
+          <div class='alert-box info'>
+            <i class='bi bi-info-circle-fill'></i>
+            <div><strong>Multi-lateral session candidate:</strong> 6 counterparties can be compressed from $26.7M gross obligations to $9.4M final cash movement.</div>
+          </div>
+          <div class='matrix-wrap'>
+            <table class='matrix-table'>
+              <thead>
+                <tr>
+                  <th>Counterparty</th>
+                  <th>Chase</th>
+                  <th>Barclays</th>
+                  <th>Deutsche</th>
+                  <th>KCB</th>
+                  <th>HSBC</th>
+                  <th>Net Result</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th>PayMo</th>
+                  <td class='negative'>-2.5M</td>
+                  <td class='positive'>+1.5M</td>
+                  <td class='negative'>-0.3M</td>
+                  <td class='positive'>+260M KES</td>
+                  <td class='negative'>-1.1M</td>
+                  <td class='negative'>Net Debit</td>
+                </tr>
+                <tr>
+                  <th>Chase</th>
+                  <td class='neutral'>—</td>
+                  <td class='negative'>-0.6M</td>
+                  <td class='positive'>+0.8M</td>
+                  <td class='neutral'>—</td>
+                  <td class='positive'>+0.4M</td>
+                  <td class='positive'>Net Credit</td>
+                </tr>
+                <tr>
+                  <th>Barclays</th>
+                  <td class='positive'>+0.6M</td>
+                  <td class='neutral'>—</td>
+                  <td class='negative'>-0.5M</td>
+                  <td class='neutral'>—</td>
+                  <td class='positive'>+0.2M</td>
+                  <td class='positive'>Net Credit</td>
+                </tr>
+                <tr>
+                  <th>Deutsche</th>
+                  <td class='negative'>-0.8M</td>
+                  <td class='positive'>+0.5M</td>
+                  <td class='neutral'>—</td>
+                  <td class='neutral'>—</td>
+                  <td class='negative'>-0.2M</td>
+                  <td class='negative'>Net Debit</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class='inline-actions' style='margin-top: 1rem;'>
+            <button class='btn-custom btn-outline' type='button' data-open='multilateralModal'><i class='bi bi-calculator'></i> Open Calculator</button>
+            <button class='btn-custom btn-primary' type='button' data-open='batchSubmissionModal'><i class='bi bi-send-check'></i> Compress & Submit</button>
+          </div>
+        </div>
+
+        <div class='tab-panel' id='batchQueue' data-tab-panel='nettingTabs'>
+          <div class='table-wrap'>
+            <table class='data-table'>
+              <thead>
+                <tr>
+                  <th>Batch ID</th>
+                  <th>Rail</th>
+                  <th>Mode</th>
+                  <th>Items</th>
+                  <th>Value</th>
+                  <th>Validator</th>
+                  <th>Status</th>
+                  <th>Submission</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>BT-ACH-2249</strong></td>
+                  <td>ACH</td>
+                  <td><span class='badge-pill badge-info'>Net</span></td>
+                  <td>234</td>
+                  <td>$4.8M</td>
+                  <td>Passed</td>
+                  <td><span class='badge-pill badge-warning'>Awaiting approval</span></td>
+                  <td>22:00 UTC</td>
+                  <td><div class='inline-actions'><button class='small-btn' type='button' data-open='batchDetailsModal'>Details</button><button class='small-btn' type='button' data-open='batchSubmissionModal'>Submit</button></div></td>
+                </tr>
+                <tr>
+                  <td><strong>BT-SEPA-9191</strong></td>
+                  <td>SEPA</td>
+                  <td><span class='badge-pill badge-info'>Batch Net</span></td>
+                  <td>118</td>
+                  <td>€2.2M</td>
+                  <td>Warnings</td>
+                  <td><span class='badge-pill badge-danger'>Holiday conflict</span></td>
+                  <td>16:30 UTC</td>
+                  <td><div class='inline-actions'><button class='small-btn' type='button' data-open='validationReportModal'>Review</button><button class='small-btn' type='button' data-open='holidayPolicyModal'>Resolve</button></div></td>
+                </tr>
+                <tr>
+                  <td><strong>BT-RTGS-3007</strong></td>
+                  <td>RTGS</td>
+                  <td><span class='badge-pill badge-success'>Gross</span></td>
+                  <td>17</td>
+                  <td>KES 1.3B</td>
+                  <td>Passed</td>
+                  <td><span class='badge-pill badge-success'>Ready</span></td>
+                  <td>15:15 UTC</td>
+                  <td><div class='inline-actions'><button class='small-btn' type='button' data-open='batchDetailsModal'>Details</button><button class='small-btn' type='button' data-open='batchSubmissionModal'>Submit</button></div></td>
+                </tr>
+                <tr>
+                  <td><strong>BT-SWF-7788</strong></td>
+                  <td>SWIFT</td>
+                  <td><span class='badge-pill badge-purple'>Hybrid</span></td>
+                  <td>26</td>
+                  <td>$12.7M</td>
+                  <td>Funding review</td>
+                  <td><span class='badge-pill badge-warning'>Liquidity hold</span></td>
+                  <td>18:00 UTC</td>
+                  <td><div class='inline-actions'><button class='small-btn' type='button' data-open='batchDetailsModal'>Details</button><button class='small-btn' type='button' data-open='openingPreviewModal'>Funding</button></div></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class='section' id='reports'>
+      <div class='section-head'>
+        <div>
+          <div class='section-kicker'>Audit & Reporting</div>
+          <h2 class='section-title'>Settlement Reports</h2>
+          <div class='section-title-sub'>Validation, confirmation, failure analysis, and central bank reporting across all settlement cycles.</div>
+        </div>
+        <div class='section-head-actions'>
+          <button class='btn-custom btn-outline' type='button' data-download='ops-pack'><i class='bi bi-download'></i> Download Ops Pack</button>
+          <button class='btn-custom btn-primary' type='button' data-open='centralBankModal'><i class='bi bi-building-check'></i> Regulatory Center</button>
+        </div>
+      </div>
+
+      <div class='content-card'>
+        <div class='report-grid'>
+          <div class='report-card'>
+            <h6><i class='bi bi-shield-check'></i> Pre-settlement Validation</h6>
+            <p class='muted-copy'>Checks balance sufficiency, rail cut-off eligibility, holiday conflicts, batch integrity, duplication risk, and required approvals.</p>
+            <ul class='bullet-list'>
+              <li><span>Open validation findings</span><span>12</span></li>
+              <li><span>Critical blockers</span><span>2</span></li>
+              <li><span>Last generated</span><span>14:20 UTC</span></li>
+            </ul>
+            <div class='inline-actions' style='margin-top: 0.9rem;'>
+              <button class='small-btn' type='button' data-open='validationReportModal'>Preview</button>
+              <button class='small-btn' type='button' data-download='validation-report'>Download</button>
+            </div>
+          </div>
+          <div class='report-card'>
+            <h6><i class='bi bi-patch-check'></i> Post-settlement Confirmation</h6>
+            <p class='muted-copy'>Confirms settlement finality by rail, network ack messages, nostros updated, and downstream posting completion.</p>
+            <ul class='bullet-list'>
+              <li><span>Confirmed batches</span><span>31</span></li>
+              <li><span>Pending confirmations</span><span>3</span></li>
+              <li><span>Archive retention</span><span>7 years</span></li>
+            </ul>
+            <div class='inline-actions' style='margin-top: 0.9rem;'>
+              <button class='small-btn' type='button' data-open='confirmationReportModal'>Preview</button>
+              <button class='small-btn' type='button' data-download='confirmation-report'>Download</button>
+            </div>
+          </div>
+          <div class='report-card'>
+            <h6><i class='bi bi-bug'></i> Failure Analysis</h6>
+            <p class='muted-copy'>Tracks settlement failures, rejection codes, participant downtime, cut-off misses, and funding insufficiency root causes.</p>
+            <ul class='bullet-list'>
+              <li><span>Failures today</span><span>4</span></li>
+              <li><span>Most common cause</span><span>Funding shortfall</span></li>
+              <li><span>Escalated items</span><span>1</span></li>
+            </ul>
+            <div class='inline-actions' style='margin-top: 0.9rem;'>
+              <button class='small-btn' type='button' data-open='failureAnalysisModal'>Analyze</button>
+              <button class='small-btn' type='button' data-download='failure-analysis'>Download</button>
+            </div>
+          </div>
+          <div class='report-card'>
+            <h6><i class='bi bi-building'></i> Central Bank Reporting</h6>
+            <p class='muted-copy'>Domestic and regional regulatory submissions with liquidity, volume, large value transfer, and exception reporting where required.</p>
+            <ul class='bullet-list'>
+              <li><span>Jurisdictions live</span><span>4</span></li>
+              <li><span>Packages due today</span><span>2</span></li>
+              <li><span>Submission SLA</span><span>18:30 local</span></li>
+            </ul>
+            <div class='inline-actions' style='margin-top: 0.9rem;'>
+              <button class='small-btn' type='button' data-open='centralBankModal'>Open</button>
+              <button class='small-btn' type='button' data-download='central-bank-pack'>Download</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class='content-card'>
+        <div class='card-header-row'>
+          <div>
+            <h3 class='card-title'><i class='bi bi-kanban'></i> Report Workbench</h3>
+            <div class='card-subtitle'>Operational, regulatory, and failure analytics views for current settlement day.</div>
+          </div>
+          <div class='custom-tabs'>
+            <button class='tab-btn active' type='button' data-tab-group='reportTabs' data-tab-target='opsReports'>Operational</button>
+            <button class='tab-btn' type='button' data-tab-group='reportTabs' data-tab-target='regReports'>Regulatory</button>
+            <button class='tab-btn' type='button' data-tab-group='reportTabs' data-tab-target='failReports'>Failure Analytics</button>
+          </div>
+        </div>
+
+        <div class='tab-panel active' id='opsReports' data-tab-panel='reportTabs'>
+          <div class='table-wrap'>
+            <table class='data-table'>
+              <thead>
+                <tr>
+                  <th>Report</th>
+                  <th>Coverage</th>
+                  <th>Generated</th>
+                  <th>Format</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td><strong>Pre-settlement validation summary</strong></td><td>All rails</td><td>14:20 UTC</td><td>PDF + XLSX</td><td><span class='badge-pill badge-warning'>Findings present</span></td><td><div class='inline-actions'><button class='small-btn' type='button' data-open='validationReportModal'>Preview</button><button class='small-btn' type='button' data-download='validation-report'>Download</button></div></td></tr>
+                <tr><td><strong>Liquidity funding sufficiency</strong></td><td>USD, EUR, KES</td><td>14:05 UTC</td><td>XLSX</td><td><span class='badge-pill badge-success'>Ready</span></td><td><div class='inline-actions'><button class='small-btn' type='button' data-open='openingPreviewModal'>Preview</button><button class='small-btn' type='button' data-download='liquidity-report'>Download</button></div></td></tr>
+                <tr><td><strong>Post-settlement confirmations</strong></td><td>Completed batches</td><td>Rolling</td><td>PDF</td><td><span class='badge-pill badge-info'>Streaming</span></td><td><div class='inline-actions'><button class='small-btn' type='button' data-open='confirmationReportModal'>Preview</button><button class='small-btn' type='button' data-download='confirmation-report'>Download</button></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class='tab-panel' id='regReports' data-tab-panel='reportTabs'>
+          <div class='table-wrap'>
+            <table class='data-table'>
+              <thead>
+                <tr>
+                  <th>Jurisdiction</th>
+                  <th>Package</th>
+                  <th>Authority</th>
+                  <th>Deadline</th>
+                  <th>Submission Mode</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>Kenya</td><td>RTGS participant daily summary</td><td>Central Bank of Kenya</td><td>17:30 EAT</td><td>Portal upload</td><td><span class='badge-pill badge-warning'>Pending sign-off</span></td><td><button class='small-btn' type='button' data-open='centralBankModal'>Open Package</button></td></tr>
+                <tr><td>Eurozone</td><td>TARGET exception report</td><td>ECB / Participant bank</td><td>18:00 CET</td><td>SFTP</td><td><span class='badge-pill badge-success'>Prepared</span></td><td><button class='small-btn' type='button' data-open='centralBankModal'>Open Package</button></td></tr>
+                <tr><td>United States</td><td>High-value wire monitoring</td><td>Fed participant oversight</td><td>End of business</td><td>Automated feed</td><td><span class='badge-pill badge-info'>Auto-submit</span></td><td><button class='small-btn' type='button' data-open='centralBankModal'>Open Package</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class='tab-panel' id='failReports' data-tab-panel='reportTabs'>
+          <div class='overview-grid'>
+            <div class='overview-card'>
+              <h6><i class='bi bi-bar-chart'></i> Failure Reason Distribution</h6>
+              <div class='chart-bars'>
+                <div class='chart-bar' style='height: 84%;' data-value='41%'></div>
+                <div class='chart-bar' style='height: 52%;' data-value='25%'></div>
+                <div class='chart-bar' style='height: 38%;' data-value='18%'></div>
+                <div class='chart-bar' style='height: 22%;' data-value='9%'></div>
+                <div class='chart-bar' style='height: 14%;' data-value='7%'></div>
+              </div>
+              <div class='chart-labels'>
+                <span>Funding</span><span>Holiday</span><span>Format</span><span>Cut-off</span><span>Counterparty</span>
+              </div>
+            </div>
+            <div class='overview-card'>
+              <h6><i class='bi bi-list-ul'></i> Failure Hotspots</h6>
+              <ul class='bullet-list'>
+                <li><span>SWIFT corridor funding gaps</span><span class='badge-pill badge-danger'>High</span></li>
+                <li><span>SEPA holiday misclassification</span><span class='badge-pill badge-warning'>Medium</span></li>
+                <li><span>RTGS format rejection rate</span><span class='badge-pill badge-warning'>Medium</span></li>
+                <li><span>Wire duplicate hold review</span><span class='badge-pill badge-info'>Observed</span></li>
+              </ul>
+              <div class='inline-actions' style='margin-top: 1rem;'>
+                <button class='small-btn' type='button' data-open='failureAnalysisModal'>Open Analysis</button>
+                <button class='small-btn' type='button' data-open='exceptionModal'>Open Exception</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class='section' id='eod'>
+      <div class='section-head'>
+        <div>
+          <div class='section-kicker'>Close Of Business</div>
+          <h2 class='section-title'>End-of-Day (EOD) Process</h2>
+          <div class='section-title-sub'>Checklist tracking, automated jobs, exception handling, and next-day opening position preview.</div>
+        </div>
+        <div class='section-head-actions'>
+          <button class='btn-custom btn-outline' type='button' data-open='eodChecklistModal'><i class='bi bi-list-check'></i> EOD Checklist</button>
+          <button class='btn-custom btn-primary' type='button' data-open='signoffModal'><i class='bi bi-shield-lock'></i> Start Sign-off</button>
+        </div>
+      </div>
+
+      <div class='eod-grid'>
+        <div class='content-card'>
+          <div class='card-header-row'>
+            <div>
+              <h3 class='card-title'><i class='bi bi-check2-square'></i> EOD Checklist Status</h3>
+              <div class='card-subtitle'>Operational and financial controls required before books can be sealed.</div>
+            </div>
+            <button class='small-btn' type='button' data-open='eodChecklistModal'>Open Full Checklist</button>
+          </div>
+          <ul class='check-list'>
+            <li><span>All settlement batches validated</span><span class='badge-pill badge-success'>Done</span></li>
+            <li><span>Pending confirmations reconciled</span><span class='badge-pill badge-success'>Done</span></li>
+            <li><span>Liquidity top-up variances explained</span><span class='badge-pill badge-warning'>Review</span></li>
+            <li><span>Outstanding failures escalated</span><span class='badge-pill badge-warning'>1 item</span></li>
+            <li><span>Central bank package approved</span><span class='badge-pill badge-success'>Done</span></li>
+            <li><span>Opening positions approved</span><span class='badge-pill badge-info'>Queued</span></li>
+          </ul>
+          <div class='progress-track'><div class='progress-fill' style='width: 92%;'></div></div>
+          <div class='mini-note'>Completion progress: 23 of 25 required checks complete.</div>
+        </div>
+
+        <div class='content-card'>
+          <div class='card-header-row'>
+            <div>
+              <h3 class='card-title'><i class='bi bi-cpu'></i> Automated EOD Job Monitoring</h3>
+              <div class='card-subtitle'>Watch validation, posting, reporting, and archival workflows as they complete.</div>
+            </div>
+            <button class='small-btn' type='button' data-open='jobMonitorModal'>Open Job Monitor</button>
+          </div>
+          <div class='job-row'>
+            <div class='row-icon' style='background: rgba(16,185,129,0.1); color: var(--success-color);'><i class='bi bi-check2-circle'></i></div>
+            <div class='row-body'>
+              <div class='row-title'>Ledger close posting</div>
+              <div class='row-meta'>Completed in 02m 14s · Final general ledger snapshot archived.</div>
+            </div>
+            <span class='badge-pill badge-success'>Completed</span>
+          </div>
+          <div class='job-row'>
+            <div class='row-icon' style='background: rgba(59,130,246,0.1); color: var(--info-color);'><i class='bi bi-arrow-repeat'></i></div>
+            <div class='row-body'>
+              <div class='row-title'>Settlement confirmation aggregator</div>
+              <div class='row-meta'>Processing 3 remaining acknowledgements from cross-border corridors.</div>
+            </div>
+            <span class='badge-pill badge-info'>Running</span>
+          </div>
+          <div class='job-row'>
+            <div class='row-icon' style='background: rgba(245,158,11,0.1); color: var(--warning-color);'><i class='bi bi-exclamation-circle'></i></div>
+            <div class='row-body'>
+              <div class='row-title'>Holiday rollover estimator</div>
+              <div class='row-meta'>Paused due to SEPA calendar anomaly for one partner bank.</div>
+            </div>
+            <span class='badge-pill badge-warning'>Attention</span>
+          </div>
+        </div>
+
+        <div class='content-card'>
+          <div class='card-header-row'>
+            <div>
+              <h3 class='card-title'><i class='bi bi-life-preserver'></i> EOD Exception Handling</h3>
+              <div class='card-subtitle'>Exceptions that could block final sign-off or distort opening positions.</div>
+            </div>
+            <button class='small-btn' type='button' data-open='exceptionModal'>Open Exception Workbench</button>
+          </div>
+          <div class='exception-row'>
+            <div class='row-icon' style='background: rgba(239,68,68,0.1); color: var(--danger-color);'><i class='bi bi-x-octagon'></i></div>
+            <div class='row-body'>
+              <div class='row-title'>SWIFT funding insufficiency on corridor US → KE</div>
+              <div class='row-meta'>Required buffer short by $420,000 · decision pending before 18:00 UTC.</div>
+            </div>
+            <button class='small-btn' type='button' data-open='exceptionModal'>Resolve</button>
+          </div>
+          <div class='exception-row'>
+            <div class='row-icon' style='background: rgba(245,158,11,0.1); color: var(--warning-color);'><i class='bi bi-exclamation-diamond'></i></div>
+            <div class='row-body'>
+              <div class='row-title'>SEPA holiday classification mismatch for one German participant</div>
+              <div class='row-meta'>Estimated same-day batch may slide to next TARGET business day.</div>
+            </div>
+            <button class='small-btn' type='button' data-open='holidayPolicyModal'>Review</button>
+          </div>
+          <div class='exception-row'>
+            <div class='row-icon' style='background: rgba(59,130,246,0.1); color: var(--info-color);'><i class='bi bi-patch-question'></i></div>
+            <div class='row-body'>
+              <div class='row-title'>Opening position variance awaiting treasury confirmation</div>
+              <div class='row-meta'>EUR nostro opening balance differs by €74,200 from expected carry-forward.</div>
+            </div>
+            <button class='small-btn' type='button' data-open='openingPreviewModal'>Inspect</button>
+          </div>
+        </div>
+
+        <div class='content-card'>
+          <div class='card-header-row'>
+            <div>
+              <h3 class='card-title'><i class='bi bi-sunrise'></i> Next-day Opening Position Preview</h3>
+              <div class='card-subtitle'>Expected balances and liquidity posture at the next operating-day open.</div>
+            </div>
+            <button class='small-btn' type='button' data-open='openingPreviewModal'>Open Preview</button>
+          </div>
+          <div class='table-wrap'>
+            <table class='data-table' style='min-width: 680px;'>
+              <thead>
+                <tr>
+                  <th>Currency</th>
+                  <th>Opening Balance</th>
+                  <th>Expected Outflows</th>
+                  <th>Expected Inflows</th>
+                  <th>Projected Start</th>
+                  <th>Readiness</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>USD</td><td>$18.4M</td><td>$6.2M</td><td>$4.9M</td><td>$17.1M</td><td><span class='badge-pill badge-success'>Healthy</span></td></tr>
+                <tr><td>EUR</td><td>€12.2M</td><td>€5.8M</td><td>€3.3M</td><td>€9.7M</td><td><span class='badge-pill badge-warning'>Watch</span></td></tr>
+                <tr><td>GBP</td><td>£6.1M</td><td>£2.4M</td><td>£1.9M</td><td>£5.6M</td><td><span class='badge-pill badge-success'>Healthy</span></td></tr>
+                <tr><td>KES</td><td>KES 2.8B</td><td>KES 1.1B</td><td>KES 0.9B</td><td>KES 2.6B</td><td><span class='badge-pill badge-success'>Healthy</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div style='display:flex; justify-content:center; margin-top: 0.8rem;'>
+        <div class='footer-pill'><i class='bi bi-info-circle'></i> Settlement day close window starts at 21:30 UTC • Dual sign-off required for treasury and operations</div>
+      </div>
+    </section>
+  </main>
+
+  <!-- MODALS -->
+
+  <div class='modal-shell' id='alertsModal'>
+    <div class='modal-card narrow'>
+      <div class='modal-head'>
+        <div>
+          <h3 class='modal-title'>Settlement Alerts</h3>
+          <div class='modal-subtitle'>Prioritized events that may impact clearing windows, funding sufficiency, or EOD readiness.</div>
+        </div>
+        <button class='modal-close' type='button' data-close='alertsModal'><i class='bi bi-x-lg'></i></button>
+      </div>
+      <div class='modal-body'>
+        <div class='alert-box warning'><i class='bi bi-alarm'></i><div><strong>SEPA final cut-off in less than 2 hours.</strong><br>2 batches still awaiting manual approval and holiday validation.</div></div>
+        <div class='alert-box danger'><i class='bi bi-cash-stack'></i><div><strong>SWIFT funding shortfall detected.</strong><br>US → KE corridor requires an additional $420,000 before 18:00 UTC.</div></div>
+        <div class='alert-box info'><i class='bi bi-building'></i><div><strong>Central bank package due today.</strong><br>RTGS participant daily summary must be signed and uploaded by 17:30 EAT.</div></div>
+        <div class='inline-actions'>
+          <button class='btn-custom btn-outline' type='button' onclick="switchModal('alertsModal','cutoffGuideModal')"><i class='bi bi-stopwatch'></i> Review Cut-offs</button>
+          <button class='btn-custom btn-ghost' type='button' onclick="switchModal('alertsModal','exceptionModal')"><i class='bi bi-exclamation-octagon'></i> Open Exception</button>
+          <button class='btn-custom btn-primary' type='button' onclick="switchModal('alertsModal','centralBankModal')"><i class='bi bi-building-check'></i> Open Reporting</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class='modal-shell' id='helpModal'>
+    <div class='modal-card narrow'>
+      <div class='modal-head'>
+        <div>
+          <h3 class='modal-title'>Settlement Help Center</h3>
+          <div class='modal-subtitle'>A quick guide to the key workflows on this page and how operators should use them.</div>
+        </div>
+        <button class='modal-close' type='button' data-close='helpModal'><i class='bi bi-x-lg'></i></button>
+      </div>
+      <div class='modal-body'>
+        <div class='custom-tabs'>
+          <button class='tab-btn active' type='button' data-tab-group='helpTabs' data-tab-target='helpOverview'>Overview</button>
+          <button class='tab-btn' type='button' data-tab-group='helpTabs' data-tab-target='helpControls'>Controls</button>
+          <button class='tab-btn' type='button' data-tab-group='helpTabs' data-tab-target='helpShortcuts'>Runbook</button>
+        </div>
+        <div class='tab-panel active' id='helpOverview' data-tab-panel='helpTabs'>
+          <ul class='bullet-list'>
+            <li><span>Settlement Calendar</span><span>Schedules per rail, jurisdiction holidays, and estimated settlement date logic.</span></li>
+            <li><span>Netting & Batching</span><span>Optimize liquidity usage before posting or clearing submission.</span></li>
+            <li><span>Settlement Reports</span><span>Validation, confirmations, failure analysis, and regulatory packages.</span></li>
+            <li><span>EOD Process</span><span>Checklist, jobs, exception queue, and opening balance preview.</span></li>
+          </ul>
+        </div>
+        <div class='tab-panel' id='helpControls' data-tab-panel='helpTabs'>
+          <ul class='bullet-list'>
+            <li><span>Create Settlement Batch</span><span>Opens the multi-step wizard with review and submit stages.</span></li>
+            <li><span>Run Netting Session</span><span>Shows bilateral and multi-lateral exposure compression results.</span></li>
+            <li><span>Export Calendar</span><span>Download schedules in CSV, PDF, or ICS layouts.</span></li>
+            <li><span>EOD Sign-off</span><span>Guides operators through freeze, validate, approve, and archive steps.</span></li>
+          </ul>
+        </div>
+        <div class='tab-panel' id='helpShortcuts' data-tab-panel='helpTabs'>
+          <ul class='bullet-list'>
+            <li><span>Recommended sequence</span><span>Review alerts → validate batches → submit rails → confirm results → complete EOD sign-off.</span></li>
+            <li><span>Escalation path</span><span>Funding issues go to Treasury, rail outages to Network Ops, holiday mismatches to Settlement Ops.</span></li>
+            <li><span>Audit expectation</span><span>Every override, approval, and manual estimate adjustment must include rationale.</span></li>
+          </ul>
+        </div>
+      </div>
+      <div class='modal-foot'>
+        <button class='btn-custom btn-ghost' type='button' data-close='helpModal'>Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div class='modal-shell' id='cutoffGuideModal'>
+    <div class='modal-card'>
+      <div class='modal-head'>
+        <div>
+          <h3 class='modal-title'>Cut-off Time Guide</h3>
+          <div class='modal-subtitle'>Reference rules for final processing windows, late release handling, and post cut-off rollovers.</div>
+        </div>
+        <button class='modal-close' type='button' data-close='cutoffGuideModal'><i class='bi bi-x-lg'></i></button>
+      </div>
+      <div class='modal-body'>
+        <div class='table-wrap'>
+          <table class='data-table' style='min-width: 760px;'>
+            <thead><tr><th>Rail</th><th>Primary Cut-off</th><th>Late Release Policy</th><th>Rollover Handling</th><th>Escalation</th></tr></thead>
+            <tbody>
+              <tr><td><strong>ACH</strong></td><td>22:00 UTC</td><td>Rejected after cutoff unless emergency override approved</td><td>Moves to next US banking day</td><td>Treasury + Ops</td></tr>
+              <tr><td><strong>SEPA</strong></td><td>16:30 UTC</td><td>Queued for next TARGET cycle</td><td>Re-estimated on next TARGET business day</td><td>Settlement Ops</td></tr>
+              <tr><td><strong>SWIFT</strong></td><td>18:00 UTC funding alignment</td><td>Can proceed if corridor funding confirmed</td><td>T+1 / T+2 depends on market pair</td><td>Treasury Desk</td></tr>
+              <tr><td><strong>RTGS</strong></td><td>15:15 UTC</td><td>No late release after central bank close</td><td>Must be re-created next banking day</td><td>CB participant officer</td></tr>
+              <tr><td><strong>Wire</strong></td><td>21:00 UTC</td><td>High-value exceptions require explicit sign-off</td><td>Moved to next Fedwire day</td><td>Payments Control</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class='modal-foot'>
+        <button class='btn-custom btn-outline' type='button' data-download='cutoff-guide'><i class='bi bi-download'></i> Download Guide</button>
+        <button class='btn-custom btn-ghost' type='button' data-close='cutoffGuideModal'>Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div class='modal-shell' id='railScheduleModal'>
+    <div class='modal-card'>
+      <div class='modal-head'>
+        <div>
+          <h3 class='modal-title'>Rail Schedule Detail</h3>
+          <div class='modal-subtitle'>Detailed windows, funding checkpoints, and finality behaviour by payment rail.</div>
+        </div>
+        <button class='modal-close' type='button' data-close='railScheduleModal'><i class='bi bi-x-lg'></i></button>
+      </div>
+      <div class='modal-body'>
+        <div class='custom-tabs'>
+          <button class='tab-btn active' type='button' data-tab-group='railScheduleTabs' data-tab-target='scheduleAch'>ACH</button>
+          <button class='tab-btn' type='button' data-tab-group='railScheduleTabs' data-tab-target='scheduleSepa'>SEPA</button>
+          <button class='tab-btn' type='button' data-tab-group='railScheduleTabs' data-tab-target='scheduleSwift'>SWIFT</button>
+          <button class='tab-btn' type='button' data-tab-group='railScheduleTabs' data-tab-target='scheduleRtgs'>RTGS</button>
+        </div>
+        <div class='tab-panel active' id='scheduleAch' data-tab-panel='railScheduleTabs'>
+          <ul class='bullet-list'>
+            <li><span>Morning file cut</span><span>08:00 UTC</span></li>
+            <li><span>Midday file cut</span><span>14:00 UTC</span></li>
+            <li><span>Final settlement file</span><span>22:00 UTC</span></li>
+            <li><span>Expected settlement date</span><span>Next US business day</span></li>
+          </ul>
+        </div>
+        <div class='tab-panel' id='scheduleSepa' data-tab-panel='railScheduleTabs'>
+          <ul class='bullet-list'>
+            <li><span>Cycle 1</span><span>06:30 UTC</span></li>
+            <li><span>Cycle 2</span><span>12:30 UTC</span></li>
+            <li><span>Cycle 3</span><span>16:30 UTC</span></li>
+            <li><span>TARGET holiday dependency</span><span>Yes</span></li>
+          </ul>
+        </div>
+        <div class='tab-panel' id='scheduleSwift' data-tab-panel='railScheduleTabs'>
+          <ul class='bullet-list'>
+            <li><span>Message transmission</span><span>Continuous</span></li>
+            <li><span>Funding confirmation</span><span>18:00 UTC corridor review</span></li>
+            <li><span>CLS alignment</span><span>Eligible corridors only</span></li>
+            <li><span>Expected finality</span><span>T+0 to T+2</span></li>
+          </ul>
+        </div>
+        <div class='tab-panel' id='scheduleRtgs' data-tab-panel='railScheduleTabs'>
+          <ul class='bullet-list'>
+            <li><span>Open</span><span>07:00 UTC</span></li>
+            <li><span>Final participant release</span><span>15:15 UTC</span></li>
+            <li><span>Regulator reporting</span><span>17:30 local time</span></li>
+            <li><span>Finality</span><span>Immediate and irrevocable</span></li>
+          </ul>
+        </div>
+      </div>
+      <div class='modal-foot'>
+        <button class='btn-custom btn-outline' type='button' data-download='rail-schedules'><i class='bi bi-download'></i> Download Schedules</button>
+        <button class='btn-custom btn-ghost' type='button' data-close='railScheduleModal'>Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div class='modal-shell' id='holidayPolicyModal'>
+    <div class='modal-card narrow'>
+      <div class='modal-head'>
+        <div>
+          <h3 class='modal-title'>Holiday Policy</h3>
+          <div class='modal-subtitle'>How settlement dates and operational windows shift when local, corridor, or central bank holidays apply.</div>
+        </div>
+        <button class='modal-close' type='button' data-close='holidayPolicyModal'><i class='bi bi-x-lg'></i></button>
+      </div>
+      <div class='modal-body'>
+        <ul class='bullet-list'>
+          <li><span>Domestic rails</span><span>Move to next local business day when central bank is closed.</span></li>
+          <li><span>Cross-border corridors</span><span>Both source and destination market calendars are evaluated before estimating finality.</span></li>
+          <li><span>SEPA / TARGET</span><span>Non-TARGET business days defer same-day cycles automatically.</span></li>
+          <li><span>Real-time rails</span><span>Messaging may continue, but funding, oversight, and reporting can defer to next business day.</span></li>
+          <li><span>EOD close</span><span>Holiday carry-forwards are reflected in opening position preview and next-day funding plans.</span></li>
+        </ul>
+      </div>
+      <div class='modal-foot'>
+        <button class='btn-custom btn-outline' type='button' data-download='holiday-policy'><i class='bi bi-download'></i> Download Policy</button>
+        <button class='btn-custom btn-ghost' type='button' data-close='holidayPolicyModal'>Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div class='modal-shell' id='estimateDateModal'>
+    <div class='modal-card narrow'>
+      <div class='modal-head'>
+        <div>
+          <h3 class='modal-title'>Estimated Settlement Date Calculator</h3>
+          <div class='modal-subtitle'>Quick calculator for cut-off eligibility, holiday conflicts, and expected finality.</div>
+        </div>
+        <button class='modal-close' type='button' data-close='estimateDateModal'><i class='bi bi-x-lg'></i></button>
+      </div>
+      <div class='modal-body'>
+        <div class='form-group'>
+          <label class='form-label'>Rail</label>
+          <select class='form-select' id='estimateRail'>
+            <option value='ACH'>ACH</option>
+            <option value='SEPA'>SEPA</option>
+            <option value='SWIFT'>SWIFT</option>
+            <option value='RTGS'>RTGS</option>
+            <option value='Wire'>Wire</option>
+          </select>
+        </div>
+        <div class='form-grid'>
+          <div class='form-group'>
+            <label class='form-label'>Submission Date</label>
+            <input class='form-control' id='estimateDate' type='date'>
+          </div>
+          <div class='form-group'>
+            <label class='form-label'>Jurisdiction</label>
+            <select class='form-select' id='estimateJurisdiction'>
+              <option>United States</option>
+              <option>Eurozone</option>
+              <option>United Kingdom</option>
+              <option>Kenya</option>
+            </select>
+          </div>
+        </div>
+        <div class='form-group'>
+          <label class='form-label'>Urgency</label>
+          <select class='form-select' id='estimateUrgency'>
+            <option>Standard</option>
+            <option>Priority</option>
+            <option>Critical</option>
+          </select>
+        </div>
+        <div class='alert-box info' id='estimateResult'>
+          <i class='bi bi-calendar-check'></i>
+          <div><strong>Estimated result:</strong> Select parameters and click calculate.</div>
+        </div>
+      </div>
+      <div class='modal-foot'>
+        <button class='btn-custom btn-outline' type='button' onclick='calculateEstimate()'><i class='bi bi-calculator'></i> Calculate</button>
+        <button class='btn-custom btn-ghost' type='button' data-close='estimateDateModal'>Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div class='modal-shell' id='createBatchModal'>
+    <div class='modal-card wide'>
+      <div class='modal-head'>
+        <div>
+          <h3 class='modal-title'>Create Settlement Batch</h3>
+          <div class='modal-subtitle'>Configure scope, choose gross or net treatment, validate items, and submit to the correct settlement window.</div>
+        </div>
+        <button class='modal-close' type='button' data-close='createBatchModal'><i class='bi bi-x-lg'></i></button>
+      </div>
+      <div class='modal-body'>
+        <div class='wizard-steps' data-wizard-steps='batchWizard'>
+          <div class='wizard-step active'><div class='dot'>1</div><span>Scope</span></div>
+          <div class='wizard-step'><div class='dot'>2</div><span>Instructions</span></div>
+          <div class='wizard-step'><div class='dot'>3</div><span>Validation</span></div>
+          <div class='wizard-step'><div class='dot'>4</div><span>Submit</span></div>
+        </div>
+        <div data-wizard='batchWizard' data-step='1'>
+          <div class='wizard-pane active' data-step-pane='1'>
+            <div class='form-grid'>
+              <div class='form-group'><label class='form-label'>Settlement Rail</label><select class='form-select'><option>ACH</option><option>SEPA</option><option>SWIFT</option><option>RTGS</option><option>Wire</option></select></div>
+              <div class='form-group'><label class='form-label'>Mode</label><select class='form-select'><option>Net Settlement</option><option>Gross Settlement</option><option>Hybrid / Multi-lateral</option></select></div>
+              <div class='form-group'><label class='form-label'>Jurisdiction</label><select class='form-select'><option>United States</option><option>Eurozone</option><option>United Kingdom</option><option>Kenya</option></select></div>
+              <div class='form-group'><label class='form-label'>Target Window</label><select class='form-select'><option>Next Available Window</option><option>Final Window Today</option><option>Schedule for Tomorrow</option></select></div>
+            </div>
+            <div class='alert-box info'><i class='bi bi-info-circle'></i><div>Batch scope determines holiday logic, funding validation, approval requirements, and report templates.</div></div>
+          </div>
+          <div class='wizard-pane' data-step-pane='2'>
+            <div class='table-wrap'>
+              <table class='data-table' style='min-width: 760px;'>
+                <thead><tr><th>Select</th><th>Instruction</th><th>Counterparty</th><th>Amount</th><th>Priority</th><th>Eligibility</th></tr></thead>
+                <tbody>
+                  <tr><td><input type='checkbox' checked></td><td>ACH-22401</td><td>Chase Bank</td><td>$840,000</td><td><span class='badge-pill badge-info'>Standard</span></td><td><span class='badge-pill badge-success'>Eligible</span></td></tr>
+                  <tr><td><input type='checkbox' checked></td><td>ACH-22402</td><td>Citibank</td><td>$1,120,000</td><td><span class='badge-pill badge-warning'>Priority</span></td><td><span class='badge-pill badge-success'>Eligible</span></td></tr>
+                  <tr><td><input type='checkbox' checked></td><td>ACH-22403</td><td>Wells Fargo</td><td>$560,000</td><td><span class='badge-pill badge-info'>Standard</span></td><td><span class='badge-pill badge-warning'>Funding review</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class='wizard-pane' data-step-pane='3'>
+            <div class='alert-box warning'><i class='bi bi-exclamation-triangle'></i><div><strong>1 warning found:</strong> One instruction exceeds preferred netting threshold and will remain gross unless override is approved.</div></div>
+            <div class='mini-grid'>
+              <div class='mini-card'><div class='mini-label'>Funding Check</div><div class='mini-value'>Pass</div><div class='mini-note'>USD liquidity sufficient</div></div>
+              <div class='mini-card'><div class='mini-label'>Holiday Scan</div><div class='mini-value'>Pass</div><div class='mini-note'>No holiday conflict</div></div>
+              <div class='mini-card'><div class='mini-label'>Duplicate Scan</div><div class='mini-value'>Pass</div><div class='mini-note'>No duplicates detected</div></div>
+              <div class='mini-card'><div class='mini-label'>Approvals</div><div class='mini-value'>1 Pending</div><div class='mini-note'>Treasury checker required</div></div>
+            </div>
+          </div>
+          <div class='wizard-pane' data-step-pane='4'>
+            <div class='table-wrap'>
+              <table class='data-table' style='min-width: 640px;'>
+                <thead><tr><th>Metric</th><th>Value</th></tr></thead>
+                <tbody>
+                  <tr><td>Total instructions</td><td>3</td></tr>
+                  <tr><td>Gross value</td><td>$2,520,000</td></tr>
+                  <tr><td>Net value</td><td>$1,960,000</td></tr>
+                  <tr><td>Window</td><td>ACH final file · 22:00 UTC</td></tr>
+                  <tr><td>Approver</td><td>Liquidity Control Team</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class='modal-foot'>
+        <button class='btn-custom btn-ghost' type='button' data-wizard-back='batchWizard'>Back</button>
+        <button class='btn-custom btn-outline' type='button' data-wizard-next='batchWizard'>Next</button>
+        <button class='btn-custom btn-primary' type='button' onclick="completeWizard('batchWizard','Batch created and queued for approval');"><i class='bi bi-check-circle'></i> Finish</button>
+      </div>
+    </div>
+  </div>
+
+  <div class='modal-shell' id='batchDetailsModal'>
+    <div class='modal-card'>
+      <div class='modal-head'>
+        <div>
+          <h3 class='modal-title'>Batch Detail</h3>
+          <div class='modal-subtitle'>Full view of a settlement batch, including validation, approvals, and submission timeline.</div>
+        </div>
+        <button class='modal-close' type='button' data-close='batchDetailsModal'><i class='bi bi-x-lg'></i></button>
+      </div>
+      <div class='modal-body'>
+        <div class='mini-grid'>
+          <div class='mini-card'><div class='mini-label'>Batch ID</div><div class='mini-value'>BT-ACH-2249</div><div class='mini-note'>Created by Ops East</div></div>
+          <div class='mini-card'><div class='mini-label'>Mode</div><div class='mini-value'>Net Settlement</div><div class='mini-note'>ACH final window</div></div>
+          <div class='mini-card'><div class='mini-label'>Items</div><div class='mini-value'>234</div><div class='mini-note'>12 priority instructions</div></div>
+          <div class='mini-card'><div class='mini-label'>Value</div><div class='mini-value'>$4.8M</div><div class='mini-note'>Net final debit: $3.9M</div></div>
+        </div>
+        <div class='table-wrap' style='margin-top: 1rem;'>
+          <table class='data-table' style='min-width: 680px;'>
+            <thead><tr><th>Checkpoint</th><th>Owner</th><th>Timestamp</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>Batch creation</td><td>Ops East</td><td>14:12 UTC</td><td><span class='badge-pill badge-success'>Done</span></td></tr>
+              <tr><td>Validation run</td><td>Settlement engine</td><td>14:13 UTC</td><td><span class='badge-pill badge-success'>Done</span></td></tr>
+              <tr><td>Treasury review</td><td>Liquidity Control</td><td>Pending</td><td><span class='badge-pill badge-warning'>Awaiting</span></td></tr>
+              <tr><td>Submission</td><td>ACH gateway</td><td>22:00 UTC</td><td><span class='badge-pill badge-info'>Scheduled</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class='modal-foot'>
+        <button class='btn-custom btn-outline' type='button' data-open='validationReportModal'>Validation</button>
+        <button class='btn-custom btn-primary' type='button' onclick="switchModal('batchDetailsModal','batchSubmissionModal')">Go to Submit</button>
+      </div>
+    </div>
+  </div>
+
+  <div class='modal-shell' id='nettingConfigModal'>
+    <div class='modal-card narrow'>
+      <div class='modal-head'>
+        <div>
+          <h3 class='modal-title'>Netting Configuration</h3>
+          <div class='modal-subtitle'>Control thresholds, counterparties, liquidity triggers, and fallback rails for settlement compression.</div>
+        </div>
+        <button class='modal-close' type='button' data-close='nettingConfigModal'><i class='bi bi-x-lg'></i></button>
+      </div>
+      <div class='modal-body'>
+        <div class='form-grid'>
+          <div class='form-group'><label class='form-label'>Default netting mode</label><select class='form-select'><option>Bilateral</option><option>Multi-lateral</option><option>Hybrid</option></select></div>
+          <div class='form-group'><label class='form-label'>Minimum threshold</label><input class='form-control' value='$250,000'></div>
+          <div class='form-group'><label class='form-label'>Funding buffer</label><input class='form-control' value='12%'></div>
+          <div class='form-group'><label class='form-label'>Fallback rail</label><select class='form-select'><option>Wire</option><option>RTGS</option><option>SWIFT</option></select></div>
+        </div>
+        <div class='form-group'><label class='form-label'>Operational note</label><textarea>Net settlement is preferred for standard value corridors unless urgency is critical or regulator requires gross finality.</textarea></div>
+      </div>
+      <div class='modal-foot'>
+        <button class='btn-custom btn-ghost' type='button' data-close='nettingConfigModal'>Cancel</button>
+        <button class='btn-custom btn-primary' type='button' onclick="closeModal('nettingConfigModal'); showFeedback('Netting configuration updated','success');">Save Configuration</button>
+      </div>
+    </div>
+  </div>
+
+  <div class='modal-shell' id='multilateralModal'>
+    <div class='modal-card'>
+      <div class='modal-head'>
+        <div>
+          <h3 class='modal-title'>Multi-lateral Netting Calculator</h3>
+          <div class='modal-subtitle'>Simulate compression, identify final cash movement, and reduce gross funding needs before batch submission.</div>
+        </div>
+        <button class='modal-close' type='button' data-close='multilateralModal'><i class='bi bi-x-lg'></i></button>
+      </div>
+      <div class='modal-body'>
+        <div class='alert-box success'><i class='bi bi-cash-coin'></i><div><strong>Projected liquidity reduction:</strong> $17.3M less prefunding required if the proposed multi-lateral netting session is approved.</div></div>
+        <div class='mini-grid'>
+          <div class='mini-card'><div class='mini-label'>Participants</div><div class='mini-value'>6</div><div class='mini-note'>All eligible and connected</div></div>
+          <div class='mini-card'><div class='mini-label'>Gross Value</div><div class='mini-value'>$26.7M</div><div class='mini-note'>Before compression</div></div>
+          <div class='mini-card'><div class='mini-label'>Final Cash Movement</div><div class='mini-value'>$9.4M</div><div class='mini-note'>After netting</div></div>
+          <div class='mini-card'><div class='mini-label'>Savings</div><div class='mini-value'>$17.3M</div><div class='mini-note'>64.8% reduction</div></div>
+        </div>
+      </div>
+      <div class='modal-foot'>
+        <button class='btn-custom btn-outline' type='button' data-download='netting-calc'>Download Calculation</button>
+        <button class='btn-custom btn-primary' type='button' onclick="closeModal('multilateralModal'); showFeedback('Multi-lateral netting session approved for batch compression','success');">Approve Session</button>
+      </div>
+    </div>
+  </div>
+
+  <div class='modal-shell' id='batchSubmissionModal'>
+    <div class='modal-card narrow'>
+      <div class='modal-head'>
+        <div>
+          <h3 class='modal-title'>Batch Submission</h3>
+          <div class='modal-subtitle'>Final review before sending the batch to clearing or central bank gateway.</div>
+        </div>
+        <button class='modal-close' type='button' data-close='batchSubmissionModal'><i class='bi bi-x-lg'></i></button>
+      </div>
+      <div class='modal-body'>
+        <div class='table-wrap'>
+          <table class='data-table' style='min-width: 520px;'>
+            <tbody>
+              <tr><th>Batch ID</th><td>BT-ACH-2249</td></tr>
+              <tr><th>Rail</th><td>ACH</td></tr>
+              <tr><th>Submission Window</th><td>22:00 UTC</td></tr>
+              <tr><th>Approval State</th><td>1 final checker pending</td></tr>
+              <tr><th>Funding Check</th><td>Passed</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class='form-group' style='margin-top: 1rem;'>
+          <label class='form-label'>Approval Confirmation</label>
+          <select class='form-select'>
+            <option>I confirm validation and funding sufficiency</option>
+            <option>Submit under contingency approval</option>
+          </select>
+        </div>
+      </div>
+      <div class='modal-foot'>
+        <button class='btn-custom btn-danger-soft' type='button' data-close='batchSubmissionModal'>Cancel</button>
+        <button class='btn-custom btn-primary' type='button' onclick="closeModal('batchSubmissionModal'); showFeedback('Batch submitted to gateway queue','success');">Submit Batch</button>
+      </div>
+    </div>
+  </div>
+
+  <div class='modal-shell' id='validationReportModal'>
+    <div class='modal-card'>
+      <div class='modal-head'>
+        <div>
+          <h3 class='modal-title'>Pre-settlement Validation Report</h3>
+          <div class='modal-subtitle'>Funding, holiday, duplication, limits, and approval readiness across all queued settlement items.</div>
+        </div>
+        <button class='modal-close' type='button' data-close='validationReportModal'><i class='bi bi-x-lg'></i></button>
+      </div>
+      <div class='modal-body'>
+        <div class='mini-grid'>
+          <div class='mini-card'><div class='mini-label'>Checked batches</div><div class='mini-value'>14</div><div class='mini-note'>All active settlement queues</div></div>
+          <div class='mini-card'><div class='mini-label'>Critical findings</div><div class='mini-value'>2</div><div class='mini-note'>Funding and holiday mismatch</div></div>
+          <div class='mini-card'><div class='mini-label'>Warnings</div><div class='mini-value'>12</div><div class='mini-note'>Non-blocking but actionable</div></div>
+          <div class='mini-card'><div class='mini-label'>Pass rate</div><div class='mini-value'>91%</div><div class='mini-note'>Readiness of queued value</div></div>
+        </div>
+        <div class='table-wrap' style='margin-top: 1rem;'>
+          <table class='data-table' style='min-width: 760px;'>
+            <thead><tr><th>Batch</th><th>Finding</th><th>Severity</th><th>Owner</th><th>Recommended Action</th></tr></thead>
+            <tbody>
+              <tr><td>BT-SWF-7788</td><td>Funding shortfall on corridor</td><td><span class='badge-pill badge-danger'>Critical</span></td><td>Treasury</td><td>Add $420K prefunding or defer batch</td></tr>
+              <tr><td>BT-SEPA-9191</td><td>TARGET holiday mismatch</td><td><span class='badge-pill badge-warning'>Warning</span></td><td>Settlement Ops</td><td>Reclassify batch to next valid cycle</td></tr>
+              <tr><td>BT-ACH-2249</td><td>One item exceeds preferred threshold</td><td><span class='badge-pill badge-warning'>Warning</span></td><td>Liquidity Control</td><td>Approve gross handling for single line item</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class='modal-foot'>
+        <button class='btn-custom btn-outline' type='button' data-download='validation-report'>Download PDF</button>
+        <button class='btn-custom btn-primary' type='button' onclick="closeModal('validationReportModal'); showFeedback('Validation report acknowledged','info');">Acknowledge Findings</button>
+      </div>
+    </div>
+  </div>
+
+  <div class='modal-shell' id='confirmationReportModal'>
+    <div class='modal-card'>
+      <div class='modal-head'>
+        <div>
+          <h3 class='modal-title'>Post-settlement Confirmation</h3>
+          <div class='modal-subtitle'>Completed settlement results, finality acknowledgements, and account posting confirmation.</div>
+        </div>
+        <button class='modal-close' type='button' data-close='confirmationReportModal'><i class='bi bi-x-lg'></i></button>
+      </div>
+      <div class='modal-body'>
+        <div class='alert-box success'><i class='bi bi-check-circle-fill'></i><div><strong>31 settlement batches confirmed.</strong><br>All nostros and downstream ledger postings are synchronized for the current reporting cycle.</div></div>
+        <div class='table-wrap'>
+          <table class='data-table'>
+            <thead><tr><th>Batch</th><th>Rail</th><th>Finality Time</th><th>Nostro Update</th><th>Ledger Post</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>BT-ACH-2201</td><td>ACH</td><td>09:12 ET</td><td>Completed</td><td>Completed</td><td><span class='badge-pill badge-success'>Confirmed</span></td></tr>
+              <tr><td>BT-FPS-3310</td><td>FPS</td><td>Rolling</td><td>Completed</td><td>Completed</td><td><span class='badge-pill badge-success'>Confirmed</span></td></tr>
+              <tr><td>BT-RTGS-2877</td><td>RTGS</td><td>14:08 EAT</td><td>Completed</td><td>Completed</td><td><span class='badge-pill badge-success'>Confirmed</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class='modal-foot'>
+        <button class='btn-custom btn-outline' type='button' data-download='confirmation-report'>Download Confirmation</button>
+        <button class='btn-custom btn-ghost' type='button' data-close='confirmationReportModal'>Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div class='modal-shell' id='failureAnalysisModal'>
+    <div class='modal-card'>
+      <div class='modal-head'>
+        <div>
+          <h3 class='modal-title'>Settlement Failure Analysis</h3>
+          <div class='modal-subtitle'>Root causes, failure patterns, and remediation recommendations for today's rejected or delayed settlements.</div>
+        </div>
+        <button class='modal-close' type='button' data-close='failureAnalysisModal'><i class='bi bi-x-lg'></i></button>
+      </div>
+      <div class='modal-body'>
+        <div class='table-wrap'>
+          <table class='data-table'>
+            <thead><tr><th>Failure ID</th><th>Rail</th><th>Cause</th><th>Impact</th><th>Owner</th><th>Recommended Fix</th></tr></thead>
+            <tbody>
+              <tr><td>FLR-001</td><td>SWIFT</td><td>Funding insufficiency</td><td>$420K short</td><td>Treasury</td><td>Fund corridor before resubmission</td></tr>
+              <tr><td>FLR-002</td><td>SEPA</td><td>TARGET holiday mismatch</td><td>1 day delay</td><td>Settlement Ops</td><td>Move to next valid cycle</td></tr>
+              <tr><td>FLR-003</td><td>RTGS</td><td>Format rejection</td><td>KES 210M blocked</td><td>Integration Ops</td><td>Correct beneficiary branch code</td></tr>
+              <tr><td>FLR-004</td><td>Wire</td><td>Duplicate hold</td><td>$1.1M on hold</td><td>Payments Control</td><td>Clear duplicate check with maker</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class='modal-foot'>
+        <button class='btn-custom btn-outline' type='button' data-download='failure-analysis'>Download Analysis</button>
+        <button class='btn-custom btn-primary' type='button' onclick="switchModal('failureAnalysisModal','exceptionModal')">Open Exception Workbench</button>
+      </div>
+    </div>
+  </div>
+
+  <div class='modal-shell' id='centralBankModal'>
+    <div class='modal-card'>
+      <div class='modal-head'>
+        <div>
+          <h3 class='modal-title'>Central Bank Reporting</h3>
+          <div class='modal-subtitle'>Prepare, validate, approve, and distribute regulatory settlement packages where applicable.</div>
+        </div>
+        <button class='modal-close' type='button' data-close='centralBankModal'><i class='bi bi-x-lg'></i></button>
+      </div>
+      <div class='modal-body'>
+        <div class='custom-tabs'>
+          <button class='tab-btn active' type='button' data-tab-group='cbTabs' data-tab-target='cbPackages'>Packages</button>
+          <button class='tab-btn' type='button' data-tab-group='cbTabs' data-tab-target='cbSubmission'>Submission</button>
+          <button class='tab-btn' type='button' data-tab-group='cbTabs' data-tab-target='cbAudit'>Audit Trail</button>
+        </div>
+        <div class='tab-panel active' id='cbPackages' data-tab-panel='cbTabs'>
+          <div class='table-wrap'>
+            <table class='data-table'>
+              <thead><tr><th>Jurisdiction</th><th>Package</th><th>Deadline</th><th>Owner</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td>Kenya</td><td>RTGS participant daily summary</td><td>17:30 EAT</td><td>Settlement Ops</td><td><span class='badge-pill badge-warning'>Pending sign-off</span></td></tr>
+                <tr><td>Eurozone</td><td>TARGET exception package</td><td>18:00 CET</td><td>Regional Ops</td><td><span class='badge-pill badge-success'>Prepared</span></td></tr>
+                <tr><td>United States</td><td>Large-value wire review</td><td>EOD</td><td>Payments Control</td><td><span class='badge-pill badge-info'>Auto-filed</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class='tab-panel' id='cbSubmission' data-tab-panel='cbTabs'>
+          <ul class='bullet-list'>
+            <li><span>Kenya package mode</span><span>Portal upload + PDF approval</span></li>
+            <li><span>Eurozone package mode</span><span>SFTP drop + checksum</span></li>
+            <li><span>US package mode</span><span>Automated structured feed</span></li>
+          </ul>
+        </div>
+        <div class='tab-panel' id='cbAudit' data-tab-panel='cbTabs'>
+          <ul class='bullet-list'>
+            <li><span>Last approval</span><span>Maria N. · 16:42 EAT</span></li>
+            <li><span>Signed by</span><span>Treasury & Operations dual control</span></li>
+            <li><span>Retention</span><span>7 years in regulatory vault</span></li>
+          </ul>
+        </div>
+      </div>
+      <div class='modal-foot'>
+        <button class='btn-custom btn-outline' type='button' data-download='central-bank-pack'>Download Package</button>
+        <button class='btn-custom btn-primary' type='button' onclick="closeModal('centralBankModal'); showFeedback('Central bank package marked ready for submission','success');">Mark Ready</button>
+      </div>
+    </div>
+  </div>
+
+  <div class='modal-shell' id='eodChecklistModal'>
+    <div class='modal-card'>
+      <div class='modal-head'>
+        <div>
+          <h3 class='modal-title'>Detailed EOD Checklist</h3>
+          <div class='modal-subtitle'>The required controls and evidence collection steps for a compliant end-of-day close.</div>
+        </div>
+        <button class='modal-close' type='button' data-close='eodChecklistModal'><i class='bi bi-x-lg'></i></button>
+      </div>
+      <div class='modal-body'>
+        <div class='table-wrap'>
+          <table class='data-table' style='min-width: 760px;'>
+            <thead><tr><th>Check</th><th>Owner</th><th>Evidence</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody>
+              <tr><td>All settlement confirmations received</td><td>Ops</td><td>Network ack logs</td><td><span class='badge-pill badge-success'>Complete</span></td><td><button class='small-btn' type='button' data-open='confirmationReportModal'>View</button></td></tr>
+              <tr><td>Funding variance resolved</td><td>Treasury</td><td>Funding top-up memo</td><td><span class='badge-pill badge-warning'>Open</span></td><td><button class='small-btn' type='button' data-open='exceptionModal'>Resolve</button></td></tr>
+              <tr><td>Central bank package approved</td><td>Reg Ops</td><td>Approval signature</td><td><span class='badge-pill badge-success'>Complete</span></td><td><button class='small-btn' type='button' data-open='centralBankModal'>View</button></td></tr>
+              <tr><td>Opening balance preview confirmed</td><td>Treasury</td><td>Opening position sign-off</td><td><span class='badge-pill badge-info'>Pending</span></td><td><button class='small-btn' type='button' data-open='openingPreviewModal'>Open</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class='modal-foot'>
+        <button class='btn-custom btn-outline' type='button' data-download='eod-checklist'>Export Checklist</button>
+        <button class='btn-custom btn-primary' type='button' onclick="switchModal('eodChecklistModal','signoffModal')">Proceed to Sign-off</button>
+      </div>
+    </div>
+  </div>
+
+  <div class='modal-shell' id='jobMonitorModal'>
+    <div class='modal-card'>
+      <div class='modal-head'>
+        <div>
+          <h3 class='modal-title'>Automated Job Monitor</h3>
+          <div class='modal-subtitle'>Operational view of all close-of-business system tasks with timestamps, retry behaviour, and owners.</div>
+        </div>
+        <button class='modal-close' type='button' data-close='jobMonitorModal'><i class='bi bi-x-lg'></i></button>
+      </div>
+      <div class='modal-body'>
+        <div class='table-wrap'>
+          <table class='data-table'>
+            <thead><tr><th>Job</th><th>Started</th><th>Runtime</th><th>Retries</th><th>Current State</th><th>Action</th></tr></thead>
+            <tbody>
+              <tr><td>Ledger close posting</td><td>21:31 UTC</td><td>02m 14s</td><td>0</td><td><span class='badge-pill badge-success'>Completed</span></td><td><button class='small-btn' type='button' data-feedback='Ledger close job log exported' data-type='info'>Export Log</button></td></tr>
+              <tr><td>Settlement confirmation aggregator</td><td>21:34 UTC</td><td>Running</td><td>1</td><td><span class='badge-pill badge-info'>Processing</span></td><td><button class='small-btn' type='button' data-feedback='Retry request sent to aggregator' data-type='warning'>Trigger Retry</button></td></tr>
+              <tr><td>Archive package writer</td><td>21:38 UTC</td><td>00m 40s</td><td>0</td><td><span class='badge-pill badge-success'>Completed</span></td><td><button class='small-btn' type='button' data-feedback='Archive path copied to clipboard status panel' data-type='info'>Copy Path</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class='modal-foot'>
+        <button class='btn-custom btn-ghost' type='button' data-close='jobMonitorModal'>Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div class='modal-shell' id='exceptionModal'>
+    <div class='modal-card'>
+      <div class='modal-head'>
+        <div>
+          <h3 class='modal-title'>EOD Exception Workbench</h3>
+          <div class='modal-subtitle'>Drill into a blocking settlement exception, capture root cause, and assign remediation before sign-off.</div>
+        </div>
+        <button class='modal-close' type='button' data-close='exceptionModal'><i class='bi bi-x-lg'></i></button>
+      </div>
+      <div class='modal-body'>
+        <div class='alert-box danger'><i class='bi bi-x-octagon-fill'></i><div><strong>Critical exception:</strong> SWIFT corridor US → KE cannot settle due to funding insufficiency. Required buffer short by $420,000.</div></div>
+        <div class='form-grid'>
+          <div class='form-group'><label class='form-label'>Exception ID</label><input class='form-control' value='EXC-SWF-009' readonly></div>
+          <div class='form-group'><label class='form-label'>Owner</label><input class='form-control' value='Treasury Desk'></div>
+          <div class='form-group'><label class='form-label'>Severity</label><select class='form-select'><option>Critical</option><option>High</option><option>Medium</option></select></div>
+          <div class='form-group'><label class='form-label'>Resolution Action</label><select class='form-select'><option>Fund corridor</option><option>Defer batch</option><option>Switch rail</option></select></div>
+        </div>
+        <div class='form-group'><label class='form-label'>Ops Notes</label><textarea>Pending treasury confirmation for same-day prefunding. If not completed before 18:00 UTC, batch will be deferred to T+1.</textarea></div>
+      </div>
+      <div class='modal-foot'>
+        <button class='btn-custom btn-danger-soft' type='button' onclick="closeModal('exceptionModal'); showFeedback('Exception escalated to treasury leadership','danger');">Escalate</button>
+        <button class='btn-custom btn-primary' type='button' onclick="closeModal('exceptionModal'); showFeedback('Exception marked as actively remediating','warning');">Save Resolution</button>
+      </div>
+    </div>
+  </div>
+
+  <div class='modal-shell' id='openingPreviewModal'>
+    <div class='modal-card'>
+      <div class='modal-head'>
+        <div>
+          <h3 class='modal-title'>Next-day Opening Position Preview</h3>
+          <div class='modal-subtitle'>Projected balances, liquidity runway, and required top-up actions for the next operating day.</div>
+        </div>
+        <button class='modal-close' type='button' data-close='openingPreviewModal'><i class='bi bi-x-lg'></i></button>
+      </div>
+      <div class='modal-body'>
+        <div class='table-wrap'>
+          <table class='data-table'>
+            <thead><tr><th>Account</th><th>Currency</th><th>Projected Open</th><th>Minimum Threshold</th><th>Gap</th><th>Action</th></tr></thead>
+            <tbody>
+              <tr><td>USD Nostro - JPM</td><td>USD</td><td>$17.1M</td><td>$15.0M</td><td><span class='badge-pill badge-success'>+2.1M</span></td><td><button class='small-btn' type='button' data-feedback='USD opening position approved' data-type='success'>Approve</button></td></tr>
+              <tr><td>EUR Nostro - Deutsche</td><td>EUR</td><td>€9.7M</td><td>€10.0M</td><td><span class='badge-pill badge-danger'>-0.3M</span></td><td><button class='small-btn' type='button' data-feedback='EUR top-up request drafted' data-type='warning'>Request Top-up</button></td></tr>
+              <tr><td>GBP Nostro - Barclays</td><td>GBP</td><td>£5.6M</td><td>£4.2M</td><td><span class='badge-pill badge-success'>+1.4M</span></td><td><button class='small-btn' type='button' data-feedback='GBP opening position approved' data-type='success'>Approve</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class='modal-foot'>
+        <button class='btn-custom btn-outline' type='button' data-download='opening-positions'>Download Preview</button>
+        <button class='btn-custom btn-primary' type='button' onclick="closeModal('openingPreviewModal'); showFeedback('Opening positions sent for treasury approval','info');">Send for Approval</button>
+      </div>
+    </div>
+  </div>
+
+  <div class='modal-shell' id='railLimitsModal'>
+    <div class='modal-card'>
+      <div class='modal-head'>
+        <div>
+          <h3 class='modal-title'>Rail Limits & Controls</h3>
+          <div class='modal-subtitle'>Per-rail transaction caps, daily exposure limits, and contingency overrides for settlement operations.</div>
+        </div>
+        <button class='modal-close' type='button' data-close='railLimitsModal'><i class='bi bi-x-lg'></i></button>
+      </div>
+      <div class='modal-body'>
+        <div class='table-wrap'>
+          <table class='data-table'>
+            <thead><tr><th>Rail</th><th>Per Txn Limit</th><th>Daily Limit</th><th>Intraday Buffer</th><th>Override Required</th></tr></thead>
+            <tbody>
+              <tr><td>ACH</td><td>$2M</td><td>$50M</td><td>8%</td><td>Above $1.5M</td></tr>
+              <tr><td>SEPA</td><td>€3M</td><td>€40M</td><td>6%</td><td>Above €2.2M</td></tr>
+              <tr><td>SWIFT</td><td>$10M</td><td>$120M</td><td>12%</td><td>Above $7M</td></tr>
+              <tr><td>RTGS</td><td>KES 500M</td><td>KES 5B</td><td>10%</td><td>Above KES 300M</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class='modal-foot'>
+        <button class='btn-custom btn-outline' type='button' data-download='rail-limits'>Download Limits</button>
+        <button class='btn-custom btn-primary' type='button' onclick="closeModal('railLimitsModal'); showFeedback('Rail limit change request routed for approval','warning');">Request Override</button>
+      </div>
+    </div>
+  </div>
+
+  <div class='modal-shell' id='calendarExportModal'>
+    <div class='modal-card narrow'>
+      <div class='modal-head'>
+        <div>
+          <h3 class='modal-title'>Export Settlement Calendar</h3>
+          <div class='modal-subtitle'>Choose output format and coverage period for operational or distribution use.</div>
+        </div>
+        <button class='modal-close' type='button' data-close='calendarExportModal'><i class='bi bi-x-lg'></i></button>
+      </div>
+      <div class='modal-body'>
+        <div class='form-group'><label class='form-label'>Coverage</label><select class='form-select'><option>Next 7 days</option><option>Next 30 days</option><option>Current quarter</option></select></div>
+        <div class='form-group'><label class='form-label'>Format</label><select class='form-select' id='calendarExportFormat'><option value='csv'>CSV</option><option value='pdf'>PDF</option><option value='ics'>ICS</option></select></div>
+        <div class='form-group'><label class='form-label'>Include</label><select class='form-select'><option>All rails and jurisdictions</option><option>Only domestic rails</option><option>Only cross-border rails</option></select></div>
+      </div>
+      <div class='modal-foot'>
+        <button class='btn-custom btn-primary' type='button' onclick="downloadPreset(document.getElementById('calendarExportFormat').value === 'ics' ? 'calendar-ics' : document.getElementById('calendarExportFormat').value === 'pdf' ? 'calendar-pdf' : 'calendar-csv'); closeModal('calendarExportModal');">Export</button>
+      </div>
+    </div>
+  </div>
+
+  <div class='modal-shell' id='jurisdictionHolidayModal'>
+    <div class='modal-card'>
+      <div class='modal-head'>
+        <div>
+          <h3 class='modal-title'>Jurisdiction Holiday Calendar</h3>
+          <div class='modal-subtitle'>Next observed holidays and their expected impact on settlement operations.</div>
+        </div>
+        <button class='modal-close' type='button' data-close='jurisdictionHolidayModal'><i class='bi bi-x-lg'></i></button>
+      </div>
+      <div class='modal-body'>
+        <div class='custom-tabs'>
+          <button class='tab-btn active' type='button' data-tab-group='holidayTabs' data-tab-target='holidayUs'>US</button>
+          <button class='tab-btn' type='button' data-tab-group='holidayTabs' data-tab-target='holidayEu'>EU</button>
+          <button class='tab-btn' type='button' data-tab-group='holidayTabs' data-tab-target='holidayUk'>UK</button>
+          <button class='tab-btn' type='button' data-tab-group='holidayTabs' data-tab-target='holidayKe'>KE</button>
+        </div>
+        <div class='tab-panel active' id='holidayUs' data-tab-panel='holidayTabs'>
+          <ul class='bullet-list'>
+            <li><span>Martin Luther King Jr. Day</span><span>ACH and Wire closed</span></li>
+            <li><span>Presidents' Day</span><span>ACH and Wire closed</span></li>
+            <li><span>Memorial Day</span><span>ACH and Wire closed</span></li>
+          </ul>
+        </div>
+        <div class='tab-panel' id='holidayEu' data-tab-panel='holidayTabs'>
+          <ul class='bullet-list'>
+            <li><span>Good Friday</span><span>TARGET closed</span></li>
+            <li><span>Easter Monday</span><span>TARGET closed</span></li>
+            <li><span>Christmas Day</span><span>TARGET closed</span></li>
+          </ul>
+        </div>
+        <div class='tab-panel' id='holidayUk' data-tab-panel='holidayTabs'>
+          <ul class='bullet-list'>
+            <li><span>Early May Bank Holiday</span><span>Oversight only</span></li>
+            <li><span>Summer Bank Holiday</span><span>Operational staffing adjusted</span></li>
+            <li><span>Boxing Day</span><span>Reporting deferred</span></li>
+          </ul>
+        </div>
+        <div class='tab-panel' id='holidayKe' data-tab-panel='holidayTabs'>
+          <ul class='bullet-list'>
+            <li><span>Madaraka Day</span><span>RTGS closed</span></li>
+            <li><span>Mashujaa Day</span><span>RTGS closed</span></li>
+            <li><span>Jamhuri Day</span><span>Domestic settlement deferred</span></li>
+          </ul>
+        </div>
+      </div>
+      <div class='modal-foot'>
+        <button class='btn-custom btn-outline' type='button' data-download='holiday-calendar'>Download Calendar</button>
+        <button class='btn-custom btn-ghost' type='button' data-close='jurisdictionHolidayModal'>Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div class='modal-shell' id='alertRuleModal'>
+    <div class='modal-card narrow'>
+      <div class='modal-head'>
+        <div>
+          <h3 class='modal-title'>Alert Rule Builder</h3>
+          <div class='modal-subtitle'>Configure operational alerts for cut-offs, failures, funding gaps, and EOD breaches.</div>
+        </div>
+        <button class='modal-close' type='button' data-close='alertRuleModal'><i class='bi bi-x-lg'></i></button>
+      </div>
+      <div class='modal-body'>
+        <div class='form-group'><label class='form-label'>Alert Type</label><select class='form-select'><option>Cut-off reminder</option><option>Funding shortfall</option><option>Settlement failure</option><option>EOD delay</option></select></div>
+        <div class='form-grid'>
+          <div class='form-group'><label class='form-label'>Threshold</label><input class='form-control' value='90 minutes before cutoff'></div>
+          <div class='form-group'><label class='form-label'>Priority</label><select class='form-select'><option>High</option><option>Medium</option><option>Critical</option></select></div>
+        </div>
+        <div class='form-group'><label class='form-label'>Recipients</label><input class='form-control' value='ops@paymo.com, treasury@paymo.com'></div>
+      </div>
+      <div class='modal-foot'>
+        <button class='btn-custom btn-primary' type='button' onclick="closeModal('alertRuleModal'); showFeedback('Alert rule saved and activated','success');">Save Rule</button>
+      </div>
+    </div>
+  </div>
+
+  <div class='modal-shell' id='signoffModal'>
+    <div class='modal-card'>
+      <div class='modal-head'>
+        <div>
+          <h3 class='modal-title'>EOD Sign-off Wizard</h3>
+          <div class='modal-subtitle'>Structured end-of-day close process with freeze, validation, approval, and archive stages.</div>
+        </div>
+        <button class='modal-close' type='button' data-close='signoffModal'><i class='bi bi-x-lg'></i></button>
+      </div>
+      <div class='modal-body'>
+        <div class='wizard-steps' data-wizard-steps='signoffWizard'>
+          <div class='wizard-step active'><div class='dot'>1</div><span>Freeze</span></div>
+          <div class='wizard-step'><div class='dot'>2</div><span>Validate</span></div>
+          <div class='wizard-step'><div class='dot'>3</div><span>Approve</span></div>
+          <div class='wizard-step'><div class='dot'>4</div><span>Archive</span></div>
+        </div>
+        <div data-wizard='signoffWizard' data-step='1'>
+          <div class='wizard-pane active' data-step-pane='1'>
+            <div class='alert-box info'><i class='bi bi-lock-fill'></i><div><strong>Freeze stage:</strong> pause new settlement submissions, lock mutable queues, and snapshot balances.</div></div>
+            <ul class='bullet-list'>
+              <li><span>Freeze new batch creation</span><span>Ready</span></li>
+              <li><span>Snapshot nostros</span><span>Ready</span></li>
+              <li><span>Stop non-critical overrides</span><span>Ready</span></li>
+            </ul>
+          </div>
+          <div class='wizard-pane' data-step-pane='2'>
+            <div class='alert-box warning'><i class='bi bi-search'></i><div><strong>Validation stage:</strong> one funding variance and one holiday mismatch remain open.</div></div>
+            <ul class='bullet-list'>
+              <li><span>Settlement confirmations matched</span><span>Complete</span></li>
+              <li><span>Funding variance resolved</span><span>Pending</span></li>
+              <li><span>Opening positions reviewed</span><span>Pending</span></li>
+            </ul>
+          </div>
+          <div class='wizard-pane' data-step-pane='3'>
+            <div class='alert-box success'><i class='bi bi-shield-check'></i><div><strong>Approval stage:</strong> dual control by treasury and operations is required before archiving.</div></div>
+            <div class='form-grid'>
+              <div class='form-group'><label class='form-label'>Operations approver</label><input class='form-control' value='Sarah Chen'></div>
+              <div class='form-group'><label class='form-label'>Treasury approver</label><input class='form-control' value='Martin Omondi'></div>
+            </div>
+          </div>
+          <div class='wizard-pane' data-step-pane='4'>
+            <div class='alert-box success'><i class='bi bi-archive-fill'></i><div><strong>Archive stage:</strong> confirmation reports, logs, regulatory evidence, and opening position projections will be sealed.</div></div>
+            <ul class='bullet-list'>
+              <li><span>Archive destination</span><span>Vault /settlement/eod/2026-archive</span></li>
+              <li><span>Retention</span><span>7 years</span></li>
+              <li><span>Audit marker</span><span>EOD-CLOSE-017</span></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class='modal-foot'>
+        <button class='btn-custom btn-ghost' type='button' data-wizard-back='signoffWizard'>Back</button>
+        <button class='btn-custom btn-outline' type='button' data-wizard-next='signoffWizard'>Next</button>
+        <button class='btn-custom btn-primary' type='button' onclick="completeWizard('signoffWizard','EOD sign-off completed and archive marker generated');"><i class='bi bi-check2-circle'></i> Complete Sign-off</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const feedbackBar = document.getElementById('feedbackBar');
+    const feedbackText = document.getElementById('feedbackText');
+
+    function showFeedback(message, type = 'info') {
+      feedbackBar.className = `feedback-bar show ${type}`;
+      feedbackText.innerHTML = `<i class='bi bi-info-circle'></i> ${message}`;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    document.getElementById('dismissFeedback').addEventListener('click', () => {
+      feedbackBar.className = 'feedback-bar info';
+    });
+
+    function openModal(id) {
+      const modal = document.getElementById(id);
+      if (!modal) return;
+      modal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal(id) {
+      const modal = document.getElementById(id);
+      if (!modal) return;
+      modal.classList.remove('active');
+      if (!document.querySelector('.modal-shell.active')) document.body.style.overflow = '';
+    }
+
+    function switchModal(closeId, openId) {
+      closeModal(closeId);
+      openModal(openId);
+    }
+
+    document.addEventListener('click', (e) => {
+      const openBtn = e.target.closest('[data-open]');
+      if (openBtn) {
+        openModal(openBtn.dataset.open);
+        return;
+      }
+
+      const closeBtn = e.target.closest('[data-close]');
+      if (closeBtn) {
+        closeModal(closeBtn.dataset.close);
+        return;
+      }
+
+      const feedbackBtn = e.target.closest('[data-feedback]');
+      if (feedbackBtn) {
+        showFeedback(feedbackBtn.dataset.feedback, feedbackBtn.dataset.type || 'info');
+        return;
+      }
+
+      const downloadBtn = e.target.closest('[data-download]');
+      if (downloadBtn) {
+        downloadPreset(downloadBtn.dataset.download);
+        return;
+      }
+    });
+
+    document.querySelectorAll('.modal-shell').forEach((modal) => {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal(modal.id);
+      });
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.modal-shell.active').forEach((modal) => closeModal(modal.id));
+      }
+    });
+
+    // Sidebar toggle
+    document.getElementById('sidebarToggle').addEventListener('click', () => {
+      document.getElementById('sidebar').classList.toggle('collapsed');
+      document.getElementById('mainContent').classList.toggle('expanded');
+    });
+
+    // Theme toggle
+    document.getElementById('themeToggle').addEventListener('click', () => {
+      document.body.classList.toggle('light-mode');
+      const icon = document.querySelector('#themeToggle i');
+      icon.className = document.body.classList.contains('light-mode') ? 'bi bi-sun-fill' : 'bi bi-moon-fill';
+      showFeedback(document.body.classList.contains('light-mode') ? 'Light mode enabled for daytime settlement review' : 'Purple operations mode restored', 'info');
+    });
+
+    // Tabs
+    document.querySelectorAll('[data-tab-group]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const group = btn.dataset.tabGroup;
+        const target = btn.dataset.tabTarget;
+        document.querySelectorAll(`[data-tab-group='${group}']`).forEach((b) => b.classList.remove('active'));
+        document.querySelectorAll(`[data-tab-panel='${group}']`).forEach((panel) => panel.classList.remove('active'));
+        btn.classList.add('active');
+        const targetPanel = document.getElementById(target);
+        if (targetPanel) targetPanel.classList.add('active');
+      });
+    });
+
+    // Countdown timers
+    function updateCountdowns() {
+      const now = new Date();
+      document.querySelectorAll('[data-cutoff]').forEach((el) => {
+        const [hours, minutes] = el.dataset.cutoff.split(':').map(Number);
+        const target = new Date();
+        target.setHours(hours, minutes, 0, 0);
+        if (target <= now) target.setDate(target.getDate() + 1);
+        const diff = target - now;
+        const hrs = String(Math.floor(diff / 3600000)).padStart(2, '0');
+        const mins = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
+        const secs = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
+        el.textContent = `${hrs}:${mins}:${secs}`;
+      });
+    }
+    updateCountdowns();
+    setInterval(updateCountdowns, 1000);
+
+    // Wizards
+    function setWizardStep(name, step) {
+      const holder = document.querySelector(`[data-wizard='${name}']`);
+      if (!holder) return;
+      const max = holder.querySelectorAll('[data-step-pane]').length;
+      const bounded = Math.max(1, Math.min(max, step));
+      holder.dataset.step = bounded;
+      holder.querySelectorAll('[data-step-pane]').forEach((pane) => {
+        pane.classList.toggle('active', Number(pane.dataset.stepPane) === bounded);
+      });
+      const stepsWrap = document.querySelector(`[data-wizard-steps='${name}']`);
+      if (stepsWrap) {
+        [...stepsWrap.children].forEach((item, index) => {
+          item.classList.remove('active', 'completed');
+          const stepNum = index + 1;
+          if (stepNum < bounded) item.classList.add('completed');
+          if (stepNum === bounded) item.classList.add('active');
+        });
+      }
+    }
+
+    document.querySelectorAll('[data-wizard-next]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const name = btn.dataset.wizardNext;
+        const holder = document.querySelector(`[data-wizard='${name}']`);
+        if (!holder) return;
+        setWizardStep(name, Number(holder.dataset.step) + 1);
+      });
+    });
+    document.querySelectorAll('[data-wizard-back]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const name = btn.dataset.wizardBack;
+        const holder = document.querySelector(`[data-wizard='${name}']`);
+        if (!holder) return;
+        setWizardStep(name, Number(holder.dataset.step) - 1);
+      });
+    });
+
+    function completeWizard(name, message) {
+      closeModal(name === 'batchWizard' ? 'createBatchModal' : 'signoffModal');
+      setWizardStep(name, 1);
+      showFeedback(message, 'success');
+    }
+
+    // Estimate calculator
+    function calculateEstimate() {
+      const rail = document.getElementById('estimateRail').value;
+      const date = document.getElementById('estimateDate').value;
+      const urgency = document.getElementById('estimateUrgency').value;
+      const result = document.getElementById('estimateResult');
+      let outcome = 'Next business day';
+      if (rail === 'RTGS' || rail === 'Wire') outcome = 'Same day if submitted before final cut-off';
+      if (rail === 'SWIFT') outcome = 'T+0 to T+2 depending on corridor and funding';
+      if (rail === 'SEPA') outcome = 'Same day or next TARGET business day';
+      if (urgency === 'Critical' && (rail === 'RTGS' || rail === 'Wire')) outcome = 'Prioritized same-day settlement if still within active window';
+      result.className = 'alert-box success';
+      result.innerHTML = `<i class='bi bi-check-circle-fill'></i><div><strong>Estimated result:</strong> ${outcome}. Submission date: ${date || 'not selected'}.</div>`;
+    }
+
+    // Downloads
+    function downloadText(filename, content) {
+      const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function downloadPreset(key) {
+      const today = new Date().toISOString().slice(0, 10);
+      const presets = {
+        'ops-pack': ['ops-pack-' + today + '.txt', 'Settlement Operations Pack\nIncludes validation summary, confirmations, failures, and opening positions.'],
+        'validation-report': ['validation-report-' + today + '.txt', 'Pre-settlement Validation Report\nCritical findings: 2\nWarnings: 12\nPass rate: 91%'],
+        'confirmation-report': ['confirmation-report-' + today + '.txt', 'Post-settlement Confirmation\nConfirmed batches: 31\nPending: 3'],
+        'failure-analysis': ['failure-analysis-' + today + '.txt', 'Failure Analysis\n1. Funding insufficiency\n2. Holiday mismatch\n3. Format rejection\n4. Duplicate hold'],
+        'central-bank-pack': ['central-bank-pack-' + today + '.txt', 'Central Bank Reporting Package\nKenya RTGS summary\nEurozone TARGET exception report\nUS large-value wire review'],
+        'liquidity-report': ['liquidity-report-' + today + '.txt', 'Liquidity Sufficiency Report\nUSD healthy\nEUR watch\nGBP healthy\nKES healthy'],
+        'opening-positions': ['opening-positions-' + today + '.txt', 'Opening Position Preview\nUSD 17.1M\nEUR 9.7M\nGBP 5.6M\nKES 2.6B'],
+        'eod-checklist': ['eod-checklist-' + today + '.txt', 'EOD Checklist Export\n23 of 25 complete\nOutstanding items: funding variance, opening balance approval'],
+        'rail-limits': ['rail-limits-' + today + '.txt', 'Rail Limits\nACH 2M/50M\nSEPA 3M/40M\nSWIFT 10M/120M\nRTGS 500M/5B'],
+        'rail-schedules': ['rail-schedules-' + today + '.txt', 'Rail Schedules\nACH 08:00/14:00/22:00\nSEPA 06:30/12:30/16:30\nSWIFT continuous'],
+        'cutoff-guide': ['cutoff-guide-' + today + '.txt', 'Cut-off Guide\nACH 22:00 UTC\nSEPA 16:30 UTC\nSWIFT 18:00 UTC\nRTGS 15:15 UTC'],
+        'holiday-policy': ['holiday-policy-' + today + '.txt', 'Holiday Policy\nDomestic rails defer to next local business day. Cross-border rails evaluate both markets.'],
+        'holiday-calendar': ['holiday-calendar-' + today + '.txt', 'Holiday Calendar\nUS, EU, UK, KE observed holidays and settlement impact.'],
+        'netting-calc': ['netting-calc-' + today + '.txt', 'Multi-lateral Netting Calculation\nGross 26.7M\nFinal cash movement 9.4M\nSavings 17.3M'],
+        'calendar-csv': ['settlement-calendar-' + today + '.csv', 'rail,jurisdiction,cutoff\nACH,US,22:00 UTC\nSEPA,EU,16:30 UTC\nSWIFT,Global,18:00 UTC'],
+        'calendar-pdf': ['settlement-calendar-' + today + '.txt', 'Settlement Calendar (PDF surrogate text export)\nUse platform PDF renderer in production.'],
+        'calendar-ics': ['settlement-calendar-' + today + '.ics', 'BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nSUMMARY:ACH Final Cut-off\nEND:VEVENT\nEND:VCALENDAR']
+      };
+      const preset = presets[key];
+      if (!preset) return;
+      downloadText(preset[0], preset[1]);
+      showFeedback(`Downloaded ${preset[0]}`, 'success');
+    }
+
+    // Initialize default wizard positions
+    setWizardStep('batchWizard', 1);
+    setWizardStep('signoffWizard', 1);
+  </script>
+</body>
+</html>

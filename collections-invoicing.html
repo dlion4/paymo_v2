@@ -1,0 +1,3697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Collections & Invoicing - PayMo BaaS</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --glass-bg: rgba(255,255,255,0.55);
+      --glass-bg-solid: rgba(255,255,255,0.75);
+      --glass-border: rgba(255,255,255,0.6);
+      --glass-shadow: 0 8px 32px rgba(0,0,0,0.06), 0 2px 8px rgba(0,0,0,0.04);
+      --glass-shadow-lg: 0 16px 48px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04);
+      --accent: #2563eb;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --sidebar-width: 260px;
+      --sidebar-collapsed: 72px;
+      --primary-color: #6366f1;
+      --primary-dark: #4f46e5;
+      --primary-light: #818cf8;
+      --secondary-color: #8b5cf6;
+      --success-color: #10b981;
+      --warning-color: #f59e0b;
+      --danger-color: #ef4444;
+      --info-color: #3b82f6;
+      --dark-bg: #0f172a;
+      --dark-card: #1e293b;
+      --dark-border: #334155;
+      --light-bg: #f8fafc;
+      --light-card: #ffffff;
+      --light-border: #e2e8f0;
+      --text-dark: #0f172a;
+      --text-light: #f8fafc;
+      --text-muted: #64748b;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background-attachment: fixed;
+      min-height: 100vh;
+      overflow-x: hidden;
+      color: var(--text-dark);
+      transition: all 0.3s ease;
+    }
+    body.light-mode { background: var(--light-bg); }
+    a { color: inherit; text-decoration: none; }
+
+    .glass-card {
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.3);
+      box-shadow: var(--glass-shadow);
+      border-radius: 18px;
+      transition: all 0.25s ease;
+    }
+    .glass-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--glass-shadow-lg);
+    }
+
+    /* Sidebar Styles */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      width: var(--sidebar-width);
+      background: rgba(30,41,59,0.95);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      padding: 1.5rem 0;
+      transition: all 0.3s ease;
+      z-index: 1000;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+    .sidebar.collapsed { width: var(--sidebar-collapsed); }
+    .sidebar::-webkit-scrollbar { width: 6px; }
+    .sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 999px; }
+
+    .sidebar-header {
+      padding: 0 1.25rem 1.25rem;
+      border-bottom: 1px solid var(--dark-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      color: var(--text-light);
+      font-size: 1.15rem;
+      font-weight: 800;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .logo-mark {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: 800;
+      box-shadow: 0 8px 20px rgba(118,75,162,0.35);
+      flex-shrink: 0;
+    }
+    .sidebar.collapsed .sidebar-logo span { display: none; }
+    .sidebar-toggle {
+      background: var(--primary-color);
+      border: none;
+      color: white;
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      flex-shrink: 0;
+    }
+    .sidebar-toggle:hover { background: var(--primary-dark); transform: scale(1.05); }
+
+    .sidebar-nav { padding: 1.25rem 0; }
+    .nav-section { margin-bottom: 1.35rem; }
+    .nav-section-title {
+      color: var(--text-muted);
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 0 1.25rem;
+      margin-bottom: 0.55rem;
+      letter-spacing: 0.08em;
+      transition: all 0.3s ease;
+    }
+    .sidebar.collapsed .nav-section-title { opacity: 0; height: 0; padding: 0; margin: 0; }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      padding: 0.75rem 1.25rem;
+      color: rgba(255,255,255,0.7);
+      text-decoration: none;
+      transition: all 0.25s ease;
+      cursor: pointer;
+      border-left: 3px solid transparent;
+      white-space: nowrap;
+    }
+    .nav-item:hover {
+      background: rgba(255,255,255,0.08);
+      color: white;
+      border-left-color: var(--primary-color);
+    }
+    .nav-item.active {
+      background: rgba(99,102,241,0.15);
+      color: white;
+      border-left-color: var(--primary-color);
+    }
+    .nav-item i { font-size: 1.25rem; width: 24px; text-align: center; flex-shrink: 0; }
+    .sidebar.collapsed .nav-item span { display: none; }
+
+    /* Main Content */
+    .main-content {
+      margin-left: var(--sidebar-width);
+      padding: 2rem;
+      transition: margin-left 0.3s ease;
+      min-height: 100vh;
+    }
+    .sidebar.collapsed ~ .main-content { margin-left: var(--sidebar-collapsed); }
+
+    /* Top Bar */
+    .top-bar {
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 18px;
+      padding: 1.25rem 1.75rem;
+      margin-bottom: 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: var(--glass-shadow);
+    }
+    .page-title {
+      font-size: 1.75rem;
+      font-weight: 800;
+      color: var(--text-dark);
+      margin: 0;
+    }
+    .top-bar-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .btn-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: rgba(99,102,241,0.1);
+      border: none;
+      color: var(--primary-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+    .btn-icon:hover {
+      background: var(--primary-color);
+      color: white;
+      transform: scale(1.05);
+    }
+
+    /* KPI Cards */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 1.25rem;
+      margin-bottom: 2rem;
+    }
+    .kpi-card {
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 18px;
+      padding: 1.5rem;
+      box-shadow: var(--glass-shadow);
+      transition: all 0.25s ease;
+    }
+    .kpi-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--glass-shadow-lg);
+    }
+    .kpi-label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .kpi-value {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--text-dark);
+      margin-bottom: 0.5rem;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .kpi-change {
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.25rem 0.65rem;
+      border-radius: 8px;
+    }
+    .kpi-change.positive {
+      background: rgba(16,185,129,0.1);
+      color: var(--success-color);
+    }
+    .kpi-change.negative {
+      background: rgba(239,68,68,0.1);
+      color: var(--danger-color);
+    }
+
+    /* Section Grid */
+    .section-grid {
+      display: grid;
+      grid-template-columns: 60% 40%;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .section-full {
+      grid-column: 1 / -1;
+    }
+
+    /* Card Styles */
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.5rem;
+      border-bottom: 1px solid rgba(0,0,0,0.08);
+    }
+    .card-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin: 0;
+    }
+    .card-body {
+      padding: 1.5rem;
+    }
+    /* Filter Tabs */
+    .filter-tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .filter-tab {
+      padding: 0.65rem 1.25rem;
+      border-radius: 10px;
+      background: rgba(99,102,241,0.08);
+      border: 1px solid transparent;
+      color: var(--text-dark);
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+    .filter-tab:hover {
+      background: rgba(99,102,241,0.15);
+      border-color: var(--primary-color);
+    }
+    .filter-tab.active {
+      background: var(--primary-color);
+      color: white;
+      box-shadow: 0 4px 12px rgba(99,102,241,0.3);
+    }
+
+    /* Invoice Card */
+    .invoice-card {
+      background: white;
+      border: 1px solid rgba(0,0,0,0.08);
+      border-radius: 14px;
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+      transition: all 0.25s ease;
+      cursor: pointer;
+    }
+    .invoice-card:hover {
+      border-color: var(--primary-color);
+      box-shadow: 0 4px 16px rgba(99,102,241,0.15);
+      transform: translateX(4px);
+    }
+    .invoice-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
+    }
+    .invoice-id {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: var(--text-dark);
+    }
+    .invoice-amount {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: var(--text-dark);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .invoice-details {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      margin-bottom: 0.75rem;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+    .invoice-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* Status Badge */
+    .status-badge {
+      padding: 0.4rem 0.85rem;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .status-badge.paid {
+      background: rgba(16,185,129,0.15);
+      color: var(--success-color);
+    }
+    .status-badge.unpaid {
+      background: rgba(245,158,11,0.15);
+      color: var(--warning-color);
+    }
+    .status-badge.overdue {
+      background: rgba(239,68,68,0.15);
+      color: var(--danger-color);
+    }
+    .status-badge.draft {
+      background: rgba(100,116,139,0.15);
+      color: var(--text-muted);
+    }
+
+    /* Aging Bucket */
+    .aging-bucket {
+      background: white;
+      border: 1px solid rgba(0,0,0,0.08);
+      border-radius: 14px;
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+      transition: all 0.25s ease;
+      cursor: pointer;
+    }
+    .aging-bucket:hover {
+      border-color: var(--primary-color);
+      box-shadow: 0 4px 16px rgba(99,102,241,0.15);
+      transform: translateY(-2px);
+    }
+    .aging-label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+    .aging-amount {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--text-dark);
+      margin-bottom: 0.5rem;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .aging-meta {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    /* Quick Actions */
+    .quick-actions-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.25rem;
+      margin-bottom: 2rem;
+    }
+    .quick-action-btn {
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      border: none;
+      border-radius: 16px;
+      padding: 2rem 1.5rem;
+      color: white;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 8px 24px rgba(99,102,241,0.25);
+    }
+    .quick-action-btn:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 32px rgba(99,102,241,0.35);
+    }
+    .quick-action-icon {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+    }
+    .quick-action-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    /* Subscription Card */
+    .subscription-card {
+      background: white;
+      border: 1px solid rgba(0,0,0,0.08);
+      border-radius: 14px;
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+      transition: all 0.25s ease;
+    }
+    .subscription-card:hover {
+      border-color: var(--primary-color);
+      box-shadow: 0 4px 16px rgba(99,102,241,0.15);
+    }
+    .subscription-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+    .subscription-plan {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text-dark);
+    }
+    .subscription-mrr {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--primary-color);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .subscription-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    /* Analytics Box */
+    .analytics-box {
+      background: white;
+      border: 1px solid rgba(0,0,0,0.08);
+      border-radius: 14px;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    .analytics-metric {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+    .analytics-label {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+    .analytics-value {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--text-dark);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Table Styles */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .data-table thead {
+      background: rgba(99,102,241,0.08);
+    }
+    .data-table th {
+      padding: 1rem;
+      text-align: left;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-dark);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .data-table td {
+      padding: 1rem;
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+      font-size: 0.9rem;
+      color: var(--text-dark);
+    }
+    .data-table tbody tr {
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .data-table tbody tr:hover {
+      background: rgba(99,102,241,0.05);
+    }
+
+    /* Dunning Item */
+    .dunning-item {
+      background: white;
+      border: 1px solid rgba(239,68,68,0.2);
+      border-left: 4px solid var(--danger-color);
+      border-radius: 14px;
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+      transition: all 0.25s ease;
+    }
+    .dunning-item:hover {
+      box-shadow: 0 4px 16px rgba(239,68,68,0.15);
+    }
+    .dunning-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
+    }
+    .dunning-invoice {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      color: var(--text-dark);
+    }
+    .dunning-amount {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--danger-color);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .dunning-meta {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+    }
+
+    /* Buttons */
+    .btn-primary {
+      background: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .btn-primary:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(99,102,241,0.3);
+    }
+    .btn-secondary {
+      background: rgba(99,102,241,0.1);
+      color: var(--primary-color);
+      border: 1px solid var(--primary-color);
+      padding: 0.75rem 1.5rem;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+    .btn-secondary:hover {
+      background: var(--primary-color);
+      color: white;
+    }
+    .btn-danger {
+      background: var(--danger-color);
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+    .btn-danger:hover {
+      background: #dc2626;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(239,68,68,0.3);
+    }
+    .btn-sm {
+      padding: 0.5rem 1rem;
+      font-size: 0.85rem;
+    }
+
+    /* Modal Styles */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px);
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      overflow-y: auto;
+    }
+    .modal.active {
+      display: flex;
+    }
+    .modal-dialog {
+      background: white;
+      border-radius: 20px;
+      max-width: 600px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.2);
+      animation: modalSlideIn 0.3s ease;
+    }
+    .modal-dialog.large {
+      max-width: 900px;
+    }
+    .modal-dialog.xlarge {
+      max-width: 1200px;
+    }
+    @keyframes modalSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .modal-header {
+      padding: 1.75rem 2rem;
+      border-bottom: 1px solid rgba(0,0,0,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .modal-title {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--text-dark);
+      margin: 0;
+    }
+    .modal-close {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: rgba(0,0,0,0.05);
+      border: none;
+      color: var(--text-dark);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+    .modal-close:hover {
+      background: rgba(0,0,0,0.1);
+      transform: rotate(90deg);
+    }
+    .modal-body {
+      padding: 2rem;
+    }
+    .modal-footer {
+      padding: 1.5rem 2rem;
+      border-top: 1px solid rgba(0,0,0,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 1rem;
+    }
+    /* Modal Tabs */
+    .modal-tabs {
+      display: flex;
+      gap: 0.5rem;
+      border-bottom: 2px solid rgba(0,0,0,0.08);
+      margin-bottom: 1.5rem;
+    }
+    .modal-tab {
+      padding: 0.75rem 1.5rem;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-weight: 600;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      transition: all 0.2s ease;
+    }
+    .modal-tab:hover {
+      color: var(--text-dark);
+    }
+    .modal-tab.active {
+      color: var(--primary-color);
+      border-bottom-color: var(--primary-color);
+    }
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Multi-step Modal */
+    .step-indicator {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .step {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .step-number {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(99,102,241,0.1);
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      transition: all 0.3s ease;
+    }
+    .step.active .step-number {
+      background: var(--primary-color);
+      color: white;
+      box-shadow: 0 4px 12px rgba(99,102,241,0.3);
+    }
+    .step.completed .step-number {
+      background: var(--success-color);
+      color: white;
+    }
+    .step-label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+    .step.active .step-label {
+      color: var(--primary-color);
+    }
+    .step-divider {
+      width: 40px;
+      height: 2px;
+      background: rgba(99,102,241,0.2);
+    }
+    .step-content {
+      display: none;
+    }
+    .step-content.active {
+      display: block;
+    }
+
+    /* Form Styles */
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+    .form-label {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-dark);
+      margin-bottom: 0.5rem;
+    }
+    .form-control {
+      width: 100%;
+      padding: 0.85rem 1rem;
+      border: 1px solid rgba(0,0,0,0.15);
+      border-radius: 10px;
+      font-size: 0.95rem;
+      transition: all 0.2s ease;
+      font-family: inherit;
+    }
+    .form-control:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+    }
+    .form-select {
+      width: 100%;
+      padding: 0.85rem 1rem;
+      border: 1px solid rgba(0,0,0,0.15);
+      border-radius: 10px;
+      font-size: 0.95rem;
+      transition: all 0.2s ease;
+      font-family: inherit;
+      background: white;
+      cursor: pointer;
+    }
+    .form-select:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+    }
+    .form-check {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+    .form-check-input {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+    }
+    .form-check-label {
+      font-size: 0.9rem;
+      color: var(--text-dark);
+      cursor: pointer;
+    }
+
+    /* Line Items */
+    .line-items {
+      margin-bottom: 1.5rem;
+    }
+    .line-item {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr 40px;
+      gap: 1rem;
+      align-items: center;
+      margin-bottom: 1rem;
+      padding: 1rem;
+      background: rgba(99,102,241,0.05);
+      border-radius: 10px;
+    }
+    .line-item-remove {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: rgba(239,68,68,0.1);
+      border: none;
+      color: var(--danger-color);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+    .line-item-remove:hover {
+      background: var(--danger-color);
+      color: white;
+    }
+    .add-line-item {
+      width: 100%;
+      padding: 0.75rem;
+      border: 2px dashed rgba(99,102,241,0.3);
+      border-radius: 10px;
+      background: none;
+      color: var(--primary-color);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .add-line-item:hover {
+      border-color: var(--primary-color);
+      background: rgba(99,102,241,0.05);
+    }
+
+    /* Template Selection */
+    .template-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .template-option {
+      border: 2px solid rgba(0,0,0,0.1);
+      border-radius: 12px;
+      padding: 1rem;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      text-align: center;
+    }
+    .template-option:hover {
+      border-color: var(--primary-color);
+      box-shadow: 0 4px 12px rgba(99,102,241,0.15);
+    }
+    .template-option.selected {
+      border-color: var(--primary-color);
+      background: rgba(99,102,241,0.05);
+    }
+    .template-preview {
+      width: 100%;
+      height: 120px;
+      background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+      border-radius: 8px;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      color: var(--text-muted);
+    }
+    .template-name {
+      font-weight: 600;
+      color: var(--text-dark);
+    }
+
+    /* Payment Link Display */
+    .payment-link-display {
+      background: rgba(99,102,241,0.05);
+      border: 1px solid rgba(99,102,241,0.2);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin: 1.5rem 0;
+    }
+    .payment-link-url {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9rem;
+      color: var(--primary-color);
+      word-break: break-all;
+      margin-bottom: 1rem;
+    }
+    .qr-code {
+      width: 200px;
+      height: 200px;
+      background: white;
+      border: 1px solid rgba(0,0,0,0.1);
+      border-radius: 12px;
+      margin: 1rem auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Reconciliation Columns */
+    .reconciliation-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-bottom: 1.5rem;
+    }
+    .reconciliation-column {
+      border: 1px solid rgba(0,0,0,0.1);
+      border-radius: 12px;
+      padding: 1rem;
+      min-height: 400px;
+    }
+    .reconciliation-column-title {
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 1rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 2px solid rgba(0,0,0,0.1);
+    }
+    .reconciliation-item {
+      background: white;
+      border: 1px solid rgba(0,0,0,0.1);
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 0.75rem;
+      cursor: move;
+      transition: all 0.2s ease;
+    }
+    .reconciliation-item:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      transform: scale(1.02);
+    }
+    .reconciliation-item.dragging {
+      opacity: 0.5;
+    }
+    .reconciliation-item.matched {
+      background: rgba(16,185,129,0.1);
+      border-color: var(--success-color);
+    }
+
+    /* Loading Spinner */
+    .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Alert Box */
+    .alert {
+      padding: 1rem 1.25rem;
+      border-radius: 12px;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .alert-success {
+      background: rgba(16,185,129,0.1);
+      border: 1px solid rgba(16,185,129,0.3);
+      color: var(--success-color);
+    }
+    .alert-warning {
+      background: rgba(245,158,11,0.1);
+      border: 1px solid rgba(245,158,11,0.3);
+      color: var(--warning-color);
+    }
+    .alert-danger {
+      background: rgba(239,68,68,0.1);
+      border: 1px solid rgba(239,68,68,0.3);
+      color: var(--danger-color);
+    }
+    /* Info Box */
+    .info-box {
+      background: rgba(59,130,246,0.1);
+      border: 1px solid rgba(59,130,246,0.3);
+      border-radius: 12px;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.9rem;
+      color: var(--info-color);
+    }
+
+    /* Sparkline Chart */
+    .sparkline {
+      width: 100%;
+      height: 60px;
+      margin: 1rem 0;
+    }
+
+    /* Responsive */
+    @media (max-width: 1400px) {
+      .kpi-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+    @media (max-width: 1024px) {
+      .sidebar {
+        transform: translateX(-100%);
+      }
+      .sidebar.mobile-open {
+        transform: translateX(0);
+      }
+      .main-content {
+        margin-left: 0;
+      }
+      .section-grid {
+        grid-template-columns: 1fr;
+      }
+      .quick-actions-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .kpi-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    @media (max-width: 768px) {
+      .quick-actions-grid {
+        grid-template-columns: 1fr;
+      }
+      .kpi-grid {
+        grid-template-columns: 1fr;
+      }
+      .template-grid {
+        grid-template-columns: 1fr;
+      }
+      .reconciliation-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a href="dashboard.html" class="sidebar-logo">
+        <div class="logo-mark">PM</div>
+        <span>PayMo</span>
+      </a>
+      <button class="sidebar-toggle" id="sidebarToggle">
+        <i class="bi bi-list"></i>
+      </button>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <div class="nav-section-title">Main</div>
+        <a href="dashboard.html" class="nav-item">
+          <i class="bi bi-speedometer2"></i>
+          <span>Dashboard</span>
+        </a>
+        <a href="transaction-analytics.html" class="nav-item">
+          <i class="bi bi-graph-up"></i>
+          <span>Transaction Analytics</span>
+        </a>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Operations</div>
+        <a href="float-management.html" class="nav-item">
+          <i class="bi bi-water"></i>
+          <span>Float Management</span>
+        </a>
+        <a href="collections-invoicing.html" class="nav-item active">
+          <i class="bi bi-receipt"></i>
+          <span>Collections & Invoicing</span>
+        </a>
+        <a href="payment-rail.html" class="nav-item">
+          <i class="bi bi-train-freight-front"></i>
+          <span>Payment Rails</span>
+        </a>
+        <a href="Settlement.html" class="nav-item">
+          <i class="bi bi-check2-circle"></i>
+          <span>Settlement</span>
+        </a>
+        <a href="Reconciliation.html" class="nav-item">
+          <i class="bi bi-arrow-left-right"></i>
+          <span>Reconciliation</span>
+        </a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Management</div>
+        <a href="transfer-management.html" class="nav-item">
+          <i class="bi bi-arrow-repeat"></i>
+          <span>Transfer Management</span>
+        </a>
+        <a href="compliance.html" class="nav-item">
+          <i class="bi bi-shield-check"></i>
+          <span>Compliance</span>
+        </a>
+        <a href="api.html" class="nav-item">
+          <i class="bi bi-code-square"></i>
+          <span>API & Integration</span>
+        </a>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Top Bar -->
+    <div class="top-bar">
+      <div>
+        <h1 class="page-title">Collections & Invoicing</h1>
+      </div>
+      <div class="top-bar-actions">
+        <button class="btn-icon" title="Notifications">
+          <i class="bi bi-bell"></i>
+        </button>
+        <button class="btn-icon" title="Settings">
+          <i class="bi bi-gear"></i>
+        </button>
+        <button class="btn-icon" title="User Profile">
+          <i class="bi bi-person-circle"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">Total Outstanding</div>
+        <div class="kpi-value">$2.4M</div>
+        <span class="kpi-change positive">
+          <i class="bi bi-arrow-up"></i> +8.2%
+        </span>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Collected This Month</div>
+        <div class="kpi-value">$1.8M</div>
+        <span class="kpi-change positive">
+          <i class="bi bi-arrow-up"></i> +12.5%
+        </span>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Collection Rate</div>
+        <div class="kpi-value">94.2%</div>
+        <span class="kpi-change positive">
+          <i class="bi bi-arrow-up"></i> +1.1%
+        </span>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Overdue Amount</div>
+        <div class="kpi-value">$340K</div>
+        <span class="kpi-change negative">
+          <i class="bi bi-arrow-down"></i> -5.2%
+        </span>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Active Subscriptions</div>
+        <div class="kpi-value">847</div>
+        <span class="kpi-change positive">
+          <i class="bi bi-arrow-up"></i> +23
+        </span>
+      </div>
+    </div>
+
+    <!-- Section 1: Outstanding Invoices + Aging Report -->
+    <div class="section-grid">
+      <!-- Outstanding Invoices -->
+      <div class="glass-card">
+        <div class="card-header">
+          <h2 class="card-title">Outstanding Invoices</h2>
+          <button class="btn-primary btn-sm" onclick="openModal('bulkInvoiceActionsModal')">
+            <i class="bi bi-lightning"></i> Bulk Actions
+          </button>
+        </div>
+        <div class="card-body">
+          <div class="filter-tabs">
+            <button class="filter-tab active" data-filter="all">All</button>
+            <button class="filter-tab" data-filter="paid">Paid</button>
+            <button class="filter-tab" data-filter="unpaid">Unpaid</button>
+            <button class="filter-tab" data-filter="overdue">Overdue</button>
+            <button class="filter-tab" data-filter="draft">Draft</button>
+          </div>
+          <div id="invoiceList">
+            <div class="invoice-card" onclick="openModal('invoiceDetailsModal', 'INV-2024-001')">
+              <div class="invoice-header">
+                <div class="invoice-id">INV-2024-001</div>
+                <div class="invoice-amount">$45,250</div>
+              </div>
+              <div class="invoice-details">
+                <span><i class="bi bi-building"></i> Acme Corporation</span>
+                <span><i class="bi bi-calendar"></i> Due: Jan 15, 2024</span>
+              </div>
+              <div class="invoice-footer">
+                <span class="status-badge unpaid">Unpaid</span>
+                <button class="btn-primary btn-sm" onclick="event.stopPropagation(); openModal('invoiceDetailsModal', 'INV-2024-001')">
+                  View Details
+                </button>
+              </div>
+            </div>
+
+            <div class="invoice-card" onclick="openModal('invoiceDetailsModal', 'INV-2024-002')">
+              <div class="invoice-header">
+                <div class="invoice-id">INV-2024-002</div>
+                <div class="invoice-amount">$28,900</div>
+              </div>
+              <div class="invoice-details">
+                <span><i class="bi bi-building"></i> TechStart Inc</span>
+                <span><i class="bi bi-calendar"></i> Due: Jan 20, 2024</span>
+              </div>
+              <div class="invoice-footer">
+                <span class="status-badge paid">Paid</span>
+                <button class="btn-primary btn-sm" onclick="event.stopPropagation(); openModal('invoiceDetailsModal', 'INV-2024-002')">
+                  View Details
+                </button>
+              </div>
+            </div>
+
+            <div class="invoice-card" onclick="openModal('invoiceDetailsModal', 'INV-2024-003')">
+              <div class="invoice-header">
+                <div class="invoice-id">INV-2024-003</div>
+                <div class="invoice-amount">$67,500</div>
+              </div>
+              <div class="invoice-details">
+                <span><i class="bi bi-building"></i> Global Ventures LLC</span>
+                <span><i class="bi bi-calendar"></i> Due: Dec 28, 2023</span>
+              </div>
+              <div class="invoice-footer">
+                <span class="status-badge overdue">Overdue</span>
+                <button class="btn-primary btn-sm" onclick="event.stopPropagation(); openModal('invoiceDetailsModal', 'INV-2024-003')">
+                  View Details
+                </button>
+              </div>
+            </div>
+            <div class="invoice-card" onclick="openModal('invoiceDetailsModal', 'INV-2024-004')">
+              <div class="invoice-header">
+                <div class="invoice-id">INV-2024-004</div>
+                <div class="invoice-amount">$12,750</div>
+              </div>
+              <div class="invoice-details">
+                <span><i class="bi bi-building"></i> Innovate Solutions</span>
+                <span><i class="bi bi-calendar"></i> Due: Jan 25, 2024</span>
+              </div>
+              <div class="invoice-footer">
+                <span class="status-badge draft">Draft</span>
+                <button class="btn-primary btn-sm" onclick="event.stopPropagation(); openModal('invoiceDetailsModal', 'INV-2024-004')">
+                  View Details
+                </button>
+              </div>
+            </div>
+
+            <div class="invoice-card" onclick="openModal('invoiceDetailsModal', 'INV-2024-005')">
+              <div class="invoice-header">
+                <div class="invoice-id">INV-2024-005</div>
+                <div class="invoice-amount">$89,200</div>
+              </div>
+              <div class="invoice-details">
+                <span><i class="bi bi-building"></i> Enterprise Systems Co</span>
+                <span><i class="bi bi-calendar"></i> Due: Jan 30, 2024</span>
+              </div>
+              <div class="invoice-footer">
+                <span class="status-badge unpaid">Unpaid</span>
+                <button class="btn-primary btn-sm" onclick="event.stopPropagation(); openModal('invoiceDetailsModal', 'INV-2024-005')">
+                  View Details
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Aging Report -->
+      <div class="glass-card">
+        <div class="card-header">
+          <h2 class="card-title">Aging Report</h2>
+        </div>
+        <div class="card-body">
+          <div class="aging-bucket" onclick="openModal('agingBucketModal', '0-30')">
+            <div class="aging-label">Current (0-30 days)</div>
+            <div class="aging-amount">$1,245,000</div>
+            <div class="aging-meta">
+              <span><i class="bi bi-file-text"></i> 42 invoices</span>
+              <span><i class="bi bi-percent"></i> 52%</span>
+            </div>
+          </div>
+          <div class="aging-bucket" onclick="openModal('agingBucketModal', '31-60')">
+            <div class="aging-label">31-60 days</div>
+            <div class="aging-amount">$685,000</div>
+            <div class="aging-meta">
+              <span><i class="bi bi-file-text"></i> 28 invoices</span>
+              <span><i class="bi bi-percent"></i> 29%</span>
+            </div>
+          </div>
+
+          <div class="aging-bucket" onclick="openModal('agingBucketModal', '61-90')">
+            <div class="aging-label">61-90 days</div>
+            <div class="aging-amount">$310,000</div>
+            <div class="aging-meta">
+              <span><i class="bi bi-file-text"></i> 15 invoices</span>
+              <span><i class="bi bi-percent"></i> 13%</span>
+            </div>
+          </div>
+
+          <div class="aging-bucket" onclick="openModal('agingBucketModal', '90+')">
+            <div class="aging-label">90+ days</div>
+            <div class="aging-amount">$160,000</div>
+            <div class="aging-meta">
+              <span><i class="bi bi-file-text"></i> 8 invoices</span>
+              <span><i class="bi bi-percent"></i> 6%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 2: Quick Actions -->
+    <div class="section-full">
+      <div class="quick-actions-grid">
+        <button class="quick-action-btn" onclick="openModal('invoiceGeneratorModal')">
+          <div class="quick-action-icon"><i class="bi bi-file-earmark-plus"></i></div>
+          <h3 class="quick-action-title">Create Invoice</h3>
+        </button>
+        <button class="quick-action-btn" onclick="openModal('paymentLinkModal')">
+          <div class="quick-action-icon"><i class="bi bi-link-45deg"></i></div>
+          <h3 class="quick-action-title">Generate Payment Link</h3>
+        </button>
+        <button class="quick-action-btn" onclick="openModal('subscriptionCreatorModal')">
+          <div class="quick-action-icon"><i class="bi bi-arrow-repeat"></i></div>
+          <h3 class="quick-action-title">Create Subscription</h3>
+        </button>
+        <button class="quick-action-btn" onclick="openModal('reconciliationModal')">
+          <div class="quick-action-icon"><i class="bi bi-check2-square"></i></div>
+          <h3 class="quick-action-title">Reconcile Payments</h3>
+        </button>
+      </div>
+    </div>
+    <!-- Section 3: Active Subscriptions + Collection Analytics -->
+    <div class="section-grid">
+      <!-- Active Subscriptions -->
+      <div class="glass-card">
+        <div class="card-header">
+          <h2 class="card-title">Active Subscriptions</h2>
+          <button class="btn-primary btn-sm" onclick="openModal('subscriptionCreatorModal')">
+            <i class="bi bi-plus-lg"></i> New
+          </button>
+        </div>
+        <div class="card-body">
+          <div class="subscription-card">
+            <div class="subscription-header">
+              <div class="subscription-plan">Enterprise Plan</div>
+              <div class="subscription-mrr">$2,499/mo</div>
+            </div>
+            <div class="subscription-meta">
+              <span><i class="bi bi-calendar-check"></i> Monthly billing</span>
+              <span><i class="bi bi-check-circle"></i> Active</span>
+              <span><i class="bi bi-clock"></i> Next billing: Feb 1, 2024</span>
+            </div>
+            <button class="btn-secondary btn-sm mt-2" onclick="openModal('subscriptionManagementModal', 'ENT-001')">
+              Manage
+            </button>
+          </div>
+
+          <div class="subscription-card">
+            <div class="subscription-header">
+              <div class="subscription-plan">Professional Plan</div>
+              <div class="subscription-mrr">$999/mo</div>
+            </div>
+            <div class="subscription-meta">
+              <span><i class="bi bi-calendar-check"></i> Monthly billing</span>
+              <span><i class="bi bi-check-circle"></i> Active</span>
+              <span><i class="bi bi-clock"></i> Next billing: Jan 28, 2024</span>
+            </div>
+            <button class="btn-secondary btn-sm mt-2" onclick="openModal('subscriptionManagementModal', 'PRO-002')">
+              Manage
+            </button>
+          </div>
+
+          <div class="subscription-card">
+            <div class="subscription-header">
+              <div class="subscription-plan">Starter Plan</div>
+              <div class="subscription-mrr">$299/mo</div>
+            </div>
+            <div class="subscription-meta">
+              <span><i class="bi bi-calendar-check"></i> Annual billing</span>
+              <span><i class="bi bi-check-circle"></i> Active</span>
+              <span><i class="bi bi-clock"></i> Next billing: Mar 15, 2024</span>
+            </div>
+            <button class="btn-secondary btn-sm mt-2" onclick="openModal('subscriptionManagementModal', 'STR-003')">
+              Manage
+            </button>
+          </div>
+          <div class="subscription-card">
+            <div class="subscription-header">
+              <div class="subscription-plan">Custom Plan</div>
+              <div class="subscription-mrr">$4,999/mo</div>
+            </div>
+            <div class="subscription-meta">
+              <span><i class="bi bi-calendar-check"></i> Quarterly billing</span>
+              <span><i class="bi bi-check-circle"></i> Active</span>
+              <span><i class="bi bi-clock"></i> Next billing: Apr 1, 2024</span>
+            </div>
+            <button class="btn-secondary btn-sm mt-2" onclick="openModal('subscriptionManagementModal', 'CUS-004')">
+              Manage
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Collection Analytics -->
+      <div class="glass-card">
+        <div class="card-header">
+          <h2 class="card-title">Collection Analytics</h2>
+          <button class="btn-primary btn-sm" onclick="openModal('analyticsModal')">
+            <i class="bi bi-graph-up"></i> View Full
+          </button>
+        </div>
+        <div class="card-body">
+          <div class="analytics-box">
+            <h4 style="margin-bottom: 1rem; color: var(--text-dark); font-weight: 700;">MRR Trend</h4>
+            <svg class="sparkline" viewBox="0 0 300 60">
+              <polyline
+                fill="none"
+                stroke="var(--primary-color)"
+                stroke-width="3"
+                points="0,50 30,45 60,40 90,38 120,35 150,30 180,28 210,25 240,22 270,18 300,15"
+              />
+              <circle cx="300" cy="15" r="4" fill="var(--primary-color)" />
+            </svg>
+            
+            <div class="analytics-metric">
+              <span class="analytics-label">Churn Rate</span>
+              <span class="analytics-value">2.1%</span>
+            </div>
+            
+            <div class="analytics-metric">
+              <span class="analytics-label">Customer LTV</span>
+              <span class="analytics-value">$12,400</span>
+            </div>
+            
+            <div class="analytics-metric">
+              <span class="analytics-label">Avg. Revenue per User</span>
+              <span class="analytics-value">$1,847</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Section 4: Recent Payments + Dunning Management -->
+    <div class="section-grid">
+      <!-- Recent Payments -->
+      <div class="glass-card">
+        <div class="card-header">
+          <h2 class="card-title">Recent Payments</h2>
+          <button class="btn-primary btn-sm" onclick="openModal('exportDataModal')">
+            <i class="bi bi-download"></i> Export
+          </button>
+        </div>
+        <div class="card-body">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Invoice</th>
+                <th>Client</th>
+                <th>Amount</th>
+                <th>Method</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr onclick="openModal('paymentDetailsModal', 'PAY-001')">
+                <td>Jan 12, 2024</td>
+                <td>INV-2024-002</td>
+                <td>TechStart Inc</td>
+                <td>$28,900</td>
+                <td>Bank Transfer</td>
+                <td><span class="status-badge paid">Success</span></td>
+              </tr>
+              <tr onclick="openModal('paymentDetailsModal', 'PAY-002')">
+                <td>Jan 11, 2024</td>
+                <td>INV-2024-008</td>
+                <td>Digital Corp</td>
+                <td>$15,400</td>
+                <td>Credit Card</td>
+                <td><span class="status-badge paid">Success</span></td>
+              </tr>
+              <tr onclick="openModal('paymentDetailsModal', 'PAY-003')">
+                <td>Jan 10, 2024</td>
+                <td>INV-2024-012</td>
+                <td>Smart Solutions</td>
+                <td>$42,750</td>
+                <td>Wire Transfer</td>
+                <td><span class="status-badge paid">Success</span></td>
+              </tr>
+              <tr onclick="openModal('paymentDetailsModal', 'PAY-004')">
+                <td>Jan 9, 2024</td>
+                <td>INV-2024-015</td>
+                <td>Cloud Services Ltd</td>
+                <td>$8,200</td>
+                <td>Digital Wallet</td>
+                <td><span class="status-badge paid">Success</span></td>
+              </tr>
+              <tr onclick="openModal('paymentDetailsModal', 'PAY-005')">
+                <td>Jan 8, 2024</td>
+                <td>INV-2024-019</td>
+                <td>Innovation Hub</td>
+                <td>$31,500</td>
+                <td>Bank Transfer</td>
+                <td><span class="status-badge paid">Success</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <!-- Dunning Management -->
+      <div class="glass-card">
+        <div class="card-header">
+          <h2 class="card-title">Dunning Management</h2>
+          <button class="btn-primary btn-sm" onclick="openModal('dunningRulesModal')">
+            <i class="bi bi-gear"></i> Configure
+          </button>
+        </div>
+        <div class="card-body">
+          <div class="dunning-item">
+            <div class="dunning-header">
+              <div class="dunning-invoice">INV-2024-022</div>
+              <div class="dunning-amount">$18,500</div>
+            </div>
+            <div class="dunning-meta">
+              <span><i class="bi bi-building"></i> Beta Technologies</span>
+              <span><i class="bi bi-arrow-repeat"></i> Retry 2 of 5</span>
+              <span><i class="bi bi-clock"></i> Next retry: Jan 16, 2024</span>
+            </div>
+            <button class="btn-danger btn-sm" onclick="openModal('retryPaymentModal', 'INV-2024-022')">
+              <i class="bi bi-arrow-clockwise"></i> Retry Now
+            </button>
+          </div>
+
+          <div class="dunning-item">
+            <div class="dunning-header">
+              <div class="dunning-invoice">INV-2024-028</div>
+              <div class="dunning-amount">$9,200</div>
+            </div>
+            <div class="dunning-meta">
+              <span><i class="bi bi-building"></i> Quantum Systems</span>
+              <span><i class="bi bi-arrow-repeat"></i> Retry 1 of 5</span>
+              <span><i class="bi bi-clock"></i> Next retry: Jan 17, 2024</span>
+            </div>
+            <button class="btn-danger btn-sm" onclick="openModal('retryPaymentModal', 'INV-2024-028')">
+              <i class="bi bi-arrow-clockwise"></i> Retry Now
+            </button>
+          </div>
+
+          <div class="dunning-item">
+            <div class="dunning-header">
+              <div class="dunning-invoice">INV-2024-031</div>
+              <div class="dunning-amount">$24,800</div>
+            </div>
+            <div class="dunning-meta">
+              <span><i class="bi bi-building"></i> Future Dynamics</span>
+              <span><i class="bi bi-arrow-repeat"></i> Retry 3 of 5</span>
+              <span><i class="bi bi-clock"></i> Next retry: Jan 15, 2024</span>
+            </div>
+            <button class="btn-danger btn-sm" onclick="openModal('retryPaymentModal', 'INV-2024-031')">
+              <i class="bi bi-arrow-clockwise"></i> Retry Now
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+  <!-- Modal 1: Invoice Details -->
+  <div class="modal" id="invoiceDetailsModal">
+    <div class="modal-dialog large">
+      <div class="modal-header">
+        <h3 class="modal-title">Invoice Details</h3>
+        <button class="modal-close" onclick="closeModal('invoiceDetailsModal')">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-tabs">
+          <button class="modal-tab active" data-tab="details">Details</button>
+          <button class="modal-tab" data-tab="payment-history">Payment History</button>
+          <button class="modal-tab" data-tab="actions">Actions</button>
+        </div>
+
+        <div class="tab-content active" id="details">
+          <div class="info-box">
+            <i class="bi bi-info-circle"></i> Invoice ID: <strong>INV-2024-001</strong>
+          </div>
+          <table class="data-table">
+            <tbody>
+              <tr><td><strong>Client</strong></td><td>Acme Corporation</td></tr>
+              <tr><td><strong>Issue Date</strong></td><td>December 15, 2023</td></tr>
+              <tr><td><strong>Due Date</strong></td><td>January 15, 2024</td></tr>
+              <tr><td><strong>Status</strong></td><td><span class="status-badge unpaid">Unpaid</span></td></tr>
+            </tbody>
+          </table>
+          <h4 style="margin: 1.5rem 0 1rem; font-weight: 700;">Line Items</h4>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Description</th>
+                <th>Quantity</th>
+                <th>Unit Price</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Professional Services</td>
+                <td>40 hrs</td>
+                <td>$850</td>
+                <td>$34,000</td>
+              </tr>
+              <tr>
+                <td>Platform License</td>
+                <td>5 seats</td>
+                <td>$1,500</td>
+                <td>$7,500</td>
+              </tr>
+              <tr>
+                <td>Support & Maintenance</td>
+                <td>1 month</td>
+                <td>$2,500</td>
+                <td>$2,500</td>
+              </tr>
+            </tbody>
+          </table>
+          <div style="text-align: right; margin-top: 1.5rem; font-size: 1.25rem; font-weight: 800;">
+            Subtotal: $44,000<br>
+            Tax (10%): $4,400<br>
+            <span style="color: var(--primary-color);">Total: $48,400</span>
+          </div>
+        </div>
+        <div class="tab-content" id="payment-history">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Amount</th>
+                <th>Method</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Jan 10, 2024</td>
+                <td>$10,000</td>
+                <td>Bank Transfer</td>
+                <td><span class="status-badge paid">Partial</span></td>
+              </tr>
+              <tr>
+                <td colspan="4" style="text-align: center; color: var(--text-muted);">
+                  Remaining balance: $38,400
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="tab-content" id="actions">
+          <div style="display: grid; gap: 1rem;">
+            <button class="btn-primary" onclick="openModal('sendReminderModal')">
+              <i class="bi bi-envelope"></i> Send Reminder
+            </button>
+            <button class="btn-primary" onclick="markInvoicePaid()">
+              <i class="bi bi-check-circle"></i> Mark as Paid
+            </button>
+            <button class="btn-secondary" onclick="voidInvoice()">
+              <i class="bi bi-x-circle"></i> Void Invoice
+            </button>
+            <button class="btn-secondary" onclick="downloadInvoicePDF()">
+              <i class="bi bi-download"></i> Download PDF
+            </button>
+            <button class="btn-secondary" onclick="openModal('creditNoteModal')">
+              <i class="bi bi-file-earmark-minus"></i> Create Credit Note
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeModal('invoiceDetailsModal')">Close</button>
+      </div>
+    </div>
+  </div>
+  <!-- Modal 2: Aging Bucket Details -->
+  <div class="modal" id="agingBucketModal">
+    <div class="modal-dialog large">
+      <div class="modal-header">
+        <h3 class="modal-title">Aging Bucket: 0-30 Days</h3>
+        <button class="modal-close" onclick="closeModal('agingBucketModal')">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="filter-tabs" style="margin-bottom: 1.5rem;">
+          <button class="btn-primary btn-sm" onclick="sendBulkReminders()">
+            <i class="bi bi-envelope"></i> Send Reminders
+          </button>
+          <button class="btn-secondary btn-sm" onclick="markAsDisputed()">
+            <i class="bi bi-exclamation-triangle"></i> Mark as Disputed
+          </button>
+          <button class="btn-secondary btn-sm" onclick="exportBucket()">
+            <i class="bi bi-download"></i> Export
+          </button>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th><input type="checkbox" id="selectAll"></th>
+              <th>Invoice</th>
+              <th>Client</th>
+              <th>Amount</th>
+              <th>Due Date</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><input type="checkbox" class="invoice-select"></td>
+              <td>INV-2024-001</td>
+              <td>Acme Corporation</td>
+              <td>$45,250</td>
+              <td>Jan 15, 2024</td>
+              <td><span class="status-badge unpaid">Unpaid</span></td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" class="invoice-select"></td>
+              <td>INV-2024-005</td>
+              <td>Enterprise Systems Co</td>
+              <td>$89,200</td>
+              <td>Jan 30, 2024</td>
+              <td><span class="status-badge unpaid">Unpaid</span></td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" class="invoice-select"></td>
+              <td>INV-2024-007</td>
+              <td>Global Tech Inc</td>
+              <td>$32,400</td>
+              <td>Jan 22, 2024</td>
+              <td><span class="status-badge unpaid">Unpaid</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeModal('agingBucketModal')">Close</button>
+      </div>
+    </div>
+  </div>
+  <!-- Modal 3: Invoice Generator (5-step) -->
+  <div class="modal" id="invoiceGeneratorModal">
+    <div class="modal-dialog large">
+      <div class="modal-header">
+        <h3 class="modal-title">Create Invoice</h3>
+        <button class="modal-close" onclick="closeModal('invoiceGeneratorModal')">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="step-indicator">
+          <div class="step active">
+            <div class="step-number">1</div>
+            <div class="step-label">Template</div>
+          </div>
+          <div class="step-divider"></div>
+          <div class="step">
+            <div class="step-number">2</div>
+            <div class="step-label">Client</div>
+          </div>
+          <div class="step-divider"></div>
+          <div class="step">
+            <div class="step-number">3</div>
+            <div class="step-label">Items</div>
+          </div>
+          <div class="step-divider"></div>
+          <div class="step">
+            <div class="step-number">4</div>
+            <div class="step-label">Terms</div>
+          </div>
+          <div class="step-divider"></div>
+          <div class="step">
+            <div class="step-number">5</div>
+            <div class="step-label">Review</div>
+          </div>
+        </div>
+
+        <!-- Step 1: Template -->
+        <div class="step-content active" id="step1">
+          <h4 style="margin-bottom: 1rem; font-weight: 700;">Select Invoice Template</h4>
+          <div class="template-grid">
+            <div class="template-option selected" data-template="modern">
+              <div class="template-preview"><i class="bi bi-file-earmark-text"></i></div>
+              <div class="template-name">Modern</div>
+            </div>
+            <div class="template-option" data-template="classic">
+              <div class="template-preview"><i class="bi bi-file-earmark"></i></div>
+              <div class="template-name">Classic</div>
+            </div>
+            <div class="template-option" data-template="minimal">
+              <div class="template-preview"><i class="bi bi-file-earmark-minus"></i></div>
+              <div class="template-name">Minimal</div>
+            </div>
+          </div>
+        </div>
+        <!-- Step 2: Client -->
+        <div class="step-content" id="step2">
+          <h4 style="margin-bottom: 1rem; font-weight: 700;">Client Details</h4>
+          <div class="form-group">
+            <label class="form-label">Select Client</label>
+            <select class="form-select">
+              <option>Select existing client...</option>
+              <option>Acme Corporation</option>
+              <option>TechStart Inc</option>
+              <option>Global Ventures LLC</option>
+              <option>Innovate Solutions</option>
+              <option>Enterprise Systems Co</option>
+            </select>
+          </div>
+          <div style="text-align: center; margin: 1rem 0; color: var(--text-muted);">— OR —</div>
+          <div class="form-group">
+            <label class="form-label">Client Name</label>
+            <input type="text" class="form-control" placeholder="Enter new client name">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input type="email" class="form-control" placeholder="client@example.com">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Address</label>
+            <textarea class="form-control" rows="3" placeholder="Enter client address"></textarea>
+          </div>
+        </div>
+
+        <!-- Step 3: Line Items -->
+        <div class="step-content" id="step3">
+          <h4 style="margin-bottom: 1rem; font-weight: 700;">Line Items</h4>
+          <div class="line-items" id="lineItemsContainer">
+            <div class="line-item">
+              <input type="text" class="form-control" placeholder="Description" value="Professional Services">
+              <input type="number" class="form-control" placeholder="Qty" value="1">
+              <input type="number" class="form-control" placeholder="Price" value="5000">
+              <input type="number" class="form-control" placeholder="Tax %" value="10">
+              <button class="line-item-remove"><i class="bi bi-trash"></i></button>
+            </div>
+          </div>
+          <button class="add-line-item" onclick="addLineItem()">
+            <i class="bi bi-plus-lg"></i> Add Line Item
+          </button>
+        </div>
+        <!-- Step 4: Payment Terms -->
+        <div class="step-content" id="step4">
+          <h4 style="margin-bottom: 1rem; font-weight: 700;">Payment Terms</h4>
+          <div class="form-group">
+            <label class="form-label">Due Date</label>
+            <input type="date" class="form-control">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Payment Methods</label>
+            <div class="form-check">
+              <input type="checkbox" class="form-check-input" id="bankTransfer" checked>
+              <label class="form-check-label" for="bankTransfer">Bank Transfer</label>
+            </div>
+            <div class="form-check">
+              <input type="checkbox" class="form-check-input" id="creditCard" checked>
+              <label class="form-check-label" for="creditCard">Credit Card</label>
+            </div>
+            <div class="form-check">
+              <input type="checkbox" class="form-check-input" id="digitalWallet">
+              <label class="form-check-label" for="digitalWallet">Digital Wallet</label>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Late Fee (%)</label>
+            <input type="number" class="form-control" placeholder="e.g., 5" value="2">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Notes</label>
+            <textarea class="form-control" rows="3" placeholder="Additional notes or payment instructions"></textarea>
+          </div>
+        </div>
+
+        <!-- Step 5: Review & Send -->
+        <div class="step-content" id="step5">
+          <h4 style="margin-bottom: 1rem; font-weight: 700;">Review & Send</h4>
+          <div class="alert alert-success">
+            <i class="bi bi-check-circle"></i> Invoice is ready to send!
+          </div>
+          <div class="info-box">
+            <strong>Invoice Summary</strong><br>
+            Client: Acme Corporation<br>
+            Total Amount: $5,500<br>
+            Due Date: February 15, 2024
+          </div>
+          <div class="form-group">
+            <div class="form-check">
+              <input type="checkbox" class="form-check-input" id="sendEmail" checked>
+              <label class="form-check-label" for="sendEmail">Send invoice via email</label>
+            </div>
+            <div class="form-check">
+              <input type="checkbox" class="form-check-input" id="createPaymentLink">
+              <label class="form-check-label" for="createPaymentLink">Generate payment link</label>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="prevStepBtn" onclick="previousStep()" style="display: none;">
+          <i class="bi bi-arrow-left"></i> Previous
+        </button>
+        <button class="btn-primary" id="nextStepBtn" onclick="nextStep()">
+          Next <i class="bi bi-arrow-right"></i>
+        </button>
+        <button class="btn-primary" id="finishBtn" onclick="createInvoice()" style="display: none;">
+          <i class="bi bi-check-lg"></i> Create Invoice
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 4: Payment Link Generator -->
+  <div class="modal" id="paymentLinkModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">Generate Payment Link</h3>
+        <button class="modal-close" onclick="closeModal('paymentLinkModal')">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Select Invoice</label>
+          <select class="form-select">
+            <option>INV-2024-001 - Acme Corporation - $45,250</option>
+            <option>INV-2024-003 - Global Ventures LLC - $67,500</option>
+            <option>INV-2024-005 - Enterprise Systems Co - $89,200</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="customAmount">
+            <label class="form-check-label" for="customAmount">Allow custom amount</label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Expiry Date</label>
+          <input type="date" class="form-control">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Payment Methods</label>
+          <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="linkBankTransfer" checked>
+            <label class="form-check-label" for="linkBankTransfer">Bank Transfer</label>
+          </div>
+          <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="linkCard" checked>
+            <label class="form-check-label" for="linkCard">Credit/Debit Card</label>
+          </div>
+          <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="linkWallet" checked>
+            <label class="form-check-label" for="linkWallet">Digital Wallet</label>
+          </div>
+        </div>
+        <div id="paymentLinkResult" style="display: none;">
+          <div class="payment-link-display">
+            <h4 style="margin-bottom: 1rem; font-weight: 700;">Payment Link Generated</h4>
+            <div class="payment-link-url">https://pay.paymo.com/inv/2024-001-abc123xyz</div>
+            <button class="btn-primary" onclick="copyPaymentLink()">
+              <i class="bi bi-clipboard"></i> Copy Link
+            </button>
+            <div class="qr-code">
+              <svg width="160" height="160" viewBox="0 0 160 160">
+                <rect width="160" height="160" fill="white"/>
+                <rect x="10" y="10" width="20" height="20" fill="black"/>
+                <rect x="40" y="10" width="20" height="20" fill="black"/>
+                <rect x="70" y="10" width="20" height="20" fill="black"/>
+                <rect x="100" y="10" width="20" height="20" fill="black"/>
+                <rect x="130" y="10" width="20" height="20" fill="black"/>
+                <rect x="10" y="40" width="20" height="20" fill="black"/>
+                <rect x="130" y="40" width="20" height="20" fill="black"/>
+                <rect x="10" y="70" width="20" height="20" fill="black"/>
+                <rect x="40" y="70" width="20" height="20" fill="black"/>
+                <rect x="70" y="70" width="20" height="20" fill="black"/>
+                <rect x="100" y="70" width="20" height="20" fill="black"/>
+                <rect x="130" y="70" width="20" height="20" fill="black"/>
+                <rect x="10" y="100" width="20" height="20" fill="black"/>
+                <rect x="130" y="100" width="20" height="20" fill="black"/>
+                <rect x="10" y="130" width="20" height="20" fill="black"/>
+                <rect x="40" y="130" width="20" height="20" fill="black"/>
+                <rect x="70" y="130" width="20" height="20" fill="black"/>
+                <rect x="100" y="130" width="20" height="20" fill="black"/>
+                <rect x="130" y="130" width="20" height="20" fill="black"/>
+              </svg>
+            </div>
+            <div style="display: flex; gap: 0.75rem; margin-top: 1rem;">
+              <button class="btn-secondary" onclick="sendLinkViaEmail()">
+                <i class="bi bi-envelope"></i> Email
+              </button>
+              <button class="btn-secondary" onclick="sendLinkViaSMS()">
+                <i class="bi bi-phone"></i> SMS
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeModal('paymentLinkModal')">Close</button>
+        <button class="btn-primary" onclick="generatePaymentLink()">
+          <i class="bi bi-link-45deg"></i> Generate Link
+        </button>
+      </div>
+    </div>
+  </div>
+  <!-- Modal 5: Subscription Plan Creator (4-step) -->
+  <div class="modal" id="subscriptionCreatorModal">
+    <div class="modal-dialog large">
+      <div class="modal-header">
+        <h3 class="modal-title">Create Subscription Plan</h3>
+        <button class="modal-close" onclick="closeModal('subscriptionCreatorModal')">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="step-indicator">
+          <div class="step active">
+            <div class="step-number">1</div>
+            <div class="step-label">Details</div>
+          </div>
+          <div class="step-divider"></div>
+          <div class="step">
+            <div class="step-number">2</div>
+            <div class="step-label">Pricing</div>
+          </div>
+          <div class="step-divider"></div>
+          <div class="step">
+            <div class="step-number">3</div>
+            <div class="step-label">Features</div>
+          </div>
+          <div class="step-divider"></div>
+          <div class="step">
+            <div class="step-number">4</div>
+            <div class="step-label">Settings</div>
+          </div>
+        </div>
+
+        <!-- Step 1: Plan Details -->
+        <div class="step-content active" id="subStep1">
+          <h4 style="margin-bottom: 1rem; font-weight: 700;">Plan Details</h4>
+          <div class="form-group">
+            <label class="form-label">Plan Name</label>
+            <input type="text" class="form-control" placeholder="e.g., Professional Plan">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Description</label>
+            <textarea class="form-control" rows="3" placeholder="Describe the plan benefits"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Billing Cycle</label>
+            <select class="form-select">
+              <option>Monthly</option>
+              <option>Quarterly</option>
+              <option>Annual</option>
+              <option>Custom</option>
+            </select>
+          </div>
+        </div>
+        <!-- Step 2: Pricing -->
+        <div class="step-content" id="subStep2">
+          <h4 style="margin-bottom: 1rem; font-weight: 700;">Pricing</h4>
+          <div class="form-group">
+            <label class="form-label">Amount</label>
+            <input type="number" class="form-control" placeholder="0.00">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Currency</label>
+            <select class="form-select">
+              <option>USD - US Dollar</option>
+              <option>EUR - Euro</option>
+              <option>GBP - British Pound</option>
+              <option>JPY - Japanese Yen</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Trial Period (days)</label>
+            <input type="number" class="form-control" placeholder="0" value="14">
+          </div>
+          <div class="form-group">
+            <div class="form-check">
+              <input type="checkbox" class="form-check-input" id="setupFee">
+              <label class="form-check-label" for="setupFee">Include setup fee</label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3: Features -->
+        <div class="step-content" id="subStep3">
+          <h4 style="margin-bottom: 1rem; font-weight: 700;">Plan Features</h4>
+          <div class="line-items" id="featuresList">
+            <div class="line-item">
+              <input type="text" class="form-control" placeholder="Feature description" value="Unlimited API calls">
+              <button class="line-item-remove"><i class="bi bi-trash"></i></button>
+            </div>
+            <div class="line-item">
+              <input type="text" class="form-control" placeholder="Feature description" value="24/7 Support">
+              <button class="line-item-remove"><i class="bi bi-trash"></i></button>
+            </div>
+          </div>
+          <button class="add-line-item" onclick="addFeature()">
+            <i class="bi bi-plus-lg"></i> Add Feature
+          </button>
+        </div>
+        <!-- Step 4: Settings -->
+        <div class="step-content" id="subStep4">
+          <h4 style="margin-bottom: 1rem; font-weight: 700;">Subscription Settings</h4>
+          <div class="form-group">
+            <div class="form-check">
+              <input type="checkbox" class="form-check-input" id="proration" checked>
+              <label class="form-check-label" for="proration">Enable proration for upgrades/downgrades</label>
+            </div>
+          </div>
+          <div class="form-group">
+            <div class="form-check">
+              <input type="checkbox" class="form-check-input" id="autoDunning" checked>
+              <label class="form-check-label" for="autoDunning">Enable automatic dunning</label>
+            </div>
+          </div>
+          <div class="form-group">
+            <div class="form-check">
+              <input type="checkbox" class="form-check-input" id="renewalNotif" checked>
+              <label class="form-check-label" for="renewalNotif">Send renewal notifications</label>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Cancellation Policy</label>
+            <select class="form-select">
+              <option>Immediate cancellation</option>
+              <option>End of billing period</option>
+              <option>Requires approval</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="subPrevBtn" onclick="previousSubStep()" style="display: none;">
+          <i class="bi bi-arrow-left"></i> Previous
+        </button>
+        <button class="btn-primary" id="subNextBtn" onclick="nextSubStep()">
+          Next <i class="bi bi-arrow-right"></i>
+        </button>
+        <button class="btn-primary" id="subFinishBtn" onclick="createSubscription()" style="display: none;">
+          <i class="bi bi-check-lg"></i> Create Plan
+        </button>
+      </div>
+    </div>
+  </div>
+  <!-- Modal 6: Payment Reconciliation -->
+  <div class="modal" id="reconciliationModal">
+    <div class="modal-dialog xlarge">
+      <div class="modal-header">
+        <h3 class="modal-title">Payment Reconciliation</h3>
+        <button class="modal-close" onclick="closeModal('reconciliationModal')">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="info-box">
+          <i class="bi bi-info-circle"></i> Drag payments to match with invoices, or click to select and match manually.
+        </div>
+        <div class="reconciliation-grid">
+          <div class="reconciliation-column">
+            <div class="reconciliation-column-title">Unmatched Payments</div>
+            <div class="reconciliation-item" draggable="true">
+              <div><strong>$28,900</strong></div>
+              <div style="font-size: 0.85rem; color: var(--text-muted);">
+                Jan 12, 2024 - Bank Transfer<br>
+                Ref: TXN-2024-0012
+              </div>
+            </div>
+            <div class="reconciliation-item" draggable="true">
+              <div><strong>$15,400</strong></div>
+              <div style="font-size: 0.85rem; color: var(--text-muted);">
+                Jan 11, 2024 - Credit Card<br>
+                Ref: TXN-2024-0011
+              </div>
+            </div>
+            <div class="reconciliation-item" draggable="true">
+              <div><strong>$42,750</strong></div>
+              <div style="font-size: 0.85rem; color: var(--text-muted);">
+                Jan 10, 2024 - Wire Transfer<br>
+                Ref: TXN-2024-0010
+              </div>
+            </div>
+          </div>
+          <div class="reconciliation-column">
+            <div class="reconciliation-column-title">Outstanding Invoices</div>
+            <div class="reconciliation-item" draggable="true">
+              <div><strong>INV-2024-002 - $28,900</strong></div>
+              <div style="font-size: 0.85rem; color: var(--text-muted);">
+                TechStart Inc<br>
+                Due: Jan 20, 2024
+              </div>
+            </div>
+            <div class="reconciliation-item" draggable="true">
+              <div><strong>INV-2024-008 - $15,400</strong></div>
+              <div style="font-size: 0.85rem; color: var(--text-muted);">
+                Digital Corp<br>
+                Due: Jan 25, 2024
+              </div>
+            </div>
+            <div class="reconciliation-item" draggable="true">
+              <div><strong>INV-2024-012 - $42,750</strong></div>
+              <div style="font-size: 0.85rem; color: var(--text-muted);">
+                Smart Solutions<br>
+                Due: Jan 18, 2024
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="alert alert-success" id="matchSuggestions">
+          <i class="bi bi-lightbulb"></i> <strong>Auto-match suggestions:</strong> 3 potential matches found based on amount and date.
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeModal('reconciliationModal')">Cancel</button>
+        <button class="btn-primary" onclick="applyMatches()">
+          <i class="bi bi-check-lg"></i> Apply Matches
+        </button>
+      </div>
+    </div>
+  </div>
+  <!-- Modal 7: Subscription Management -->
+  <div class="modal" id="subscriptionManagementModal">
+    <div class="modal-dialog large">
+      <div class="modal-header">
+        <h3 class="modal-title">Subscription Management</h3>
+        <button class="modal-close" onclick="closeModal('subscriptionManagementModal')">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-tabs">
+          <button class="modal-tab active" data-tab="sub-details">Details</button>
+          <button class="modal-tab" data-tab="sub-billing">Billing History</button>
+          <button class="modal-tab" data-tab="sub-settings">Settings</button>
+        </div>
+
+        <div class="tab-content active" id="sub-details">
+          <table class="data-table">
+            <tbody>
+              <tr><td><strong>Plan</strong></td><td>Enterprise Plan</td></tr>
+              <tr><td><strong>Customer</strong></td><td>Acme Corporation</td></tr>
+              <tr><td><strong>MRR</strong></td><td>$2,499/month</td></tr>
+              <tr><td><strong>Status</strong></td><td><span class="status-badge paid">Active</span></td></tr>
+              <tr><td><strong>Start Date</strong></td><td>January 1, 2024</td></tr>
+              <tr><td><strong>Next Billing</strong></td><td>February 1, 2024</td></tr>
+              <tr><td><strong>Payment Method</strong></td><td>Bank Transfer (****1234)</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="tab-content" id="sub-billing">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Invoice</th>
+                <th>Amount</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Jan 1, 2024</td>
+                <td>INV-2024-SUB-001</td>
+                <td>$2,499</td>
+                <td><span class="status-badge paid">Paid</span></td>
+              </tr>
+              <tr>
+                <td>Dec 1, 2023</td>
+                <td>INV-2023-SUB-012</td>
+                <td>$2,499</td>
+                <td><span class="status-badge paid">Paid</span></td>
+              </tr>
+              <tr>
+                <td>Nov 1, 2023</td>
+                <td>INV-2023-SUB-011</td>
+                <td>$2,499</td>
+                <td><span class="status-badge paid">Paid</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="tab-content" id="sub-settings">
+          <div style="display: grid; gap: 1rem;">
+            <button class="btn-secondary" onclick="pauseSubscription()">
+              <i class="bi bi-pause-circle"></i> Pause Subscription
+            </button>
+            <button class="btn-secondary" onclick="upgradeSubscription()">
+              <i class="bi bi-arrow-up-circle"></i> Upgrade Plan
+            </button>
+            <button class="btn-secondary" onclick="changeBillingCycle()">
+              <i class="bi bi-calendar"></i> Change Billing Cycle
+            </button>
+            <button class="btn-secondary" onclick="updatePaymentMethod()">
+              <i class="bi bi-credit-card"></i> Update Payment Method
+            </button>
+            <button class="btn-danger" onclick="cancelSubscription()">
+              <i class="bi bi-x-circle"></i> Cancel Subscription
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeModal('subscriptionManagementModal')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 8: Analytics Dashboard -->
+  <div class="modal" id="analyticsModal">
+    <div class="modal-dialog xlarge">
+      <div class="modal-header">
+        <h3 class="modal-title">Analytics Dashboard</h3>
+        <button class="modal-close" onclick="closeModal('analyticsModal')">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 2rem;">
+          <div class="analytics-box">
+            <div class="analytics-label">MRR</div>
+            <div class="analytics-value">$847,200</div>
+          </div>
+          <div class="analytics-box">
+            <div class="analytics-label">Churn Rate</div>
+            <div class="analytics-value">2.1%</div>
+          </div>
+          <div class="analytics-box">
+            <div class="analytics-label">Customer LTV</div>
+            <div class="analytics-value">$12,400</div>
+          </div>
+        </div>
+
+        <h4 style="margin-bottom: 1rem; font-weight: 700;">MRR Trend (Last 12 Months)</h4>
+        <svg width="100%" height="200" viewBox="0 0 800 200" style="margin-bottom: 2rem;">
+          <polyline
+            fill="none"
+            stroke="var(--primary-color)"
+            stroke-width="3"
+            points="50,150 120,140 190,135 260,130 330,125 400,115 470,110 540,100 610,90 680,80 750,70"
+          />
+          <circle cx="750" cy="70" r="5" fill="var(--primary-color)" />
+        </svg>
+        <h4 style="margin-bottom: 1rem; font-weight: 700;">Revenue by Plan</h4>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Plan</th>
+              <th>Subscribers</th>
+              <th>MRR</th>
+              <th>% of Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Enterprise Plan</td>
+              <td>142</td>
+              <td>$354,858</td>
+              <td>41.9%</td>
+            </tr>
+            <tr>
+              <td>Professional Plan</td>
+              <td>385</td>
+              <td>$384,615</td>
+              <td>45.4%</td>
+            </tr>
+            <tr>
+              <td>Starter Plan</td>
+              <td>320</td>
+              <td>$95,680</td>
+              <td>11.3%</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeModal('analyticsModal')">Close</button>
+        <button class="btn-primary" onclick="exportAnalytics()">
+          <i class="bi bi-download"></i> Export Report
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 9: Payment Details -->
+  <div class="modal" id="paymentDetailsModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">Payment Details</h3>
+        <button class="modal-close" onclick="closeModal('paymentDetailsModal')">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <table class="data-table">
+          <tbody>
+            <tr><td><strong>Payment ID</strong></td><td>PAY-2024-001</td></tr>
+            <tr><td><strong>Date</strong></td><td>January 12, 2024 10:45 AM</td></tr>
+            <tr><td><strong>Amount</strong></td><td>$28,900</td></tr>
+            <tr><td><strong>Invoice</strong></td><td><a href="#" onclick="openModal('invoiceDetailsModal', 'INV-2024-002')">INV-2024-002</a></td></tr>
+            <tr><td><strong>Client</strong></td><td>TechStart Inc</td></tr>
+            <tr><td><strong>Payment Method</strong></td><td>Bank Transfer</td></tr>
+            <tr><td><strong>Transaction ID</strong></td><td>TXN-2024-0012-ABC</td></tr>
+            <tr><td><strong>Status</strong></td><td><span class="status-badge paid">Success</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeModal('paymentDetailsModal')">Close</button>
+        <button class="btn-danger" onclick="openModal('refundModal')">
+          <i class="bi bi-arrow-counterclockwise"></i> Refund
+        </button>
+      </div>
+    </div>
+  </div>
+  <!-- Modal 10: Retry Payment Confirmation -->
+  <div class="modal" id="retryPaymentModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">Retry Payment</h3>
+        <button class="modal-close" onclick="closeModal('retryPaymentModal')">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="info-box">
+          <strong>Invoice:</strong> INV-2024-022<br>
+          <strong>Amount:</strong> $18,500<br>
+          <strong>Client:</strong> Beta Technologies
+        </div>
+        <div class="form-group">
+          <label class="form-label">Retry Schedule</label>
+          <select class="form-select">
+            <option>Retry immediately</option>
+            <option>Retry in 24 hours</option>
+            <option>Retry in 3 days</option>
+            <option>Retry in 7 days</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="notifyCustomer" checked>
+            <label class="form-check-label" for="notifyCustomer">Notify customer via email</label>
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="updatePaymentMethod">
+            <label class="form-check-label" for="updatePaymentMethod">Request payment method update</label>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeModal('retryPaymentModal')">Cancel</button>
+        <button class="btn-primary" onclick="retryPayment()">
+          <i class="bi bi-arrow-clockwise"></i> Retry Payment
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 11: Dunning Rules Configuration -->
+  <div class="modal" id="dunningRulesModal">
+    <div class="modal-dialog large">
+      <div class="modal-header">
+        <h3 class="modal-title">Dunning Rules Configuration</h3>
+        <button class="modal-close" onclick="closeModal('dunningRulesModal')">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <h4 style="margin-bottom: 1rem; font-weight: 700;">Retry Schedule</h4>
+        <div class="line-items" id="retrySchedule">
+          <div class="line-item">
+            <input type="number" class="form-control" placeholder="Day" value="1">
+            <select class="form-select">
+              <option>Send email reminder</option>
+              <option>Retry payment</option>
+              <option>Send SMS</option>
+            </select>
+            <button class="line-item-remove"><i class="bi bi-trash"></i></button>
+          </div>
+          <div class="line-item">
+            <input type="number" class="form-control" placeholder="Day" value="3">
+            <select class="form-select">
+              <option selected>Retry payment</option>
+              <option>Send email reminder</option>
+              <option>Send SMS</option>
+            </select>
+            <button class="line-item-remove"><i class="bi bi-trash"></i></button>
+          </div>
+          <div class="line-item">
+            <input type="number" class="form-control" placeholder="Day" value="7">
+            <select class="form-select">
+              <option selected>Retry payment</option>
+              <option>Send email reminder</option>
+              <option>Send SMS</option>
+            </select>
+            <button class="line-item-remove"><i class="bi bi-trash"></i></button>
+          </div>
+        </div>
+        <button class="add-line-item" onclick="addRetryRule()">
+          <i class="bi bi-plus-lg"></i> Add Retry Rule
+        </button>
+        <h4 style="margin: 2rem 0 1rem; font-weight: 700;">Email Templates</h4>
+        <div class="form-group">
+          <label class="form-label">Reminder Template</label>
+          <select class="form-select">
+            <option>Friendly Reminder</option>
+            <option>Urgent Notice</option>
+            <option>Final Warning</option>
+            <option>Custom Template</option>
+          </select>
+        </div>
+
+        <h4 style="margin: 2rem 0 1rem; font-weight: 700;">Escalation Rules</h4>
+        <div class="form-group">
+          <label class="form-label">Auto-cancel after failed attempts</label>
+          <input type="number" class="form-control" value="5">
+        </div>
+        <div class="form-group">
+          <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="notifyAdmin" checked>
+            <label class="form-check-label" for="notifyAdmin">Notify admin after 3 failed attempts</label>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeModal('dunningRulesModal')">Cancel</button>
+        <button class="btn-primary" onclick="saveDunningRules()">
+          <i class="bi bi-check-lg"></i> Save Rules
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 12: Refund Confirmation -->
+  <div class="modal" id="refundModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">Process Refund</h3>
+        <button class="modal-close" onclick="closeModal('refundModal')">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-warning">
+          <i class="bi bi-exclamation-triangle"></i> This action cannot be undone. Please review carefully.
+        </div>
+        <div class="form-group">
+          <label class="form-label">Refund Amount</label>
+          <input type="number" class="form-control" placeholder="0.00" value="28900">
+          <small style="color: var(--text-muted);">Original payment: $28,900</small>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Refund Reason</label>
+          <select class="form-select">
+            <option>Customer request</option>
+            <option>Duplicate payment</option>
+            <option>Service not delivered</option>
+            <option>Billing error</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="notifyRefund" checked>
+            <label class="form-check-label" for="notifyRefund">Notify customer via email</label>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeModal('refundModal')">Cancel</button>
+        <button class="btn-danger" onclick="processRefund()">
+          <i class="bi bi-arrow-counterclockwise"></i> Process Refund
+        </button>
+      </div>
+    </div>
+  </div>
+  <!-- Modal 13: Send Invoice Reminder -->
+  <div class="modal" id="sendReminderModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">Send Invoice Reminder</h3>
+        <button class="modal-close" onclick="closeModal('sendReminderModal')">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Invoice</label>
+          <select class="form-select">
+            <option>INV-2024-001 - Acme Corporation - $45,250</option>
+            <option>INV-2024-003 - Global Ventures LLC - $67,500</option>
+            <option>INV-2024-005 - Enterprise Systems Co - $89,200</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email Template</label>
+          <select class="form-select">
+            <option>Friendly Reminder</option>
+            <option>Payment Due Soon</option>
+            <option>Overdue Notice</option>
+            <option>Final Notice</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Custom Message (Optional)</label>
+          <textarea class="form-control" rows="4" placeholder="Add a personal message..."></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Schedule Send</label>
+          <select class="form-select">
+            <option>Send now</option>
+            <option>Send in 1 hour</option>
+            <option>Send tomorrow</option>
+            <option>Custom date/time</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeModal('sendReminderModal')">Cancel</button>
+        <button class="btn-primary" onclick="sendReminder()">
+          <i class="bi bi-send"></i> Send Reminder
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 14: Create Credit Note -->
+  <div class="modal" id="creditNoteModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">Create Credit Note</h3>
+        <button class="modal-close" onclick="closeModal('creditNoteModal')">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Original Invoice</label>
+          <input type="text" class="form-control" value="INV-2024-001" readonly>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Credit Amount</label>
+          <input type="number" class="form-control" placeholder="0.00">
+          <small style="color: var(--text-muted);">Invoice total: $45,250</small>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Reason for Credit</label>
+          <select class="form-select">
+            <option>Service not delivered</option>
+            <option>Billing error</option>
+            <option>Customer dissatisfaction</option>
+            <option>Partial refund</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Line Items to Credit</label>
+          <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="creditItem1" checked>
+            <label class="form-check-label" for="creditItem1">Professional Services - $34,000</label>
+          </div>
+          <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="creditItem2">
+            <label class="form-check-label" for="creditItem2">Platform License - $7,500</label>
+          </div>
+          <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="creditItem3">
+            <label class="form-check-label" for="creditItem3">Support & Maintenance - $2,500</label>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeModal('creditNoteModal')">Cancel</button>
+        <button class="btn-primary" onclick="createCreditNote()">
+          <i class="bi bi-check-lg"></i> Generate Credit Note
+        </button>
+      </div>
+    </div>
+  </div>
+  <!-- Modal 15: Bulk Invoice Actions -->
+  <div class="modal" id="bulkInvoiceActionsModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">Bulk Invoice Actions</h3>
+        <button class="modal-close" onclick="closeModal('bulkInvoiceActionsModal')">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="info-box">
+          <i class="bi bi-info-circle"></i> Select invoices from the list, then choose an action to apply.
+        </div>
+        <div class="form-group">
+          <label class="form-label">Select Action</label>
+          <select class="form-select" id="bulkAction">
+            <option value="">Choose action...</option>
+            <option value="send-reminders">Send Reminders</option>
+            <option value="mark-paid">Mark as Paid</option>
+            <option value="export">Export Selected</option>
+            <option value="delete-drafts">Delete Drafts</option>
+            <option value="apply-discount">Apply Discount</option>
+          </select>
+        </div>
+        <div id="bulkActionDetails" style="display: none;">
+          <div class="form-group">
+            <label class="form-label">Confirmation</label>
+            <div class="alert alert-warning">
+              <i class="bi bi-exclamation-triangle"></i> This action will be applied to all selected invoices.
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Selected Invoices</label>
+          <div style="background: rgba(0,0,0,0.05); padding: 1rem; border-radius: 10px; max-height: 200px; overflow-y: auto;">
+            <div class="form-check">
+              <input type="checkbox" class="form-check-input" id="bulkInv1" checked>
+              <label class="form-check-label" for="bulkInv1">INV-2024-001 - $45,250</label>
+            </div>
+            <div class="form-check">
+              <input type="checkbox" class="form-check-input" id="bulkInv2" checked>
+              <label class="form-check-label" for="bulkInv2">INV-2024-003 - $67,500</label>
+            </div>
+            <div class="form-check">
+              <input type="checkbox" class="form-check-input" id="bulkInv3">
+              <label class="form-check-label" for="bulkInv3">INV-2024-005 - $89,200</label>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeModal('bulkInvoiceActionsModal')">Cancel</button>
+        <button class="btn-primary" onclick="executeBulkAction()">
+          <i class="bi bi-lightning"></i> Execute Action
+        </button>
+      </div>
+    </div>
+  </div>
+  <!-- Modal 16: Payment Method Configuration -->
+  <div class="modal" id="paymentMethodModal">
+    <div class="modal-dialog large">
+      <div class="modal-header">
+        <h3 class="modal-title">Payment Method Configuration</h3>
+        <button class="modal-close" onclick="closeModal('paymentMethodModal')">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <h4 style="margin-bottom: 1rem; font-weight: 700;">Enable Payment Methods</h4>
+        <div class="form-check">
+          <input type="checkbox" class="form-check-input" id="enableBankTransfer" checked>
+          <label class="form-check-label" for="enableBankTransfer">Bank Transfer</label>
+        </div>
+        <div class="form-check">
+          <input type="checkbox" class="form-check-input" id="enableCard" checked>
+          <label class="form-check-label" for="enableCard">Credit/Debit Card</label>
+        </div>
+        <div class="form-check">
+          <input type="checkbox" class="form-check-input" id="enableWallet" checked>
+          <label class="form-check-label" for="enableWallet">Digital Wallet</label>
+        </div>
+        <div class="form-check">
+          <input type="checkbox" class="form-check-input" id="enableCrypto">
+          <label class="form-check-label" for="enableCrypto">Cryptocurrency</label>
+        </div>
+
+        <h4 style="margin: 2rem 0 1rem; font-weight: 700;">Bank Account Details</h4>
+        <div class="form-group">
+          <label class="form-label">Account Name</label>
+          <input type="text" class="form-control" value="PayMo Business Account">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Account Number</label>
+          <input type="text" class="form-control" value="****1234">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Routing Number</label>
+          <input type="text" class="form-control" value="021000021">
+        </div>
+
+        <h4 style="margin: 2rem 0 1rem; font-weight: 700;">Card Processor Settings</h4>
+        <div class="form-group">
+          <label class="form-label">Processor</label>
+          <select class="form-select">
+            <option>Stripe</option>
+            <option>PayPal</option>
+            <option>Square</option>
+            <option>Authorize.net</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">API Key</label>
+          <input type="password" class="form-control" value="sk_live_**********************">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeModal('paymentMethodModal')">Cancel</button>
+        <button class="btn-primary" onclick="savePaymentMethods()">
+          <i class="bi bi-check-lg"></i> Save Configuration
+        </button>
+      </div>
+    </div>
+  </div>
+  <!-- Modal 17: Invoice Template Editor -->
+  <div class="modal" id="templateEditorModal">
+    <div class="modal-dialog large">
+      <div class="modal-header">
+        <h3 class="modal-title">Invoice Template Editor</h3>
+        <button class="modal-close" onclick="closeModal('templateEditorModal')">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+          <div>
+            <h4 style="margin-bottom: 1rem; font-weight: 700;">Template Settings</h4>
+            <div class="form-group">
+              <label class="form-label">Template Name</label>
+              <input type="text" class="form-control" value="Modern Template">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Logo Upload</label>
+              <input type="file" class="form-control" accept="image/*">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Primary Color</label>
+              <input type="color" class="form-control" value="#6366f1">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Header Text</label>
+              <input type="text" class="form-control" value="INVOICE">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Footer Text</label>
+              <textarea class="form-control" rows="2">Thank you for your business!</textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Field Visibility</label>
+              <div class="form-check">
+                <input type="checkbox" class="form-check-input" id="showLogo" checked>
+                <label class="form-check-label" for="showLogo">Show logo</label>
+              </div>
+              <div class="form-check">
+                <input type="checkbox" class="form-check-input" id="showDueDate" checked>
+                <label class="form-check-label" for="showDueDate">Show due date</label>
+              </div>
+              <div class="form-check">
+                <input type="checkbox" class="form-check-input" id="showTax" checked>
+                <label class="form-check-label" for="showTax">Show tax breakdown</label>
+              </div>
+            </div>
+          </div>
+          <div>
+            <h4 style="margin-bottom: 1rem; font-weight: 700;">Preview</h4>
+            <div style="border: 1px solid rgba(0,0,0,0.1); border-radius: 12px; padding: 2rem; background: white; min-height: 400px;">
+              <div style="text-align: center; margin-bottom: 2rem;">
+                <div style="width: 60px; height: 60px; background: var(--primary-color); border-radius: 12px; margin: 0 auto 1rem;"></div>
+                <h2 style="color: var(--primary-color); font-weight: 800;">INVOICE</h2>
+              </div>
+              <div style="font-size: 0.85rem; color: var(--text-muted);">
+                <p><strong>Invoice #:</strong> INV-2024-001</p>
+                <p><strong>Date:</strong> January 15, 2024</p>
+                <p><strong>Due:</strong> February 15, 2024</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeModal('templateEditorModal')">Cancel</button>
+        <button class="btn-primary" onclick="saveTemplate()">
+          <i class="bi bi-check-lg"></i> Save Template
+        </button>
+      </div>
+    </div>
+  </div>
+  <!-- Modal 18: Tax Configuration -->
+  <div class="modal" id="taxConfigModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">Tax Configuration</h3>
+        <button class="modal-close" onclick="closeModal('taxConfigModal')">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <h4 style="margin-bottom: 1rem; font-weight: 700;">Tax Rates</h4>
+        <div class="line-items" id="taxRatesList">
+          <div class="line-item">
+            <input type="text" class="form-control" placeholder="Tax name" value="VAT">
+            <input type="number" class="form-control" placeholder="Rate %" value="10">
+            <button class="line-item-remove"><i class="bi bi-trash"></i></button>
+          </div>
+          <div class="line-item">
+            <input type="text" class="form-control" placeholder="Tax name" value="Sales Tax">
+            <input type="number" class="form-control" placeholder="Rate %" value="8.5">
+            <button class="line-item-remove"><i class="bi bi-trash"></i></button>
+          </div>
+        </div>
+        <button class="add-line-item" onclick="addTaxRate()">
+          <i class="bi bi-plus-lg"></i> Add Tax Rate
+        </button>
+
+        <h4 style="margin: 2rem 0 1rem; font-weight: 700;">Default Settings</h4>
+        <div class="form-group">
+          <label class="form-label">Default Tax Rate</label>
+          <select class="form-select">
+            <option>VAT (10%)</option>
+            <option>Sales Tax (8.5%)</option>
+            <option>None</option>
+          </select>
+        </div>
+
+        <h4 style="margin: 2rem 0 1rem; font-weight: 700;">Tax Exemption Rules</h4>
+        <div class="form-check">
+          <input type="checkbox" class="form-check-input" id="exemptNonProfit">
+          <label class="form-check-label" for="exemptNonProfit">Exempt non-profit organizations</label>
+        </div>
+        <div class="form-check">
+          <input type="checkbox" class="form-check-input" id="exemptGov">
+          <label class="form-check-label" for="exemptGov">Exempt government entities</label>
+        </div>
+
+        <h4 style="margin: 2rem 0 1rem; font-weight: 700;">Regional Settings</h4>
+        <div class="form-group">
+          <label class="form-label">Tax Calculation Method</label>
+          <select class="form-select">
+            <option>Inclusive (tax included in price)</option>
+            <option>Exclusive (tax added to price)</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeModal('taxConfigModal')">Cancel</button>
+        <button class="btn-primary" onclick="saveTaxConfig()">
+          <i class="bi bi-check-lg"></i> Save Configuration
+        </button>
+      </div>
+    </div>
+  </div>
+  <!-- Modal 19: Late Fee Configuration -->
+  <div class="modal" id="lateFeeModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">Late Fee Configuration</h3>
+        <button class="modal-close" onclick="closeModal('lateFeeModal')">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Late Fee Type</label>
+          <select class="form-select" id="lateFeeType">
+            <option value="percentage">Percentage of invoice</option>
+            <option value="fixed">Fixed amount</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Late Fee Amount</label>
+          <input type="number" class="form-control" placeholder="e.g., 5 for 5% or 50 for $50" value="2">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Grace Period (days)</label>
+          <input type="number" class="form-control" value="7">
+          <small style="color: var(--text-muted);">Number of days after due date before late fee applies</small>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Maximum Late Fee Cap</label>
+          <input type="number" class="form-control" placeholder="Leave blank for no cap">
+          <small style="color: var(--text-muted);">Maximum late fee amount (optional)</small>
+        </div>
+        <div class="form-group">
+          <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="compoundLateFee">
+            <label class="form-check-label" for="compoundLateFee">Compound late fees monthly</label>
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="notifyLateFee" checked>
+            <label class="form-check-label" for="notifyLateFee">Notify customer when late fee is applied</label>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeModal('lateFeeModal')">Cancel</button>
+        <button class="btn-primary" onclick="saveLateFeeConfig()">
+          <i class="bi bi-check-lg"></i> Save Configuration
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 20: Export Data -->
+  <div class="modal" id="exportDataModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">Export Data</h3>
+        <button class="modal-close" onclick="closeModal('exportDataModal')">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Export Type</label>
+          <select class="form-select" id="exportType">
+            <option>Invoices</option>
+            <option>Payments</option>
+            <option>Subscriptions</option>
+            <option>Analytics Report</option>
+            <option>Aging Report</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Date Range</label>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+            <input type="date" class="form-control" placeholder="From">
+            <input type="date" class="form-control" placeholder="To">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Format</label>
+          <select class="form-select">
+            <option>CSV</option>
+            <option>Excel (XLSX)</option>
+            <option>PDF</option>
+            <option>JSON</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Include Filters</label>
+          <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="includePaid" checked>
+            <label class="form-check-label" for="includePaid">Paid invoices</label>
+          </div>
+          <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="includeUnpaid" checked>
+            <label class="form-check-label" for="includeUnpaid">Unpaid invoices</label>
+          </div>
+          <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="includeOverdue" checked>
+            <label class="form-check-label" for="includeOverdue">Overdue invoices</label>
+          </div>
+        </div>
+        <div id="exportResult" style="display: none;">
+          <div class="alert alert-success">
+            <i class="bi bi-check-circle"></i> Export generated successfully!
+          </div>
+          <button class="btn-primary" onclick="downloadExport()">
+            <i class="bi bi-download"></i> Download File
+          </button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeModal('exportDataModal')">Cancel</button>
+        <button class="btn-primary" onclick="generateExport()">
+          <i class="bi bi-file-earmark-arrow-down"></i> Generate Export
+        </button>
+      </div>
+    </div>
+  </div>
+  <!-- Modal 21: Client Management -->
+  <div class="modal" id="clientManagementModal">
+    <div class="modal-dialog large">
+      <div class="modal-header">
+        <h3 class="modal-title">Client Management</h3>
+        <button class="modal-close" onclick="closeModal('clientManagementModal')">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <input type="text" class="form-control" placeholder="Search clients...">
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Client Name</th>
+              <th>Email</th>
+              <th>Total Invoiced</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Acme Corporation</td>
+              <td>contact@acme.com</td>
+              <td>$245,000</td>
+              <td>
+                <button class="btn-secondary btn-sm" onclick="editClient('acme')">Edit</button>
+                <button class="btn-secondary btn-sm" onclick="viewClientInvoices('acme')">Invoices</button>
+              </td>
+            </tr>
+            <tr>
+              <td>TechStart Inc</td>
+              <td>info@techstart.com</td>
+              <td>$128,900</td>
+              <td>
+                <button class="btn-secondary btn-sm" onclick="editClient('techstart')">Edit</button>
+                <button class="btn-secondary btn-sm" onclick="viewClientInvoices('techstart')">Invoices</button>
+              </td>
+            </tr>
+            <tr>
+              <td>Global Ventures LLC</td>
+              <td>hello@globalventures.com</td>
+              <td>$367,500</td>
+              <td>
+                <button class="btn-secondary btn-sm" onclick="editClient('global')">Edit</button>
+                <button class="btn-secondary btn-sm" onclick="viewClientInvoices('global')">Invoices</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <h4 style="margin: 2rem 0 1rem; font-weight: 700;">Add New Client</h4>
+        <div class="form-group">
+          <label class="form-label">Client Name</label>
+          <input type="text" class="form-control" placeholder="Enter client name">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" class="form-control" placeholder="client@example.com">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone</label>
+          <input type="tel" class="form-control" placeholder="+1 (555) 000-0000">
+        </div>
+        <button class="btn-primary" onclick="addClient()">
+          <i class="bi bi-plus-lg"></i> Add Client
+        </button>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeModal('clientManagementModal')">Close</button>
+      </div>
+    </div>
+  </div>
+  <!-- Modal 22: Webhook Configuration -->
+  <div class="modal" id="webhookModal">
+    <div class="modal-dialog large">
+      <div class="modal-header">
+        <h3 class="modal-title">Webhook Configuration</h3>
+        <button class="modal-close" onclick="closeModal('webhookModal')">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Webhook URL</label>
+          <input type="url" class="form-control" placeholder="https://your-domain.com/webhook">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Event Types</label>
+          <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="webhookInvoiceCreated" checked>
+            <label class="form-check-label" for="webhookInvoiceCreated">invoice.created</label>
+          </div>
+          <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="webhookInvoicePaid" checked>
+            <label class="form-check-label" for="webhookInvoicePaid">invoice.paid</label>
+          </div>
+          <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="webhookPaymentReceived" checked>
+            <label class="form-check-label" for="webhookPaymentReceived">payment.received</label>
+          </div>
+          <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="webhookPaymentFailed">
+            <label class="form-check-label" for="webhookPaymentFailed">payment.failed</label>
+          </div>
+          <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="webhookSubscriptionCreated">
+            <label class="form-check-label" for="webhookSubscriptionCreated">subscription.created</label>
+          </div>
+          <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="webhookSubscriptionCancelled">
+            <label class="form-check-label" for="webhookSubscriptionCancelled">subscription.cancelled</label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Secret Key</label>
+          <input type="text" class="form-control" value="whsec_**********************" readonly>
+          <button class="btn-secondary btn-sm mt-2" onclick="regenerateWebhookSecret()">
+            <i class="bi bi-arrow-clockwise"></i> Regenerate
+          </button>
+        </div>
+        <div class="form-group">
+          <button class="btn-primary" onclick="testWebhook()">
+            <i class="bi bi-send"></i> Test Webhook
+          </button>
+        </div>
+        <h4 style="margin: 2rem 0 1rem; font-weight: 700;">Delivery Log</h4>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>Event</th>
+              <th>Status</th>
+              <th>Response</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Jan 12, 2024 10:45 AM</td>
+              <td>invoice.paid</td>
+              <td><span class="status-badge paid">200 OK</span></td>
+              <td>Success</td>
+            </tr>
+            <tr>
+              <td>Jan 11, 2024 3:22 PM</td>
+              <td>payment.received</td>
+              <td><span class="status-badge paid">200 OK</span></td>
+              <td>Success</td>
+            </tr>
+            <tr>
+              <td>Jan 10, 2024 9:15 AM</td>
+              <td>invoice.created</td>
+              <td><span class="status-badge overdue">500 Error</span></td>
+              <td>Timeout</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeModal('webhookModal')">Cancel</button>
+        <button class="btn-primary" onclick="saveWebhook()">
+          <i class="bi bi-check-lg"></i> Save Webhook
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Sidebar Toggle
+    const sidebar = document.getElementById('sidebar');
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    
+    sidebarToggle.addEventListener('click', () => {
+      sidebar.classList.toggle('collapsed');
+    });
+
+    // Modal Functions
+    function openModal(modalId, data) {
+      const modal = document.getElementById(modalId);
+      if (modal) {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+    }
+
+    function closeModal(modalId) {
+      const modal = document.getElementById(modalId);
+      if (modal) {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+      }
+    }
+
+    // Close modal on backdrop click
+    document.querySelectorAll('.modal').forEach(modal => {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          closeModal(modal.id);
+        }
+      });
+    });
+
+    // Filter Tabs
+    document.querySelectorAll('.filter-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        // Filter logic would go here
+      });
+    });
+
+    // Modal Tabs
+    document.querySelectorAll('.modal-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        const modal = tab.closest('.modal-body');
+        const tabName = tab.dataset.tab;
+        
+        modal.querySelectorAll('.modal-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        
+        modal.querySelectorAll('.tab-content').forEach(content => {
+          content.classList.remove('active');
+        });
+        
+        const targetContent = modal.querySelector(`#${tabName}`);
+        if (targetContent) {
+          targetContent.classList.add('active');
+        }
+      });
+    });
+    // Multi-step Invoice Generator
+    let currentStep = 1;
+    const totalSteps = 5;
+
+    function nextStep() {
+      if (currentStep < totalSteps) {
+        document.querySelector(`#step${currentStep}`).classList.remove('active');
+        document.querySelectorAll('.step')[currentStep - 1].classList.remove('active');
+        document.querySelectorAll('.step')[currentStep - 1].classList.add('completed');
+        
+        currentStep++;
+        
+        document.querySelector(`#step${currentStep}`).classList.add('active');
+        document.querySelectorAll('.step')[currentStep - 1].classList.add('active');
+        
+        document.getElementById('prevStepBtn').style.display = 'inline-flex';
+        
+        if (currentStep === totalSteps) {
+          document.getElementById('nextStepBtn').style.display = 'none';
+          document.getElementById('finishBtn').style.display = 'inline-flex';
+        }
+      }
+    }
+
+    function previousStep() {
+      if (currentStep > 1) {
+        document.querySelector(`#step${currentStep}`).classList.remove('active');
+        document.querySelectorAll('.step')[currentStep - 1].classList.remove('active');
+        
+        currentStep--;
+        
+        document.querySelector(`#step${currentStep}`).classList.add('active');
+        document.querySelectorAll('.step')[currentStep - 1].classList.add('active');
+        document.querySelectorAll('.step')[currentStep - 1].classList.remove('completed');
+        
+        document.getElementById('nextStepBtn').style.display = 'inline-flex';
+        document.getElementById('finishBtn').style.display = 'none';
+        
+        if (currentStep === 1) {
+          document.getElementById('prevStepBtn').style.display = 'none';
+        }
+      }
+    }
+
+    function createInvoice() {
+      const btn = document.getElementById('finishBtn');
+      btn.innerHTML = '<span class="spinner"></span> Creating...';
+      btn.disabled = true;
+      
+      setTimeout(() => {
+        btn.innerHTML = '<i class="bi bi-check-lg"></i> Invoice Created!';
+        setTimeout(() => {
+          closeModal('invoiceGeneratorModal');
+          currentStep = 1;
+          document.querySelector('#step5').classList.remove('active');
+          document.querySelector('#step1').classList.add('active');
+          document.querySelectorAll('.step').forEach((s, i) => {
+            s.classList.remove('active', 'completed');
+            if (i === 0) s.classList.add('active');
+          });
+          document.getElementById('prevStepBtn').style.display = 'none';
+          document.getElementById('nextStepBtn').style.display = 'inline-flex';
+          document.getElementById('finishBtn').style.display = 'none';
+          btn.innerHTML = '<i class="bi bi-check-lg"></i> Create Invoice';
+          btn.disabled = false;
+          
+          alert('Invoice created successfully!');
+        }, 1000);
+      }, 1500);
+    }
+    // Multi-step Subscription Creator
+    let currentSubStep = 1;
+    const totalSubSteps = 4;
+
+    function nextSubStep() {
+      if (currentSubStep < totalSubSteps) {
+        document.querySelector(`#subStep${currentSubStep}`).classList.remove('active');
+        currentSubStep++;
+        document.querySelector(`#subStep${currentSubStep}`).classList.add('active');
+        
+        document.getElementById('subPrevBtn').style.display = 'inline-flex';
+        
+        if (currentSubStep === totalSubSteps) {
+          document.getElementById('subNextBtn').style.display = 'none';
+          document.getElementById('subFinishBtn').style.display = 'inline-flex';
+        }
+      }
+    }
+
+    function previousSubStep() {
+      if (currentSubStep > 1) {
+        document.querySelector(`#subStep${currentSubStep}`).classList.remove('active');
+        currentSubStep--;
+        document.querySelector(`#subStep${currentSubStep}`).classList.add('active');
+        
+        document.getElementById('subNextBtn').style.display = 'inline-flex';
+        document.getElementById('subFinishBtn').style.display = 'none';
+        
+        if (currentSubStep === 1) {
+          document.getElementById('subPrevBtn').style.display = 'none';
+        }
+      }
+    }
+
+    function createSubscription() {
+      const btn = document.getElementById('subFinishBtn');
+      btn.innerHTML = '<span class="spinner"></span> Creating...';
+      btn.disabled = true;
+      
+      setTimeout(() => {
+        btn.innerHTML = '<i class="bi bi-check-lg"></i> Plan Created!';
+        setTimeout(() => {
+          closeModal('subscriptionCreatorModal');
+          currentSubStep = 1;
+          document.querySelector('#subStep4').classList.remove('active');
+          document.querySelector('#subStep1').classList.add('active');
+          document.getElementById('subPrevBtn').style.display = 'none';
+          document.getElementById('subNextBtn').style.display = 'inline-flex';
+          document.getElementById('subFinishBtn').style.display = 'none';
+          btn.innerHTML = '<i class="bi bi-check-lg"></i> Create Plan';
+          btn.disabled = false;
+          
+          alert('Subscription plan created successfully!');
+        }, 1000);
+      }, 1500);
+    }
+
+    // Line Item Management
+    function addLineItem() {
+      const container = document.getElementById('lineItemsContainer');
+      const newItem = document.createElement('div');
+      newItem.className = 'line-item';
+      newItem.innerHTML = `
+        <input type="text" class="form-control" placeholder="Description">
+        <input type="number" class="form-control" placeholder="Qty" value="1">
+        <input type="number" class="form-control" placeholder="Price">
+        <input type="number" class="form-control" placeholder="Tax %" value="10">
+        <button class="line-item-remove" onclick="this.parentElement.remove()"><i class="bi bi-trash"></i></button>
+      `;
+      container.appendChild(newItem);
+    }
+
+    function addFeature() {
+      const container = document.getElementById('featuresList');
+      const newItem = document.createElement('div');
+      newItem.className = 'line-item';
+      newItem.innerHTML = `
+        <input type="text" class="form-control" placeholder="Feature description">
+        <button class="line-item-remove" onclick="this.parentElement.remove()"><i class="bi bi-trash"></i></button>
+      `;
+      container.appendChild(newItem);
+    }
+
+    function addRetryRule() {
+      const container = document.getElementById('retrySchedule');
+      const newItem = document.createElement('div');
+      newItem.className = 'line-item';
+      newItem.innerHTML = `
+        <input type="number" class="form-control" placeholder="Day">
+        <select class="form-select">
+          <option>Send email reminder</option>
+          <option>Retry payment</option>
+          <option>Send SMS</option>
+        </select>
+        <button class="line-item-remove" onclick="this.parentElement.remove()"><i class="bi bi-trash"></i></button>
+      `;
+      container.appendChild(newItem);
+    }
+
+    function addTaxRate() {
+      const container = document.getElementById('taxRatesList');
+      const newItem = document.createElement('div');
+      newItem.className = 'line-item';
+      newItem.innerHTML = `
+        <input type="text" class="form-control" placeholder="Tax name">
+        <input type="number" class="form-control" placeholder="Rate %">
+        <button class="line-item-remove" onclick="this.parentElement.remove()"><i class="bi bi-trash"></i></button>
+      `;
+      container.appendChild(newItem);
+    }
+    // Template Selection
+    document.querySelectorAll('.template-option').forEach(option => {
+      option.addEventListener('click', () => {
+        document.querySelectorAll('.template-option').forEach(o => o.classList.remove('selected'));
+        option.classList.add('selected');
+      });
+    });
+
+    // Payment Link Generator
+    function generatePaymentLink() {
+      const btn = event.target;
+      btn.innerHTML = '<span class="spinner"></span> Generating...';
+      btn.disabled = true;
+      
+      setTimeout(() => {
+        document.getElementById('paymentLinkResult').style.display = 'block';
+        btn.innerHTML = '<i class="bi bi-link-45deg"></i> Generate Link';
+        btn.disabled = false;
+      }, 1500);
+    }
+
+    function copyPaymentLink() {
+      const link = 'https://pay.paymo.com/inv/2024-001-abc123xyz';
+      navigator.clipboard.writeText(link).then(() => {
+        const btn = event.target;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="bi bi-check-lg"></i> Copied!';
+        setTimeout(() => {
+          btn.innerHTML = originalText;
+        }, 2000);
+      });
+    }
+
+    function sendLinkViaEmail() {
+      const btn = event.target;
+      btn.innerHTML = '<span class="spinner"></span> Sending...';
+      btn.disabled = true;
+      
+      setTimeout(() => {
+        alert('Payment link sent via email!');
+        btn.innerHTML = '<i class="bi bi-envelope"></i> Email';
+        btn.disabled = false;
+      }, 1500);
+    }
+
+    function sendLinkViaSMS() {
+      const btn = event.target;
+      btn.innerHTML = '<span class="spinner"></span> Sending...';
+      btn.disabled = true;
+      
+      setTimeout(() => {
+        alert('Payment link sent via SMS!');
+        btn.innerHTML = '<i class="bi bi-phone"></i> SMS';
+        btn.disabled = false;
+      }, 1500);
+    }
+
+    // Reconciliation Drag & Drop
+    let draggedItem = null;
+
+    document.querySelectorAll('.reconciliation-item').forEach(item => {
+      item.addEventListener('dragstart', (e) => {
+        draggedItem = item;
+        item.classList.add('dragging');
+      });
+
+      item.addEventListener('dragend', (e) => {
+        item.classList.remove('dragging');
+      });
+
+      item.addEventListener('dragover', (e) => {
+        e.preventDefault();
+      });
+
+      item.addEventListener('drop', (e) => {
+        e.preventDefault();
+        if (draggedItem && draggedItem !== item) {
+          item.classList.add('matched');
+          draggedItem.classList.add('matched');
+        }
+      });
+
+      item.addEventListener('click', () => {
+        item.classList.toggle('matched');
+      });
+    });
+
+    function applyMatches() {
+      const btn = event.target;
+      btn.innerHTML = '<span class="spinner"></span> Applying...';
+      btn.disabled = true;
+      
+      setTimeout(() => {
+        alert('Matches applied successfully!');
+        closeModal('reconciliationModal');
+        btn.innerHTML = '<i class="bi bi-check-lg"></i> Apply Matches';
+        btn.disabled = false;
+      }, 1500);
+    }

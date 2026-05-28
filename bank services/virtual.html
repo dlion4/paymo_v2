@@ -1,0 +1,2416 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtual Accounts & Sub-Accounts — PayMo BaaS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --p: #2563eb;
+            --pd: #1e40af;
+            --s: #8b5cf6;
+            --ok: #10b981;
+            --warn: #f59e0b;
+            --err: #ef4444;
+            --info: #06b6d4;
+            --bg: #f8fafc;
+            --card: #fff;
+            --bdr: #e2e8f0;
+            --txt: #1e293b;
+            --mut: #64748b;
+            --xm: #94a3b8;
+            --sbw: 260px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--txt);
+            overflow-x: hidden;
+        }
+
+        body.dk {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --bdr: #334155;
+            --txt: #e2e8f0;
+            --mut: #94a3b8;
+        }
+
+        body.dk .card,
+        body.dk .sb,
+        body.dk .tb,
+        body.dk .modal-content,
+        body.dk .fbar {
+            background: var(--card) !important;
+            border-color: var(--bdr) !important;
+            color: var(--txt) !important;
+        }
+
+        body.dk .table thead th {
+            background: #1e293b;
+        }
+
+        body.dk .mc {
+            background: #334155;
+        }
+
+        .sb {
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100vh;
+            width: var(--sbw);
+            background: var(--card);
+            border-right: 1px solid var(--bdr);
+            z-index: 1050;
+            overflow-y: auto;
+            transition: .3s;
+        }
+
+        .sb.c {
+            width: 70px;
+        }
+
+        .sb.c .nt,
+        .sb.c .sl,
+        .sb.c .bn {
+            display: none;
+        }
+
+        .sb-h {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--bdr);
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+        }
+
+        .sb-h a {
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: var(--p);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: .6rem;
+        }
+
+        .sl {
+            padding: .4rem 1.5rem;
+            font-size: .68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            color: var(--xm);
+        }
+
+        .ni {
+            list-style: none;
+        }
+
+        .nl {
+            display: flex;
+            align-items: center;
+            gap: .7rem;
+            padding: .65rem 1.5rem;
+            color: var(--mut);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: .85rem;
+            transition: .2s;
+        }
+
+        .nl:hover {
+            background: rgba(37, 99, 235, .08);
+            color: var(--p);
+        }
+
+        .nl.ac {
+            background: linear-gradient(90deg, rgba(37, 99, 235, .12), transparent);
+            color: var(--p);
+            border-left: 3px solid var(--p);
+        }
+
+        .nl i {
+            width: 22px;
+            font-size: 1.1rem;
+            text-align: center;
+        }
+
+        .mn {
+            margin-left: var(--sbw);
+            min-height: 100vh;
+            transition: .3s;
+        }
+
+        .sb.c~.mn {
+            margin-left: 70px;
+        }
+
+        .tb {
+            background: var(--card);
+            border-bottom: 1px solid var(--bdr);
+            padding: .85rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 1040;
+            flex-wrap: wrap;
+        }
+
+        .sw {
+            position: relative;
+            flex: 1;
+            max-width: 380px;
+        }
+
+        .sw input {
+            width: 100%;
+            padding: .5rem .85rem .5rem 2.2rem;
+            border: 1px solid var(--bdr);
+            border-radius: .5rem;
+            background: var(--bg);
+            font-size: .85rem;
+        }
+
+        .sw>i {
+            position: absolute;
+            left: .7rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--xm);
+            font-size: .85rem;
+        }
+
+        .ib {
+            width: 38px;
+            height: 38px;
+            border-radius: .5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--bdr);
+            background: 0 0;
+            color: var(--mut);
+            cursor: pointer;
+            transition: .2s;
+            position: relative;
+        }
+
+        .ib:hover {
+            background: var(--bg);
+            color: var(--p);
+        }
+
+        .ib .badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            font-size: .58rem;
+        }
+
+        .pb {
+            padding: 1.75rem 2rem;
+        }
+
+        .pt {
+            font-size: 1.75rem;
+            font-weight: 800;
+        }
+
+        .ps {
+            color: var(--mut);
+            font-size: .88rem;
+            margin-top: .2rem;
+        }
+
+        .sc {
+            background: var(--card);
+            border: 1px solid var(--bdr);
+            border-radius: .75rem;
+            padding: 1.2rem 1.4rem;
+            cursor: pointer;
+            transition: .2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sc::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+        }
+
+        .sc.bl::after {
+            background: var(--p);
+        }
+
+        .sc.gr::after {
+            background: var(--ok);
+        }
+
+        .sc.am::after {
+            background: var(--warn);
+        }
+
+        .sc.in::after {
+            background: var(--info);
+        }
+
+        .sc:hover {
+            box-shadow: 0 4px 16px rgba(0, 0, 0, .08);
+            transform: translateY(-1px);
+        }
+
+        .sn {
+            font-size: 1.75rem;
+            font-weight: 800;
+        }
+
+        .sl2 {
+            font-size: .78rem;
+            color: var(--mut);
+            margin-top: .15rem;
+        }
+
+        .si {
+            width: 44px;
+            height: 44px;
+            border-radius: .65rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.35rem;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--bdr);
+            border-radius: .75rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, .04);
+        }
+
+        .card-header {
+            background: 0 0;
+            border-bottom: 1px solid var(--bdr);
+            padding: 1.1rem 1.4rem;
+            font-weight: 600;
+        }
+
+        .card-body {
+            padding: 1.4rem;
+        }
+
+        .nav-tabs {
+            border-bottom: 2px solid var(--bdr);
+            gap: .25rem;
+        }
+
+        .nav-tabs .nav-link {
+            border: none;
+            border-radius: 0;
+            color: var(--mut);
+            padding: .7rem 1.2rem;
+            font-size: .85rem;
+            font-weight: 500;
+        }
+
+        .nav-tabs .nav-link.active {
+            color: var(--p);
+            border-bottom: 2px solid var(--p);
+        }
+
+        .table thead th {
+            background: var(--bg);
+            border-bottom: 2px solid var(--bdr);
+            font-size: .7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            color: var(--mut);
+            padding: .85rem 1rem;
+            white-space: nowrap;
+        }
+
+        .table tbody td {
+            padding: .85rem 1rem;
+            vertical-align: middle;
+            border-bottom: 1px solid var(--bdr);
+            font-size: .85rem;
+        }
+
+        .table tbody tr {
+            cursor: pointer;
+            transition: background .15s;
+        }
+
+        .table tbody tr:hover {
+            background: rgba(37, 99, 235, .02);
+        }
+
+        .modal-content {
+            border-radius: .85rem;
+            border: none;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, .12);
+        }
+
+        .modal-header {
+            border-bottom: 1px solid var(--bdr);
+            padding: 1.1rem 1.4rem;
+        }
+
+        .modal-title {
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .modal-body {
+            padding: 1.1rem 1.4rem;
+            max-height: 72vh;
+            overflow-y: auto;
+        }
+
+        .modal-footer {
+            border-top: 1px solid var(--bdr);
+            padding: .85rem 1.4rem;
+            gap: .4rem;
+        }
+
+        .modal-sm {
+            max-width: 390px;
+        }
+
+        .modal-md {
+            max-width: 520px;
+        }
+
+        .btn {
+            padding: .45rem .9rem;
+            border-radius: .5rem;
+            font-weight: 600;
+            font-size: .82rem;
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+            border: none;
+            transition: .2s;
+        }
+
+        .btn-primary {
+            background: var(--p);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: var(--pd);
+            transform: translateY(-1px);
+        }
+
+        .btn-sm {
+            padding: .3rem .7rem;
+            font-size: .78rem;
+        }
+
+        .btn-xs {
+            padding: .2rem .5rem;
+            font-size: .7rem;
+        }
+
+        .form-label {
+            font-size: .76rem;
+            font-weight: 600;
+            margin-bottom: .3rem;
+        }
+
+        .form-control,
+        .form-select {
+            border: 1px solid var(--bdr);
+            border-radius: .5rem;
+            padding: .45rem .75rem;
+            font-size: .85rem;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: var(--p);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, .1);
+        }
+
+        .badge {
+            padding: .3rem .65rem;
+            font-weight: 600;
+            border-radius: .35rem;
+            font-size: .7rem;
+        }
+
+        .kv {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .kv li {
+            display: flex;
+            justify-content: space-between;
+            padding: .45rem 0;
+            border-bottom: 1px dashed var(--bdr);
+            font-size: .85rem;
+        }
+
+        .kv li:last-child {
+            border-bottom: none;
+        }
+
+        .kv .k {
+            color: var(--mut);
+        }
+
+        .kv .v {
+            font-weight: 600;
+        }
+
+        .mc {
+            background: var(--bg);
+            border-radius: .5rem;
+            padding: .5rem .75rem;
+            font-size: .78rem;
+        }
+
+        .mc .mv {
+            font-weight: 700;
+            font-size: 1rem;
+            display: block;
+        }
+
+        .mc .ml {
+            color: var(--mut);
+        }
+
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .fbar {
+            background: var(--card);
+            border: 1px solid var(--bdr);
+            border-radius: .75rem;
+            padding: 1rem 1.2rem;
+            margin-bottom: 1.2rem;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: .35rem;
+        }
+
+        .dot.g {
+            background: var(--ok);
+        }
+
+        .dot.r {
+            background: var(--err);
+        }
+
+        .dot.y {
+            background: var(--warn);
+        }
+
+        .dot.b {
+            background: var(--p);
+        }
+
+        .steps {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .steps::before {
+            content: '';
+            position: absolute;
+            top: 18px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--bdr);
+            z-index: 0;
+        }
+
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 1;
+        }
+
+        .step-dot {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 2px solid var(--bdr);
+            background: var(--card);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: .78rem;
+            font-weight: 700;
+            margin-bottom: .3rem;
+        }
+
+        .step.done .step-dot {
+            background: var(--ok);
+            border-color: var(--ok);
+            color: #fff;
+        }
+
+        .step.active .step-dot {
+            background: var(--p);
+            border-color: var(--p);
+            color: #fff;
+        }
+
+        .step-lbl {
+            font-size: .66rem;
+            color: var(--mut);
+            text-align: center;
+        }
+
+        .step.active .step-lbl,
+        .step.done .step-lbl {
+            color: var(--txt);
+            font-weight: 600;
+        }
+
+        .strip {
+            padding: .7rem 1rem;
+            border-radius: .5rem;
+            font-size: .8rem;
+        }
+
+        .strip.w {
+            background: rgba(245, 158, 11, .1);
+            border-left: 3px solid var(--warn);
+        }
+
+        .strip.i {
+            background: rgba(6, 182, 212, .1);
+            border-left: 3px solid var(--info);
+        }
+
+        .strip.e {
+            background: rgba(239, 68, 68, .1);
+            border-left: 3px solid var(--err);
+        }
+
+        .strip.s {
+            background: rgba(16, 185, 129, .1);
+            border-left: 3px solid var(--ok);
+        }
+
+        @media(max-width:768px) {
+            .sb {
+                transform: translateX(-100%);
+            }
+
+            .sb.show {
+                transform: translateX(0);
+            }
+
+            .mn {
+                margin-left: 0 !important;
+            }
+
+            .pb {
+                padding: 1rem;
+            }
+
+            .tb {
+                padding: .85rem 1rem;
+            }
+
+            .steps::before {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ── SIDEBAR ── -->
+    <aside class="sb" id="sidebar">
+        <div class="sb-h">
+            <a href="#"><i class="bi bi-bank2"></i><span class="bn">PayMo</span></a>
+        </div>
+        <nav style="padding:.65rem 0;">
+            <div class="sl">Services Hub</div>
+            <ul class="nav flex-column mb-1">
+                <li class="ni"><a href="#" class="nl"><i class="bi bi-grid"></i><span class="nt">Services
+                            Overview</span></a></li>
+            </ul>
+            <div class="sl">Financial Services</div>
+            <ul class="nav flex-column mb-1">
+                <li class="ni"><a href="#" class="nl"><i class="bi bi-receipt"></i><span class="nt">Bill Pay &
+                            Utilities</span></a></li>
+                <li class="ni"><a href="#" class="nl"><i class="bi bi-file-earmark-text"></i><span
+                            class="nt">Collections & Invoicing</span></a></li>
+                <li class="ni"><a href="#" class="nl ac"><i class="bi bi-wallet2"></i><span class="nt">Virtual
+                            Accounts</span></a></li>
+                <li class="ni"><a href="#" class="nl"><i class="bi bi-currency-exchange"></i><span class="nt">FX &
+                            Treasury</span></a></li>
+                <li class="ni"><a href="#" class="nl"><i class="bi bi-people"></i><span class="nt">Payroll</span></a>
+                </li>
+                <li class="ni"><a href="#" class="nl"><i class="bi bi-link-45deg"></i><span class="nt">Open
+                            Banking</span></a></li>
+            </ul>
+            <div class="sl">Management</div>
+            <ul class="nav flex-column mb-1">
+                <li class="ni"><a href="#" class="nl"><i class="bi bi-shield-check"></i><span class="nt">Fraud &
+                            Risk</span></a></li>
+                <li class="ni"><a href="#" class="nl"><i class="bi bi-person-badge"></i><span class="nt">Client
+                            Management</span></a></li>
+                <li class="ni"><a href="#" class="nl"><i class="bi bi-bar-chart-line"></i><span class="nt">Reporting &
+                            BI</span></a></li>
+                <li class="ni"><a href="#" class="nl"><i class="bi bi-gear"></i><span class="nt">System
+                            Settings</span></a></li>
+            </ul>
+        </nav>
+    </aside>
+
+    <!-- ── MAIN ── -->
+    <main class="mn" id="mainW">
+
+        <!-- Topbar -->
+        <div class="tb">
+            <div class="d-flex align-items-center gap-3" style="flex:1;min-width:0;">
+                <button class="ib d-lg-none" onclick="document.getElementById('sidebar').classList.toggle('show')"><i
+                        class="bi bi-list"></i></button>
+                <button class="ib d-none d-lg-flex"
+                    onclick="document.getElementById('sidebar').classList.toggle('c')"><i
+                        class="bi bi-layout-sidebar"></i></button>
+                <div class="sw"><i class="bi bi-search"></i><input type="text"
+                        placeholder="Search accounts, IBANs, tenants…" class="form-control"></div>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <button class="ib" onclick="om('notifModal')"><i class="bi bi-bell"></i><span
+                        class="badge bg-primary">4</span></button>
+                <button class="ib"
+                    onclick="document.body.classList.toggle('dk');document.getElementById('thI').className=document.body.classList.contains('dk')?'bi bi-sun':'bi bi-moon-stars';"><i
+                        class="bi bi-moon-stars" id="thI"></i></button>
+                <button class="ib" onclick="om('profileModal')"><i class="bi bi-person-circle"></i></button>
+            </div>
+        </div>
+
+        <!-- Page Body -->
+        <div class="pb">
+
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
+                <div>
+                    <h1 class="pt">Virtual Accounts & Sub-Accounts</h1>
+                    <p class="ps">Programmatic account creation for clients, merchants, and use-case segregation</p>
+                </div>
+                <div class="d-flex gap-2 flex-wrap">
+                    <button class="btn btn-outline-primary" onclick="om('bulkCreateModal')"><i
+                            class="bi bi-grid-3x3-gap"></i> Bulk Create</button>
+                    <button class="btn btn-primary" onclick="om('createAccountModal')"><i class="bi bi-plus-circle"></i>
+                        Create Account</button>
+                </div>
+            </div>
+
+            <!-- KPIs -->
+            <div class="row g-3 mb-4">
+                <div class="col-6 col-lg-3">
+                    <div class="sc bl" onclick="om('totalAccountsModal')">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div class="si bg-primary bg-opacity-10 text-primary"><i class="bi bi-wallet2"></i></div>
+                            <span class="badge bg-primary">+24.5%</span>
+                        </div>
+                        <div class="sn text-primary">12,845</div>
+                        <div class="sl2">Total Virtual Accounts</div>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-3">
+                    <div class="sc gr" onclick="om('totalBalanceModal')">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div class="si bg-success bg-opacity-10 text-success"><i class="bi bi-cash-stack"></i></div>
+                            <span class="badge bg-success">Active</span>
+                        </div>
+                        <div class="sn text-success">$245M</div>
+                        <div class="sl2">Aggregate Balance</div>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-3">
+                    <div class="sc am" onclick="om('tenantsOverviewModal')">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div class="si bg-warning bg-opacity-10 text-warning"><i class="bi bi-buildings"></i></div>
+                            <span class="badge bg-warning">892</span>
+                        </div>
+                        <div class="sn text-warning">892</div>
+                        <div class="sl2">Active Tenants</div>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-3">
+                    <div class="sc in" onclick="om('ibanStatsModal')">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div class="si bg-info bg-opacity-10 text-info"><i class="bi bi-globe"></i></div><span
+                                class="badge bg-info">4 regions</span>
+                        </div>
+                        <div class="sn text-info">8,456</div>
+                        <div class="sl2">Virtual IBANs Issued</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MAIN TABS -->
+            <div class="card mb-4">
+                <div class="card-header pb-0 pt-3 border-0">
+                    <ul class="nav nav-tabs" role="tablist">
+                        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab"
+                                data-bs-target="#t1"><i class="bi bi-wallet2 me-1"></i>Account Manager</button></li>
+                        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#t2"><i
+                                    class="bi bi-plus-circle me-1"></i>Create Accounts</button></li>
+                        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#t3"><i
+                                    class="bi bi-sliders me-1"></i>Allocation Rules</button></li>
+                        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#t4"><i
+                                    class="bi bi-buildings me-1"></i>Multi-Tenancy</button></li>
+                        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#t5"><i
+                                    class="bi bi-globe me-1"></i>IBAN Management</button></li>
+                    </ul>
+                </div>
+                <div class="card-body pt-3">
+                    <div class="tab-content">
+
+                        <!-- ═══ TAB 1 — ACCOUNT MANAGER ═══ -->
+                        <div class="tab-pane fade show active" id="t1">
+                            <div class="fbar">
+                                <div class="row g-2">
+                                    <div class="col-md-3"><label class="form-label">Status</label><select
+                                            class="form-select">
+                                            <option>All Status</option>
+                                            <option>Active</option>
+                                            <option>Frozen</option>
+                                            <option>Closed</option>
+                                        </select></div>
+                                    <div class="col-md-3"><label class="form-label">Currency</label><select
+                                            class="form-select">
+                                            <option>All Currencies</option>
+                                            <option>USD</option>
+                                            <option>EUR</option>
+                                            <option>GBP</option>
+                                            <option>KES</option>
+                                        </select></div>
+                                    <div class="col-md-3"><label class="form-label">Tenant</label><select
+                                            class="form-select">
+                                            <option>All Tenants</option>
+                                            <option>FinTech Solutions</option>
+                                            <option>Global Payments</option>
+                                            <option>E-Commerce Hub</option>
+                                        </select></div>
+                                    <div class="col-md-3 d-flex align-items-end"><button
+                                            class="btn btn-primary w-100"><i class="bi bi-funnel"></i> Filter</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Account No.</th>
+                                            <th>Label</th>
+                                            <th>Tenant</th>
+                                            <th>Currency</th>
+                                            <th>Balance</th>
+                                            <th>Parent Account</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr onclick="om('acctDetailModal1')">
+                                            <td><span class="mono">VA-2024-00001</span></td>
+                                            <td><strong>FinTech Escrow</strong></td>
+                                            <td>FinTech Solutions</td>
+                                            <td>USD</td>
+                                            <td class="fw-bold">$1,245,680</td>
+                                            <td class="mono">NOS-KCB-001</td>
+                                            <td><span class="dot g"></span>Active</td>
+                                            <td>
+                                                <div class="d-flex gap-1"><button class="btn btn-xs btn-outline-primary"
+                                                        onclick="event.stopPropagation();om('acctDetailModal1')"><i
+                                                            class="bi bi-eye"></i></button><button
+                                                        class="btn btn-xs btn-outline-secondary"
+                                                        onclick="event.stopPropagation();om('acctTxnModal')"><i
+                                                            class="bi bi-list-ul"></i></button></div>
+                                            </td>
+                                        </tr>
+                                        <tr onclick="om('acctDetailModal2')">
+                                            <td><span class="mono">VA-2024-00002</span></td>
+                                            <td><strong>Merchant Settlements</strong></td>
+                                            <td>Global Payments</td>
+                                            <td>EUR</td>
+                                            <td class="fw-bold">€892,340</td>
+                                            <td class="mono">NOS-BARCLAYS-002</td>
+                                            <td><span class="dot g"></span>Active</td>
+                                            <td>
+                                                <div class="d-flex gap-1"><button class="btn btn-xs btn-outline-primary"
+                                                        onclick="event.stopPropagation();om('acctDetailModal2')"><i
+                                                            class="bi bi-eye"></i></button><button
+                                                        class="btn btn-xs btn-outline-secondary"
+                                                        onclick="event.stopPropagation();om('acctTxnModal')"><i
+                                                            class="bi bi-list-ul"></i></button></div>
+                                            </td>
+                                        </tr>
+                                        <tr onclick="om('acctDetailModal3')">
+                                            <td><span class="mono">VA-2024-00003</span></td>
+                                            <td><strong>Client Float</strong></td>
+                                            <td>E-Commerce Hub</td>
+                                            <td>GBP</td>
+                                            <td class="fw-bold">£456,120</td>
+                                            <td class="mono">NOS-HSBC-003</td>
+                                            <td><span class="dot g"></span>Active</td>
+                                            <td>
+                                                <div class="d-flex gap-1"><button class="btn btn-xs btn-outline-primary"
+                                                        onclick="event.stopPropagation();om('acctDetailModal3')"><i
+                                                            class="bi bi-eye"></i></button><button
+                                                        class="btn btn-xs btn-outline-secondary"
+                                                        onclick="event.stopPropagation();om('acctTxnModal')"><i
+                                                            class="bi bi-list-ul"></i></button></div>
+                                            </td>
+                                        </tr>
+                                        <tr onclick="om('acctDetailModal4')">
+                                            <td><span class="mono">VA-2024-00004</span></td>
+                                            <td><strong>Payroll Reserve</strong></td>
+                                            <td>FinTech Solutions</td>
+                                            <td>KES</td>
+                                            <td class="fw-bold">KES 24.5M</td>
+                                            <td class="mono">NOS-KCB-001</td>
+                                            <td><span class="dot y"></span>Frozen</td>
+                                            <td>
+                                                <div class="d-flex gap-1"><button class="btn btn-xs btn-outline-primary"
+                                                        onclick="event.stopPropagation();om('acctDetailModal4')"><i
+                                                            class="bi bi-eye"></i></button><button
+                                                        class="btn btn-xs btn-outline-secondary"
+                                                        onclick="event.stopPropagation();om('acctTxnModal')"><i
+                                                            class="bi bi-list-ul"></i></button></div>
+                                            </td>
+                                        </tr>
+                                        <tr onclick="om('acctDetailModal5')">
+                                            <td><span class="mono">VA-2024-00005</span></td>
+                                            <td><strong>Tax Withholding</strong></td>
+                                            <td>Global Payments</td>
+                                            <td>USD</td>
+                                            <td class="fw-bold">$78,450</td>
+                                            <td class="mono">NOS-BARCLAYS-002</td>
+                                            <td><span class="dot g"></span>Active</td>
+                                            <td>
+                                                <div class="d-flex gap-1"><button class="btn btn-xs btn-outline-primary"
+                                                        onclick="event.stopPropagation();om('acctDetailModal5')"><i
+                                                            class="bi bi-eye"></i></button><button
+                                                        class="btn btn-xs btn-outline-secondary"
+                                                        onclick="event.stopPropagation();om('acctTxnModal')"><i
+                                                            class="bi bi-list-ul"></i></button></div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- ═══ TAB 2 — CREATE ACCOUNTS ═══ -->
+                        <div class="tab-pane fade" id="t2">
+                            <div class="row g-4">
+                                <div class="col-lg-7">
+                                    <h6 class="fw-bold mb-3" style="font-size:.85rem;">Create Virtual Account</h6>
+                                    <div class="steps mb-4">
+                                        <div class="step active">
+                                            <div class="step-dot">1</div>
+                                            <div class="step-lbl">Details</div>
+                                        </div>
+                                        <div class="step">
+                                            <div class="step-dot">2</div>
+                                            <div class="step-lbl">Rules</div>
+                                        </div>
+                                        <div class="step">
+                                            <div class="step-dot">3</div>
+                                            <div class="step-lbl">IBAN</div>
+                                        </div>
+                                        <div class="step">
+                                            <div class="step-dot">4</div>
+                                            <div class="step-lbl">Confirm</div>
+                                        </div>
+                                    </div>
+                                    <div class="row g-3">
+                                        <div class="col-md-6"><label class="form-label">Account Label</label><input
+                                                type="text" class="form-control"
+                                                placeholder="e.g. Merchant Settlements"></div>
+                                        <div class="col-md-6"><label class="form-label">Tenant / Client</label><select
+                                                class="form-select">
+                                                <option>FinTech Solutions Inc</option>
+                                                <option>Global Payments Ltd</option>
+                                                <option>E-Commerce Hub</option>
+                                            </select></div>
+                                        <div class="col-md-6"><label class="form-label">Currency</label><select
+                                                class="form-select">
+                                                <option>USD — US Dollar</option>
+                                                <option>EUR — Euro</option>
+                                                <option>GBP — British Pound</option>
+                                                <option>KES — Kenyan Shilling</option>
+                                            </select></div>
+                                        <div class="col-md-6"><label class="form-label">Jurisdiction</label><select
+                                                class="form-select">
+                                                <option>United States</option>
+                                                <option>United Kingdom</option>
+                                                <option>EU (SEPA)</option>
+                                                <option>Kenya</option>
+                                            </select></div>
+                                        <div class="col-md-6"><label class="form-label">Parent Account
+                                                (Nostro)</label><select class="form-select">
+                                                <option>NOS-KCB-001 (USD)</option>
+                                                <option>NOS-BARCLAYS-002 (EUR)</option>
+                                                <option>NOS-HSBC-003 (GBP)</option>
+                                            </select></div>
+                                        <div class="col-md-6"><label class="form-label">Initial Balance</label>
+                                            <div class="input-group"><span class="input-group-text">$</span><input
+                                                    type="number" class="form-control" value="0" step="100"></div>
+                                        </div>
+                                        <div class="col-12"><label class="form-label">Auto-Close Rules</label>
+                                            <div class="d-flex gap-3">
+                                                <div class="form-check"><input class="form-check-input" type="checkbox"
+                                                        id="acZero"><label class="form-check-label small"
+                                                        for="acZero">Close on zero balance</label></div>
+                                                <div class="form-check"><input class="form-check-input" type="checkbox"
+                                                        id="acInact"><label class="form-check-label small"
+                                                        for="acInact">Close after 90 days inactivity</label></div>
+                                            </div>
+                                        </div>
+                                        <div class="col-12"><label class="form-label">Generate Virtual IBAN?</label>
+                                            <div class="form-check form-switch"><input class="form-check-input"
+                                                    type="checkbox" checked style="width:3rem;height:1.5rem;"></div>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex gap-2 mt-3">
+                                        <button class="btn btn-primary" onclick="om('createConfirmModal')"><i
+                                                class="bi bi-check-circle"></i> Create Account</button>
+                                        <button class="btn btn-outline-secondary"><i class="bi bi-x-circle"></i>
+                                            Reset</button>
+                                    </div>
+                                </div>
+                                <div class="col-lg-5">
+                                    <div class="card border mb-3">
+                                        <div class="card-header bg-transparent border-0 pt-3 pb-0">
+                                            <h6 class="fw-bold mb-0" style="font-size:.82rem;">Bulk Account Creation
+                                            </h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <p class="small text-muted mb-3">Create multiple virtual accounts at once by
+                                                uploading a CSV file.</p>
+                                            <button class="btn btn-outline-primary btn-sm w-100 mb-2"
+                                                onclick="om('bulkCreateModal')"><i class="bi bi-upload"></i> Upload
+                                                CSV</button>
+                                            <button class="btn btn-outline-secondary btn-sm w-100"
+                                                onclick="downloadTemplate()"><i class="bi bi-download"></i> Download
+                                                Template</button>
+                                        </div>
+                                    </div>
+                                    <div class="card border">
+                                        <div class="card-header bg-transparent border-0 pt-3 pb-0">
+                                            <h6 class="fw-bold mb-0" style="font-size:.82rem;">Naming Convention</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <ul class="kv">
+                                                <li><span class="k">Format</span><span
+                                                        class="v mono">VA-YYYY-NNNNN</span></li>
+                                                <li><span class="k">Next ID</span><span
+                                                        class="v mono">VA-2024-12846</span></li>
+                                                <li><span class="k">Custom Prefix</span><span class="v">Allowed</span>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ═══ TAB 3 — ALLOCATION RULES ═══ -->
+                        <div class="tab-pane fade" id="t3">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="fw-bold mb-0" style="font-size:.85rem;">Account Allocation & Sweep Rules</h6>
+                                <button class="btn btn-sm btn-primary" onclick="om('createRuleModal')"><i
+                                        class="bi bi-plus"></i> New Rule</button>
+                            </div>
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-6">
+                                    <div class="card border">
+                                        <div class="card-header bg-transparent border-0 pt-3 pb-0">
+                                            <h6 class="fw-bold mb-0" style="font-size:.82rem;"><i
+                                                    class="bi bi-box-arrow-in-down text-primary me-1"></i>Auto-Allocation
+                                                Rules</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="table-responsive">
+                                                <table class="table table-sm">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Rule</th>
+                                                            <th>Source</th>
+                                                            <th>Target Account</th>
+                                                            <th>Status</th>
+                                                            <th></th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr>
+                                                            <td>Incoming USD</td>
+                                                            <td>Wire/ACH</td>
+                                                            <td class="mono">VA-2024-00001</td>
+                                                            <td><span class="badge bg-success">Active</span></td>
+                                                            <td><button class="btn btn-xs btn-outline-primary"
+                                                                    onclick="om('editRuleModal')"><i
+                                                                        class="bi bi-pencil"></i></button></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Incoming EUR</td>
+                                                            <td>SEPA</td>
+                                                            <td class="mono">VA-2024-00002</td>
+                                                            <td><span class="badge bg-success">Active</span></td>
+                                                            <td><button class="btn btn-xs btn-outline-primary"
+                                                                    onclick="om('editRuleModal')"><i
+                                                                        class="bi bi-pencil"></i></button></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>E-Commerce Sales</td>
+                                                            <td>Payment Gateway</td>
+                                                            <td class="mono">VA-2024-00003</td>
+                                                            <td><span class="badge bg-success">Active</span></td>
+                                                            <td><button class="btn btn-xs btn-outline-primary"
+                                                                    onclick="om('editRuleModal')"><i
+                                                                        class="bi bi-pencil"></i></button></td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card border">
+                                        <div class="card-header bg-transparent border-0 pt-3 pb-0">
+                                            <h6 class="fw-bold mb-0" style="font-size:.82rem;"><i
+                                                    class="bi bi-arrow-up-circle text-warning me-1"></i>Sweep Rules (to
+                                                Parent)</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="table-responsive">
+                                                <table class="table table-sm">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Account</th>
+                                                            <th>Trigger</th>
+                                                            <th>Retain</th>
+                                                            <th>Status</th>
+                                                            <th></th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr>
+                                                            <td class="mono">VA-00001</td>
+                                                            <td>Balance > $500K</td>
+                                                            <td>$100K</td>
+                                                            <td><span class="badge bg-success">Active</span></td>
+                                                            <td><button class="btn btn-xs btn-outline-primary"
+                                                                    onclick="om('editSweepModal')"><i
+                                                                        class="bi bi-pencil"></i></button></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="mono">VA-00002</td>
+                                                            <td>Daily at 18:00</td>
+                                                            <td>€50K</td>
+                                                            <td><span class="badge bg-success">Active</span></td>
+                                                            <td><button class="btn btn-xs btn-outline-primary"
+                                                                    onclick="om('editSweepModal')"><i
+                                                                        class="bi bi-pencil"></i></button></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="mono">VA-00003</td>
+                                                            <td>Balance > £200K</td>
+                                                            <td>£25K</td>
+                                                            <td><span class="badge bg-warning">Paused</span></td>
+                                                            <td><button class="btn btn-xs btn-outline-primary"
+                                                                    onclick="om('editSweepModal')"><i
+                                                                        class="bi bi-pencil"></i></button></td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card border">
+                                        <div class="card-header bg-transparent border-0 pt-3 pb-0">
+                                            <h6 class="fw-bold mb-0" style="font-size:.82rem;"><i
+                                                    class="bi bi-lock text-danger me-1"></i>Reserve / Hold Rules</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <ul class="kv">
+                                                <li><span class="k">VA-00001</span><span class="v">$50,000
+                                                        reserved</span></li>
+                                                <li><span class="k">VA-00003</span><span class="v">£10,000
+                                                        reserved</span></li>
+                                                <li><span class="k">VA-00004</span><span class="v">KES 2M held
+                                                        (Compliance)</span></li>
+                                            </ul>
+                                            <button class="btn btn-sm btn-outline-primary w-100 mt-2"
+                                                onclick="om('setReserveModal')"><i class="bi bi-lock"></i> Manage
+                                                Reserves</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card border">
+                                        <div class="card-header bg-transparent border-0 pt-3 pb-0">
+                                            <h6 class="fw-bold mb-0" style="font-size:.82rem;"><i
+                                                    class="bi bi-percent text-info me-1"></i>Interest Allocation</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <ul class="kv">
+                                                <li><span class="k">Interest-bearing Accounts</span><span
+                                                        class="v">245</span></li>
+                                                <li><span class="k">Current Rate (USD)</span><span class="v">4.25%
+                                                        APY</span></li>
+                                                <li><span class="k">Accrued This Month</span><span
+                                                        class="v text-success">$42,560</span></li>
+                                                <li><span class="k">Last Credited</span><span class="v">Dec 1,
+                                                        2024</span></li>
+                                            </ul>
+                                            <button class="btn btn-sm btn-outline-info w-100 mt-2"
+                                                onclick="om('interestConfigModal')"><i class="bi bi-gear"></i> Configure
+                                                Interest</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ═══ TAB 4 — MULTI-TENANCY ═══ -->
+                        <div class="tab-pane fade" id="t4">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="fw-bold mb-0" style="font-size:.85rem;">Tenant Workspaces</h6>
+                                <button class="btn btn-sm btn-primary" onclick="om('createTenantModal')"><i
+                                        class="bi bi-plus"></i> New Tenant</button>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Tenant Name</th>
+                                            <th>Accounts</th>
+                                            <th>Balance</th>
+                                            <th>White-Label</th>
+                                            <th>Fee Plan</th>
+                                            <th>Joined</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr onclick="om('tenantDetailModal1')">
+                                            <td><strong>FinTech Solutions Inc</strong></td>
+                                            <td>4,256</td>
+                                            <td>$85.2M</td>
+                                            <td><span class="badge bg-success">Enabled</span></td>
+                                            <td>Enterprise</td>
+                                            <td>2023-06-15</td>
+                                            <td><span class="dot g"></span>Active</td>
+                                            <td>
+                                                <div class="d-flex gap-1"><button class="btn btn-xs btn-outline-primary"
+                                                        onclick="event.stopPropagation();om('tenantDetailModal1')"><i
+                                                            class="bi bi-eye"></i></button><button
+                                                        class="btn btn-xs btn-outline-secondary"
+                                                        onclick="event.stopPropagation();om('tenantConfigModal')"><i
+                                                            class="bi bi-gear"></i></button></div>
+                                            </td>
+                                        </tr>
+                                        <tr onclick="om('tenantDetailModal2')">
+                                            <td><strong>Global Payments Ltd</strong></td>
+                                            <td>3,892</td>
+                                            <td>€62.4M</td>
+                                            <td><span class="badge bg-success">Enabled</span></td>
+                                            <td>Growth</td>
+                                            <td>2023-09-22</td>
+                                            <td><span class="dot g"></span>Active</td>
+                                            <td>
+                                                <div class="d-flex gap-1"><button class="btn btn-xs btn-outline-primary"
+                                                        onclick="event.stopPropagation();om('tenantDetailModal2')"><i
+                                                            class="bi bi-eye"></i></button><button
+                                                        class="btn btn-xs btn-outline-secondary"
+                                                        onclick="event.stopPropagation();om('tenantConfigModal')"><i
+                                                            class="bi bi-gear"></i></button></div>
+                                            </td>
+                                        </tr>
+                                        <tr onclick="om('tenantDetailModal3')">
+                                            <td><strong>E-Commerce Hub</strong></td>
+                                            <td>2,456</td>
+                                            <td>£45.8M</td>
+                                            <td><span class="badge bg-secondary">Disabled</span></td>
+                                            <td>Starter</td>
+                                            <td>2024-01-10</td>
+                                            <td><span class="dot g"></span>Active</td>
+                                            <td>
+                                                <div class="d-flex gap-1"><button class="btn btn-xs btn-outline-primary"
+                                                        onclick="event.stopPropagation();om('tenantDetailModal3')"><i
+                                                            class="bi bi-eye"></i></button><button
+                                                        class="btn btn-xs btn-outline-secondary"
+                                                        onclick="event.stopPropagation();om('tenantConfigModal')"><i
+                                                            class="bi bi-gear"></i></button></div>
+                                            </td>
+                                        </tr>
+                                        <tr onclick="om('tenantDetailModal4')">
+                                            <td><strong>CryptoExchange Co</strong></td>
+                                            <td>1,845</td>
+                                            <td>$32.1M</td>
+                                            <td><span class="badge bg-success">Enabled</span></td>
+                                            <td>Enterprise</td>
+                                            <td>2024-03-05</td>
+                                            <td><span class="dot g"></span>Active</td>
+                                            <td>
+                                                <div class="d-flex gap-1"><button class="btn btn-xs btn-outline-primary"
+                                                        onclick="event.stopPropagation();om('tenantDetailModal4')"><i
+                                                            class="bi bi-eye"></i></button><button
+                                                        class="btn btn-xs btn-outline-secondary"
+                                                        onclick="event.stopPropagation();om('tenantConfigModal')"><i
+                                                            class="bi bi-gear"></i></button></div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- ═══ TAB 5 — IBAN MANAGEMENT ═══ -->
+                        <div class="tab-pane fade" id="t5">
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-3">
+                                    <div class="mc"><span class="mv text-primary">8,456</span><span class="ml">Total
+                                            IBANs</span></div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mc"><span class="mv text-success">8,201</span><span
+                                            class="ml">Verified</span></div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mc"><span class="mv text-warning">198</span><span class="ml">Pending
+                                            Verification</span></div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mc"><span class="mv text-info">4 Regions</span><span class="ml">EU, UK,
+                                            US, KE</span></div>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="fw-bold mb-0" style="font-size:.85rem;">Virtual IBANs / Dedicated Account
+                                    Numbers</h6>
+                                <button class="btn btn-sm btn-primary" onclick="om('generateIBANModal')"><i
+                                        class="bi bi-plus"></i> Generate IBAN</button>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>IBAN / Account No.</th>
+                                            <th>Virtual Account</th>
+                                            <th>Region</th>
+                                            <th>Format</th>
+                                            <th>Routing</th>
+                                            <th>Verified</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr onclick="om('ibanDetailModal1')">
+                                            <td><span class="mono">GB82 PAYMO 6091 7173 4567 89</span></td>
+                                            <td class="mono">VA-2024-00001</td>
+                                            <td>UK</td>
+                                            <td>GB IBAN</td>
+                                            <td>Sort: 60-91-71</td>
+                                            <td><span class="badge bg-success">Verified</span></td>
+                                            <td><button class="btn btn-xs btn-outline-primary"
+                                                    onclick="event.stopPropagation();om('ibanDetailModal1')"><i
+                                                        class="bi bi-eye"></i></button></td>
+                                        </tr>
+                                        <tr onclick="om('ibanDetailModal2')">
+                                            <td><span class="mono">DE89 3704 0044 0532 0130 00</span></td>
+                                            <td class="mono">VA-2024-00002</td>
+                                            <td>EU (SEPA)</td>
+                                            <td>DE IBAN</td>
+                                            <td>BIC: COBADEFFXXX</td>
+                                            <td><span class="badge bg-success">Verified</span></td>
+                                            <td><button class="btn btn-xs btn-outline-primary"
+                                                    onclick="event.stopPropagation();om('ibanDetailModal2')"><i
+                                                        class="bi bi-eye"></i></button></td>
+                                        </tr>
+                                        <tr onclick="om('ibanDetailModal3')">
+                                            <td><span class="mono">021000021 · 1234567890</span></td>
+                                            <td class="mono">VA-2024-00003</td>
+                                            <td>US</td>
+                                            <td>ABA/ACH</td>
+                                            <td>ABA: 021000021</td>
+                                            <td><span class="badge bg-success">Verified</span></td>
+                                            <td><button class="btn btn-xs btn-outline-primary"
+                                                    onclick="event.stopPropagation();om('ibanDetailModal3')"><i
+                                                        class="bi bi-eye"></i></button></td>
+                                        </tr>
+                                        <tr onclick="om('ibanDetailModal4')">
+                                            <td><span class="mono">KE02 KCBL 0100 0123 4567 890</span></td>
+                                            <td class="mono">VA-2024-00004</td>
+                                            <td>Kenya</td>
+                                            <td>KE Local</td>
+                                            <td>Bank: KCB 01</td>
+                                            <td><span class="badge bg-warning">Pending</span></td>
+                                            <td><button class="btn btn-xs btn-outline-primary"
+                                                    onclick="event.stopPropagation();om('ibanDetailModal4')"><i
+                                                        class="bi bi-eye"></i></button></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ═══════════ MODALS ═══════════ -->
+
+    <!-- ACCOUNT DETAIL 1 -->
+    <div class="modal fade" id="acctDetailModal1" tabindex="-1">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-wallet2 text-primary me-2"></i>VA-2024-00001 · FinTech
+                        Escrow</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-2 mb-3">
+                        <div class="col-4">
+                            <div class="mc"><span class="mv text-success">$1,245,680</span><span
+                                    class="ml">Balance</span></div>
+                        </div>
+                        <div class="col-4">
+                            <div class="mc"><span class="mv text-primary">2,456</span><span
+                                    class="ml">Transactions</span></div>
+                        </div>
+                        <div class="col-4">
+                            <div class="mc"><span class="mv text-info">145d</span><span class="ml">Account Age</span>
+                            </div>
+                        </div>
+                    </div>
+                    <ul class="kv">
+                        <li><span class="k">Account No.</span><span class="v mono">VA-2024-00001</span></li>
+                        <li><span class="k">Label</span><span class="v">FinTech Escrow</span></li>
+                        <li><span class="k">Tenant</span><span class="v">FinTech Solutions Inc</span></li>
+                        <li><span class="k">Currency</span><span class="v">USD</span></li>
+                        <li><span class="k">Parent (Nostro)</span><span class="v mono">NOS-KCB-001</span></li>
+                        <li><span class="k">IBAN</span><span class="v mono">GB82 PAYMO 6091 7173 4567 89</span></li>
+                        <li><span class="k">Created</span><span class="v">2024-08-05</span></li>
+                        <li><span class="k">Status</span><span class="v text-success">Active</span></li>
+                        <li><span class="k">Reserved</span><span class="v text-danger">$50,000</span></li>
+                        <li><span class="k">Available</span><span class="v text-success">$1,195,680</span></li>
+                        <li><span class="k">Auto-Close</span><span class="v">Disabled</span></li>
+                    </ul>
+                </div>
+                <div class="modal-footer"><button class="btn btn-outline-primary btn-sm" onclick="om('acctTxnModal')"><i
+                            class="bi bi-list-ul"></i> Transactions</button><button
+                        class="btn btn-outline-warning btn-sm" onclick="om('freezeAcctModal')"><i
+                            class="bi bi-snow"></i> Freeze</button><button class="btn btn-secondary btn-sm"
+                        data-bs-dismiss="modal">Close</button></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ACCOUNT DETAIL 2-5 (condensed) -->
+    <div class="modal fade" id="acctDetailModal2" tabindex="-1">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-wallet2 text-primary me-2"></i>VA-2024-00002 · Merchant
+                        Settlements</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <ul class="kv">
+                        <li><span class="k">Balance</span><span class="v">€892,340</span></li>
+                        <li><span class="k">Tenant</span><span class="v">Global Payments Ltd</span></li>
+                        <li><span class="k">Currency</span><span class="v">EUR</span></li>
+                        <li><span class="k">Parent</span><span class="v mono">NOS-BARCLAYS-002</span></li>
+                        <li><span class="k">IBAN</span><span class="v mono">DE89 3704 0044 0532 0130 00</span></li>
+                        <li><span class="k">Transactions (30d)</span><span class="v">1,845</span></li>
+                        <li><span class="k">Status</span><span class="v text-success">Active</span></li>
+                    </ul>
+                </div>
+                <div class="modal-footer"><button class="btn btn-outline-primary btn-sm" onclick="om('acctTxnModal')"><i
+                            class="bi bi-list-ul"></i> Transactions</button><button class="btn btn-secondary btn-sm"
+                        data-bs-dismiss="modal">Close</button></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="acctDetailModal3" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">VA-2024-00003 · Client Float</h5><button type="button" class="btn-close"
+                        data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <ul class="kv">
+                        <li><span class="k">Balance</span><span class="v">£456,120</span></li>
+                        <li><span class="k">Tenant</span><span class="v">E-Commerce Hub</span></li>
+                        <li><span class="k">Currency</span><span class="v">GBP</span></li>
+                        <li><span class="k">Parent</span><span class="v mono">NOS-HSBC-003</span></li>
+                        <li><span class="k">Status</span><span class="v text-success">Active</span></li>
+                    </ul>
+                </div>
+                <div class="modal-footer"><button class="btn btn-outline-primary btn-sm" onclick="om('acctTxnModal')"><i
+                            class="bi bi-list-ul"></i> Txns</button><button class="btn btn-secondary btn-sm"
+                        data-bs-dismiss="modal">Close</button></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="acctDetailModal4" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">VA-2024-00004 · Payroll Reserve</h5><button type="button" class="btn-close"
+                        data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="strip w mb-3"><i class="bi bi-exclamation-triangle me-1"></i>This account is
+                        <strong>FROZEN</strong>. Pending compliance review.</div>
+                    <ul class="kv">
+                        <li><span class="k">Balance</span><span class="v">KES 24,500,000</span></li>
+                        <li><span class="k">Tenant</span><span class="v">FinTech Solutions</span></li>
+                        <li><span class="k">Frozen Since</span><span class="v text-danger">Dec 20, 2024</span></li>
+                        <li><span class="k">Reason</span><span class="v">Compliance hold — AML review</span></li>
+                    </ul>
+                </div>
+                <div class="modal-footer"><button class="btn btn-outline-success btn-sm"
+                        onclick="om('unfreezeAcctModal')"><i class="bi bi-unlock"></i> Unfreeze</button><button
+                        class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="acctDetailModal5" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">VA-2024-00005 · Tax Withholding</h5><button type="button" class="btn-close"
+                        data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <ul class="kv">
+                        <li><span class="k">Balance</span><span class="v">$78,450</span></li>
+                        <li><span class="k">Tenant</span><span class="v">Global Payments</span></li>
+                        <li><span class="k">Purpose</span><span class="v">Tax withholding reserve</span></li>
+                        <li><span class="k">Status</span><span class="v text-success">Active</span></li>
+                    </ul>
+                </div>
+                <div class="modal-footer"><button class="btn btn-secondary btn-sm"
+                        data-bs-dismiss="modal">Close</button></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ACCOUNT TRANSACTIONS -->
+    <div class="modal fade" id="acctTxnModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Transaction History</h5><button type="button" class="btn-close"
+                        data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Reference</th>
+                                    <th>Type</th>
+                                    <th>Counterparty</th>
+                                    <th>Debit</th>
+                                    <th>Credit</th>
+                                    <th>Balance</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Dec 28</td>
+                                    <td class="mono">TXN-892341</td>
+                                    <td><span class="badge bg-success">Credit</span></td>
+                                    <td>Wire from Acme Corp</td>
+                                    <td>—</td>
+                                    <td class="text-success">$125,000</td>
+                                    <td>$1,245,680</td>
+                                </tr>
+                                <tr>
+                                    <td>Dec 27</td>
+                                    <td class="mono">TXN-892198</td>
+                                    <td><span class="badge bg-danger">Debit</span></td>
+                                    <td>Sweep to NOS-KCB-001</td>
+                                    <td class="text-danger">$500,000</td>
+                                    <td>—</td>
+                                    <td>$1,120,680</td>
+                                </tr>
+                                <tr>
+                                    <td>Dec 27</td>
+                                    <td class="mono">TXN-892145</td>
+                                    <td><span class="badge bg-success">Credit</span></td>
+                                    <td>ACH from Client XYZ</td>
+                                    <td>—</td>
+                                    <td class="text-success">$85,000</td>
+                                    <td>$1,620,680</td>
+                                </tr>
+                                <tr>
+                                    <td>Dec 26</td>
+                                    <td class="mono">TXN-891987</td>
+                                    <td><span class="badge bg-danger">Debit</span></td>
+                                    <td>Payout to Vendor A</td>
+                                    <td class="text-danger">$42,500</td>
+                                    <td>—</td>
+                                    <td>$1,535,680</td>
+                                </tr>
+                                <tr>
+                                    <td>Dec 26</td>
+                                    <td class="mono">TXN-891892</td>
+                                    <td><span class="badge bg-success">Credit</span></td>
+                                    <td>Wire from Partner B</td>
+                                    <td>—</td>
+                                    <td class="text-success">$200,000</td>
+                                    <td>$1,578,180</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer"><button class="btn btn-outline-primary btn-sm" onclick="exportCSV()"><i
+                            class="bi bi-download"></i> Export</button><button class="btn btn-secondary btn-sm"
+                        data-bs-dismiss="modal">Close</button></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CREATE CONFIRM -->
+    <div class="modal fade" id="createConfirmModal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirm Account Creation</h5><button type="button" class="btn-close"
+                        data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <ul class="kv">
+                        <li><span class="k">Label</span><span class="v">Merchant Settlements</span></li>
+                        <li><span class="k">Tenant</span><span class="v">FinTech Solutions</span></li>
+                        <li><span class="k">Currency</span><span class="v">USD</span></li>
+                        <li><span class="k">Jurisdiction</span><span class="v">United States</span></li>
+                        <li><span class="k">Parent</span><span class="v mono">NOS-KCB-001</span></li>
+                        <li><span class="k">IBAN</span><span class="v">Will be generated</span></li>
+                    </ul>
+                </div>
+                <div class="modal-footer"><button class="btn btn-primary btn-sm"
+                        onclick="doAction('Account created successfully. ID: VA-2024-12846')"><i
+                            class="bi bi-check-circle"></i> Confirm</button><button
+                        class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BULK CREATE -->
+    <div class="modal fade" id="bulkCreateModal" tabindex="-1">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-grid-3x3-gap me-2"></i>Bulk Account Creation</h5><button
+                        type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="strip i mb-3"><i class="bi bi-info-circle me-1"></i>Upload a CSV file to create multiple
+                        virtual accounts at once. Max 1,000 accounts per upload.</div>
+                    <div class="mb-3"><label class="form-label">Upload CSV File</label><input type="file"
+                            class="form-control" accept=".csv"></div>
+                    <div class="mb-3"><label class="form-label">Default Currency</label><select class="form-select">
+                            <option>USD</option>
+                            <option>EUR</option>
+                            <option>GBP</option>
+                            <option>KES</option>
+                        </select></div>
+                    <div class="mb-3"><label class="form-label">Default Tenant</label><select class="form-select">
+                            <option>FinTech Solutions Inc</option>
+                            <option>Global Payments Ltd</option>
+                            <option>E-Commerce Hub</option>
+                        </select></div>
+                    <div class="form-check"><input class="form-check-input" type="checkbox" checked><label
+                            class="form-check-label small">Auto-generate IBAN for each account</label></div>
+                </div>
+                <div class="modal-footer"><button class="btn btn-primary btn-sm"
+                        onclick="doAction('Bulk creation started. 150 accounts queued.')"><i class="bi bi-upload"></i>
+                        Upload & Create</button><button class="btn btn-outline-secondary btn-sm"
+                        data-bs-dismiss="modal">Cancel</button></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FREEZE / UNFREEZE -->
+    <div class="modal fade" id="freezeAcctModal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Freeze Account</h5><button type="button" class="btn-close"
+                        data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="strip e mb-3"><i class="bi bi-exclamation-triangle me-1"></i>Freezing will block all
+                        debits and credits on this account.</div>
+                    <div class="mb-3"><label class="form-label">Reason</label><select class="form-select">
+                            <option>Compliance / AML Review</option>
+                            <option>Client Request</option>
+                            <option>Suspicious Activity</option>
+                            <option>Administrative Hold</option>
+                        </select></div>
+                    <div class="mb-3"><label class="form-label">Notes</label><textarea class="form-control" rows="2"
+                            placeholder="Describe reason for freeze…"></textarea></div>
+                </div>
+                <div class="modal-footer"><button class="btn btn-danger btn-sm"
+                        onclick="doAction('Account frozen successfully.')"><i class="bi bi-snow"></i>
+                        Freeze</button><button class="btn btn-outline-secondary btn-sm"
+                        data-bs-dismiss="modal">Cancel</button></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="unfreezeAcctModal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Unfreeze Account</h5><button type="button" class="btn-close"
+                        data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="strip s mb-3"><i class="bi bi-check-circle me-1"></i>This will restore full access to
+                        this virtual account.</div>
+                    <ul class="kv mb-3">
+                        <li><span class="k">Account</span><span class="v mono">VA-2024-00004</span></li>
+                        <li><span class="k">Frozen Since</span><span class="v">Dec 20, 2024</span></li>
+                        <li><span class="k">Reason</span><span class="v">AML Review</span></li>
+                    </ul>
+                    <div class="mb-3"><label class="form-label">Clearance Notes</label><textarea class="form-control"
+                            rows="2" placeholder="Document reason for unfreeze…"></textarea></div>
+                </div>
+                <div class="modal-footer"><button class="btn btn-success btn-sm"
+                        onclick="doAction('Account unfrozen. Normal operations resumed.')"><i class="bi bi-unlock"></i>
+                        Unfreeze</button><button class="btn btn-outline-secondary btn-sm"
+                        data-bs-dismiss="modal">Cancel</button></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CREATE / EDIT RULES -->
+    <div class="modal fade" id="createRuleModal" tabindex="-1">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Create Allocation Rule</h5><button type="button" class="btn-close"
+                        data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3"><label class="form-label">Rule Type</label><select class="form-select">
+                            <option>Auto-Allocation (Incoming)</option>
+                            <option>Sweep (to Parent)</option>
+                            <option>Reserve / Hold</option>
+                        </select></div>
+                    <div class="mb-3"><label class="form-label">Source</label><select class="form-select">
+                            <option>All Incoming Transfers</option>
+                            <option>Wire/ACH Only</option>
+                            <option>SEPA Only</option>
+                            <option>Payment Gateway</option>
+                        </select></div>
+                    <div class="mb-3"><label class="form-label">Target Virtual Account</label><select
+                            class="form-select">
+                            <option>VA-2024-00001 — FinTech Escrow</option>
+                            <option>VA-2024-00002 — Merchant Settlements</option>
+                            <option>VA-2024-00003 — Client Float</option>
+                        </select></div>
+                    <div class="mb-3"><label class="form-label">Condition</label><input type="text" class="form-control"
+                            placeholder="e.g. currency=USD AND amount > 1000"></div>
+                </div>
+                <div class="modal-footer"><button class="btn btn-primary btn-sm"
+                        onclick="doAction('Allocation rule created.')"><i class="bi bi-check-circle"></i> Create
+                        Rule</button><button class="btn btn-outline-secondary btn-sm"
+                        data-bs-dismiss="modal">Cancel</button></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="editRuleModal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Allocation Rule</h5><button type="button" class="btn-close"
+                        data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3"><label class="form-label">Source</label><select class="form-select">
+                            <option selected>Wire/ACH</option>
+                            <option>SEPA</option>
+                            <option>Payment Gateway</option>
+                        </select></div>
+                    <div class="mb-3"><label class="form-label">Target Account</label><select class="form-select">
+                            <option selected>VA-2024-00001</option>
+                            <option>VA-2024-00002</option>
+                        </select></div>
+                    <div class="mb-3"><label class="form-label">Status</label><select class="form-select">
+                            <option selected>Active</option>
+                            <option>Paused</option>
+                        </select></div>
+                </div>
+                <div class="modal-footer"><button class="btn btn-primary btn-sm" onclick="doAction('Rule updated.')"><i
+                            class="bi bi-save"></i> Save</button><button class="btn btn-outline-secondary btn-sm"
+                        data-bs-dismiss="modal">Cancel</button></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="editSweepModal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Sweep Rule</h5><button type="button" class="btn-close"
+                        data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3"><label class="form-label">Trigger</label><select class="form-select">
+                            <option selected>Balance exceeds threshold</option>
+                            <option>Daily at fixed time</option>
+                            <option>Weekly</option>
+                        </select></div>
+                    <div class="mb-3"><label class="form-label">Threshold Amount</label><input type="number"
+                            class="form-control" value="500000"></div>
+                    <div class="mb-3"><label class="form-label">Retain Amount</label><input type="number"
+                            class="form-control" value="100000"></div>
+                    <div class="mb-3"><label class="form-label">Status</label><select class="form-select">
+                            <option selected>Active</option>
+                            <option>Paused</option>
+                        </select></div>
+                </div>
+                <div class="modal-footer"><button class="btn btn-primary btn-sm"
+                        onclick="doAction('Sweep rule saved.')"><i class="bi bi-save"></i> Save</button><button
+                        class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="setReserveModal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Set Reserve Amount</h5><button type="button" class="btn-close"
+                        data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3"><label class="form-label">Virtual Account</label><select class="form-select">
+                            <option>VA-2024-00001 — FinTech Escrow</option>
+                            <option>VA-2024-00002 — Merchant Settlements</option>
+                            <option>VA-2024-00003 — Client Float</option>
+                        </select></div>
+                    <div class="mb-3"><label class="form-label">Reserve Amount</label><input type="number"
+                            class="form-control" value="50000"></div>
+                    <div class="mb-3"><label class="form-label">Reason</label><select class="form-select">
+                            <option>Regulatory requirement</option>
+                            <option>Client agreement</option>
+                            <option>Compliance hold</option>
+                        </select></div>
+                </div>
+                <div class="modal-footer"><button class="btn btn-primary btn-sm"
+                        onclick="doAction('Reserve set successfully.')"><i class="bi bi-lock"></i> Set
+                        Reserve</button><button class="btn btn-outline-secondary btn-sm"
+                        data-bs-dismiss="modal">Cancel</button></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="interestConfigModal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Interest Configuration</h5><button type="button" class="btn-close"
+                        data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <ul class="kv mb-3">
+                        <li><span class="k">Current Rate (USD)</span><span class="v">4.25% APY</span></li>
+                        <li><span class="k">Current Rate (EUR)</span><span class="v">3.50% APY</span></li>
+                        <li><span class="k">Current Rate (GBP)</span><span class="v">4.00% APY</span></li>
+                        <li><span class="k">Accrual Method</span><span class="v">Daily accrual, monthly credit</span>
+                        </li>
+                        <li><span class="k">Interest-Bearing Accounts</span><span class="v">245 of 12,845</span></li>
+                        <li><span class="k">Last Credit Date</span><span class="v">Dec 1, 2024</span></li>
+                        <li><span class="k">Next Credit Date</span><span class="v">Jan 1, 2025</span></li>
+                    </ul>
+                </div>
+                <div class="modal-footer"><button class="btn btn-secondary btn-sm"
+                        data-bs-dismiss="modal">Close</button></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TENANT MODALS -->
+    <div class="modal fade" id="tenantDetailModal1" tabindex="-1">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-buildings text-primary me-2"></i>FinTech Solutions Inc</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-2 mb-3">
+                        <div class="col-4">
+                            <div class="mc"><span class="mv text-primary">4,256</span><span class="ml">Accounts</span>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="mc"><span class="mv text-success">$85.2M</span><span class="ml">Balance</span>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="mc"><span class="mv text-info">Enterprise</span><span class="ml">Fee Plan</span>
+                            </div>
+                        </div>
+                    </div>
+                    <ul class="kv">
+                        <li><span class="k">Tenant ID</span><span class="v mono">TNT-001</span></li>
+                        <li><span class="k">White-Label</span><span class="v text-success">Enabled — Custom branding
+                                active</span></li>
+                        <li><span class="k">Joined</span><span class="v">Jun 15, 2023</span></li>
+                        <li><span class="k">Workspace URL</span><span class="v mono">fintechsolutions.paymo.com</span>
+                        </li>
+                        <li><span class="k">Monthly Fees</span><span class="v">$2,500 + $0.10/txn</span></li>
+                        <li><span class="k">Report Schedule</span><span class="v">Weekly (Monday)</span></li>
+                        <li><span class="k">Primary Contact</span><span class="v">James Kamau — CFO</span></li>
+                    </ul>
+                </div>
+                <div class="modal-footer"><button class="btn btn-outline-primary btn-sm"
+                        onclick="om('tenantConfigModal')"><i class="bi bi-gear"></i> Configure</button><button
+                        class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="tenantDetailModal2" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Global Payments Ltd</h5><button type="button" class="btn-close"
+                        data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <ul class="kv">
+                        <li><span class="k">Accounts</span><span class="v">3,892</span></li>
+                        <li><span class="k">Balance</span><span class="v">€62.4M</span></li>
+                        <li><span class="k">Plan</span><span class="v">Growth</span></li>
+                        <li><span class="k">White-Label</span><span class="v text-success">Enabled</span></li>
+                        <li><span class="k">Fees</span><span class="v">$1,500 + $0.08/txn</span></li>
+                    </ul>
+                </div>
+                <div class="modal-footer"><button class="btn btn-secondary btn-sm"
+                        data-bs-dismiss="modal">Close</button></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="tenantDetailModal3" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">E-Commerce Hub</h5><button type="button" class="btn-close"
+                        data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <ul class="kv">
+                        <li><span class="k">Accounts</span><span class="v">2,456</span></li>
+                        <li><span class="k">Balance</span><span class="v">£45.8M</span></li>
+                        <li><span class="k">Plan</span><span class="v">Starter</span></li>
+                        <li><span class="k">White-Label</span><span class="v text-muted">Disabled</span></li>
+                        <li><span class="k">Fees</span><span class="v">$500 + $0.15/txn</span></li>
+                    </ul>
+                </div>
+                <div class="modal-footer"><button class="btn btn-secondary btn-sm"
+                        data-bs-dismiss="modal">Close</button></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="tenantDetailModal4" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">CryptoExchange Co</h5><button type="button" class="btn-close"
+                        data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <ul class="kv">
+                        <li><span class="k">Accounts</span><span class="v">1,845</span></li>
+                        <li><span class="k">Balance</span><span class="v">$32.1M</span></li>
+                        <li><span class="k">Plan</span><span class="v">Enterprise</span></li>
+                        <li><span class="k">White-Label</span><span class="v text-success">Enabled</span></li>
+                        <li><span class="k">Fees</span><span class="v">$2,500 + $0.10/txn</span></li>
+                    </ul>
+                </div>
+                <div class="modal-footer"><button class="btn btn-secondary btn-sm"
+                        data-bs-dismiss="modal">Close</button></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="tenantConfigModal" tabindex="-1">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-gear me-2"></i>Tenant Configuration</h5><button
+                        type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <ul class="nav nav-tabs mb-3">
+                        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab"
+                                data-bs-target="#tcBrand">Branding</button></li>
+                        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab"
+                                data-bs-target="#tcFees">Fees</button></li>
+                        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab"
+                                data-bs-target="#tcReport">Reports</button></li>
+                    </ul>
+                    <div class="tab-content">
+                        <div class="tab-pane show active" id="tcBrand">
+                            <div class="mb-3"><label class="form-label">Subdomain</label>
+                                <div class="input-group"><input type="text" class="form-control"
+                                        value="fintechsolutions"><span class="input-group-text">.paymo.com</span></div>
+                            </div>
+                            <div class="mb-3"><label class="form-label">Logo URL</label><input type="text"
+                                    class="form-control" value="https://cdn.fintechsolutions.com/logo.png"></div>
+                            <div class="mb-3"><label class="form-label">Primary Color</label>
+                                <div class="input-group"><input type="color" class="form-control form-control-color"
+                                        value="#2563eb" style="width:60px;"><input type="text" class="form-control"
+                                        value="#2563eb"></div>
+                            </div>
+                        </div>
+                        <div class="tab-pane" id="tcFees">
+                            <div class="mb-3"><label class="form-label">Monthly Platform Fee</label><input type="number"
+                                    class="form-control" value="2500"></div>
+                            <div class="mb-3"><label class="form-label">Per-Transaction Fee</label><input type="number"
+                                    class="form-control" value="0.10" step="0.01"></div>
+                            <div class="mb-3"><label class="form-label">Revenue Share (%)</label><input type="number"
+                                    class="form-control" value="15" step="1"></div>
+                        </div>
+                        <div class="tab-pane" id="tcReport">
+                            <div class="mb-3"><label class="form-label">Report Frequency</label><select
+                                    class="form-select">
+                                    <option selected>Weekly (Monday)</option>
+                                    <option>Daily</option>
+                                    <option>Monthly</option>
+                                </select></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" checked><label
+                                    class="form-check-label small">Auto-send to tenant admin</label></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer"><button class="btn btn-primary btn-sm"
+                        onclick="doAction('Tenant configuration saved.')"><i class="bi bi-save"></i>
+                        Save</button><button class="btn btn-outline-secondary btn-sm"
+                        data-bs-dismiss="modal">Cancel</button></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="createTenantModal" tabindex="-1">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Create New Tenant</h5><button type="button" class="btn-close"
+                        data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6"><label class="form-label">Company Name</label><input type="text"
+                                class="form-control" placeholder="e.g. NewFinTech Ltd"></div>
+                        <div class="col-md-6"><label class="form-label">Primary Contact</label><input type="text"
+                                class="form-control" placeholder="Full name"></div>
+                        <div class="col-md-6"><label class="form-label">Email</label><input type="email"
+                                class="form-control" placeholder="admin@company.com"></div>
+                        <div class="col-md-6"><label class="form-label">Fee Plan</label><select class="form-select">
+                                <option>Starter ($500/mo)</option>
+                                <option>Growth ($1,500/mo)</option>
+                                <option>Enterprise ($2,500/mo)</option>
+                            </select></div>
+                        <div class="col-md-6"><label class="form-label">Default Currency</label><select
+                                class="form-select">
+                                <option>USD</option>
+                                <option>EUR</option>
+                                <option>GBP</option>
+                            </select></div>
+                        <div class="col-md-6"><label class="form-label">White-Label</label><select class="form-select">
+                                <option>Enabled</option>
+                                <option selected>Disabled</option>
+                            </select></div>
+                    </div>
+                </div>
+                <div class="modal-footer"><button class="btn btn-primary btn-sm"
+                        onclick="doAction('Tenant created. Onboarding email sent.')"><i class="bi bi-check-circle"></i>
+                        Create</button><button class="btn btn-outline-secondary btn-sm"
+                        data-bs-dismiss="modal">Cancel</button></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- IBAN MODALS -->
+    <div class="modal fade" id="generateIBANModal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Generate Virtual IBAN</h5><button type="button" class="btn-close"
+                        data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3"><label class="form-label">Virtual Account</label><select class="form-select">
+                            <option>VA-2024-00001 — FinTech Escrow</option>
+                            <option>VA-2024-00002 — Merchant Settlements</option>
+                            <option>VA-2024-00003 — Client Float</option>
+                        </select></div>
+                    <div class="mb-3"><label class="form-label">Region / Format</label><select class="form-select">
+                            <option>UK (GB IBAN)</option>
+                            <option>EU / SEPA (DE IBAN)</option>
+                            <option>US (ABA + Account No.)</option>
+                            <option>Kenya (KE Local)</option>
+                        </select></div>
+                </div>
+                <div class="modal-footer"><button class="btn btn-primary btn-sm"
+                        onclick="doAction('IBAN generated: GB82 PAYMO 6091 7173 8901 23')"><i class="bi bi-globe"></i>
+                        Generate</button><button class="btn btn-outline-secondary btn-sm"
+                        data-bs-dismiss="modal">Cancel</button></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="ibanDetailModal1" tabindex="-1">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">IBAN Details — UK</h5><button type="button" class="btn-close"
+                        data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <ul class="kv">
+                        <li><span class="k">IBAN</span><span class="v mono">GB82 PAYMO 6091 7173 4567 89</span></li>
+                        <li><span class="k">Virtual Account</span><span class="v mono">VA-2024-00001</span></li>
+                        <li><span class="k">Sort Code</span><span class="v mono">60-91-71</span></li>
+                        <li><span class="k">Account Number</span><span class="v mono">73456789</span></li>
+                        <li><span class="k">BIC / SWIFT</span><span class="v mono">PAYMOGB2L</span></li>
+                        <li><span class="k">Bank Name</span><span class="v">PayMo Payments Ltd</span></li>
+                        <li><span class="k">Verification</span><span class="v text-success">✓ Verified (Dec 5,
+                                2024)</span></li>
+                        <li><span class="k">Inbound Payments</span><span class="v text-success">Enabled</span></li>
+                        <li><span class="k">Supported Rails</span><span class="v">FPS, BACS, CHAPS</span></li>
+                    </ul>
+                </div>
+                <div class="modal-footer"><button class="btn btn-outline-primary btn-sm" onclick="copyIBAN()"><i
+                            class="bi bi-clipboard"></i> Copy IBAN</button><button class="btn btn-secondary btn-sm"
+                        data-bs-dismiss="modal">Close</button></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="ibanDetailModal2" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">IBAN Details — EU</h5><button type="button" class="btn-close"
+                        data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <ul class="kv">
+                        <li><span class="k">IBAN</span><span class="v mono">DE89 3704 0044 0532 0130 00</span></li>
+                        <li><span class="k">BIC</span><span class="v mono">COBADEFFXXX</span></li>
+                        <li><span class="k">Rails</span><span class="v">SEPA CT, SEPA DD</span></li>
+                        <li><span class="k">Verified</span><span class="v text-success">Yes</span></li>
+                    </ul>
+                </div>
+                <div class="modal-footer"><button class="btn btn-secondary btn-sm"
+                        data-bs-dismiss="modal">Close</button></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="ibanDetailModal3" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Account Details — US</h5><button type="button" class="btn-close"
+                        data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <ul class="kv">
+                        <li><span class="k">ABA / Routing</span><span class="v mono">021000021</span></li>
+                        <li><span class="k">Account No.</span><span class="v mono">1234567890</span></li>
+                        <li><span class="k">Rails</span><span class="v">Wire, ACH</span></li>
+                        <li><span class="k">Verified</span><span class="v text-success">Yes</span></li>
+                    </ul>
+                </div>
+                <div class="modal-footer"><button class="btn btn-secondary btn-sm"
+                        data-bs-dismiss="modal">Close</button></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="ibanDetailModal4" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Account Details — Kenya</h5><button type="button" class="btn-close"
+                        data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="strip w mb-3"><i class="bi bi-clock me-1"></i>Verification in progress. Est. 2 business
+                        days.</div>
+                    <ul class="kv">
+                        <li><span class="k">Account No.</span><span class="v mono">KE02 KCBL 0100 0123 4567 890</span>
+                        </li>
+                        <li><span class="k">Bank</span><span class="v">KCB Bank Kenya</span></li>
+                        <li><span class="k">Branch</span><span class="v">Nairobi Main — 01</span></li>
+                        <li><span class="k">Verified</span><span class="v text-warning">Pending</span></li>
+                    </ul>
+                </div>
+                <div class="modal-footer"><button class="btn btn-secondary btn-sm"
+                        data-bs-dismiss="modal">Close</button></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- KPI MODALS -->
+    <div class="modal fade" id="totalAccountsModal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Total Virtual Accounts</h5><button type="button" class="btn-close"
+                        data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-3">
+                        <h2 class="fw-bold text-primary">12,845</h2><small class="text-success"><i
+                                class="bi bi-arrow-up"></i> +24.5% vs last month</small>
+                    </div>
+                    <ul class="kv">
+                        <li><span class="k">Active</span><span class="v text-success">12,456</span></li>
+                        <li><span class="k">Frozen</span><span class="v text-warning">234</span></li>
+                        <li><span class="k">Closed (30d)</span><span class="v text-muted">155</span></li>
+                        <li><span class="k">Created (30d)</span><span class="v text-primary">2,456</span></li>
+                    </ul>
+                </div>
+                <div class="modal-footer"><button class="btn btn-secondary btn-sm"
+                        data-bs-dismiss="modal">Close</button></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="totalBalanceModal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Aggregate Balance</h5><button type="button" class="btn-close"
+                        data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <ul class="kv">
+                        <li><span class="k">USD</span><span class="v">$142.5M</span></li>
+                        <li><span class="k">EUR</span><span class="v">€62.4M</span></li>
+                        <li><span class="k">GBP</span><span class="v">£28.9M</span></li>
+                        <li><span class="k">KES</span><span class="v">KES 1.2B</span></li>
+                        <li><span class="k">Total (USD equiv.)</span><span class="v fw-bold text-success">$245M</span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="modal-footer"><button class="btn btn-secondary btn-sm"
+                        data-bs-dismiss="modal">Close</button></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="tenantsOverviewModal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Active Tenants</h5><button type="button" class="btn-close"
+                        data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <ul class="kv">
+                        <li><span class="k">Total Active</span><span class="v">892</span></li>
+                        <li><span class="k">Enterprise Plan</span><span class="v">245</span></li>
+                        <li><span class="k">Growth Plan</span><span class="v">412</span></li>
+                        <li><span class="k">Starter Plan</span><span class="v">235</span></li>
+                        <li><span class="k">White-Label Active</span><span class="v">567</span></li>
+                    </ul>
+                </div>
+                <div class="modal-footer"><button class="btn btn-secondary btn-sm"
+                        data-bs-dismiss="modal">Close</button></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="ibanStatsModal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">IBAN Statistics</h5><button type="button" class="btn-close"
+                        data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <ul class="kv">
+                        <li><span class="k">Total IBANs</span><span class="v">8,456</span></li>
+                        <li><span class="k">UK (GB)</span><span class="v">3,245</span></li>
+                        <li><span class="k">EU / SEPA (DE)</span><span class="v">2,892</span></li>
+                        <li><span class="k">US (ABA)</span><span class="v">1,567</span></li>
+                        <li><span class="k">Kenya (KE)</span><span class="v">752</span></li>
+                        <li><span class="k">Verified</span><span class="v text-success">8,201 (97%)</span></li>
+                    </ul>
+                </div>
+                <div class="modal-footer"><button class="btn btn-secondary btn-sm"
+                        data-bs-dismiss="modal">Close</button></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- NOTIFICATIONS & PROFILE -->
+    <div class="modal fade" id="notifModal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Notifications</h5><button type="button" class="btn-close"
+                        data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" style="max-height:360px;overflow-y:auto;">
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between">
+                                <h6 class="mb-1 small">Bulk Creation Complete</h6><small class="text-success">10
+                                    min</small>
+                            </div>
+                            <p class="mb-0 small text-muted">150 accounts created for FinTech Solutions</p>
+                        </div>
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between">
+                                <h6 class="mb-1 small">Account Frozen</h6><small class="text-danger">1 hour</small>
+                            </div>
+                            <p class="mb-0 small text-muted">VA-2024-00004 frozen by compliance</p>
+                        </div>
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between">
+                                <h6 class="mb-1 small">Sweep Executed</h6><small class="text-info">3 hours</small>
+                            </div>
+                            <p class="mb-0 small text-muted">$400K swept from VA-00001 to NOS-KCB-001</p>
+                        </div>
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between">
+                                <h6 class="mb-1 small">IBAN Verified</h6><small class="text-success">5 hours</small>
+                            </div>
+                            <p class="mb-0 small text-muted">KE IBAN for VA-2024-00004 now verified</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer"><button class="btn btn-sm btn-outline-primary" onclick="closeAllModals()">Mark
+                        All Read</button><button class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="profileModal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Account</h5><button type="button" class="btn-close"
+                        data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-3">
+                        <div class="rounded-circle bg-primary bg-opacity-10 d-inline-flex align-items-center justify-content-center"
+                            style="width:52px;height:52px;"><i class="bi bi-person-circle text-primary"
+                                style="font-size:1.6rem;"></i></div>
+                        <h6 class="mt-2 mb-0">Account Operations</h6><small class="text-muted">PayMo Platform
+                            Admin</small>
+                    </div>
+                    <hr>
+                    <div class="list-group list-group-flush"><button
+                            class="list-group-item list-group-item-action border-0 small"><i
+                                class="bi bi-gear me-2"></i>Settings</button><button
+                            class="list-group-item list-group-item-action border-0 small text-danger"
+                            onclick="if(confirm('Logout?'))window.location='/login'"><i
+                                class="bi bi-box-arrow-right me-2"></i>Logout</button></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let _m = null;
+        function om(id) { if (_m) { _m.hide(); } const el = document.getElementById(id); if (!el) return; const m = new bootstrap.Modal(el); m.show(); _m = m; el.addEventListener('hidden.bs.modal', () => { _m = null; }, { once: true }); }
+        function closeAllModals() { document.querySelectorAll('.modal.show').forEach(el => { bootstrap.Modal.getInstance(el)?.hide(); }); }
+
+        function doAction(msg) {
+            closeAllModals();
+            const s = document.createElement('div'); s.className = 'position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center'; s.style.cssText = 'background:rgba(0,0,0,.5);z-index:9999;';
+            s.innerHTML = '<div class="bg-white rounded p-4 text-center shadow"><div class="spinner-border text-primary mb-2"></div><div class="fw-semibold">Processing…</div></div>';
+            document.body.appendChild(s);
+            setTimeout(() => {
+                s.remove();
+                const r = document.createElement('div'); r.className = 'modal fade'; r.id = 'dynRes';
+                r.innerHTML = `<div class="modal-dialog modal-sm"><div class="modal-content"><div class="modal-header border-0 pb-0"><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body text-center"><div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-success bg-opacity-10 mb-3" style="width:64px;height:64px;font-size:2rem;"><i class="bi bi-check-circle-fill text-success"></i></div><h6 class="fw-bold">Success</h6><p class="small text-muted mb-0">${msg}</p></div><div class="modal-footer border-0 pt-0"><button class="btn btn-primary btn-sm w-100" data-bs-dismiss="modal">Done</button></div></div></div>`;
+                document.body.appendChild(r);
+                const m2 = new bootstrap.Modal(r); m2.show(); r.addEventListener('hidden.bs.modal', () => { r.remove(); }, { once: true });
+            }, 1200);
+        }
+
+        function downloadTemplate() { doAction('Template downloaded: virtual_accounts_template.csv'); }
+        function exportCSV() { doAction('Transaction history exported successfully.'); }
+        function copyIBAN() { doAction('IBAN copied to clipboard.'); }
+
+        document.addEventListener('click', e => { const sb = document.getElementById('sidebar'); if (!sb.contains(e.target) && !e.target.closest('.ib') && window.innerWidth <= 768) { sb.classList.remove('show'); } });
+    </script>
+</body>
+
+</html>

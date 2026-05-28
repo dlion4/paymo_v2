@@ -447,7 +447,7 @@ This dashboard provides value-added financial services, utility functions, and e
    - Revenue opportunity scoring
    - Personalized service bundles
 
----
+<!-- ---
 
 ## Page 2.2 — Bill Pay & Utilities
 
@@ -485,11 +485,11 @@ This dashboard provides value-added financial services, utility functions, and e
    - Payment confirmation tracking
    - Failed bill payment handling
    - Refund request management
-   - Biller dispute resolution
+   - Biller dispute resolution -->
 
 ---
 
-## Page 2.3 — Collections & Invoicing
+<!-- ## Page 2.3 — Collections & Invoicing
 
 **Purpose:** Receivables management and payment collection infrastructure.
 
@@ -529,7 +529,7 @@ This dashboard provides value-added financial services, utility functions, and e
 
 ---
 
-## Page 2.4 — Virtual Accounts & Sub-Accounts
+<!-- ## Page 2.4 — Virtual Accounts & Sub-Accounts
 
 **Purpose:** Programmatic account creation for clients, merchants, and use-case segregation.
 
@@ -565,7 +565,11 @@ This dashboard provides value-added financial services, utility functions, and e
    - Account verification status
    - Routing information management
 
----
+--- -->
+
+
+
+ -->
 
 ## Page 2.5 — FX & Treasury Services
 
@@ -573,7 +577,7 @@ This dashboard provides value-added financial services, utility functions, and e
 
 ### Sections & Content:
 
-1. **Live FX Rates Board**
+<!-- 1. **Live FX Rates Board**
    - Real-time mid-market rates
    - Bid/ask spreads
    - Rate history charts
@@ -605,8 +609,8 @@ This dashboard provides value-added financial services, utility functions, and e
    - Hedge ratio tracking
    - P&L from FX operations
 
----
-
+--- -->
+<!-- 
 ## Page 2.6 — Payroll & Disbursements
 
 **Purpose:** Bulk payment distribution for salaries, vendor payments, and disbursements.
@@ -645,9 +649,11 @@ This dashboard provides value-added financial services, utility functions, and e
    - Regulatory payroll reports
    - Audit trail for all disbursements
 
----
+--- -->
 
-## Page 2.7 — Open Banking & Account Aggregation
+
+
+ <!-- ## Page 2.7 — Open Banking & Account Aggregation
 
 **Purpose:** Connect external bank accounts for data aggregation and payment initiation.
 
@@ -681,7 +687,7 @@ This dashboard provides value-added financial services, utility functions, and e
    - Active consent management
    - Consent expiration tracking
    - Data scope modification
-   - Consent revocation
+   - Consent revocation -->
 
 ---
 
