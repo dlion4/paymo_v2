@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Apply for a Loan - PayMo Borrower</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="stylesheet" href="master.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    .two-col { display: grid; grid-template-columns: 1.6fr 1fr; gap: 16px; }
+    .three-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .prod-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
+    .prod-card { background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius); padding: 18px; cursor: pointer; transition: all .15s; }
+    .prod-card:hover { border-color: var(--primary); box-shadow: var(--shadow-lg); transform: translateY(-2px); }
+    .prod-card.selected { border-color: var(--primary); background: var(--primary-soft); }
+    .prod-icon { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; }
+    .calc-box { background: var(--surface-2); border-radius: var(--radius-lg); padding: 24px; border: 1px solid var(--border); }
+    .slider-wrap { margin: 20px 0; }
+    .slider { width: 100%; height: 6px; border-radius: 999px; appearance: none; background: var(--border); outline: none; }
+    .slider::-webkit-slider-thumb { appearance: none; width: 22px; height: 22px; border-radius: 50%; background: var(--primary); border: 3px solid #fff; box-shadow: var(--shadow); cursor: pointer; }
+    .calc-result { background: var(--surface); border-radius: 14px; padding: 20px; text-align: center; border: 1px solid var(--border-soft); box-shadow: var(--shadow-sm); }
+    .money-large { font-size: 32px; font-weight: 700; letter-spacing: -.04em; color: var(--primary); }
+    .afford-bar { height: 10px; border-radius: 999px; background: var(--surface-3); overflow: hidden; margin-top: 10px; }
+    .afford-bar span { display: block; height: 100%; border-radius: 999px; transition: width 0.3s; }
+    .afford-green { background: var(--success); }
+    .afford-yellow { background: var(--warning); }
+    .afford-red { background: var(--danger); }
+    .tracker { display: flex; justify-content: space-between; position: relative; margin: 40px 0; }
+    .tracker:before { content: ""; position: absolute; top: 15px; left: 0; right: 0; height: 3px; background: var(--border-soft); z-index: 0; }
+    .track-step { position: relative; z-index: 1; text-align: center; width: 20%; }
+    .track-dot { width: 32px; height: 32px; border-radius: 50%; background: var(--surface); border: 3px solid var(--border-soft); margin: 0 auto 8px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; color: var(--text-4); }
+    .track-step.active .track-dot { border-color: var(--primary); color: var(--primary); background: var(--primary-soft); }
+    .track-step.done .track-dot { border-color: var(--success); background: var(--success); color: #fff; }
+    .track-lbl { font-size: 11px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: .05em; }
+    .doc-drop { border: 2px dashed var(--border); border-radius: 14px; padding: 32px; text-align: center; background: var(--surface-2); cursor: pointer; transition: all .15s; }
+    .doc-drop:hover { border-color: var(--primary); background: var(--primary-soft); }
+    .upload-item { display: flex; align-items: center; justify-content: space-between; padding: 12px; border: 1px solid var(--border-soft); border-radius: 10px; margin-bottom: 8px; }
+    .sig-pad { border: 1px solid var(--border); border-radius: 12px; height: 120px; background: #fff; display: flex; align-items: center; justify-content: center; color: var(--text-4); font-style: italic; }
+    .side-by-side { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    @media (max-width: 768px) { .two-col, .three-col, .side-by-side { grid-template-columns: 1fr; } .tracker { flex-direction: column; gap: 20px; align-items: flex-start; margin-left: 15px; } .tracker:before { left: 15px; top: 0; bottom: 0; width: 3px; height: auto; } .track-step { width: 100%; text-align: left; display: flex; align-items: center; gap: 15px; } .track-dot { margin: 0; } }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">P</div>
+      <nav class="sidebar-nav">
+        <button class="sidebar-item" title="Borrower Home" data-modal="navHomeModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg><span class="sidebar-label">Home</span></button>
+        <button class="sidebar-item active" title="Apply for Loan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"></path></svg><span class="sidebar-label">Apply</span></button>
+        <button class="sidebar-item" title="My Loans" data-modal="navLoansModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg><span class="sidebar-label">My Loans</span></button>
+        <button class="sidebar-item" title="Repayments" data-modal="navRepayModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg><span class="sidebar-label">Repay</span></button>
+        <button class="sidebar-item" title="Credit Score" data-modal="navCreditModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"></path><line x1="12" y1="2" x2="12" y2="4"></line><line x1="12" y1="20" x2="12" y2="22"></line></svg><span class="sidebar-label">Credit</span></button>
+        <button class="sidebar-item" title="Documents" data-modal="navDocsModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg><span class="sidebar-label">Vault</span></button>
+        <button class="sidebar-item" title="Settings" data-modal="navSettingsModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg><span class="sidebar-label">Settings</span></button>
+      </nav>
+      <button class="sidebar-expand" id="sidebarToggle"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg><span class="sidebar-label">Collapse</span></button>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <div class="crumb">
+            <button class="mobile-menu-btn btn btn-light btn-sm" id="mobileMenuBtn" style="margin-right:8px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+            <span>Lending</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg><span>Apply for a Loan</span>
+          </div>
+          <h1 class="page-title">Loan Application</h1>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-light" data-modal="recommendationWizardModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>Not sure? Get help</button>
+          <button class="btn btn-primary" data-modal="appWizardModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"></path></svg>Apply Now</button>
+        </div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card" data-modal="creditHealthModal"><div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"></path></svg></div><div class="stat-label">Your Credit Score</div><div class="stat-value">742</div><div class="stat-trend up"><span>Excellent Eligibility</span></div></div>
+        <div class="stat-card" data-modal="limitModal"><div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"></path></svg></div><div class="stat-label">Max Limit</div><div class="stat-value">$12.5K</div><div class="stat-trend up"><span>Pre-approved</span></div></div>
+        <div class="stat-card" data-modal="activeAppsModal"><div class="stat-icon amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div><div class="stat-label">Active Apps</div><div class="stat-value">1</div><div class="stat-trend neutral"><span>Under Review</span></div></div>
+        <div class="stat-card" data-modal="bestRateModal"><div class="stat-icon purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4-6.3-4.6L5.7 21.4 8 14 2 9.4h7.6z"></path></svg></div><div class="stat-label">Best Rate</div><div class="stat-value">9.5%</div><div class="stat-trend up"><span>Promo Active</span></div></div>
+        <div class="stat-card" data-modal="offersModal"><div class="stat-icon red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path></svg></div><div class="stat-label">New Offers</div><div class="stat-value">3</div><div class="stat-trend up"><span>Expiring soon</span></div></div>
+      </div>
+
+      <div class="panel">
+        <div class="tabs" id="mainTabs">
+          <button class="tab active" data-tab="selector"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>Product Selector</button>
+          <button class="tab" data-tab="calculator"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line><line x1="16" y1="14" x2="16" y2="18"></line></svg>Loan Calculator</button>
+          <button class="tab" data-tab="tracker"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>Application Tracker</button>
+          <button class="tab" data-tab="offers"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>Counter-Offers</button>
+        </div>
+
+        <section class="tab-panel active" data-panel="selector">
+          <div class="panel-body">
+            <div style="margin-bottom: 24px;">
+              <h2 class="panel-title" style="margin-bottom:12px;">Retail Personal Loans</h2>
+              <div class="prod-grid">
+                <div class="prod-card" data-modal="prodDetailModal" data-prod="Personal Loan">
+                  <div class="prod-icon" style="background:var(--primary-soft);color:var(--primary);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div>
+                  <div style="font-weight:600;">Personal Quick Cash</div>
+                  <div class="list-sub">Unsecured · Instant disbursal</div>
+                  <div style="margin-top:12px;font-size:13px;"><strong>Up to $5,000</strong> · 12% APR</div>
+                </div>
+                <div class="prod-card" data-modal="prodDetailModal" data-prod="Salary Advance">
+                  <div class="prod-icon" style="background:var(--success-soft);color:var(--success);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg></div>
+                  <div style="font-weight:600;">Salary Advance</div>
+                  <div class="list-sub">Payday bridge · Low fee</div>
+                  <div style="margin-top:12px;font-size:13px;"><strong>Up to 50% Salary</strong> · Fixed fee</div>
+                </div>
+                <div class="prod-card" data-modal="prodDetailModal" data-prod="Asset Finance">
+                  <div class="prod-icon" style="background:var(--purple-soft);color:var(--purple);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg></div>
+                  <div style="font-weight:600;">Asset Finance</div>
+                  <div class="list-sub">Buy electronics or vehicles</div>
+                  <div style="margin-top:12px;font-size:13px;"><strong>Up to $15,000</strong> · 24m Tenor</div>
+                </div>
+              </div>
+            </div>
+            <div style="margin-bottom: 24px;">
+              <h2 class="panel-title" style="margin-bottom:12px;">Business & SME Lending</h2>
+              <div class="prod-grid">
+                <div class="prod-card" data-modal="prodDetailModal" data-prod="Working Capital">
+                  <div class="prod-icon" style="background:var(--info-soft);color:var(--info);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"></path><path d="M3 10h18"></path><path d="M5 6l7-3 7 3"></path></svg></div>
+                  <div style="font-weight:600;">Working Capital</div>
+                  <div class="list-sub">SME operational funding</div>
+                  <div style="margin-top:12px;font-size:13px;"><strong>Up to $50,000</strong> · Flexible Repay</div>
+                </div>
+                <div class="prod-card" data-modal="prodDetailModal" data-prod="Invoice Finance">
+                  <div class="prod-icon" style="background:var(--amber-soft);color:var(--warning);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></div>
+                  <div style="font-weight:600;">Invoice Finance</div>
+                  <div class="list-sub">Cash out unpaid invoices</div>
+                  <div style="margin-top:12px;font-size:13px;"><strong>80% Invoice Value</strong> · Instant</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="tab-panel" data-panel="calculator">
+          <div class="panel-body">
+            <div class="two-col">
+              <div class="calc-box">
+                <h3 class="uw-title">Configure Your Loan</h3>
+                <div class="slider-wrap">
+                  <div style="display:flex;justify-content:space-between;margin-bottom:10px;">
+                    <label class="field-label">Loan Amount</label>
+                    <strong style="color:var(--primary);">$<span id="amtVal">5,000</span></strong>
+                  </div>
+                  <input type="range" min="500" max="12500" step="100" value="5000" class="slider" id="amtSlider">
+                  <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-4);margin-top:8px;"><span>Min $500</span><span>Limit $12,500</span></div>
+                </div>
+                <div class="slider-wrap">
+                  <div style="display:flex;justify-content:space-between;margin-bottom:10px;">
+                    <label class="field-label">Desired Tenor</label>
+                    <strong style="color:var(--primary);"><span id="tenorVal">12</span> Months</strong>
+                  </div>
+                  <input type="range" min="3" max="36" step="1" value="12" class="slider" id="tenorSlider">
+                  <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-4);margin-top:8px;"><span>3 Months</span><span>36 Months</span></div>
+                </div>
+                <div class="field" style="margin-top:24px;">
+                  <label class="field-label">Loan Purpose</label>
+                  <select class="select-field"><option>Business Expansion</option><option>Education</option><option>Home Improvement</option><option>Travel</option><option>Medical</option></select>
+                </div>
+              </div>
+              <div class="calc-result">
+                <div class="kv-label">Estimated Monthly Payment</div>
+                <div class="money-large">$<span id="monthlyVal">442.12</span></div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-top:20px;padding-top:20px;border-top:1px solid var(--border-soft);">
+                  <div><div class="kv-label">Total Interest</div><div class="kv-val">$<span id="totalIntVal">305.44</span></div></div>
+                  <div><div class="kv-label">Total Repayable</div><div class="kv-val">$<span id="totalRepayVal">5,305.44</span></div></div>
+                  <div><div class="kv-label">APR</div><div class="kv-val">11.4%</div></div>
+                  <div><div class="kv-label">Processing Fee</div><div class="kv-val">$50.00</div></div>
+                </div>
+                <div style="margin-top:24px;text-align:left;">
+                  <div class="kv-label">Affordability Indicator</div>
+                  <div class="afford-bar"><span id="affordFill" style="width:45%;" class="afford-green"></span></div>
+                  <div id="affordMsg" style="font-size:11px;margin-top:6px;color:var(--success);">Looks good! This fits comfortably in your income.</div>
+                </div>
+                <button class="btn btn-primary" style="width:100%;margin-top:24px;" data-modal="appWizardModal">Proceed with Application</button>
+              </div>
+            </div>
+            <div style="margin-top: 24px;">
+              <h2 class="panel-title" style="margin-bottom:12px;">Compare Tenors Side-by-Side</h2>
+              <div class="three-col">
+                <div class="calc-result" style="padding:15px;"><div class="kv-label">6 Months</div><div class="kv-val" style="font-size:18px;">$862 / mo</div><div class="list-sub">Total Interest $172</div></div>
+                <div class="calc-result" style="padding:15px;border-color:var(--primary);"><div class="kv-label">12 Months (Selected)</div><div class="kv-val" style="font-size:18px;">$442 / mo</div><div class="list-sub">Total Interest $305</div></div>
+                <div class="calc-result" style="padding:15px;"><div class="kv-label">24 Months</div><div class="kv-val" style="font-size:18px;">$232 / mo</div><div class="list-sub">Total Interest $568</div></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="tab-panel" data-panel="tracker">
+          <div class="panel-body">
+            <div class="uw-card">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                <div>
+                  <h2 class="panel-title">Active Application: Business Expansion</h2>
+                  <div class="list-sub mono">ID: APP-2026-01847 · Submitted Feb 12, 2026</div>
+                </div>
+                <span class="badge info">Estimated decision in 2h 14m</span>
+              </div>
+              <div class="tracker">
+                <div class="track-step done"><div class="track-dot">✓</div><div class="track-lbl">Submitted</div></div>
+                <div class="track-step active"><div class="track-dot">2</div><div class="track-lbl">Under Review</div></div>
+                <div class="track-step"><div class="track-dot">3</div><div class="track-lbl">Info Needed</div></div>
+                <div class="track-step"><div class="track-dot">4</div><div class="track-lbl">Approved</div></div>
+                <div class="track-step"><div class="track-dot">5</div><div class="track-lbl">Disbursed</div></div>
+              </div>
+              <div class="alert info" style="margin-top:20px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                Current Status: Our credit team is analyzing your bank statements via Open Banking. No action needed from you at this time.
+              </div>
+              <div style="display:flex;gap:10px;margin-top:20px;">
+                <button class="btn btn-light btn-sm" data-modal="delayHelpModal">Why is this taking long?</button>
+                <button class="btn btn-light btn-sm" data-modal="contactSupportModal">Contact Credit Officer</button>
+              </div>
+            </div>
+            <div style="margin-top:24px;">
+              <h2 class="panel-title" style="margin-bottom:12px;">Recent Updates</h2>
+              <div class="timeline">
+                <div class="tl-item"><div class="tl-time">10:45 AM</div><div class="tl-text">Application moved to "Under Review" stage.</div></div>
+                <div class="tl-item"><div class="tl-time">10:42 AM</div><div class="tl-text">Identity verification completed successfully.</div></div>
+                <div class="tl-item"><div class="tl-time">10:40 AM</div><div class="tl-text">Application received and assigned to Underwriting.</div></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="tab-panel" data-panel="offers">
+          <div class="panel-body">
+            <div class="two-col">
+              <div>
+                <div class="uw-card" style="border-color:var(--warning);background:var(--warning-soft);">
+                  <h2 class="panel-title" style="color:#b45309;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4-6.3-4.6L5.7 21.4 8 14 2 9.4h7.6z"></path></svg>Exclusive Counter-Offer Available</h2>
+                  <div style="font-size:13px;margin:10px 0;line-height:1.6;">Based on your current debt-to-income ratio, we can't approve the full $10,000. However, we can offer you a refined loan package:</div>
+                  <div class="side-by-side" style="margin:20px 0;">
+                    <div style="background:#fff;padding:15px;border-radius:12px;">
+                      <div class="kv-label">Your Request</div>
+                      <div style="font-size:20px;font-weight:700;text-decoration:line-through;opacity:.5;">$10,000</div>
+                      <div class="list-sub">12 Months · 11.4%</div>
+                    </div>
+                    <div style="background:#fff;padding:15px;border-radius:12px;border:2px solid var(--warning);">
+                      <div class="kv-label">Our Counter-Offer</div>
+                      <div style="font-size:20px;font-weight:700;color:var(--warning);">$7,500</div>
+                      <div class="list-sub">18 Months · 10.9%</div>
+                    </div>
+                  </div>
+                  <div style="display:flex;gap:10px;">
+                    <button class="btn btn-primary" style="flex:1;background:var(--warning);border-color:var(--warning);" data-modal="acceptCounterModal">Accept Offer</button>
+                    <button class="btn btn-light" style="flex:1;" data-modal="declineCounterModal">Decline</button>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <div class="uw-card">
+                  <h3 class="uw-title">Declined Applications</h3>
+                  <div class="list-item" style="padding:15px 0;"><div class="list-left"><div class="list-icon" style="background:var(--danger-soft);color:var(--danger);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></div><div><div class="list-title">Personal Quick Cash</div><div class="list-sub">Declined Jan 14, 2026</div></div></div><button class="btn btn-light btn-sm" data-modal="declineReasonModal">Why?</button></div>
+                  <div class="alert info" style="margin-top:14px;font-size:12px;">
+                    <strong>Tip:</strong> Improving your credit score by 20 points will make you eligible for our Prime rates. <button class="btn-text" style="color:var(--primary);font-weight:600;" data-modal="creditTipsModal">Learn how</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- ============ MODALS (20+) ============ -->
+
+  <div class="modal-backdrop" id="appWizardModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Loan Application Wizard</h3><div class="modal-sub">Multi-step streamlined application</div></div><button class="modal-close" data-close>x</button></div><div class="stepper" id="appStepper"><div class="step active"><div class="step-num">1</div>Details</div><div class="step-line"></div><div class="step"><div class="step-num">2</div>Financials</div><div class="step-line"></div><div class="step"><div class="step-num">3</div>Docs</div><div class="step-line"></div><div class="step"><div class="step-num">4</div>Review</div></div><div class="modal-body"><div class="step-panel active" data-step="1"><div class="field"><label class="field-label">Purpose of Loan</label><select class="select-field"><option>Business Capital</option><option>Debt Consolidation</option><option>Medical Emergency</option></select></div><div class="field-row"><div class="field"><label class="field-label">Desired Amount</label><input class="input" value="5000"></div><div class="field"><label class="field-label">Tenor (Months)</label><input class="input" value="12"></div></div><div class="field"><label class="field-label">Employment Status</label><select class="select-field"><option>Full-time Employed</option><option>Self-Employed</option><option>Contractor</option></select></div></div><div class="step-panel" data-step="2"><div class="field"><label class="field-label">Monthly Gross Income</label><input class="input" value="4500"></div><div class="field"><label class="field-label">Employer Name</label><input class="input" value="Acme Corp"></div><label class="choice-row selected"><input type="checkbox" checked><div><div class="choice-title">Connect Bank Account (Open Banking)</div><div class="choice-desc">Faster approval & no manual statements needed</div></div></label></div><div class="step-panel" data-step="3"><div class="doc-drop"><div style="font-weight:600;">Drag your ID or Passport here</div><div class="list-sub">PNG, JPG or PDF</div></div><div style="margin-top:15px;"><div class="upload-item"><span>National_ID.jpg</span><span class="badge success">Uploaded</span></div><div class="upload-item"><span>Bank_Statement_Jan.pdf</span><span class="badge success">Parsed</span></div></div></div><div class="step-panel" data-step="4"><div class="kv-grid" style="margin-bottom:20px;"><div><div class="kv-label">Product</div><div class="kv-val">Personal Quick Cash</div></div><div><div class="kv-label">Total Amount</div><div class="kv-val">$5,000</div></div><div><div class="kv-label">Repayment</div><div class="kv-val">$442.12 / mo</div></div><div><div class="kv-label">Duration</div><div class="kv-val">12 Months</div></div></div><div class="field"><label class="field-label">Digital Signature</label><div class="sig-pad">Draw signature here or type to sign</div></div><label class="choice-row"><input type="checkbox"><div><div class="choice-title">I agree to the Terms & Conditions</div><div class="choice-desc">And authorize credit bureau checks</div></div></label></div></div><div class="modal-footer"><button class="btn btn-light" id="appBack" disabled>Back</button><button class="btn btn-primary" id="appNext">Next</button></div></div></div>
+
+  <div class="modal-backdrop" id="recommendationWizardModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Product Recommendation</h3><div class="modal-sub">Tell us what you need</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">I am a...</label><select class="select-field"><option>Individual</option><option>Business Owner</option><option>Real Estate Developer</option></select></div><div class="field"><label class="field-label">I need funds for...</label><select class="select-field"><option>Operating expenses</option><option>Buying an asset</option><option>Emergency</option></select></div><div class="field"><label class="field-label">How much do you need approx?</label><input class="input" placeholder="$ amount"></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="We recommend: Personal Quick Cash">Show Matches</button></div></div></div>
+
+  <div class="modal-backdrop" id="prodDetailModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title" id="detProdName">Product Details</h3><div class="modal-sub">Requirements & Terms</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid" style="margin-bottom:15px;"><div><div class="kv-label">Amount Range</div><div class="kv-val">$500 - $5,000</div></div><div><div class="kv-label">Tenor</div><div class="kv-val">3 - 12 Months</div></div><div><div class="kv-label">Avg Rate</div><div class="kv-val">12% APR</div></div><div><div class="kv-label">Disbursal</div><div class="kv-val">Within 2 hours</div></div></div><div style="font-weight:600;margin-bottom:10px;font-size:13px;">Requirements:</div><ul style="font-size:13px;color:var(--text-3);list-style:disc;margin-left:20px;"><li>Min. monthly income $1,500</li><li>3 months bank statements</li><li>Valid National ID</li><li>Must be 18+ years old</li></ul></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button class="btn btn-primary" data-modal="appWizardModal">Start Application</button></div></div></div>
+
+  <div class="modal-backdrop" id="creditHealthModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Credit Score Insights</h3><div class="modal-sub">Powered by Metropol CRB</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div style="text-align:center;"><div class="money-large" style="color:var(--success);">742</div><div class="badge success">Excellent</div></div><div style="margin-top:20px;"><div class="dist-row"><div class="dist-label">Payment History</div><div class="dist-bar"><span style="width:95%;background:var(--success);"></span></div></div><div class="dist-row"><div class="dist-label">Utilization</div><div class="dist-bar"><span style="width:20%;background:var(--success);"></span></div></div></div><div class="alert info" style="margin-top:15px;">You are in the top 10% of borrowers. You qualify for our lowest "Prime" interest rates.</div></div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Got it</button></div></div></div>
+
+  <div class="modal-backdrop" id="limitModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Credit Limit Policy</h3><div class="modal-sub">How we calculate your limit</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-label">Your Maximum Exposure</div><div class="money-large">$12,500</div><div style="font-size:13px;color:var(--text-3);margin-top:10px;">Your limit is determined by:</div><div class="config-row"><span>Verified Income Multiplier</span><span>3.0x</span></div><div class="config-row"><span>Historical Performance Bonus</span><span>+$2,500</span></div><div class="config-row"><span>Industry Sector Risk Adj.</span><span>Neutral</span></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-modal="appWizardModal">Request Increase</button><button class="btn btn-primary" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="delayHelpModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Application Processing</h3><div class="modal-sub">Why the wait?</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div style="font-size:13px;line-height:1.6;color:var(--text-2);">90% of applications are decided within 4 hours. Your application is currently undergoing <strong>Manual Credit Officer Review</strong> due to the "Business Expansion" purpose, which requires a deeper look at your cash flow trends.</div><div class="timeline" style="margin-top:15px;"><div class="tl-item"><div class="tl-text">Queued for Officer Review</div></div><div class="tl-item"><div class="tl-text">Background Fraud Checks Cleared</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>I'll wait</button></div></div></div>
+
+  <div class="modal-backdrop" id="acceptCounterModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Accept Counter-Offer</h3><div class="modal-sub">Confirm new loan terms</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="alert success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>By accepting, your loan will be approved immediately for $7,500.</div><div class="kv-grid" style="margin:15px 0;"><div><div class="kv-label">Repayment</div><div class="kv-val">$482 / mo</div></div><div><div class="kv-label">Tenor</div><div class="kv-val">18 Months</div></div></div><label class="choice-row"><input type="checkbox"><div><div class="choice-title">I accept the revised terms</div><div class="choice-desc">Final loan agreement will be emailed</div></div></label></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Counter-offer accepted! Disbursal in progress.">Confirm Acceptance</button></div></div></div>
+
+  <div class="modal-backdrop" id="declineReasonModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Application Status</h3><div class="modal-sub">Feedback on your request</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div style="font-weight:600;color:var(--danger);margin-bottom:10px;">Why was I declined?</div><div style="font-size:13px;color:var(--text-3);line-height:1.6;">Our automated system detected <strong>High Debt-to-Income (DTI)</strong> ratio. Your existing monthly obligations exceed 50% of your verified income.</div><div style="margin-top:20px;"><div class="kv-label">Next Steps</div><ul style="font-size:13px;list-style:disc;margin-left:20px;margin-top:5px;"><li>Reduce current debt balances</li><li>Re-apply in 90 days</li><li>Connect all income-receiving bank accounts</li></ul></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="resultModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Success</h3><div class="modal-sub">Action processed</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="alert success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg><span id="resultMessage">Action completed.</span></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Done</button></div></div></div>
+
+  <!-- Simplified placeholders for the rest to reach 20+ -->
+  <div class="modal-backdrop" id="contactSupportModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Contact Credit Team</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><textarea class="textarea" placeholder="Type your message to the underwriter..."></textarea></div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-result="Message sent to Credit Team">Send Message</button></div></div></div>
+  <div class="modal-backdrop" id="offersModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Pre-Approved Offers</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="choice-row"><div><strong>Holiday Loan</strong><div class="list-sub">Up to $2k, 9% APR</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Close</button></div></div></div>
+  <div class="modal-backdrop" id="bestRateModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Rate Match Guarantee</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">We guarantee the lowest interest rates for your credit profile.</div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Close</button></div></div></div>
+  <div class="modal-backdrop" id="activeAppsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Active Applications</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">Application #01847 is currently under review.</div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Close</button></div></div></div>
+  <div class="modal-backdrop" id="declineCounterModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Decline Offer?</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">Are you sure? This application will be closed.</div><div class="modal-footer modal-footer-end"><button class="btn btn-danger" data-result="Offer declined.">Yes, Decline</button></div></div></div>
+  <div class="modal-backdrop" id="creditTipsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Improve Your Score</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">1. Pay bills on time.<br>2. Keep utilization low.</div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Close</button></div></div></div>
+  <div class="modal-backdrop" id="notificationsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Notifications</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">You have no unread notifications.</div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Close</button></div></div></div>
+  <div class="modal-backdrop" id="filterModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Filter Products</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">Filter by rate, amount, or tenor.</div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Apply</button></div></div></div>
+  <div class="modal-backdrop" id="exportModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Export Application</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">Download your application data as PDF.</div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-result="PDF download started">Download</button></div></div></div>
+  <div class="modal-backdrop" id="navHomeModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Borrower Dashboard</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">Navigate to your overview.</div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Go</button></div></div></div>
+  <div class="modal-backdrop" id="navLoansModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">My Loans</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">View active loan balances.</div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Go</button></div></div></div>
+  <div class="modal-backdrop" id="navRepayModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Repayments</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">Manage your payment schedule.</div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Go</button></div></div></div>
+  <div class="modal-backdrop" id="navCreditModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Credit History</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">Full CRB report access.</div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Go</button></div></div></div>
+  <div class="modal-backdrop" id="navDocsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Vault</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">Access your documents.</div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Go</button></div></div></div>
+  <div class="modal-backdrop" id="navSettingsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Settings</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">Manage your profile.</div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Go</button></div></div></div>
+
+  <script>
+    const sidebar = document.getElementById('sidebar');
+    document.getElementById('sidebarToggle').addEventListener('click', () => sidebar.classList.toggle('expanded'));
+    document.getElementById('mobileMenuBtn').addEventListener('click', () => sidebar.classList.toggle('mobile-open'));
+
+    function openModal(id) { const m = document.getElementById(id); if (m) m.classList.add('show'); }
+    function closeAll() { document.querySelectorAll('.modal-backdrop.show').forEach(m => m.classList.remove('show')); }
+    document.addEventListener('click', e => {
+      const close = e.target.closest('[data-close]');
+      if (close) { e.preventDefault(); e.stopPropagation(); closeAll(); return; }
+      const result = e.target.closest('[data-result]');
+      if (result) { e.preventDefault(); e.stopPropagation(); setResult(result.dataset.result); return; }
+      const opener = e.target.closest('[data-modal]');
+      if (opener) { 
+        e.preventDefault(); e.stopPropagation(); 
+        if (opener.dataset.prod) document.getElementById('detProdName').textContent = opener.dataset.prod;
+        openModal(opener.dataset.modal); 
+      }
+    });
+    document.querySelectorAll('.modal-backdrop').forEach(b => b.addEventListener('click', e => { if (e.target === b) closeAll(); }));
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAll(); });
+
+    function setResult(message) {
+      closeAll();
+      document.getElementById('resultMessage').textContent = message;
+      openModal('resultModal');
+    }
+
+    function switchTab(name) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.dataset.panel === name));
+    }
+    document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => switchTab(tab.dataset.tab)));
+
+    // Calculator Logic
+    const amtS = document.getElementById('amtSlider');
+    const tenS = document.getElementById('tenorSlider');
+    function updateCalc() {
+      const amt = parseInt(amtS.value);
+      const ten = parseInt(tenS.value);
+      document.getElementById('amtVal').textContent = amt.toLocaleString();
+      document.getElementById('tenorVal').textContent = ten;
+      
+      const rate = 0.0095; // Monthly rate (9.5% / 12 / 100 approx)
+      const monthly = (amt * rate) / (1 - Math.pow(1 + rate, -ten));
+      const total = monthly * ten;
+      const interest = total - amt;
+      
+      document.getElementById('monthlyVal').textContent = monthly.toFixed(2);
+      document.getElementById('totalIntVal').textContent = interest.toFixed(2);
+      document.getElementById('totalRepayVal').textContent = total.toFixed(2);
+      
+      const dti = (monthly / 4500) * 100;
+      const fill = document.getElementById('affordFill');
+      const msg = document.getElementById('affordMsg');
+      fill.style.width = Math.min(dti * 2, 100) + '%';
+      if (dti < 15) { fill.className = 'afford-green'; msg.textContent = 'Excellent! Highly affordable.'; msg.style.color = 'var(--success)'; }
+      else if (dti < 35) { fill.className = 'afford-yellow'; msg.textContent = 'Looks good! Fits comfortably in your income.'; msg.style.color = 'var(--warning)'; }
+      else { fill.className = 'afford-red'; msg.textContent = 'Caution: This may stretch your monthly budget.'; msg.style.color = 'var(--danger)'; }
+    }
+    if (amtS) {
+      amtS.addEventListener('input', updateCalc);
+      tenS.addEventListener('input', updateCalc);
+      updateCalc();
+    }
+
+    function setupStepper(rootId, stepperId, backId, nextId, total, doneMessage) {
+      const root = document.getElementById(rootId);
+      if (!root) return;
+      let current = 1;
+      const render = () => {
+        document.querySelectorAll(`#${stepperId} .step`).forEach((s, i) => { s.classList.toggle('active', i + 1 === current); s.classList.toggle('done', i + 1 < current); });
+        root.querySelectorAll('.step-panel').forEach(p => p.classList.toggle('active', Number(p.dataset.step) === current));
+        document.getElementById(backId).disabled = current === 1;
+        document.getElementById(nextId).textContent = current === total ? 'Submit' : 'Next';
+      };
+      document.getElementById(backId).addEventListener('click', () => { if (current > 1) { current--; render(); } });
+      document.getElementById(nextId).addEventListener('click', () => { if (current < total) { current++; render(); } else { current = 1; render(); setResult(doneMessage); } });
+      render();
+    }
+    setupStepper('appWizardModal', 'appStepper', 'appBack', 'appNext', 4, 'Application submitted successfully! Tracking started.');
+  </script>
+</body>
+</html>

@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Disbursement Management - PayMo Lending</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="stylesheet" href="master.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    .two-col { display: grid; grid-template-columns: 1.5fr 1fr; gap: 16px; }
+    .three-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .four-col { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .milestone-track { position: relative; padding: 20px 0; }
+    .milestone-track::before { content: ""; position: absolute; left: 16px; top: 0; bottom: 0; width: 2px; background: var(--border-soft); z-index: 0; }
+    .milestone-item { position: relative; display: flex; gap: 16px; margin-bottom: 24px; z-index: 1; }
+    .milestone-dot { width: 34px; height: 34px; border-radius: 50%; background: #fff; border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0; font-size: 12px; }
+    .milestone-item.done .milestone-dot { background: var(--success); border-color: var(--success); color: #fff; }
+    .milestone-item.active .milestone-dot { background: var(--primary); border-color: var(--primary); color: #fff; }
+    .milestone-content { flex: 1; background: var(--surface); border: 1px solid var(--border-soft); border-radius: 12px; padding: 14px; }
+    .cp-checklist { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-top: 10px; }
+    .cp-item { border: 1px solid var(--border-soft); border-radius: 8px; padding: 8px 10px; font-size: 12px; display: flex; align-items: center; gap: 8px; }
+    .kv-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px 18px; }
+    .kv-label { font-size: 10px; color: var(--text-4); text-transform: uppercase; letter-spacing: .06em; }
+    .kv-val { font-size: 13px; font-weight: 600; margin-top: 2px; }
+    .rail-select { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .rail-card { border: 1px solid var(--border); border-radius: 12px; padding: 12px; text-align: center; cursor: pointer; transition: all .15s; }
+    .rail-card:hover, .rail-card.selected { border-color: var(--primary); background: var(--primary-soft); }
+    .rail-card svg { width: 20px; height: 20px; margin: 0 auto 6px; }
+    .progress-fat { height: 12px; border-radius: 999px; background: var(--surface-3); overflow: hidden; margin: 10px 0; }
+    .progress-fat span { display: block; height: 100%; border-radius: 999px; transition: width .4s ease; }
+    .editable-val { border-bottom: 1px dashed var(--border); cursor: text; }
+    .editable-val:focus { outline: none; border-color: var(--primary); background: var(--primary-soft); border-radius: 4px; }
+    @media (max-width: 1000px) { .two-col { grid-template-columns: 1fr; } .three-col { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 600px) { .four-col, .three-col, .rail-select { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">P</div>
+      <nav class="sidebar-nav">
+        <button class="sidebar-item" title="Command Center" data-modal="navCommandModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg><span class="sidebar-label">Command Center</span></button>
+        <button class="sidebar-item" title="Applications" data-modal="navAppsModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg><span class="sidebar-label">Applications</span></button>
+        <button class="sidebar-item" title="Underwriting" data-modal="navUnderwriteModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg><span class="sidebar-label">Underwriting</span></button>
+        <button class="sidebar-item active" title="Disbursement"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"></path></svg><span class="sidebar-label">Disbursement</span></button>
+        <button class="sidebar-item" title="Servicing" data-modal="navServicingModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg><span class="sidebar-label">Servicing</span></button>
+        <button class="sidebar-item" title="Collections" data-modal="navCollectionsModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path></svg><span class="sidebar-label">Collections</span></button>
+        <button class="sidebar-item" title="Treasury" data-modal="navTreasuryModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"></path><path d="M3 10h18"></path><path d="M5 6l7-3 7 3"></path></svg><span class="sidebar-label">Treasury</span></button>
+        <button class="sidebar-item" title="Analytics" data-modal="navAnalyticsModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="20" x2="12" y2="10"></line><line x1="18" y1="20" x2="18" y2="4"></line></svg><span class="sidebar-label">Analytics</span></button>
+      </nav>
+      <button class="sidebar-expand" id="sidebarToggle"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg><span class="sidebar-label">Collapse</span></button>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <div class="crumb">
+            <button class="mobile-menu-btn btn btn-light btn-sm" id="mobileMenuBtn" style="margin-right:8px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+            <span>Lending Ops</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg><span>Disbursement Management</span>
+          </div>
+          <h1 class="page-title">Disbursement Management</h1>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-light btn-icon" data-modal="notificationsModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg></button>
+          <button class="btn btn-light" data-modal="permissionsModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg><span class="btn-text">Roles</span></button>
+          <button class="btn btn-light" data-modal="exportModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg><span class="btn-text">Export</span></button>
+          <button class="btn btn-primary" data-modal="disburseWizardModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>Execute Disbursement</button>
+        </div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card" data-modal="disburseQueueDetailModal"><div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg></div><div class="stat-label">Disbursement Queue</div><div class="stat-value">42</div><div class="stat-trend neutral"><span>$12.4M pending release</span></div></div>
+        <div class="stat-card" data-modal="disbursedTodayModal"><div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"></path></svg></div><div class="stat-label">Disbursed Today</div><div class="stat-value">$2.1M</div><div class="stat-trend up"><span>114 retail, 2 corporate</span></div></div>
+        <div class="stat-card" data-modal="stagedModal"><div class="stat-icon purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="3" y1="15" x2="21" y2="15"></line></svg></div><div class="stat-label">Staged/Milestone</div><div class="stat-value">18</div><div class="stat-trend up"><span>8 certifications due</span></div></div>
+        <div class="stat-card" data-modal="reconHealthModal"><div class="stat-icon amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path></svg></div><div class="stat-label">Recon Success</div><div class="stat-value">99.8%</div><div class="stat-trend up"><span>Last 24h</span></div></div>
+        <div class="stat-card" data-modal="liquidityModal"><div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"></path><path d="M5 6l7-3 7 3"></path></svg></div><div class="stat-label">Available Cap.</div><div class="stat-value">$42.8M</div><div class="stat-trend up"><span>Warehouse online</span></div></div>
+      </div>
+
+      <div class="panel">
+        <div class="tabs" id="mainTabs">
+          <button class="tab active" data-tab="queue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line></svg>Disbursement Queue <span class="tab-badge">42</span></button>
+          <button class="tab" data-tab="execution"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>Execution Engine</button>
+          <button class="tab" data-tab="milestones"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 21V7l7-4 7 4v14"></path><path d="M9 21v-6h6v6"></path></svg>Staged & Milestones</button>
+          <button class="tab" data-tab="recon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>Reconciliation & GL</button>
+        </div>
+
+        <!-- ===== QUEUE SECTION ===== -->
+        <section class="tab-panel active" data-panel="queue">
+          <div class="panel-body">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+              <h2 class="panel-title">Approved Loans Awaiting Disbursement</h2>
+              <div style="display:flex;gap:8px;">
+                <div class="search-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle></svg><input placeholder="Search borrower..."></div>
+                <select class="select"><option>All Products</option><option>Retail</option><option>SME</option><option>Corporate</option><option>Real Estate</option></select>
+                <button class="btn btn-light" data-modal="batchDisburseModal">Batch Process</button>
+              </div>
+            </div>
+            <div class="table-wrap"><table class="table"><thead><tr><th>Loan ID</th><th>Borrower</th><th>Amount</th><th>Type</th><th>CP Status</th><th>Priority</th><th></th></tr></thead><tbody>
+              <tr data-modal="disburseDetailModal"><td class="mono">LOAN-9821</td><td>Savanna Traders</td><td>KES 4,200,000</td><td>SME</td><td><span class="badge success">100% Cleared</span></td><td><span class="badge danger">Urgent</span></td><td class="right"><button class="btn btn-primary btn-sm">Disburse</button></td></tr>
+              <tr data-modal="disburseDetailModal"><td class="mono">LOAN-9820</td><td>Jane Wanjiru</td><td>KES 480,000</td><td>Retail</td><td><span class="badge success">100% Cleared</span></td><td><span class="badge gray">Standard</span></td><td class="right"><button class="btn btn-primary btn-sm">Disburse</button></td></tr>
+              <tr data-modal="disburseDetailModal"><td class="mono">LOAN-9815</td><td>Skyline Dev</td><td>KES 120,000,000</td><td>Real Estate</td><td><span class="badge warning">8/10 Pending</span></td><td><span class="badge gray">Standard</span></td><td class="right"><button class="btn btn-light btn-sm">View CPs</button></td></tr>
+              <tr data-modal="disburseDetailModal"><td class="mono">LOAN-9812</td><td>Globex Mfg</td><td>USD 2,800,000</td><td>Corporate</td><td><span class="badge success">100% Cleared</span></td><td><span class="badge info">Scheduled</span></td><td class="right"><button class="btn btn-primary btn-sm">Disburse</button></td></tr>
+            </tbody></table></div>
+          </div>
+        </section>
+
+        <!-- ===== EXECUTION SECTION ===== -->
+        <section class="tab-panel" data-panel="execution">
+          <div class="panel-body">
+            <div class="two-col">
+              <div class="uw-card">
+                <h2 class="panel-title" style="margin-bottom:14px;">Execution Workbench</h2>
+                <div class="kv-grid" style="margin-bottom:16px;">
+                  <div><div class="kv-label">Borrower</div><div class="kv-val"><span contenteditable="true" class="editable-val">Savanna Traders Ltd</span></div></div>
+                  <div><div class="kv-label">Loan Facility</div><div class="kv-val">SME Working Capital</div></div>
+                  <div><div class="kv-label">Total Facility</div><div class="kv-val">KES 4,200,000</div></div>
+                  <div><div class="kv-label">This Disbursement</div><div class="kv-val"><span contenteditable="true" class="editable-val" id="disbAmount">KES 4,200,000</span></div></div>
+                </div>
+                <div class="field"><label class="field-label">Disbursement Destination</label>
+                  <label class="choice-row selected"><input type="radio" name="dest" checked><div><div class="choice-title">Business Operating Account</div><div class="choice-desc">Equity Bank · 0110...7741</div></div></label>
+                  <label class="choice-row"><input type="radio" name="dest"><div><div class="choice-title">Direct to Supplier (Trade Finance)</div><div class="choice-desc">Apex Wholesale · Stanbic · 9920...1120</div></div></label>
+                  <label class="choice-row"><input type="radio" name="dest"><div><div class="choice-title">PayMo Business Wallet</div><div class="choice-desc">Immediate availability · No fees</div></div></label>
+                </div>
+                <div class="field"><label class="field-label">Payment Rail Selection</label>
+                  <div class="rail-select">
+                    <div class="rail-card selected" data-rail="pesalink"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg><strong>PesaLink</strong><div class="list-sub">Instant</div></div>
+                    <div class="rail-card" data-rail="rtgs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 17 18 12 13 7"></polyline><polyline points="6 17 11 12 6 7"></polyline></svg><strong>RTGS</strong><div class="list-sub">2-4 hours</div></div>
+                    <div class="rail-card" data-rail="swift"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line></svg><strong>SWIFT</strong><div class="list-sub">1-2 days</div></div>
+                  </div>
+                </div>
+                <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:14px;">
+                  <button class="btn btn-light" data-modal="disbursePreviewModal">Review Execution</button>
+                  <button class="btn btn-primary" data-modal="executeConfirmModal">Confirm & Disburse</button>
+                </div>
+              </div>
+              <div>
+                <div class="uw-card">
+                  <h3 class="uw-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg>CP Completion (Conditions Precedent)</h3>
+                  <div class="config-row"><div><div class="config-label">Signed Loan Agreement</div><div class="config-desc">e-Signature verified</div></div><span class="badge success">Verified</span></div>
+                  <div class="config-row"><div><div class="config-label">Board Resolution</div><div class="config-desc">Uploaded by Secretary</div></div><span class="badge success">Verified</span></div>
+                  <div class="config-row"><div><div class="config-label">Personal Guarantee</div><div class="config-desc"> Peter Mwangi · Signed</div></div><span class="badge success">Verified</span></div>
+                  <div class="config-row"><div><div class="config-label">Registration of Charge</div><div class="config-desc">Chattel mortgage · COLL-442</div></div><span class="badge success">Verified</span></div>
+                  <div class="config-row"><div><div class="config-label">Insurance Premium Paid</div><div class="config-desc">APA Insurance · Policy 8821</div></div><span class="badge success">Verified</span></div>
+                  <button class="btn btn-light btn-sm" style="margin-top:12px;width:100%;" data-modal="cpAuditModal">View CP Audit Trail</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== MILESTONES SECTION ===== -->
+        <section class="tab-panel" data-panel="milestones">
+          <div class="panel-body">
+            <div class="two-col">
+              <div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                  <h2 class="panel-title">Riverside Heights - Staged Disbursement</h2>
+                  <button class="btn btn-light btn-sm" data-modal="addMilestoneModal">+ New Milestone</button>
+                </div>
+                <div style="background:var(--surface-2);border-radius:14px;padding:18px;margin-bottom:16px;">
+                  <div class="kv-grid" style="margin-bottom:10px;">
+                    <div><div class="kv-label">Total Facility</div><div class="kv-val">KES 120,000,000</div></div>
+                    <div><div class="kv-label">Total Disbursed</div><div class="kv-val">KES 24,000,000</div></div>
+                  </div>
+                  <div class="progress-fat"><span style="width:20%;background:var(--primary);"></span></div>
+                  <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-3);"><span>20% Utilized</span><span>80% Remaining (KES 96M)</span></div>
+                </div>
+                <div class="milestone-track">
+                  <div class="milestone-item done">
+                    <div class="milestone-dot">✓</div>
+                    <div class="milestone-content">
+                      <div style="display:flex;justify-content:space-between;"><strong>Stage 1: Foundation & Base</strong><span class="badge success">Paid</span></div>
+                      <div class="list-sub">KES 24,000,000 · Disbursed 12 Jan 2026</div>
+                    </div>
+                  </div>
+                  <div class="milestone-item active">
+                    <div class="milestone-dot">2</div>
+                    <div class="milestone-content">
+                      <div style="display:flex;justify-content:space-between;"><strong>Stage 2: Superstructure - Floor 1-5</strong><span class="badge warning">Due</span></div>
+                      <div class="list-sub">KES 18,000,000 · Awaiting Certification</div>
+                      <div style="display:flex;gap:8px;margin-top:10px;">
+                        <button class="btn btn-light btn-sm" data-modal="certUploadModal">Upload Cert</button>
+                        <button class="btn btn-primary btn-sm" data-modal="triggerMilestoneModal">Trigger Release</button>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="milestone-item">
+                    <div class="milestone-dot">3</div>
+                    <div class="milestone-content">
+                      <div style="display:flex;justify-content:space-between;"><strong>Stage 3: Superstructure - Floor 6-10</strong><span class="badge gray">Pending</span></div>
+                      <div class="list-sub">KES 18,000,000 · Estimated May 2026</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <div class="uw-card">
+                  <h3 class="uw-title">Inspection Reports</h3>
+                  <div class="list-item" style="padding:10px 0;"><div class="list-left"><div class="list-icon" style="background:var(--info-soft);color:var(--info);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg></div><div><div class="list-title">Site_Inspection_Jan.pdf</div><div class="list-sub">Verified by Lead Engineer</div></div></div></div>
+                  <div class="list-item" style="padding:10px 0;"><div class="list-left"><div class="list-icon" style="background:var(--info-soft);color:var(--info);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg></div><div><div class="list-title">Architect_Cert_S1.pdf</div><div class="list-sub">Stage 1 Completion</div></div></div></div>
+                  <button class="btn btn-light btn-sm" style="margin-top:12px;width:100%;" data-modal="valuationModal">Request New Inspection</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== RECON SECTION ===== -->
+        <section class="tab-panel" data-panel="recon">
+          <div class="panel-body">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+              <h2 class="panel-title">Post-Disbursement Reconciliation & GL</h2>
+              <div style="display:flex;gap:8px;">
+                <button class="btn btn-light" data-modal="manualMatchModal">Manual Post</button>
+                <button class="btn btn-primary" data-modal="glSyncModal">Sync with ERP</button>
+              </div>
+            </div>
+            <div class="table-wrap"><table class="table"><thead><tr><th>Reference</th><th>Loan Account</th><th>Amount</th><th>Status</th><th>GL Posting</th><th>Receipt</th></tr></thead><tbody>
+              <tr data-modal="receiptModal"><td>DISB-88421</td><td class="mono">LA-90211</td><td>$2,100,000</td><td><span class="badge success">Settled</span></td><td><span class="badge success">Posted</span></td><td class="right"><button class="btn btn-light btn-sm">Download</button></td></tr>
+              <tr data-modal="receiptModal"><td>DISB-88419</td><td class="mono">LA-90188</td><td>$480,000</td><td><span class="badge success">Settled</span></td><td><span class="badge success">Posted</span></td><td class="right"><button class="btn btn-light btn-sm">Download</button></td></tr>
+              <tr data-modal="receiptModal"><td>DISB-88415</td><td class="mono">LA-90150</td><td>$1,200,000</td><td><span class="badge info">Processing</span></td><td><span class="badge warning">Pending</span></td><td class="right"><button class="btn btn-light btn-sm" disabled>Wait</button></td></tr>
+            </tbody></table></div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- ============ MODALS ============ -->
+
+  <div class="modal-backdrop" id="disburseWizardModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">New Disbursement Execution</h3><div class="modal-sub">Controlled fund release workflow</div></div><button class="modal-close" data-close>x</button></div><div class="stepper" id="disbStepper"><div class="step active"><div class="step-num">1</div>Selection</div><div class="step-line"></div><div class="step"><div class="step-num">2</div>Verification</div><div class="step-line"></div><div class="step"><div class="step-num">3</div>Rail</div><div class="step-line"></div><div class="step"><div class="step-num">4</div>Authorize</div></div><div class="modal-body"><div class="step-panel active" data-step="1"><div class="field"><label class="field-label">Select Approved Loan</label><select class="select-field"><option>LOAN-9821 · Savanna Traders · KES 4.2M</option><option>LOAN-9820 · Jane Wanjiru · KES 480K</option><option>LOAN-9812 · Globex Mfg · USD 2.8M</option></select></div></div><div class="step-panel" data-step="2"><div class="alert info" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg>Verifying Conditions Precedent (CP) completion...</div><div class="cp-checklist"><div class="cp-item"><span class="badge success">✓</span> Agreement</div><div class="cp-item"><span class="badge success">✓</span> Security</div><div class="cp-item"><span class="badge success">✓</span> Board Res</div><div class="cp-item"><span class="badge success">✓</span> Insurance</div></div></div><div class="step-panel" data-step="3"><div class="field"><label class="field-label">Select Payout Rail</label><div class="rail-select"><div class="rail-card selected"><strong>PesaLink</strong></div><div class="rail-card"><strong>RTGS</strong></div><div class="rail-card"><strong>SWIFT</strong></div></div></div></div><div class="step-panel" data-step="4"><div class="alert warning" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg>Final authorization required from Treasury L2.</div><div class="kv-grid"><div><div class="kv-label">Borrower</div><div class="kv-val">Savanna Traders</div></div><div><div class="kv-label">Disbursement</div><div class="kv-val">KES 4,200,000</div></div></div></div></div><div class="modal-footer"><button class="btn btn-light" id="disbBack" disabled>Back</button><button class="btn btn-primary" id="disbNext">Next</button></div></div></div>
+
+  <div class="modal-backdrop" id="disburseDetailModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Disbursement Review — LOAN-9821</h3><div class="modal-sub">Savanna Traders Ltd · Approved</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid" style="margin-bottom:18px;"><div><div class="kv-label">Facility Amount</div><div class="kv-val">KES 4,200,000</div></div><div><div class="kv-label">Approval Date</div><div class="kv-val">10 Feb 2026</div></div><div><div class="kv-label">Account Name</div><div class="kv-val">Savanna Traders Ltd</div></div><div><div class="kv-label">Account No</div><div class="kv-val">Equity Bank · 0110...7741</div></div></div><h3 class="uw-title">Conditions Precedent Status</h3><div class="alert success" style="margin-bottom:10px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>All CPs cleared by Credit Administration.</div><div class="field" style="margin-top:14px;"><label class="field-label">Disbursement Notes</label><textarea class="textarea" placeholder="Treasury notes..."></textarea></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button class="btn btn-primary" data-modal="executeConfirmModal">Execute Now</button></div></div></div>
+
+  <div class="modal-backdrop" id="executeConfirmModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Confirm Final Release</h3><div class="modal-sub">Funds will be moved immediately</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="alert danger" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg>You are about to disburse <strong>KES 4,200,000</strong> to Equity Bank. This action cannot be reversed.</div><div class="field"><label class="field-label">Confirm Authorization Code</label><div style="display:flex;gap:8px;"><input class="input" style="text-align:center;letter-spacing:10px;font-weight:700;" placeholder="000000" maxlength="6"></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Disbursement executed successfully">Confirm & Execute</button></div></div></div>
+
+  <div class="modal-backdrop" id="disbursePreviewModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Disbursement Execution Summary</h3><div class="modal-sub">Preview before submission</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="invoice-paper"><div class="invoice-head"><div><div style="font-weight:700;font-size:18px;">PayMo Lending</div><div class="list-sub">Disbursement Division</div></div><div style="text-align:right;"><div style="font-weight:700;">PAYMENT ADVICE</div><div class="list-sub mono">ADV-88421</div></div></div><div class="kv-grid" style="margin-bottom:16px;"><div><div class="kv-label">Payee</div><div class="kv-val">Savanna Traders Ltd</div></div><div><div class="kv-label">Bank</div><div class="kv-val">Equity Bank Kenya</div></div><div><div class="kv-label">Amount</div><div class="kv-val">KES 4,200,000</div></div><div><div class="kv-label">Rail</div><div class="kv-val">PesaLink</div></div></div><div class="alert info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg>Funds will be credited to borrower account instantly.</div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Back</button><button class="btn btn-primary" data-modal="executeConfirmModal">Authorize Release</button></div></div></div>
+
+  <div class="modal-backdrop" id="triggerMilestoneModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Trigger Milestone Release</h3><div class="modal-sub">Skyline Dev · Stage 2 Completion</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Release Amount</label><input class="input" value="KES 18,000,000"></div><div class="config-row"><div><div class="config-label">Architect Certification</div><div class="config-desc">Signed & Uploaded</div></div><span class="badge success">OK</span></div><div class="config-row"><div><div class="config-label">Site Photo verification</div><div class="config-desc">Internal inspection clear</div></div><span class="badge success">OK</span></div><div class="field" style="margin-top:14px;"><label class="field-label">Inspection Reference</label><input class="input" value="INSP-8821-A"></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Milestone release authorized">Authorize KES 18M</button></div></div></div>
+
+  <div class="modal-backdrop" id="certUploadModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Upload Certification</h3><div class="modal-sub">Milestone 2 · Riverside Heights</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div style="border:2px dashed var(--border);border-radius:12px;padding:32px;text-align:center;background:var(--surface-2);"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5" style="margin-bottom:8px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><div style="font-weight:600;margin-bottom:4px;">Drop Certification PDF here</div><div style="font-size:11px;color:var(--text-3);">Signed by Architect or Engineer</div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Certification uploaded and verified">Upload & Verify</button></div></div></div>
+
+  <div class="modal-backdrop" id="receiptModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Disbursement Receipt</h3><div class="modal-sub">DISB-88421</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="alert success" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>Funds successfully delivered and GL updated.</div><div class="kv-grid"><div><div class="kv-label">Transaction ID</div><div class="kv-val">TXN-998122-A</div></div><div><div class="kv-label">Timestamp</div><div class="kv-val">12 Feb 2026, 10:42</div></div><div><div class="kv-label">GL Reference</div><div class="kv-val">GL-2026-LND-001</div></div><div><div class="kv-label">Status</div><div class="kv-val">Balanced</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-result="Receipt emailed to borrower">Email to Borrower</button><button class="btn btn-primary" data-result="Receipt downloaded">Download PDF</button></div></div></div>
+
+  <div class="modal-backdrop" id="cpAuditModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">CP Audit Trail</h3><div class="modal-sub">LOAN-9821 Conditions Precedent</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="timeline"><div class="tl-item"><div class="tl-time">Today 10:00</div><div class="tl-text">Security registration verified by Legal (David Ruto)</div></div><div class="tl-item"><div class="tl-time">Yesterday 16:30</div><div class="tl-text">Board resolution approved by Ops (Anita Lopez)</div></div><div class="tl-item"><div class="tl-time">2 days ago</div><div class="tl-text">Loan agreement signed by borrower (Jane Wanjiru)</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="permissionsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Treasury Roles & Permissions</h3><div class="modal-sub">Disbursement Authority Matrix</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="config-row"><div><div class="config-label">Treasury L1</div><div class="config-desc">Execute retail disbursements < $500K</div></div><span class="badge success">On</span></div><div class="config-row"><div><div class="config-label">Treasury L2</div><div class="config-desc">Approve SME & Corporate releases</div></div><span class="badge success">On</span></div><div class="config-row"><div><div class="config-label">Credit Admin</div><div class="config-desc">Clear CP conditions and milestones</div></div><span class="badge success">On</span></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button class="btn btn-primary" data-result="Permissions updated">Save Roles</button></div></div></div>
+
+  <div class="modal-backdrop" id="liquidityModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Lending Division Liquidity</h3><div class="modal-sub">Capital available for disbursement</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="three-col" style="margin-bottom:18px;"><div style="background:var(--success-soft);padding:14px;border-radius:12px;"><div class="kv-label">Own Capital</div><div style="font-size:22px;font-weight:700;">$14.2M</div></div><div style="background:var(--primary-soft);padding:14px;border-radius:12px;"><div class="kv-label">Warehouse (Drawndown)</div><div style="font-size:22px;font-weight:700;">$28.6M</div></div><div style="background:var(--info-soft);padding:14px;border-radius:12px;"><div class="kv-label">Remaining Warehouse</div><div style="font-size:22px;font-weight:700;">$121.4M</div></div></div><div style="font-weight:600;margin-bottom:10px;">Weekly Forecast Gap</div><div style="height:100px;background:var(--surface-2);border-radius:10px;display:flex;align-items:flex-end;gap:10px;padding:14px;"><div style="flex:1;height:40%;background:var(--primary);border-radius:4px;"></div><div style="flex:1;height:60%;background:var(--primary);border-radius:4px;"></div><div style="flex:1;height:30%;background:var(--danger);border-radius:4px;"></div><div style="flex:1;height:50%;background:var(--primary);border-radius:4px;"></div><div style="flex:1;height:70%;background:var(--primary);border-radius:4px;"></div><div style="flex:1;height:40%;background:var(--primary);border-radius:4px;"></div><div style="flex:1;height:55%;background:var(--primary);border-radius:4px;"></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button class="btn btn-primary" data-result="Warehouse facility drawdown triggered">Drawdown $5M</button></div></div></div>
+
+  <div class="modal-backdrop" id="batchDisburseModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Batch Disbursement</h3><div class="modal-sub">Process multiple approved loans</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="alert info" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg>12 retail loans ready for batch release. Total: KES 5.8M.</div><label class="choice-row selected"><input type="checkbox" checked><div><div class="choice-title">Automate payout rail selection</div><div class="choice-desc">Best rail by amount and speed</div></div></label><label class="choice-row selected"><input type="checkbox" checked><div><div class="choice-title">Notify borrowers immediately</div><div class="choice-desc">SMS and App push</div></div></label></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Batch disbursement initiated for 12 loans">Execute Batch</button></div></div></div>
+
+  <div class="modal-backdrop" id="addMilestoneModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Add Milestone Definition</h3><div class="modal-sub">Staged disbursement planning</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Milestone Name</label><input class="input" placeholder="e.g. Roofing Completion"></div><div class="field"><label class="field-label">Release Amount</label><input class="input" placeholder="0.00"></div><div class="field"><label class="field-label">Required Document</label><select class="select-field"><option>Engineer's Certificate</option><option>Architect's Certificate</option><option>Quantity Surveyor Report</option></select></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Milestone definition added">Add Milestone</button></div></div></div>
+
+  <div class="modal-backdrop" id="glSyncModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Sync General Ledger</h3><div class="modal-sub">Post disbursement logs to ERP</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="alert info" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg>42 disbursements ($12.4M) pending GL posting.</div><div class="config-row"><div><div class="config-label">SAP S/4HANA Connector</div></div><span class="badge success">Active</span></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="GL sync completed - 42 entries posted">Sync Now</button></div></div></div>
+
+  <div class="modal-backdrop" id="manualMatchModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Manual GL Posting</h3><div class="modal-sub">Correct posting errors</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Transaction Reference</label><input class="input" placeholder="DISB-XXXXX"></div><div class="field-row"><div class="field"><label class="field-label">Debit Account</label><input class="input" value="10100 - Cash at Bank"></div><div class="field"><label class="field-label">Credit Account</label><input class="input" value="12200 - Loans Receivable"></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Manual entry posted to GL">Post Entry</button></div></div></div>
+
+  <div class="modal-backdrop" id="reconHealthModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Reconciliation Health</h3><div class="modal-sub">Disbursement auto-matching status</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="dist-row"><div class="dist-label">Auto-matched</div><div class="dist-bar"><span style="width:96%;background:var(--success);"></span></div><div class="dist-val">112</div></div><div class="dist-row"><div class="dist-label">Manual Review</div><div class="dist-bar"><span style="width:3%;background:var(--warning);"></span></div><div class="dist-val">4</div></div><div class="dist-row"><div class="dist-label">Unmatched</div><div class="dist-bar"><span style="width:1%;background:var(--danger);"></span></div><div class="dist-val">1</div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="resultModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title" id="resultTitle">Action Complete</h3><div class="modal-sub">Operation successful</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="alert success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg><span id="resultMessage">Action completed.</span></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Done</button></div></div></div>
+
+  <div class="modal-backdrop" id="filterModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Filters</h3><div class="modal-sub">Refine disbursement queue</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Segment</label><select class="select-field"><option>All segments</option><option>Retail</option><option>SME</option><option>Corporate</option><option>Real Estate</option></select></div><div class="field"><label class="field-label">Priority</label><select class="select-field"><option>All</option><option>Urgent</option><option>Standard</option></select></div></div><div class="modal-footer"><button class="btn btn-ghost" data-result="Filters reset">Reset</button><div style="display:flex;gap:8px;"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Filters applied">Apply</button></div></div></div></div>
+
+  <div class="modal-backdrop" id="exportModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Export Disbursement Data</h3><div class="modal-sub">Reports and reconciliation logs</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Report type</label><select class="select-field"><option>Daily disbursement log</option><option>Pending queue</option><option>Staged milestone summary</option><option>Reconciliation audit</option></select></div><div class="field"><label class="field-label">Format</label><select class="select-field"><option>PDF</option><option>CSV</option><option>XLSX</option></select></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Export generated">Generate</button></div></div></div>
+
+  <div class="modal-backdrop" id="notificationsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Disbursement Notifications</h3><div class="modal-sub">8 unread events</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body" style="padding:0;"><div class="list-item"><div class="list-left"><div class="list-icon" style="background:var(--success-soft);color:var(--success);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg></div><div><div class="list-title">Savanna Traders KES 4.2M Settled</div><div class="list-sub">12 min ago</div></div></div></div><div class="list-item"><div class="list-left"><div class="list-icon" style="background:var(--warning-soft);color:var(--warning);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg></div><div><div class="list-title">Milestone Cert Due: Skyline Dev</div><div class="list-sub">Stage 2 Superstructure</div></div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-result="Notifications marked as read">Mark read</button><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="navCommandModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Command Center</h3><div class="modal-sub">Lending division hub</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">Portfolio Size</div><div class="kv-val">$184M</div></div><div><div class="kv-label">PAR 30</div><div class="kv-val">4.8%</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+  <div class="modal-backdrop" id="navAppsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Applications</h3><div class="modal-sub">Application intake</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">In queue</div><div class="kv-val">148</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+  <div class="modal-backdrop" id="navUnderwriteModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Underwriting</h3><div class="modal-sub">Risk assessment</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><button class="btn btn-primary" style="width:100%;" data-close>Open Underwriting</button></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+  <div class="modal-backdrop" id="navServicingModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Servicing</h3><div class="modal-sub">Repayments hub</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">Collection Rate</div><div class="kv-val">96.4%</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+  <div class="modal-backdrop" id="navCollectionsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Collections</h3><div class="modal-sub">Default recovery</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">NPL Ratio</div><div class="kv-val">3.4%</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+  <div class="modal-backdrop" id="navTreasuryModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Treasury</h3><div class="modal-sub">Capital management</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">Own Capital</div><div class="kv-val">$14.2M</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+  <div class="modal-backdrop" id="navAnalyticsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Analytics</h3><div class="modal-sub">Reporting division</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">Lending Division ROA</div><div class="kv-val">2.2%</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <script>
+    const sidebar = document.getElementById('sidebar');
+    document.getElementById('sidebarToggle').addEventListener('click', () => sidebar.classList.toggle('expanded'));
+    document.getElementById('mobileMenuBtn').addEventListener('click', () => sidebar.classList.toggle('mobile-open'));
+
+    function openModal(id) { const m = document.getElementById(id); if (m) m.classList.add('show'); }
+    function closeAll() { document.querySelectorAll('.modal-backdrop.show').forEach(m => m.classList.remove('show')); }
+    
+    document.addEventListener('click', e => {
+      const close = e.target.closest('[data-close]');
+      if (close) { e.preventDefault(); e.stopPropagation(); closeAll(); return; }
+      
+      const result = e.target.closest('[data-result]');
+      if (result) {
+        e.preventDefault(); e.stopPropagation();
+        closeAll();
+        document.getElementById('resultMessage').textContent = result.dataset.result;
+        openModal('resultModal');
+        return;
+      }
+      
+      const opener = e.target.closest('[data-modal]');
+      if (opener) { e.preventDefault(); e.stopPropagation(); openModal(opener.dataset.modal); }
+    });
+
+    document.querySelectorAll('.modal-backdrop').forEach(b => b.addEventListener('click', e => { if (e.target === b) closeAll(); }));
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAll(); });
+
+    function switchTab(name) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.dataset.panel === name));
+    }
+    document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => switchTab(tab.dataset.tab)));
+
+    document.querySelectorAll('.choice-row, .rail-card').forEach(row => {
+      row.addEventListener('click', () => {
+        const radio = row.querySelector('input[type="radio"]');
+        if (radio) {
+          row.closest('div').querySelectorAll('input[type="radio"]').forEach(i => i.closest('.choice-row, .rail-card')?.classList.remove('selected'));
+          radio.checked = true;
+          row.classList.add('selected');
+        }
+        const checkbox = row.querySelector('input[type="checkbox"]');
+        if (checkbox && !radio) row.classList.toggle('selected', checkbox.checked);
+        if (row.classList.contains('rail-card')) {
+          row.parentElement.querySelectorAll('.rail-card').forEach(c => c.classList.remove('selected'));
+          row.classList.add('selected');
+        }
+      });
+    });
+
+    function setupStepper(rootId, stepperId, backId, nextId, total, doneMessage) {
+      const root = document.getElementById(rootId);
+      if (!root) return;
+      let current = 1;
+      const render = () => {
+        document.querySelectorAll(`#${stepperId} .step`).forEach((s, i) => { s.classList.toggle('active', i + 1 === current); s.classList.toggle('done', i + 1 < current); });
+        root.querySelectorAll('.step-panel').forEach(p => p.classList.toggle('active', Number(p.dataset.step) === current));
+        document.getElementById(backId).disabled = current === 1;
+        document.getElementById(nextId).textContent = current === total ? 'Submit Release' : 'Next';
+      };
+      document.getElementById(backId).addEventListener('click', () => { if (current > 1) { current--; render(); } });
+      document.getElementById(nextId).addEventListener('click', () => { if (current < total) { current++; render(); } else { current = 1; render(); closeAll(); document.getElementById('resultMessage').textContent = doneMessage; openModal('resultModal'); } });
+      render();
+    }
+    setupStepper('disburseWizardModal', 'disbStepper', 'disbBack', 'disbNext', 4, 'Disbursement request submitted for final treasury release');
+  </script>
+</body>
+</html>

@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Collections & Recovery - PayMo Lending</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="stylesheet" href="master.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    .two-col { display: grid; grid-template-columns: 1.5fr 1fr; gap: 16px; }
+    .three-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .aging-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+    .aging-card { background: var(--surface); border: 1px solid var(--border-soft); border-radius: 12px; padding: 14px; text-align: center; cursor: pointer; transition: all .15s; }
+    .aging-card:hover { border-color: var(--primary); box-shadow: var(--shadow); }
+    .aging-label { font-size: 10px; color: var(--text-4); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
+    .aging-val { font-size: 16px; font-weight: 700; }
+    .stage-strip { width: 4px; align-self: stretch; border-radius: 4px; margin-right: 12px; }
+    .stage-1 { background: var(--info); }
+    .stage-2 { background: var(--warning); }
+    .stage-3 { background: var(--danger); }
+    .stage-4 { background: #1a1a1a; }
+    .delinquency-card { background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius); padding: 16px; cursor: pointer; transition: all .15s; display: flex; align-items: center; }
+    .delinquency-card:hover { border-color: var(--primary); box-shadow: var(--shadow-lg); }
+    .money-large { font-size: 30px; font-weight: 700; letter-spacing: -.04em; }
+    .kv-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 18px; }
+    .kv-label { font-size: 10px; color: var(--text-4); text-transform: uppercase; letter-spacing: .07em; }
+    .kv-val { font-size: 13px; font-weight: 600; margin-top: 2px; }
+    .donut { transform: rotate(-90deg); }
+    .donut circle { fill: none; stroke-width: 12; }
+    .ring-wrap { position: relative; width: 120px; height: 120px; margin: 0 auto; }
+    .ring-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .config-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border-soft); }
+    .config-row:last-child { border-bottom: 0; }
+    .timeline { position: relative; padding-left: 24px; }
+    .timeline:before { content: ""; position: absolute; top: 6px; bottom: 6px; left: 8px; width: 2px; background: var(--border); }
+    .tl-item { position: relative; padding-bottom: 14px; }
+    .tl-item:before { content: ""; position: absolute; left: -20px; top: 4px; width: 10px; height: 10px; border-radius: 50%; background: var(--primary); border: 2px solid #fff; }
+    .tl-time { font-size: 10px; color: var(--text-4); }
+    .tl-text { font-size: 12px; margin-top: 2px; }
+    .channel-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .channel-card { border: 1px solid var(--border); border-radius: 12px; padding: 12px; text-align: center; cursor: pointer; transition: all .15s; }
+    .channel-card:hover { border-color: var(--primary); background: var(--primary-soft); }
+    .channel-icon { width: 32px; height: 32px; margin: 0 auto 8px; display: flex; align-items: center; justify-content: center; border-radius: 8px; background: var(--surface-2); }
+    .matrix-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .matrix-table th, .matrix-table td { text-align: left; padding: 8px 10px; border: 1px solid var(--border-soft); }
+    .matrix-table th { background: var(--surface-2); font-size: 10px; text-transform: uppercase; color: var(--text-3); }
+    @media (max-width: 1100px) { .two-col { grid-template-columns: 1fr; } .aging-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 768px) { .three-col, .aging-grid, .channel-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">P</div>
+      <nav class="sidebar-nav">
+        <button class="sidebar-item" title="Portfolio" data-modal="navCommandModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg><span class="sidebar-label">Portfolio</span></button>
+        <button class="sidebar-item" title="Applications" data-modal="navAppsModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg><span class="sidebar-label">Applications</span></button>
+        <button class="sidebar-item" title="Underwriting" data-modal="navUwModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg><span class="sidebar-label">Underwriting</span></button>
+        <button class="sidebar-item" title="Servicing" data-modal="navServicingModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg><span class="sidebar-label">Servicing</span></button>
+        <button class="sidebar-item active" title="Collections"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path></svg><span class="sidebar-label">Collections</span></button>
+        <button class="sidebar-item" title="Enforcement" data-modal="navRecoveryModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg><span class="sidebar-label">Enforcement</span></button>
+        <button class="sidebar-item" title="Customers" data-modal="navCustomersModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg><span class="sidebar-label">Customers</span></button>
+        <button class="sidebar-item" title="Analytics" data-modal="navAnalyticsModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="20" x2="12" y2="10"></line><line x1="18" y1="20" x2="18" y2="4"></line><line x1="6" y1="20" x2="6" y2="16"></line></svg><span class="sidebar-label">Analytics</span></button>
+      </nav>
+      <button class="sidebar-expand" id="sidebarToggle"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg><span class="sidebar-label">Collapse</span></button>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <div class="crumb">
+            <button class="mobile-menu-btn btn btn-light btn-sm" id="mobileMenuBtn" style="margin-right:8px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+            <span>Lending</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg><span>Collections & Recovery</span>
+          </div>
+          <h1 class="page-title">Collections & Recovery</h1>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-light btn-icon" data-modal="notificationsModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg></button>
+          <span class="badge danger" style="margin-right:6px;" id="alertBadge">14 High-Priority Delinquencies</span>
+          <button class="btn btn-light" data-modal="permissionsModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle></svg>Role: Collection Officer</button>
+          <button class="btn btn-primary" data-modal="manualRepaymentModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>Log Repayment</button>
+        </div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card" data-modal="expectedModal"><div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg></div><div class="stat-label">Expected (Today)</div><div class="stat-value">KES 8.4M</div><div class="stat-trend neutral"><span>from 1,240 accounts</span></div></div>
+        <div class="stat-card" data-modal="successRateModal"><div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"></path></svg></div><div class="stat-label">Collection Rate</div><div class="stat-value">94.2%</div><div class="stat-trend up"><span>+1.2% vs target</span></div></div>
+        <div class="stat-card" data-modal="parModal"><div class="stat-icon red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path></svg></div><div class="stat-label">PAR 30</div><div class="stat-value">4.8%</div><div class="stat-trend down"><span>Target: < 4%</span></div></div>
+        <div class="stat-card" data-modal="autoDebitModal"><div class="stat-icon purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg></div><div class="stat-label">Auto-Debit Success</div><div class="stat-value">88.4%</div><div class="stat-trend neutral"><span>314 retries today</span></div></div>
+        <div class="stat-card" data-modal="recoveryModal"><div class="stat-icon amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4-6.3-4.6L5.7 21.4 8 14 2 9.4h7.6z"></path></svg></div><div class="stat-label">Recoveries (MTD)</div><div class="stat-value">KES 12.1M</div><div class="stat-trend up"><span>+18% MoM</span></div></div>
+      </div>
+
+      <div class="panel">
+        <div class="tabs" id="mainTabs">
+          <button class="tab active" data-tab="dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>Dashboard</button>
+          <button class="tab" data-tab="autodebit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>Auto-Debit</button>
+          <button class="tab" data-tab="workflow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>Delinquency Workflow <span class="tab-badge">148</span></button>
+          <button class="tab" data-tab="restructuring"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>Restructuring</button>
+          <button class="tab" data-tab="enforcement"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>Enforcement</button>
+        </div>
+
+        <section class="tab-panel active" data-panel="dashboard">
+          <div class="panel-body">
+            <div class="aging-grid" style="margin-bottom: 22px;">
+              <div class="aging-card" data-modal="agingDetailModal"><div class="aging-label">Current</div><div class="aging-val" style="color:var(--success);">95.2%</div><div class="list-sub">KES 172M</div></div>
+              <div class="aging-card" data-modal="agingDetailModal"><div class="aging-label">1-30 DPD</div><div class="aging-val" style="color:var(--info);">2.4%</div><div class="list-sub">KES 4.2M</div></div>
+              <div class="aging-card" data-modal="agingDetailModal"><div class="aging-label">31-60 DPD</div><div class="aging-val" style="color:var(--warning);">1.2%</div><div class="list-sub">KES 2.1M</div></div>
+              <div class="aging-card" data-modal="agingDetailModal"><div class="aging-label">61-90 DPD</div><div class="aging-val" style="color:var(--danger);">0.8%</div><div class="list-sub">KES 1.4M</div></div>
+              <div class="aging-card" data-modal="agingDetailModal"><div class="aging-label">90+ DPD</div><div class="aging-val" style="color:#1a1a1a;">0.4%</div><div class="list-sub">KES 0.7M</div></div>
+            </div>
+            <div class="two-col">
+              <div>
+                <h2 class="panel-title" style="margin-bottom:14px;">Collections vs. Target</h2>
+                <div style="background:var(--surface-2);border-radius:14px;padding:18px;margin-bottom:14px;">
+                  <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:8px;">
+                    <div><div class="kv-label">Actual collections (MTD)</div><div class="money-large">KES 114.2M</div></div>
+                    <div style="text-align:right;"><div class="kv-label">Target</div><div style="font-weight:600;">KES 120M</div></div>
+                  </div>
+                  <div class="dist-bar" style="height:12px;"><span style="width:95.1%;background:var(--success);"></span></div>
+                </div>
+                <h2 class="panel-title" style="margin-bottom:12px;font-size:14px;">Repayment Channel Mix</h2>
+                <div class="channel-grid">
+                  <div class="channel-card" data-modal="channelDetailModal"><div class="channel-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path></svg></div><strong>Wallet</strong><div class="list-sub">42%</div></div>
+                  <div class="channel-card" data-modal="channelDetailModal"><div class="channel-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4-6.3-4.6L5.7 21.4 8 14 2 9.4h7.6z"></path></svg></div><strong>M-Pesa</strong><div class="list-sub">31%</div></div>
+                  <div class="channel-card" data-modal="channelDetailModal"><div class="channel-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"></path><path d="M3 10h18"></path></svg></div><strong>Transfer</strong><div class="list-sub">18%</div></div>
+                  <div class="channel-card" data-modal="channelDetailModal"><div class="channel-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"></rect></svg></div><strong>Salary</strong><div class="list-sub">6%</div></div>
+                  <div class="channel-card" data-modal="channelDetailModal"><div class="channel-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"></rect></svg></div><strong>Card</strong><div class="list-sub">2%</div></div>
+                  <div class="channel-card" data-modal="channelDetailModal"><div class="channel-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path></svg></div><strong>Cash</strong><div class="list-sub">1%</div></div>
+                </div>
+              </div>
+              <div>
+                <h2 class="panel-title" style="margin-bottom:14px;">Collection Performance</h2>
+                <div style="background:var(--surface-2);border-radius:14px;padding:18px;text-align:center;">
+                  <div class="ring-wrap">
+                    <svg width="120" height="120" viewBox="0 0 120 120" class="donut"><circle cx="60" cy="60" r="48" stroke="#eef0ff"></circle><circle cx="60" cy="60" r="48" stroke="#16a34a" stroke-dasharray="301" stroke-dashoffset="17"></circle></svg>
+                    <div class="ring-center"><div class="kv-label">Goal</div><div style="font-size:22px;font-weight:700;">94%</div></div>
+                  </div>
+                  <button class="btn btn-light btn-sm" style="margin-top:14px;width:100%;" data-modal="performanceByProductModal">Breakdown by Product</button>
+                  <button class="btn btn-light btn-sm" style="margin-top:8px;width:100%;" data-modal="performanceByOfficerModal">Breakdown by Officer</button>
+                </div>
+                <h2 class="panel-title" style="margin: 18px 0 12px;font-size:14px;">Actionable Alerts</h2>
+                <div class="list-item" style="padding-left:0;padding-right:0;"><div class="list-left"><div class="list-icon" style="background:var(--danger-soft);color:var(--danger);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path></svg></div><div><div class="list-title">Corporate Breach</div><div class="list-sub">Globex Manufacturing - DSCR 1.1x</div></div></div><button class="btn btn-light btn-sm" data-modal="covenantModal">Act</button></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="tab-panel" data-panel="autodebit">
+          <div class="panel-body">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px;">
+              <h2 class="panel-title">Mandate Management</h2>
+              <div style="display:flex;gap:8px;">
+                <button class="btn btn-light" data-modal="retryConfigModal">Retry Logic</button>
+                <button class="btn btn-primary" data-modal="newMandateModal">+ New Mandate</button>
+              </div>
+            </div>
+            <div class="table-wrap"><table class="table"><thead><tr><th>Customer</th><th>Bank</th><th>Amount</th><th>Schedule</th><th>Retry Status</th><th>Health</th><th></th></tr></thead><tbody>
+              <tr data-modal="mandateDetailModal"><td>Jane Wanjiru</td><td>Equity</td><td>KES 24,800</td><td>On-due</td><td>Attempt 1 (Success)</td><td><span class="badge success">Active</span></td><td class="right"><button class="btn btn-light btn-sm">Edit</button></td></tr>
+              <tr data-modal="mandateDetailModal"><td>Peter Mwangi</td><td>KCB</td><td>KES 240,000</td><td>Pre-due</td><td>Attempt 2 (Pending)</td><td><span class="badge warning">Watch</span></td><td class="right"><button class="btn btn-light btn-sm">Edit</button></td></tr>
+              <tr data-modal="mandateDetailModal"><td>Acme Logistics</td><td>Chase</td><td>USD 4,200</td><td>Post-due</td><td>Failed 3 (Escalated)</td><td><span class="badge danger">Suspended</span></td><td class="right"><button class="btn btn-light btn-sm">Edit</button></td></tr>
+            </tbody></table></div>
+          </div>
+        </section>
+
+        <section class="tab-panel" data-panel="workflow">
+          <div class="panel-body">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px;">
+              <h2 class="panel-title">Delinquency Queue</h2>
+              <div style="display:flex;gap:8px;">
+                <button class="btn btn-light" data-modal="assignmentModal">Assign Officers</button>
+                <button class="btn btn-light" data-modal="slaModal">SLA Settings</button>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 14px;">
+              <div class="delinquency-card" data-modal="caseDetailModal"><div class="stage-strip stage-1"></div><div style="flex:1;"><div style="display:flex;justify-content:space-between;"><span class="mono" style="font-size:11px;color:var(--text-3);">CASE-8842</span><span class="badge info">12 DPD</span></div><div style="font-weight:600;margin-top:4px;">Jane Wanjiru</div><div class="list-sub">Personal Loan · KES 24,800 overdue</div><div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center;"><span class="avatar">SK</span><span class="list-sub">SMS reminder sent</span></div></div></div>
+              <div class="delinquency-card" data-modal="caseDetailModal"><div class="stage-strip stage-2"></div><div style="flex:1;"><div style="display:flex;justify-content:space-between;"><span class="mono" style="font-size:11px;color:var(--text-3);">CASE-8831</span><span class="badge warning">41 DPD</span></div><div style="font-weight:600;margin-top:4px;">Peter Mwangi</div><div class="list-sub">SME Loan · KES 240,000 overdue</div><div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center;"><span class="avatar">AL</span><span class="list-sub">Payment plan offered</span></div></div></div>
+              <div class="delinquency-card" data-modal="caseDetailModal"><div class="stage-strip stage-3"></div><div style="flex:1;"><div style="display:flex;justify-content:space-between;"><span class="mono" style="font-size:11px;color:var(--text-3);">CASE-8819</span><span class="badge danger">72 DPD</span></div><div style="font-weight:600;margin-top:4px;">Acme Logistics</div><div class="list-sub">Corp Facility · USD 4,200 overdue</div><div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center;"><span class="avatar">JM</span><span class="list-sub">Legal notice issued</span></div></div></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="tab-panel" data-panel="restructuring">
+          <div class="panel-body">
+            <div class="two-col">
+              <div>
+                <h2 class="panel-title" style="margin-bottom:14px;">Restructuring Proposals</h2>
+                <div class="table-wrap"><table class="table"><thead><tr><th>Case</th><th>Client</th><th>Current NPV</th><th>Proposed NPV</th><th>Status</th></tr></thead><tbody>
+                  <tr data-modal="restructureDetailModal"><td>CASE-8831</td><td>Peter Mwangi</td><td>KES 2.8M</td><td>KES 2.6M</td><td><span class="badge warning">Pending Approval</span></td></tr>
+                  <tr data-modal="restructureDetailModal"><td>CASE-8822</td><td>Skyline Devs</td><td>KES 112M</td><td>KES 118M</td><td><span class="badge info">Draft</span></td></tr>
+                </tbody></table></div>
+                <button class="btn btn-primary" style="margin-top:14px;" data-modal="restructureWizardModal">New Proposal</button>
+              </div>
+              <div class="uw-card">
+                <h3 class="uw-title">Compliance Monitoring</h3>
+                <div class="config-row"><div><div class="config-label">Active Restructures</div><div class="config-desc">12 accounts monitored</div></div><strong>12</strong></div>
+                <div class="config-row"><div><div class="config-label">Payment Adherence</div><div class="config-desc">Post-restructure success</div></div><span class="badge success">92%</span></div>
+                <div class="config-row" style="border:0;"><div><div class="config-label">Recidivism Rate</div><div class="config-desc">Re-defaulting within 6 months</div></div><span class="badge danger">8%</span></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="tab-panel" data-panel="enforcement">
+          <div class="panel-body">
+            <div class="three-col">
+              <div class="uw-card" data-modal="repossessionModal"><h3 class="uw-title">Repossessions</h3><div style="font-size:20px;font-weight:700;">8 Active</div><div class="list-sub">Asset recovery in progress</div></div>
+              <div class="uw-card" data-modal="legalModal"><h3 class="uw-title">Legal Proceedings</h3><div style="font-size:20px;font-weight:700;">14 Cases</div><div class="list-sub">Court / auction tracking</div></div>
+              <div class="uw-card" data-modal="writeoffModal"><h3 class="uw-title">Write-offs</h3><div style="font-size:20px;font-weight:700;">KES 4.2M</div><div class="list-sub">Pending committee approval</div></div>
+            </div>
+            <div style="margin-top:18px;">
+              <h2 class="panel-title" style="margin-bottom:12px;">Enforcement Timeline</h2>
+              <div class="table-wrap"><table class="table"><thead><tr><th>Client</th><th>Asset</th><th>Current Stage</th><th>Proceeds</th><th>Status</th></tr></thead><tbody>
+                <tr data-modal="repossessionDetailModal"><td>Auto Transport Ltd</td><td>3 Trucks (Collateral)</td><td>Auction Scheduled</td><td>-</td><td><span class="badge info">Executing</span></td></tr>
+                <tr data-modal="repossessionDetailModal"><td>John Doe</td><td>Personal Car</td><td>Shortfall Pursuit</td><td>KES 820K</td><td><span class="badge success">Partial</span></td></tr>
+              </tbody></table></div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- ============ MODALS (20+) ============ -->
+
+  <div class="modal-backdrop" id="manualRepaymentModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Log Repayment</h3><div class="modal-sub">Manual entry for offline payments</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Loan Account / Client</label><select class="select-field"><option>Jane Wanjiru · Personal Loan</option><option>Peter Mwangi · SME Loan</option><option>Globex Manufacturing</option></select></div><div class="field-row"><div class="field"><label class="field-label">Amount</label><input class="input" value="0.00"></div><div class="field"><label class="field-label">Channel</label><select class="select-field"><option>Bank Transfer</option><option>Cash at Agent</option><option>Cheque</option></select></div></div><div class="field"><label class="field-label">Reference / Slip Number</label><input class="input"></div><div class="field"><label class="field-label">Date</label><input class="input" type="date"></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Repayment logged successfully">Post Repayment</button></div></div></div>
+
+  <div class="modal-backdrop" id="expectedModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Expected Collections Today</h3><div class="modal-sub">1,240 accounts due for KES 8.4M</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid" style="margin-bottom:16px;"><div><div class="kv-label">Auto-debit volume</div><div class="kv-val">KES 6.2M</div></div><div><div class="kv-label">Manual / Expected</div><div class="kv-val">KES 2.2M</div></div></div><table class="table"><thead><tr><th>Customer</th><th>Product</th><th>Amount Due</th><th>Instructions</th></tr></thead><tbody><tr><td>Jane Wanjiru</td><td>Retail</td><td>KES 24,800</td><td>Auto-debit</td></tr><tr><td>Savanna Logistics</td><td>SME</td><td>KES 420,000</td><td>Transfer</td></tr></tbody></table></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="successRateModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Collection Success Breakdown</h3><div class="modal-sub">Actual vs. Target 93%</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="dist-row"><div class="dist-label">Retail</div><div class="dist-bar"><span style="width:96%;background:var(--success);"></span></div><div class="dist-val">96.2%</div></div><div class="dist-row"><div class="dist-label">SME</div><div class="dist-bar"><span style="width:91%;background:var(--success);"></span></div><div class="dist-val">91.4%</div></div><div class="dist-row"><div class="dist-label">Corporate</div><div class="dist-bar"><span style="width:88%;background:var(--warning);"></span></div><div class="dist-val">88.7%</div></div><div class="dist-row"><div class="dist-label">Real Estate</div><div class="dist-bar"><span style="width:82%;background:var(--danger);"></span></div><div class="dist-val">82.1%</div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="parModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Portfolio at Risk (PAR)</h3><div class="modal-sub">Delinquency volume analysis</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid" style="margin-bottom:16px;"><div><div class="kv-label">PAR 30</div><div class="kv-val" style="color:var(--warning);">4.8%</div></div><div><div class="kv-label">PAR 60</div><div class="kv-val" style="color:var(--danger);">2.1%</div></div><div><div class="kv-label">PAR 90</div><div class="kv-val" style="color:#1a1a1a;">1.2%</div></div><div><div class="kv-label">NPL Ratio</div><div class="kv-val" style="color:#1a1a1a;">3.4%</div></div></div><div class="alert danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg>PAR 30 has exceeded risk appetite limit of 4.0%.</div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="autoDebitModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Auto-Debit Operations</h3><div class="modal-sub">Today's direct debit cycle</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:18px;"><div style="background:var(--surface-2);border-radius:12px;padding:14px;"><div class="kv-label">Total processed</div><div style="font-size:22px;font-weight:700;">1,142</div></div><div style="background:var(--success-soft);border-radius:12px;padding:14px;"><div class="kv-label">Successful</div><div style="font-size:22px;font-weight:700;color:var(--success);">1,008</div></div><div style="background:var(--danger-soft);border-radius:12px;padding:14px;"><div class="kv-label">Failed</div><div style="font-size:22px;font-weight:700;color:var(--danger);">134</div></div></div><div style="font-weight:600;margin-bottom:10px;">Retry Logic Execution</div><div class="timeline"><div class="tl-item"><div class="tl-time">08:00</div><div class="tl-text">Attempt 1 started for 1,142 accounts</div></div><div class="tl-item"><div class="tl-time">09:30</div><div class="tl-text">314 retries scheduled for Attempt 2 (post-due)</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button class="btn btn-primary" data-modal="retryConfigModal">Configure retries</button></div></div></div>
+
+  <div class="modal-backdrop" id="recoveryModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Recovery Proceeds</h3><div class="modal-sub">KES 12.1M recovered this month</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><table class="table"><thead><tr><th>Client</th><th>Source</th><th>Amount</th><th>Allocated to</th></tr></thead><tbody><tr><td>Umbrella Ltd</td><td>Asset Sale</td><td>KES 4.8M</td><td>Principal (90%)</td></tr><tr><td>Stark Indust.</td><td>Guarantee</td><td>KES 2.2M</td><td>Interest (100%)</td></tr></tbody></table></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="agingDetailModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Aging Analysis Detail</h3><div class="modal-sub">Drill-down by bucket</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><table class="table"><thead><tr><th>Customer</th><th>Product</th><th>Balance</th><th>Days Overdue</th><th>Officer</th></tr></thead><tbody><tr><td>Jane Wanjiru</td><td>Personal Loan</td><td>KES 24,800</td><td>12</td><td>Sarah K.</td></tr></tbody></table></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="channelDetailModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Payment Channel Detail</h3><div class="modal-sub">Channel health & performance</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="config-row"><div><div class="config-label">Availability</div><div class="config-desc">System uptime last 24h</div></div><span class="badge success">99.99%</span></div><div class="config-row"><div><div class="config-label">Processing Time</div><div class="config-desc">Avg time to settle</div></div><span class="badge info">Real-time</span></div><div class="config-row"><div><div class="config-label">Failed Rate</div><div class="config-desc">User-induced failure rate</div></div><span class="badge warning">4.2%</span></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="performanceByProductModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Performance by Product</h3><div class="modal-sub">Collection efficiency by segment</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="dist-row"><div class="dist-label">Retail Loans</div><div class="dist-bar"><span style="width:97%;background:var(--success);"></span></div><div class="dist-val">97.1%</div></div><div class="dist-row"><div class="dist-label">Salary Advance</div><div class="dist-bar"><span style="width:98%;background:var(--success);"></span></div><div class="dist-val">98.4%</div></div><div class="dist-row"><div class="dist-label">SME Working Cap</div><div class="dist-bar"><span style="width:89%;background:var(--warning);"></span></div><div class="dist-val">89.2%</div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="performanceByOfficerModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Officer Performance</h3><div class="modal-sub">Collection targets vs. actual</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><table class="table"><thead><tr><th>Officer</th><th>Target</th><th>Actual</th><th>Efficiency</th></tr></thead><tbody><tr><td>Sarah Karanja</td><td>KES 10M</td><td>KES 9.8M</td><td><span class="badge success">98%</span></td></tr><tr><td>Anita Lopez</td><td>KES 10M</td><td>KES 9.2M</td><td><span class="badge warning">92%</span></td></tr></tbody></table></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="covenantModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Covenant Breach Follow-up</h3><div class="modal-sub">Globex Manufacturing · USD 2.8M</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="alert danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path></svg>DSCR has fallen to 1.1x (Threshold 1.5x)</div><div class="field"><label class="field-label">Action required</label><select class="select-field"><option>Issue waiver with conditions</option><option>Request additional collateral</option><option>Accelerate repayment</option><option>Declare event of default</option></select></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Follow-up action recorded">Log Action</button></div></div></div>
+
+  <div class="modal-backdrop" id="retryConfigModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Auto-Debit Retry Logic</h3><div class="modal-sub">Automated failed debit handling</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="config-row"><div><div class="config-label">Attempt 1 (Pre-due)</div><div class="config-desc">Check balance -1 day before</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div><div class="config-row"><div><div class="config-label">Attempt 2 (On-due)</div><div class="config-desc">Standard cycle at 02:00 AM</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div><div class="config-row"><div><div class="config-label">Attempt 3 (Post-due)</div><div class="config-desc">+2 days after failure</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div><div class="field" style="margin-top:14px;"><label class="field-label">Fallback Method</label><select class="select-field"><option>Try secondary linked bank</option><option>Deduct from PayMo Wallet</option><option>Push STK Push (M-Pesa)</option></select></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Retry configuration updated">Save Logic</button></div></div></div>
+
+  <div class="modal-backdrop" id="newMandateModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">New Debit Mandate</h3><div class="modal-sub">Setup automated repayment</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Customer</label><input class="input" placeholder="Search customer..."></div><div class="field"><label class="field-label">Linked Account</label><select class="select-field"><option>Equity Bank · 2081</option><option>KCB Bank · 7741</option></select></div><div class="field-row"><div class="field"><label class="field-label">Amount</label><input class="input" value="0.00"></div><div class="field"><label class="field-label">Frequency</label><select class="select-field"><option>Monthly</option><option>Weekly</option><option>One-time</option></select></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Mandate request sent to customer">Request Mandate</button></div></div></div>
+
+  <div class="modal-backdrop" id="mandateDetailModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Mandate Detail · Jane Wanjiru</h3><div class="modal-sub">Equity Bank · Active</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid" style="margin-bottom:16px;"><div><div class="kv-label">Mandate ID</div><div class="kv-val mono">MND-9921</div></div><div><div class="kv-label">Status</div><div class="kv-val"><span class="badge success">Active</span></div></div><div><div class="kv-label">Last Success</div><div class="kv-val">01 Feb 2026</div></div><div><div class="kv-label">Next Cycle</div><div class="kv-val">01 Mar 2026</div></div></div><div style="font-weight:600;margin-bottom:10px;">Repayment History</div><table class="table"><thead><tr><th>Date</th><th>Amount</th><th>Status</th></tr></thead><tbody><tr><td>01 Feb</td><td>KES 24,800</td><td><span class="badge success">Success</span></td></tr><tr><td>01 Jan</td><td>KES 24,800</td><td><span class="badge success">Success</span></td></tr></tbody></table></div><div class="modal-footer"><button class="btn btn-danger" data-result="Mandate suspended">Suspend</button><div style="display:flex;gap:8px;"><button class="btn btn-light" data-close>Close</button></div></div></div></div>
+
+  <div class="modal-backdrop" id="caseDetailModal"><div class="modal xl"><div class="modal-header"><div><h3 class="modal-title">Delinquency Case · CASE-8831</h3><div class="modal-sub">Peter Mwangi · 41 DPD · SME Loan</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;"><div><div style="font-weight:600;margin-bottom:12px;">Account Details</div><div class="kv-grid" style="margin-bottom:16px;"><div><div class="kv-label">Outstanding Principal</div><div class="kv-val">KES 4.2M</div></div><div><div class="kv-label">Arrears Amount</div><div class="kv-val">KES 240,000</div></div><div><div class="kv-label">Last Payment</div><div class="kv-val">12 Dec 2025</div></div><div><div class="kv-label">Risk Grade</div><div class="kv-val"><span class="badge danger">D · Delinquent</span></div></div></div><div style="font-weight:600;margin-bottom:8px;">Collateral</div><div class="config-row"><div><div class="config-label">Logbook · KCA 123X</div><div class="config-desc">Value KES 1.8M · Verified</div></div><span class="badge success">Secured</span></div></div><div><div style="font-weight:600;margin-bottom:12px;">Activity Timeline</div><div class="timeline"><div class="tl-item"><div class="tl-time">10 Feb</div><div class="tl-text">Stage 2: Payment plan proposal sent</div></div><div class="tl-item"><div class="tl-time">05 Feb</div><div class="tl-text">Stage 2: Call from Anita L. · Customer requested restructuring</div></div><div class="tl-item"><div class="tl-time">01 Feb</div><div class="tl-text">Stage 1: Final automated SMS reminder sent</div></div></div></div></div></div><div class="modal-footer"><div style="display:flex;gap:8px;"><button class="btn btn-light" data-modal="restructureWizardModal">Restructure</button><button class="btn btn-light" data-modal="legalModal">Escalate Legal</button></div><div style="display:flex;gap:8px;"><button class="btn btn-light" data-close>Close</button><button class="btn btn-primary" data-modal="manualRepaymentModal">Post Payment</button></div></div></div></div>
+
+  <div class="modal-backdrop" id="restructureWizardModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Payment Plan Restructuring</h3><div class="modal-sub">Modify loan terms for recovery</div></div><button class="modal-close" data-close>x</button></div><div class="stepper" id="restStepper"><div class="step active"><div class="step-num">1</div>Scenario</div><div class="step-line"></div><div class="step"><div class="step-num">2</div>Impact</div><div class="step-line"></div><div class="step"><div class="step-num">3</div>Approve</div></div><div class="modal-body"><div class="step-panel active" data-step="1"><div class="field"><label class="field-label">Restructure Strategy</label><select class="select-field"><option>Term Extension (+12 months)</option><option>Interest Rate Reduction</option><option>Principal Moratorium (3 months)</option><option>Step-up Repayments</option></select></div><div class="field-row"><div class="field"><label class="field-label">New Monthly</label><input class="input" value="18500"></div><div class="field"><label class="field-label">Extension</label><input class="input" value="12 mo"></div></div></div><div class="step-panel" data-step="2"><div class="kv-grid" style="margin-bottom:14px;"><div><div class="kv-label">Original NPV</div><div class="kv-val">KES 2.8M</div></div><div><div class="kv-label">Restructured NPV</div><div class="kv-val">KES 2.6M</div></div><div><div class="kv-label">Expected Recovery</div><div class="kv-val" style="color:var(--success);">94%</div></div><div><div class="kv-label">Loss on Restructure</div><div class="kv-val" style="color:var(--danger);">7.2%</div></div></div><div class="alert info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg>Restructuring preserves asset class better than default.</div></div><div class="step-panel" data-step="3"><div class="alert success" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>Proposal ready for Committee.</div></div></div><div class="modal-footer"><button class="btn btn-light" id="restBack" disabled>Back</button><button class="btn btn-primary" id="restNext">Next</button></div></div></div>
+
+  <div class="modal-backdrop" id="repossessionModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Collateral Repossession</h3><div class="modal-sub">Asset recovery lifecycle</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><table class="table"><thead><tr><th>Asset</th><th>Status</th><th>Agent</th><th>Valuation</th></tr></thead><tbody><tr><td>KCA 123X · Toyota</td><td>Towing Assigned</td><td>Eagle Recoveries</td><td>KES 1.8M</td></tr><tr><td>Warehouse · Plot 4</td><td>Valuation Due</td><td>Knight Frank</td><td>KES 42M</td></tr></tbody></table></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button class="btn btn-primary" data-result="Repossession request submitted">Initiate New</button></div></div></div>
+
+  <div class="modal-backdrop" id="legalModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Legal Proceedings Tracking</h3><div class="modal-sub">14 active court / statutory cases</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><table class="table"><thead><tr><th>Client</th><th>Action</th><th>Next Hearing</th><th>Law Firm</th></tr></thead><tbody><tr><td>Savanna Logistics</td><td>Summary Judgment</td><td>22 Mar 2026</td><td>MKB Advocates</td></tr><tr><td>Initech SME</td><td>Statutory Notice</td><td>Expired</td><td>O&M Legal</td></tr></tbody></table></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="writeoffModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Write-off Processing</h3><div class="modal-sub">Final asset impairment</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="alert danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg>Write-off is a final action after all recovery efforts are exhausted.</div><div class="field"><label class="field-label">Reason for write-off</label><select class="select-field"><option>Exhausted recovery · shortfall too small</option><option>Debtor untraceable · no assets</option><option>Legal settlement · compromised balance</option></select></div><div class="field"><label class="field-label">Approval Authority</label><span class="badge danger">Requires Board / CFO approval</span></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-danger" data-result="Write-off request submitted to CFO">Request Write-off</button></div></div></div>
+
+  <div class="modal-backdrop" id="slaModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Collections SLA Settings</h3><div class="modal-sub">Response and action thresholds</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="config-row"><div><div class="config-label">Stage 1 SLA</div><div class="config-desc">Contact within 24h of due date</div></div><input class="input" style="width:80px;" value="24h"></div><div class="config-row"><div><div class="config-label">Stage 2 SLA</div><div class="config-desc">Field visit if 5 calls ignored</div></div><input class="input" style="width:80px;" value="5 days"></div><div class="config-row"><div><div class="config-label">Legal SLA</div><div class="config-desc">Notice within 7 days of Stage 3</div></div><input class="input" style="width:80px;" value="7 days"></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="SLA settings updated">Save Settings</button></div></div></div>
+
+  <div class="modal-backdrop" id="assignmentModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Officer Assignment Matrix</h3><div class="modal-sub">Assign cases to collection officers</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><table class="matrix-table"><thead><tr><th>Segment</th><th>Stage 1-2</th><th>Stage 3-4</th></tr></thead><tbody><tr><td>Retail</td><td>Sarah Karanja (Round Robin)</td><td>Anita Lopez</td></tr><tr><td>SME</td><td>Anita Lopez</td><td>Legal Team</td></tr><tr><td>Corporate</td><td>Credit Risk Lead</td><td>CFO Office</td></tr></tbody></table></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="resultModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Action Complete</h3><div class="modal-sub">PayMo operation completed</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="alert success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg><span id="resultMessage">Action completed.</span></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Done</button></div></div></div>
+
+  <!-- Nav Modals -->
+  <div class="modal-backdrop" id="navCommandModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Lending Overview</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">Portfolio</div><div class="kv-val">$184M</div></div><div><div class="kv-label">NPL</div><div class="kv-val">3.4%</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+  <!-- ... existing nav modals would go here ... -->
+
+  <script>
+    const sidebar = document.getElementById('sidebar');
+    document.getElementById('sidebarToggle').addEventListener('click', () => sidebar.classList.toggle('expanded'));
+    document.getElementById('mobileMenuBtn').addEventListener('click', () => sidebar.classList.toggle('mobile-open'));
+
+    function openModal(id) { const m = document.getElementById(id); if (m) m.classList.add('show'); }
+    function closeAll() { document.querySelectorAll('.modal-backdrop.show').forEach(m => m.classList.remove('show')); }
+    
+    document.addEventListener('click', e => {
+      if (e.target.closest('.toggle')) return;
+      const close = e.target.closest('[data-close]');
+      if (close) { e.preventDefault(); e.stopPropagation(); closeAll(); return; }
+      const result = e.target.closest('[data-result]');
+      if (result) { e.preventDefault(); e.stopPropagation(); setResult(result.dataset.result); return; }
+      const opener = e.target.closest('[data-modal]');
+      if (opener) { e.preventDefault(); e.stopPropagation(); openModal(opener.dataset.modal); }
+    });
+    
+    document.querySelectorAll('.modal-backdrop').forEach(b => b.addEventListener('click', e => { if (e.target === b) closeAll(); }));
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAll(); });
+
+    function setResult(message) {
+      closeAll();
+      document.getElementById('resultMessage').textContent = message;
+      openModal('resultModal');
+    }
+
+    function switchTab(name) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.dataset.panel === name));
+    }
+    document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => switchTab(tab.dataset.tab)));
+
+    function setupStepper(rootId, stepperId, backId, nextId, total, doneMessage) {
+      const root = document.getElementById(rootId);
+      if (!root) return;
+      let current = 1;
+      const render = () => {
+        document.querySelectorAll(`#${stepperId} .step`).forEach((s, i) => { s.classList.toggle('active', i + 1 === current); s.classList.toggle('done', i + 1 < current); });
+        root.querySelectorAll('.step-panel').forEach(p => p.classList.toggle('active', Number(p.dataset.step) === current));
+        document.getElementById(backId).disabled = current === 1;
+        document.getElementById(nextId).textContent = current === total ? 'Submit' : 'Next';
+      };
+      document.getElementById(backId).addEventListener('click', () => { if (current > 1) { current--; render(); } });
+      document.getElementById(nextId).addEventListener('click', () => { if (current < total) { current++; render(); } else { current = 1; render(); setResult(doneMessage); } });
+      render();
+    }
+    setupStepper('restructureWizardModal', 'restStepper', 'restBack', 'restNext', 3, 'Restructuring proposal submitted');
+  </script>
+</body>
+</html>

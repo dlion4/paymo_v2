@@ -1,0 +1,1404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Application Intake & Pre-Screening — PayMo Lending</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="stylesheet" href="master.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    /* ── page-level helpers ── */
+    .two-col   { display: grid; grid-template-columns: 1.35fr 1fr; gap: 16px; }
+    .three-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .four-col  { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .five-col  { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+
+    .money-large { font-size: 28px; font-weight: 700; letter-spacing: -.04em; }
+    .legend      { display: flex; gap: 14px; flex-wrap: wrap; font-size: 11px; color: var(--text-3); }
+    .legend-dot  { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; vertical-align: middle; }
+
+    .kv-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 18px; }
+    .kv-label { font-size: 11px; color: var(--text-3); text-transform: uppercase; letter-spacing: .06em; }
+    .kv-val   { font-size: 13px; font-weight: 600; margin-top: 2px; }
+
+    .dist-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .dist-label { width: 120px; font-size: 12px; font-weight: 500; flex-shrink: 0; }
+    .dist-bar { flex: 1; height: 8px; border-radius: 999px; background: var(--surface-3); overflow: hidden; }
+    .dist-bar span { display: block; height: 100%; border-radius: 999px; }
+    .dist-val { width: 72px; text-align: right; font-size: 12px; font-weight: 600; }
+
+    .config-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--border-soft); }
+    .config-row:last-child { border-bottom: 0; }
+    .config-label { font-size: 13px; font-weight: 600; }
+    .config-desc  { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+
+    .timeline { position: relative; padding-left: 22px; }
+    .timeline:before { content: ""; position: absolute; left: 7px; top: 6px; bottom: 6px; width: 2px; background: var(--border); }
+    .tl-item { position: relative; padding-bottom: 14px; }
+    .tl-item:before { content: ""; position: absolute; left: -19px; top: 4px; width: 10px; height: 10px; border-radius: 50%; background: var(--primary); border: 2px solid #fff; }
+    .tl-time { font-size: 11px; color: var(--text-3); }
+    .tl-text { font-size: 13px; margin-top: 2px; }
+
+    /* Pipeline kanban */
+    .kanban { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 10px; }
+    .kanban-col { min-width: 180px; flex-shrink: 0; }
+    .kanban-head { font-size: 12px; font-weight: 600; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+    .kanban-card { background: var(--surface); border: 1px solid var(--border-soft); border-radius: 10px; padding: 10px 12px; margin-bottom: 7px; cursor: pointer; transition: all .13s; }
+    .kanban-card:hover { border-color: var(--primary); box-shadow: var(--shadow-lg); }
+    .kanban-card .k-id  { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-4); }
+    .kanban-card .k-name{ font-size: 12px; font-weight: 600; margin-top: 2px; }
+    .kanban-card .k-amt { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+    .kanban-sla-ok  { border-left: 3px solid var(--success); }
+    .kanban-sla-warn{ border-left: 3px solid var(--warning); }
+    .kanban-sla-breach { border-left: 3px solid var(--danger); }
+    .funnel-bar { height: 36px; border-radius: 8px; margin-bottom: 6px; display: flex; align-items: center; padding: 0 12px; font-size: 12px; font-weight: 600; color: #fff; transition: width .4s; }
+
+    /* channel cards */
+    .channel-card { background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius); padding: 16px; cursor: pointer; transition: all .14s; }
+    .channel-card:hover { border-color: var(--primary); box-shadow: var(--shadow-lg); }
+    .channel-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
+    .channel-icon svg { width: 20px; height: 20px; }
+
+    /* score meter */
+    .score-arc { width: 160px; height: 90px; margin: 0 auto; }
+    .score-arc svg { width: 100%; height: 100%; }
+    .score-needle-wrap { position: relative; }
+
+    /* grade badge */
+    .grade { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 8px; font-weight: 700; font-size: 16px; }
+
+    /* upload zone */
+    .upload-zone { border: 2px dashed var(--border); border-radius: 12px; padding: 22px; text-align: center; background: var(--surface-2); }
+
+    /* Check row */
+    .check-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border-soft); }
+    .check-row:last-child { border-bottom: 0; }
+
+    /* Mini chart */
+    .mini-chart { width: 100%; height: 130px; }
+
+    @media (max-width: 1100px) {
+      .two-col { grid-template-columns: 1fr; }
+      .five-col { grid-template-columns: repeat(3, 1fr); }
+      .four-col { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 768px) {
+      .three-col, .four-col, .five-col { grid-template-columns: 1fr; }
+      .kanban { flex-direction: column; }
+      .kanban-col { min-width: auto; }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ─── SIDEBAR ─── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">P</div>
+    <nav class="sidebar-nav">
+      <button class="sidebar-item" title="Lending Command Center" data-modal="navCommandModal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        <span class="sidebar-label">Command Center</span>
+      </button>
+      <button class="sidebar-item" title="Loan Products" data-modal="navProductsModal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <span class="sidebar-label">Loan Products</span>
+      </button>
+      <button class="sidebar-item active" title="Application Intake">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+        <span class="sidebar-label">App Intake</span>
+      </button>
+      <button class="sidebar-item" title="Credit Underwriting" data-modal="navUnderwritingModal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        <span class="sidebar-label">Underwriting</span>
+      </button>
+      <button class="sidebar-item" title="Portfolio" data-modal="navPortfolioModal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="4"/><line x1="12" y1="20" x2="12" y2="10"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
+        <span class="sidebar-label">Portfolio</span>
+      </button>
+      <button class="sidebar-item" title="Collections" data-modal="navCollectionsModal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        <span class="sidebar-label">Collections</span>
+      </button>
+      <button class="sidebar-item" title="Risk & Compliance" data-modal="navRiskModal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <span class="sidebar-label">Risk</span>
+      </button>
+      <button class="sidebar-item" title="Analytics" data-modal="navAnalyticsModal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
+        <span class="sidebar-label">Analytics</span>
+      </button>
+    </nav>
+    <button class="sidebar-expand" id="sidebarToggle">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      <span class="sidebar-label">Collapse</span>
+    </button>
+  </aside>
+
+  <!-- ─── MAIN ─── -->
+  <main class="main">
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <div>
+        <div class="crumb">
+          <button class="mobile-menu-btn btn btn-light btn-sm" id="mobileMenuBtn" style="margin-right:8px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          </button>
+          <span>Lending</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;"><polyline points="9 18 15 12 9 6"/></svg>
+          <span>Application Intake &amp; Pre-Screening</span>
+        </div>
+        <h1 class="page-title">Application Intake &amp; Pre-Screening</h1>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-light btn-icon" title="Notifications" data-modal="notificationsModal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        </button>
+        <button class="btn btn-light" data-modal="filterModal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+          <span class="btn-text">Filters</span>
+        </button>
+        <button class="btn btn-light" data-modal="exportModal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span class="btn-text">Export</span>
+        </button>
+        <button class="btn btn-light" data-modal="formBuilderModal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
+          <span class="btn-text">Form Builder</span>
+        </button>
+        <button class="btn btn-primary" data-modal="newApplicationModal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          New Application
+        </button>
+      </div>
+    </div>
+
+    <!-- STAT CARDS -->
+    <div class="stats-row">
+      <div class="stat-card" data-modal="submittedModal">
+        <div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg></div>
+        <div class="stat-label">Submitted Today</div>
+        <div class="stat-value">184</div>
+        <div class="stat-trend up"><span>+22 vs yesterday</span></div>
+      </div>
+      <div class="stat-card" data-modal="prescreenedModal">
+        <div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/></svg></div>
+        <div class="stat-label">Pre-screened</div>
+        <div class="stat-value">141</div>
+        <div class="stat-trend up"><span>76.6% pass rate</span></div>
+      </div>
+      <div class="stat-card" data-modal="autoApproveModal">
+        <div class="stat-icon purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <div class="stat-label">Auto-Approved</div>
+        <div class="stat-value">58</div>
+        <div class="stat-trend up"><span>$4.2M value</span></div>
+      </div>
+      <div class="stat-card" data-modal="manualReviewModal">
+        <div class="stat-icon amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
+        <div class="stat-label">Manual Review</div>
+        <div class="stat-value">49</div>
+        <div class="stat-trend neutral"><span>queue</span></div>
+      </div>
+      <div class="stat-card" data-modal="autoDeclineModal">
+        <div class="stat-icon red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div>
+        <div class="stat-label">Auto-Declined</div>
+        <div class="stat-value">34</div>
+        <div class="stat-trend down"><span>18.5% decline rate</span></div>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="panel">
+      <div class="tabs" id="mainTabs">
+        <button class="tab active" data-tab="channels">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+          Channels
+        </button>
+        <button class="tab" data-tab="pipeline">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h7"/></svg>
+          Pipeline Board <span class="tab-badge">184</span>
+        </button>
+        <button class="tab" data-tab="prescreen">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Automated Pre-Screening
+        </button>
+        <button class="tab" data-tab="scoring">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="4"/><line x1="12" y1="20" x2="12" y2="10"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
+          Application Scoring
+        </button>
+      </div>
+
+      <!-- ═══ TAB 1 — CHANNELS ═══ -->
+      <section class="tab-panel active" data-panel="channels">
+        <div class="panel-body">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
+            <h2 class="panel-title">Application Channels</h2>
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-light btn-sm" data-modal="channelConfigModal">Configure channels</button>
+              <button class="btn btn-light btn-sm" data-modal="channelStatsModal">Channel analytics</button>
+            </div>
+          </div>
+
+          <!-- Retail -->
+          <div style="margin-bottom:20px;">
+            <div style="font-size:12px;font-weight:600;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">Retail Channels</div>
+            <div class="four-col">
+              <div class="channel-card" data-modal="channelDetailModal">
+                <div class="channel-icon" style="background:var(--primary-soft);color:var(--primary);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></div>
+                <div style="font-weight:600;font-size:13px;">Mobile App</div>
+                <div class="list-sub">iOS & Android</div>
+                <div style="display:flex;justify-content:space-between;margin-top:12px;align-items:center;">
+                  <div><div class="kv-label">Today</div><div style="font-weight:700;">82 apps</div></div>
+                  <span class="badge success"><span class="badge-dot"></span>Live</span>
+                </div>
+              </div>
+              <div class="channel-card" data-modal="channelDetailModal">
+                <div class="channel-icon" style="background:var(--info-soft);color:var(--info);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
+                <div style="font-weight:600;font-size:13px;">Web Portal</div>
+                <div class="list-sub">Customer self-serve</div>
+                <div style="display:flex;justify-content:space-between;margin-top:12px;align-items:center;">
+                  <div><div class="kv-label">Today</div><div style="font-weight:700;">41 apps</div></div>
+                  <span class="badge success"><span class="badge-dot"></span>Live</span>
+                </div>
+              </div>
+              <div class="channel-card" data-modal="channelDetailModal">
+                <div class="channel-icon" style="background:var(--warning-soft);color:var(--warning);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.56 2h3a2 2 0 0 1 2 1.72"/></svg></div>
+                <div style="font-weight:600;font-size:13px;">USSD</div>
+                <div class="list-sub">*384# feature phone</div>
+                <div style="display:flex;justify-content:space-between;margin-top:12px;align-items:center;">
+                  <div><div class="kv-label">Today</div><div style="font-weight:700;">28 apps</div></div>
+                  <span class="badge success"><span class="badge-dot"></span>Live</span>
+                </div>
+              </div>
+              <div class="channel-card" data-modal="channelDetailModal">
+                <div class="channel-icon" style="background:var(--purple-soft);color:var(--purple);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
+                <div style="font-weight:600;font-size:13px;">Agent Network</div>
+                <div class="list-sub">Field + merchant POS</div>
+                <div style="display:flex;justify-content:space-between;margin-top:12px;align-items:center;">
+                  <div><div class="kv-label">Today</div><div style="font-weight:700;">33 apps</div></div>
+                  <span class="badge success"><span class="badge-dot"></span>Live</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SME + Corporate + Real Estate -->
+          <div class="three-col">
+            <div>
+              <div style="font-size:12px;font-weight:600;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">SME Channels</div>
+              <div class="channel-card" style="margin-bottom:8px;" data-modal="channelDetailModal">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                  <div><div style="font-weight:600;font-size:13px;">Business Portal</div><div class="list-sub">Self-serve SME</div></div>
+                  <span class="badge success">Live</span>
+                </div>
+                <div style="margin-top:8px;"><strong>14 apps today</strong></div>
+              </div>
+              <div class="channel-card" style="margin-bottom:8px;" data-modal="channelDetailModal">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                  <div><div style="font-weight:600;font-size:13px;">RM Submission</div><div class="list-sub">Relationship manager</div></div>
+                  <span class="badge success">Live</span>
+                </div>
+                <div style="margin-top:8px;"><strong>8 apps today</strong></div>
+              </div>
+              <div class="channel-card" data-modal="channelDetailModal">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                  <div><div style="font-weight:600;font-size:13px;">API / Embedded</div><div class="list-sub">Finance partners</div></div>
+                  <span class="badge success">Live</span>
+                </div>
+                <div style="margin-top:8px;"><strong>22 apps today</strong></div>
+              </div>
+            </div>
+            <div>
+              <div style="font-size:12px;font-weight:600;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">Corporate Channels</div>
+              <div class="channel-card" style="margin-bottom:8px;" data-modal="channelDetailModal">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                  <div><div style="font-weight:600;font-size:13px;">RM / Direct</div><div class="list-sub">Relationship manager</div></div>
+                  <span class="badge success">Live</span>
+                </div>
+                <div style="margin-top:8px;"><strong>4 apps today</strong></div>
+              </div>
+              <div class="channel-card" style="margin-bottom:8px;" data-modal="channelDetailModal">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                  <div><div style="font-weight:600;font-size:13px;">Treasury Portal</div><div class="list-sub">Corporate treasury</div></div>
+                  <span class="badge success">Live</span>
+                </div>
+                <div style="margin-top:8px;"><strong>2 apps today</strong></div>
+              </div>
+              <div class="channel-card" data-modal="channelDetailModal">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                  <div><div style="font-weight:600;font-size:13px;">API Integration</div><div class="list-sub">Direct corporate API</div></div>
+                  <span class="badge warning">Review</span>
+                </div>
+                <div style="margin-top:8px;"><strong>1 app today</strong></div>
+              </div>
+            </div>
+            <div>
+              <div style="font-size:12px;font-weight:600;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">Real Estate Channels</div>
+              <div class="channel-card" style="margin-bottom:8px;" data-modal="channelDetailModal">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                  <div><div style="font-weight:600;font-size:13px;">Developer Portal</div><div class="list-sub">Construction finance</div></div>
+                  <span class="badge success">Live</span>
+                </div>
+                <div style="margin-top:8px;"><strong>3 apps today</strong></div>
+              </div>
+              <div class="channel-card" style="margin-bottom:8px;" data-modal="channelDetailModal">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                  <div><div style="font-weight:600;font-size:13px;">Broker Submission</div><div class="list-sub">Mortgage brokers</div></div>
+                  <span class="badge success">Live</span>
+                </div>
+                <div style="margin-top:8px;"><strong>7 apps today</strong></div>
+              </div>
+              <div class="channel-card" data-modal="channelDetailModal">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                  <div><div style="font-weight:600;font-size:13px;">Direct Application</div><div class="list-sub">Walk-in / manual</div></div>
+                  <span class="badge info">Available</span>
+                </div>
+                <div style="margin-top:8px;"><strong>2 apps today</strong></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══ TAB 2 — PIPELINE BOARD ═══ -->
+      <section class="tab-panel" data-panel="pipeline">
+        <div class="panel-body">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:14px;">
+            <h2 class="panel-title">Application Pipeline Board</h2>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <select class="select" id="pipelineProduct"><option>All Products</option><option>Retail</option><option>SME</option><option>Corporate</option><option>Real Estate</option></select>
+              <select class="select" id="pipelineOfficer"><option>All Officers</option><option>J. Mwangi</option><option>S. Karanja</option><option>A. Lopez</option></select>
+              <button class="btn btn-light btn-sm" data-modal="slaConfigModal">SLA Config</button>
+              <button class="btn btn-light btn-sm" data-modal="funnelModal">Funnel View</button>
+            </div>
+          </div>
+          <div class="kanban">
+            <!-- Submitted -->
+            <div class="kanban-col">
+              <div class="kanban-head"><span style="color:var(--info);">Submitted</span><span class="tab-badge">38</span></div>
+              <div class="kanban-card kanban-sla-ok" data-modal="applicationDetailModal">
+                <div class="k-id">APP-2026-2841</div>
+                <div class="k-name">M. Otieno</div>
+                <div class="k-amt">Personal Loan · $8,000</div>
+                <div style="display:flex;justify-content:space-between;margin-top:6px;"><span class="badge info btn-sm">Retail</span><span style="font-size:10px;color:var(--success);">SLA OK</span></div>
+              </div>
+              <div class="kanban-card kanban-sla-ok" data-modal="applicationDetailModal">
+                <div class="k-id">APP-2026-2842</div>
+                <div class="k-name">Globex Corp</div>
+                <div class="k-amt">Working Capital · $250K</div>
+                <div style="display:flex;justify-content:space-between;margin-top:6px;"><span class="badge warning btn-sm">SME</span><span style="font-size:10px;color:var(--success);">SLA OK</span></div>
+              </div>
+              <div class="kanban-card kanban-sla-warn" data-modal="applicationDetailModal">
+                <div class="k-id">APP-2026-2839</div>
+                <div class="k-name">A. Wanjiru</div>
+                <div class="k-amt">BNPL · $420</div>
+                <div style="display:flex;justify-content:space-between;margin-top:6px;"><span class="badge info btn-sm">Retail</span><span style="font-size:10px;color:var(--warning);">SLA Warn</span></div>
+              </div>
+            </div>
+            <!-- Data Verification -->
+            <div class="kanban-col">
+              <div class="kanban-head"><span style="color:var(--purple);">Verification</span><span class="tab-badge">22</span></div>
+              <div class="kanban-card kanban-sla-ok" data-modal="applicationDetailModal">
+                <div class="k-id">APP-2026-2830</div>
+                <div class="k-name">Initech Ltd</div>
+                <div class="k-amt">Invoice Fin · $120K</div>
+                <div style="display:flex;justify-content:space-between;margin-top:6px;"><span class="badge warning btn-sm">SME</span><span style="font-size:10px;color:var(--success);">SLA OK</span></div>
+              </div>
+              <div class="kanban-card kanban-sla-breach" data-modal="applicationDetailModal">
+                <div class="k-id">APP-2026-2822</div>
+                <div class="k-name">R. Kamau</div>
+                <div class="k-amt">Salary Adv · $2,400</div>
+                <div style="display:flex;justify-content:space-between;margin-top:6px;"><span class="badge info btn-sm">Retail</span><span style="font-size:10px;color:var(--danger);">SLA Breach</span></div>
+              </div>
+            </div>
+            <!-- Pre-screened -->
+            <div class="kanban-col">
+              <div class="kanban-head"><span style="color:var(--success);">Pre-screened</span><span class="tab-badge">41</span></div>
+              <div class="kanban-card kanban-sla-ok" data-modal="applicationDetailModal">
+                <div class="k-id">APP-2026-2810</div>
+                <div class="k-name">P. Njoroge</div>
+                <div class="k-amt">Home Loan · $48,000</div>
+                <div style="display:flex;justify-content:space-between;margin-top:6px;"><span class="badge purple btn-sm">RE</span><span style="font-size:10px;color:var(--success);">SLA OK</span></div>
+              </div>
+              <div class="kanban-card kanban-sla-ok" data-modal="applicationDetailModal">
+                <div class="k-id">APP-2026-2808</div>
+                <div class="k-name">Acme Ltd</div>
+                <div class="k-amt">Trade Finance · $400K</div>
+                <div style="display:flex;justify-content:space-between;margin-top:6px;"><span class="badge warning btn-sm">Corp</span><span style="font-size:10px;color:var(--success);">SLA OK</span></div>
+              </div>
+            </div>
+            <!-- Underwriting -->
+            <div class="kanban-col">
+              <div class="kanban-head"><span style="color:var(--warning);">Underwriting</span><span class="tab-badge">31</span></div>
+              <div class="kanban-card kanban-sla-warn" data-modal="applicationDetailModal">
+                <div class="k-id">APP-2026-2794</div>
+                <div class="k-name">Umbrella Ltd</div>
+                <div class="k-amt">Revolving · $2M</div>
+                <div style="display:flex;justify-content:space-between;margin-top:6px;"><span class="badge warning btn-sm">Corp</span><span style="font-size:10px;color:var(--warning);">SLA Warn</span></div>
+              </div>
+              <div class="kanban-card kanban-sla-ok" data-modal="applicationDetailModal">
+                <div class="k-id">APP-2026-2790</div>
+                <div class="k-name">F. Ochieng</div>
+                <div class="k-amt">Asset Finance · $12K</div>
+                <div style="display:flex;justify-content:space-between;margin-top:6px;"><span class="badge info btn-sm">Retail</span><span style="font-size:10px;color:var(--success);">SLA OK</span></div>
+              </div>
+            </div>
+            <!-- Approved -->
+            <div class="kanban-col">
+              <div class="kanban-head"><span style="color:var(--success);">Approved</span><span class="tab-badge">28</span></div>
+              <div class="kanban-card kanban-sla-ok" data-modal="applicationDetailModal">
+                <div class="k-id">APP-2026-2780</div>
+                <div class="k-name">D. Muthoni</div>
+                <div class="k-amt">Personal Loan · $5,000</div>
+                <div style="display:flex;justify-content:space-between;margin-top:6px;"><span class="badge info btn-sm">Retail</span><span style="font-size:10px;color:var(--success);">Ready</span></div>
+              </div>
+            </div>
+            <!-- Declined -->
+            <div class="kanban-col">
+              <div class="kanban-head"><span style="color:var(--danger);">Declined</span><span class="tab-badge">34</span></div>
+              <div class="kanban-card" style="border-left:3px solid var(--danger);" data-modal="declinedDetailModal">
+                <div class="k-id">APP-2026-2770</div>
+                <div class="k-name">B. Kiprono</div>
+                <div class="k-amt">Personal Loan · $15K</div>
+                <div style="font-size:10px;color:var(--danger);margin-top:4px;">Auto-declined: PAR breach</div>
+              </div>
+              <div class="kanban-card" style="border-left:3px solid var(--danger);" data-modal="declinedDetailModal">
+                <div class="k-id">APP-2026-2768</div>
+                <div class="k-name">Hooli Inc</div>
+                <div class="k-amt">WCL · $80K</div>
+                <div style="font-size:10px;color:var(--danger);margin-top:4px;">Auto-declined: KYB fail</div>
+              </div>
+            </div>
+            <!-- Cancelled -->
+            <div class="kanban-col">
+              <div class="kanban-head"><span style="color:var(--text-3);">Cancelled</span><span class="tab-badge">10</span></div>
+              <div class="kanban-card" style="opacity:.7;" data-modal="cancelledDetailModal">
+                <div class="k-id">APP-2026-2755</div>
+                <div class="k-name">J. Odhiambo</div>
+                <div class="k-amt">BNPL · $200</div>
+                <div style="font-size:10px;color:var(--text-3);margin-top:4px;">Withdrawn by applicant</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SLA summary strip -->
+          <div style="display:flex;gap:14px;margin-top:16px;flex-wrap:wrap;">
+            <div style="background:var(--success-soft);border-radius:10px;padding:10px 14px;"><div class="kv-label">SLA OK</div><div style="font-weight:700;color:var(--success);">148</div></div>
+            <div style="background:var(--warning-soft);border-radius:10px;padding:10px 14px;"><div class="kv-label">SLA Warning</div><div style="font-weight:700;color:var(--warning);">24</div></div>
+            <div style="background:var(--danger-soft);border-radius:10px;padding:10px 14px;"><div class="kv-label">SLA Breach</div><div style="font-weight:700;color:var(--danger);">12</div></div>
+            <button class="btn btn-light btn-sm" style="align-self:center;" data-modal="slaBreachModal">Resolve breaches</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══ TAB 3 — PRE-SCREENING ═══ -->
+      <section class="tab-panel" data-panel="prescreen">
+        <div class="panel-body">
+          <div class="two-col">
+            <div>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+                <h2 class="panel-title">Automated Pre-Screening Checks</h2>
+                <button class="btn btn-light btn-sm" data-modal="ruleEngineModal">Rule Engine</button>
+              </div>
+              <div class="check-row">
+                <div><div class="config-label">Eligibility Rule Engine</div><div class="config-desc">Product, age, citizenship, employment type</div></div>
+                <div style="display:flex;align-items:center;gap:8px;"><span class="badge success"><span class="badge-dot"></span>Pass</span><button class="btn btn-light btn-sm" data-modal="eligibilityModal">Configure</button></div>
+              </div>
+              <div class="check-row">
+                <div><div class="config-label">Credit Bureau Score</div><div class="config-desc">CRB, Metropol, TransUnion — real-time API</div></div>
+                <div style="display:flex;align-items:center;gap:8px;"><span class="badge success"><span class="badge-dot"></span>Live</span><button class="btn btn-light btn-sm" data-modal="bureauModal">View scores</button></div>
+              </div>
+              <div class="check-row">
+                <div><div class="config-label">Identity Verification (KYC/KYB)</div><div class="config-desc">ID scan, biometric, business registration</div></div>
+                <div style="display:flex;align-items:center;gap:8px;"><span class="badge success"><span class="badge-dot"></span>Live</span><button class="btn btn-light btn-sm" data-modal="kycModal">Configure</button></div>
+              </div>
+              <div class="check-row">
+                <div><div class="config-label">Fraud Detection</div><div class="config-desc">Device, velocity, synthetic identity</div></div>
+                <div style="display:flex;align-items:center;gap:8px;"><span class="badge success"><span class="badge-dot"></span>Active</span><button class="btn btn-light btn-sm" data-modal="fraudScreenModal">Review</button></div>
+              </div>
+              <div class="check-row">
+                <div><div class="config-label">Watchlist & Sanctions</div><div class="config-desc">OFAC, UN, EU, PEP screening</div></div>
+                <div style="display:flex;align-items:center;gap:8px;"><span class="badge success"><span class="badge-dot"></span>Active</span><button class="btn btn-light btn-sm" data-modal="sanctionsModal">Configure</button></div>
+              </div>
+              <div class="check-row">
+                <div><div class="config-label">Single Borrower Limit</div><div class="config-desc">Existing exposure check across all products</div></div>
+                <div style="display:flex;align-items:center;gap:8px;"><span class="badge warning"><span class="badge-dot"></span>2 alerts</span><button class="btn btn-light btn-sm" data-modal="exposureModal">Review</button></div>
+              </div>
+
+              <div style="margin-top:16px;background:var(--surface-2);border-radius:14px;padding:16px;">
+                <div style="font-weight:600;margin-bottom:10px;">Today's Pre-Screen Results</div>
+                <div class="dist-row"><div class="dist-label">Passed all checks</div><div class="dist-bar"><span style="width:77%;background:#16a34a;"></span></div><div class="dist-val">109 apps</div></div>
+                <div class="dist-row"><div class="dist-label">Failed one check</div><div class="dist-bar"><span style="width:12%;background:#d97706;"></span></div><div class="dist-val">17 apps</div></div>
+                <div class="dist-row"><div class="dist-label">Failed multiple</div><div class="dist-bar"><div class="dist-bar"><span style="width:11%;background:#dc2626;"></span></div></div><div class="dist-val">15 apps</div></div>
+              </div>
+            </div>
+            <div>
+              <h2 class="panel-title" style="margin-bottom:14px;">Live Pre-Screen Queue</h2>
+              <div class="table-wrap">
+                <table class="table">
+                  <thead><tr><th>App ID</th><th>Applicant</th><th>Product</th><th>Score</th><th>Recommendation</th></tr></thead>
+                  <tbody>
+                    <tr data-modal="prescreenResultModal">
+                      <td class="mono">APP-2026-2841</td><td>M. Otieno</td><td>Personal</td>
+                      <td><span class="badge success">718</span></td>
+                      <td><span class="badge success">Proceed</span></td>
+                    </tr>
+                    <tr data-modal="prescreenResultModal">
+                      <td class="mono">APP-2026-2842</td><td>Globex Corp</td><td>WCL</td>
+                      <td><span class="badge success">692</span></td>
+                      <td><span class="badge success">Proceed</span></td>
+                    </tr>
+                    <tr data-modal="prescreenResultModal">
+                      <td class="mono">APP-2026-2839</td><td>A. Wanjiru</td><td>BNPL</td>
+                      <td><span class="badge warning">580</span></td>
+                      <td><span class="badge warning">Review</span></td>
+                    </tr>
+                    <tr data-modal="prescreenResultModal">
+                      <td class="mono">APP-2026-2835</td><td>B. Kiprono</td><td>Personal</td>
+                      <td><span class="badge danger">340</span></td>
+                      <td><span class="badge danger">Decline</span></td>
+                    </tr>
+                    <tr data-modal="prescreenResultModal">
+                      <td class="mono">APP-2026-2830</td><td>Initech Ltd</td><td>Invoice Fin</td>
+                      <td><span class="badge success">741</span></td>
+                      <td><span class="badge success">Proceed</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div style="display:flex;gap:8px;margin-top:12px;">
+                <button class="btn btn-light btn-sm" data-modal="bureauModal">Bureau settings</button>
+                <button class="btn btn-light btn-sm" data-modal="ruleEngineModal">Edit rules</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══ TAB 4 — SCORING ═══ -->
+      <section class="tab-panel" data-panel="scoring">
+        <div class="panel-body">
+          <div class="two-col">
+            <div>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+                <h2 class="panel-title">Application Scorecard</h2>
+                <div style="display:flex;gap:8px;">
+                  <button class="btn btn-light btn-sm" data-modal="scorecardConfigModal">Configure scorecard</button>
+                  <button class="btn btn-light btn-sm" data-modal="thresholdModal">Thresholds</button>
+                </div>
+              </div>
+
+              <!-- Live scorecard for top application -->
+              <div style="background:var(--surface-2);border-radius:14px;padding:18px;margin-bottom:16px;">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;">
+                  <div>
+                    <div class="kv-label">Scoring: APP-2026-2841 — M. Otieno</div>
+                    <div style="font-weight:600;margin-top:4px;">Personal Loan · $8,000</div>
+                  </div>
+                  <div class="grade" style="background:var(--success-soft);color:var(--success);">A</div>
+                </div>
+                <div class="dist-row"><div class="dist-label">Credit history</div><div class="dist-bar"><span style="width:82%;background:#5b5bf5;"></span></div><div class="dist-val">82 / 100</div></div>
+                <div class="dist-row"><div class="dist-label">Income stability</div><div class="dist-bar"><span style="width:75%;background:#5b5bf5;"></span></div><div class="dist-val">75 / 100</div></div>
+                <div class="dist-row"><div class="dist-label">DTI ratio</div><div class="dist-bar"><span style="width:68%;background:#5b5bf5;"></span></div><div class="dist-val">68 / 100</div></div>
+                <div class="dist-row"><div class="dist-label">Behavioral score</div><div class="dist-bar"><span style="width:90%;background:#5b5bf5;"></span></div><div class="dist-val">90 / 100</div></div>
+                <div class="dist-row"><div class="dist-label">KYC quality</div><div class="dist-bar"><span style="width:100%;background:#16a34a;"></span></div><div class="dist-val">100 / 100</div></div>
+                <div style="border-top:1px solid var(--border-soft);padding-top:12px;margin-top:4px;display:flex;justify-content:space-between;align-items:center;">
+                  <div><div class="kv-label">Composite score</div><div style="font-size:24px;font-weight:700;color:var(--primary);">718 / 850</div></div>
+                  <button class="btn btn-primary btn-sm" data-modal="scorecardDetailModal">Full scorecard</button>
+                </div>
+              </div>
+
+              <!-- Grade + threshold table -->
+              <div style="font-weight:600;margin-bottom:10px;font-size:13px;">Risk Grade Assignment</div>
+              <div class="table-wrap">
+                <table class="table">
+                  <thead><tr><th>Grade</th><th>Score range</th><th>Action</th><th>Today</th></tr></thead>
+                  <tbody>
+                    <tr data-modal="gradeDetailModal"><td><span class="grade" style="background:var(--success-soft);color:var(--success);font-size:13px;width:28px;height:28px;">A</span></td><td>750–850</td><td><span class="badge success">Auto-approve</span></td><td>28</td></tr>
+                    <tr data-modal="gradeDetailModal"><td><span class="grade" style="background:var(--info-soft);color:var(--info);font-size:13px;width:28px;height:28px;">B</span></td><td>650–749</td><td><span class="badge success">Auto-approve</span></td><td>30</td></tr>
+                    <tr data-modal="gradeDetailModal"><td><span class="grade" style="background:var(--primary-soft);color:var(--primary);font-size:13px;width:28px;height:28px;">C</span></td><td>550–649</td><td><span class="badge warning">Manual review</span></td><td>24</td></tr>
+                    <tr data-modal="gradeDetailModal"><td><span class="grade" style="background:var(--warning-soft);color:var(--warning);font-size:13px;width:28px;height:28px;">D</span></td><td>450–549</td><td><span class="badge warning">Manual review</span></td><td>25</td></tr>
+                    <tr data-modal="gradeDetailModal"><td><span class="grade" style="background:var(--danger-soft);color:var(--danger);font-size:13px;width:28px;height:28px;">F</span></td><td>0–449</td><td><span class="badge danger">Auto-decline</span></td><td>34</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div>
+              <h2 class="panel-title" style="margin-bottom:14px;">Score Distribution Today</h2>
+              <svg class="mini-chart" viewBox="0 0 500 150" preserveAspectRatio="none" style="height:160px;">
+                <g stroke="#e8e6df"><line x1="0" y1="40" x2="500" y2="40"/><line x1="0" y1="80" x2="500" y2="80"/><line x1="0" y1="120" x2="500" y2="120"/></g>
+                <path d="M0,140 L80,80 L160,50 L240,40 L320,55 L400,90 L500,140 Z" fill="#5b5bf5" opacity=".15"/>
+                <path d="M0,140 L80,80 L160,50 L240,40 L320,55 L400,90 L500,140" fill="none" stroke="#5b5bf5" stroke-width="2.5"/>
+              </svg>
+              <div class="legend" style="justify-content:center;margin-top:6px;margin-bottom:16px;">
+                <span><span class="legend-dot" style="background:#5b5bf5;"></span>Applications by score</span>
+              </div>
+
+              <h2 class="panel-title" style="margin-bottom:10px;font-size:14px;">Manual Review Queue</h2>
+              <div class="table-wrap">
+                <table class="table">
+                  <thead><tr><th>App ID</th><th>Applicant</th><th>Grade</th><th>Reason</th><th></th></tr></thead>
+                  <tbody>
+                    <tr data-modal="reviewQueueModal"><td class="mono">APP-2026-2839</td><td>A. Wanjiru</td><td><span class="grade" style="background:var(--primary-soft);color:var(--primary);font-size:12px;width:24px;height:24px;">C</span></td><td>Income mismatch</td><td class="right"><button class="btn btn-light btn-sm" data-modal="reviewQueueModal">Review</button></td></tr>
+                    <tr data-modal="reviewQueueModal"><td class="mono">APP-2026-2831</td><td>P. Kariuki</td><td><span class="grade" style="background:var(--warning-soft);color:var(--warning);font-size:12px;width:24px;height:24px;">D</span></td><td>High DTI</td><td class="right"><button class="btn btn-light btn-sm" data-modal="reviewQueueModal">Review</button></td></tr>
+                    <tr data-modal="reviewQueueModal"><td class="mono">APP-2026-2825</td><td>Soylent Inc</td><td><span class="grade" style="background:var(--primary-soft);color:var(--primary);font-size:12px;width:24px;height:24px;">C</span></td><td>Bureau gap</td><td class="right"><button class="btn btn-light btn-sm" data-modal="reviewQueueModal">Review</button></td></tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
+                <button class="btn btn-light btn-sm" data-modal="thresholdModal">Edit thresholds</button>
+                <button class="btn btn-light btn-sm" data-modal="scorecardConfigModal">Edit scorecard</button>
+                <button class="btn btn-primary btn-sm" data-modal="manualReviewModal">Open review queue</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<!-- ══════════════════════════════════════
+     MODALS  (30+)
+══════════════════════════════════════ -->
+
+<!-- 1. New Application (5-step wizard) -->
+<div class="modal-backdrop" id="newApplicationModal"><div class="modal lg">
+  <div class="modal-header"><div><h3 class="modal-title">New Loan Application</h3><div class="modal-sub">Guided multi-step intake</div></div><button class="modal-close" data-close>×</button></div>
+  <div class="stepper" id="appStepper">
+    <div class="step active"><div class="step-num">1</div>Product</div><div class="step-line"></div>
+    <div class="step"><div class="step-num">2</div>Applicant</div><div class="step-line"></div>
+    <div class="step"><div class="step-num">3</div>Financials</div><div class="step-line"></div>
+    <div class="step"><div class="step-num">4</div>Documents</div><div class="step-line"></div>
+    <div class="step"><div class="step-num">5</div>Consent</div>
+  </div>
+  <div class="modal-body">
+    <div class="step-panel active" data-step="1">
+      <div class="field-row">
+        <div class="field"><label class="field-label">Loan segment</label><select class="select-field" id="newAppSegment"><option>Retail</option><option>SME</option><option>Corporate</option><option>Real Estate</option></select></div>
+        <div class="field"><label class="field-label">Product type</label><select class="select-field"><option>Personal Loan</option><option>Salary Advance</option><option>BNPL</option><option>Working Capital</option><option>Term Loan</option><option>Home Loan</option></select></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label class="field-label">Loan amount</label><input class="input" value="8000"></div>
+        <div class="field"><label class="field-label">Tenor (months)</label><input class="input" value="12"></div>
+      </div>
+      <div class="field"><label class="field-label">Loan purpose</label><input class="input" placeholder="e.g. Business expansion, home purchase"></div>
+      <div class="field"><label class="field-label">Application channel</label><select class="select-field"><option>Mobile App</option><option>Web Portal</option><option>USSD</option><option>Agent</option><option>RM Submission</option><option>API</option></select></div>
+    </div>
+    <div class="step-panel" data-step="2">
+      <div class="field-row">
+        <div class="field"><label class="field-label">Full name</label><input class="input" placeholder="Full legal name"></div>
+        <div class="field"><label class="field-label">ID / Passport</label><input class="input" placeholder="Document number"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label class="field-label">Date of birth</label><input class="input" type="date"></div>
+        <div class="field"><label class="field-label">Nationality</label><select class="select-field"><option>Kenyan</option><option>Nigerian</option><option>British</option><option>American</option></select></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label class="field-label">Mobile</label><input class="input" placeholder="+254700000000"></div>
+        <div class="field"><label class="field-label">Email</label><input class="input" type="email" placeholder="applicant@example.com"></div>
+      </div>
+      <div class="field"><label class="field-label">Physical address</label><input class="input" placeholder="Street, City, Country"></div>
+      <div class="field-row">
+        <div class="field"><label class="field-label">Employment type</label><select class="select-field"><option>Salaried</option><option>Self-employed</option><option>Business owner</option><option>Director</option></select></div>
+        <div class="field"><label class="field-label">Employer / Business</label><input class="input" placeholder="Company name"></div>
+      </div>
+    </div>
+    <div class="step-panel" data-step="3">
+      <div class="field-row">
+        <div class="field"><label class="field-label">Monthly income</label><input class="input" placeholder="Net monthly income"></div>
+        <div class="field"><label class="field-label">Currency</label><select class="select-field"><option>KES</option><option>USD</option><option>GBP</option><option>EUR</option></select></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label class="field-label">Monthly expenses</label><input class="input" placeholder="Total obligations"></div>
+        <div class="field"><label class="field-label">Existing loan debt</label><input class="input" placeholder="Outstanding balance"></div>
+      </div>
+      <div class="field"><label class="field-label">Business revenue (SME/Corp)</label><input class="input" placeholder="Annual revenue if applicable"></div>
+      <div class="field"><label class="field-label">Collateral offered</label><input class="input" placeholder="Description and estimated value"></div>
+    </div>
+    <div class="step-panel" data-step="4">
+      <div class="alert info" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>Upload clear scanned copies or photos.</div>
+      <div class="upload-zone" style="margin-bottom:12px;">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5" style="margin-bottom:6px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <div style="font-weight:500;">National ID / Passport</div>
+        <div class="list-sub">PDF, JPG, PNG — max 10MB</div>
+      </div>
+      <div class="upload-zone" style="margin-bottom:12px;">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5" style="margin-bottom:6px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <div style="font-weight:500;">Bank statements (3–6 months)</div>
+        <div class="list-sub">PDF preferred</div>
+      </div>
+      <div class="upload-zone">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5" style="margin-bottom:6px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <div style="font-weight:500;">Payslips / Business financials</div>
+        <div class="list-sub">Last 3 months payslips or 2-year accounts</div>
+      </div>
+    </div>
+    <div class="step-panel" data-step="5">
+      <div class="alert warning" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>Read all consent statements carefully before signing.</div>
+      <label class="choice-row selected"><input type="checkbox" checked><div><div class="choice-title">Credit Bureau check consent</div><div class="choice-desc">Authorize PayMo to pull credit report</div></div></label>
+      <label class="choice-row selected"><input type="checkbox" checked><div><div class="choice-title">Data processing consent</div><div class="choice-desc">Personal data used for credit assessment</div></div></label>
+      <label class="choice-row"><input type="checkbox"><div><div class="choice-title">Marketing communications</div><div class="choice-desc">Receive product offers from PayMo</div></div></label>
+      <div class="field" style="margin-top:14px;"><label class="field-label">Digital signature (type full name)</label><input class="input" placeholder="Full legal name as signature"></div>
+    </div>
+  </div>
+  <div class="modal-footer"><button class="btn btn-light" id="appBack" disabled>← Back</button><button class="btn btn-primary" id="appNext">Next →</button></div>
+</div></div>
+
+<!-- 2. Application Detail -->
+<div class="modal-backdrop" id="applicationDetailModal"><div class="modal xl">
+  <div class="modal-header"><div><h3 class="modal-title">Application APP-2026-2841</h3><div class="modal-sub">M. Otieno · Personal Loan · $8,000 · Submitted 4h ago</div></div><button class="modal-close" data-close>×</button></div>
+  <div class="modal-body">
+    <div class="kv-grid" style="margin-bottom:16px;">
+      <div><div class="kv-label">Status</div><div class="kv-val"><span class="badge info">Pre-screened</span></div></div>
+      <div><div class="kv-label">Channel</div><div class="kv-val">Mobile App</div></div>
+      <div><div class="kv-label">Amount</div><div class="kv-val">$8,000</div></div>
+      <div><div class="kv-label">Tenor</div><div class="kv-val">12 months</div></div>
+      <div><div class="kv-label">Score</div><div class="kv-val">718 / 850</div></div>
+      <div><div class="kv-label">Grade</div><div class="kv-val"><span class="grade" style="background:var(--success-soft);color:var(--success);font-size:13px;width:28px;height:28px;">A</span></div></div>
+      <div><div class="kv-label">Assigned officer</div><div class="kv-val">J. Mwangi</div></div>
+      <div><div class="kv-label">SLA status</div><div class="kv-val" style="color:var(--success);">Within SLA</div></div>
+    </div>
+    <div class="timeline">
+      <div class="tl-item"><div class="tl-time">09:12</div><div class="tl-text">Application submitted via Mobile App</div></div>
+      <div class="tl-item"><div class="tl-time">09:13</div><div class="tl-text">KYC verified — National ID confirmed</div></div>
+      <div class="tl-item"><div class="tl-time">09:14</div><div class="tl-text">Credit bureau score pulled: 718</div></div>
+      <div class="tl-item"><div class="tl-time">09:14</div><div class="tl-text">Sanctions screening: Clear</div></div>
+      <div class="tl-item"><div class="tl-time">09:15</div><div class="tl-text">Pre-screening passed — Grade A assigned</div></div>
+      <div class="tl-item"><div class="tl-time">09:16</div><div class="tl-text">Routed to underwriting queue</div></div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-danger" data-modal="declineModal">Decline</button>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-light" data-modal="reassignModal">Reassign</button>
+      <button class="btn btn-light" data-modal="scorecardDetailModal">Scorecard</button>
+      <button class="btn btn-primary" data-result="Application advanced to underwriting">Advance to Underwriting</button>
+    </div>
+  </div>
+</div></div>
+
+<!-- 3. Declined Detail -->
+<div class="modal-backdrop" id="declinedDetailModal"><div class="modal">
+  <div class="modal-header"><div><h3 class="modal-title">Declined Application</h3><div class="modal-sub">APP-2026-2770 · B. Kiprono</div></div><button class="modal-close" data-close>×</button></div>
+  <div class="modal-body">
+    <div class="alert danger" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>Auto-declined by rule engine on pre-screening.</div>
+    <div class="kv-grid">
+      <div><div class="kv-label">Score</div><div class="kv-val">340 / 850</div></div>
+      <div><div class="kv-label">Grade</div><div class="kv-val"><span style="color:var(--danger);font-weight:700;">F</span></div></div>
+      <div><div class="kv-label">Primary reason</div><div class="kv-val">PAR 90 on existing loan</div></div>
+      <div><div class="kv-label">Policy breach</div><div class="kv-val">Single borrower limit exceeded</div></div>
+    </div>
+    <div style="margin-top:14px;font-size:13px;color:var(--text-2);">Decline letter auto-sent to applicant. Record retained for 24 months per data policy.</div>
+  </div>
+  <div class="modal-footer modal-footer-end">
+    <button class="btn btn-light" data-modal="overrideModal">Request override</button>
+    <button class="btn btn-primary" data-close>Close</button>
+  </div>
+</div></div>
+
+<!-- 4. Override modal -->
+<div class="modal-backdrop" id="overrideModal"><div class="modal">
+  <div class="modal-header"><div><h3 class="modal-title">Request Decline Override</h3><div class="modal-sub">Requires credit committee approval</div></div><button class="modal-close" data-close>×</button></div>
+  <div class="modal-body">
+    <div class="alert warning" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>Override requires senior credit officer + CC chair co-sign.</div>
+    <div class="field"><label class="field-label">Justification</label><textarea class="textarea" placeholder="Business rationale for override..."></textarea></div>
+    <div class="field"><label class="field-label">Supporting conditions</label><input class="input" placeholder="e.g. Additional collateral, guarantor"></div>
+    <div class="field"><label class="field-label">Route to</label><select class="select-field"><option>Credit Committee</option><option>Head of Credit</option><option>Chief Risk Officer</option></select></div>
+  </div>
+  <div class="modal-footer modal-footer-end">
+    <button class="btn btn-light" data-close>Cancel</button>
+    <button class="btn btn-primary" data-result="Override request submitted to Credit Committee">Submit for review</button>
+  </div>
+</div></div>
+
+<!-- 5. Cancelled Detail -->
+<div class="modal-backdrop" id="cancelledDetailModal"><div class="modal">
+  <div class="modal-header"><div><h3 class="modal-title">Cancelled Application</h3><div class="modal-sub">APP-2026-2755 · J. Odhiambo</div></div><button class="modal-close" data-close>×</button></div>
+  <div class="modal-body">
+    <div class="kv-grid">
+      <div><div class="kv-label">Reason</div><div class="kv-val">Withdrawn by applicant</div></div>
+      <div><div class="kv-label">Stage at cancellation</div><div class="kv-val">Submitted</div></div>
+      <div><div class="kv-label">Amount</div><div class="kv-val">$200</div></div>
+      <div><div class="kv-label">Product</div><div class="kv-val">BNPL</div></div>
+    </div>
+  </div>
+  <div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Close</button></div>
+</div></div>
+
+<!-- 6. Form Builder -->
+<div class="modal-backdrop" id="formBuilderModal"><div class="modal xl">
+  <div class="modal-header"><div><h3 class="modal-title">Application Form Builder</h3><div class="modal-sub">Dynamic forms per product type — admin editable</div></div><button class="modal-close" data-close>×</button></div>
+  <div class="modal-body">
+    <div class="field-row" style="margin-bottom:16px;">
+      <div class="field"><label class="field-label">Product template</label><select class="select-field"><option>Personal Loan</option><option>Salary Advance</option><option>BNPL</option><option>Working Capital</option><option>Trade Finance</option><option>Home Loan</option><option>CRE Loan</option></select></div>
+      <div class="field"><label class="field-label">Channel</label><select class="select-field"><option>Mobile App</option><option>Web Portal</option><option>USSD</option><option>Agent</option><option>API</option></select></div>
+    </div>
+    <div class="two-col" style="gap:12px;">
+      <div>
+        <div style="font-size:12px;font-weight:600;color:var(--text-2);margin-bottom:8px;">Available fields</div>
+        <div class="config-row"><div><div class="config-label">Full name</div><div class="config-desc">Text input · Required</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+        <div class="config-row"><div><div class="config-label">ID number</div><div class="config-desc">ID / Passport · Required</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+        <div class="config-row"><div><div class="config-label">Monthly income</div><div class="config-desc">Number · Required</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+        <div class="config-row"><div><div class="config-label">Employer name</div><div class="config-desc">Text · Optional</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+        <div class="config-row"><div><div class="config-label">Collateral description</div><div class="config-desc">Text area · Conditional</div></div><label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label></div>
+        <div class="config-row"><div><div class="config-label">Business financials</div><div class="config-desc">Upload · SME / Corp only</div></div><label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label></div>
+      </div>
+      <div>
+        <div style="font-size:12px;font-weight:600;color:var(--text-2);margin-bottom:8px;">Document requirements</div>
+        <div class="config-row"><div><div class="config-label">National ID / Passport</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+        <div class="config-row"><div><div class="config-label">Proof of address</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+        <div class="config-row"><div><div class="config-label">Bank statements (3m)</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+        <div class="config-row"><div><div class="config-label">Payslips (3 months)</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+        <div class="config-row"><div><div class="config-label">Audited financials</div></div><label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label></div>
+        <div class="config-row"><div><div class="config-label">Title deed / valuations</div></div><label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label></div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer modal-footer-end">
+    <button class="btn btn-light" data-modal="previewFormModal">Preview form</button>
+    <button class="btn btn-primary" data-result="Form template saved">Save template</button>
+  </div>
+</div></div>
+
+<!-- 7. Preview Form -->
+<div class="modal-backdrop" id="previewFormModal"><div class="modal lg">
+  <div class="modal-header"><div><h3 class="modal-title">Form Preview — Personal Loan</h3><div class="modal-sub">Customer-facing view</div></div><button class="modal-close" data-close>×</button></div>
+  <div class="modal-body">
+    <div class="field"><label class="field-label">Full name *</label><input class="input" placeholder="As on national ID"></div>
+    <div class="field-row">
+      <div class="field"><label class="field-label">ID number *</label><input class="input" placeholder="National ID"></div>
+      <div class="field"><label class="field-label">Date of birth *</label><input class="input" type="date"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label class="field-label">Loan amount *</label><input class="input" placeholder="Amount in KES"></div>
+      <div class="field"><label class="field-label">Tenor *</label><select class="select-field"><option>3 months</option><option>6 months</option><option>12 months</option><option>24 months</option></select></div>
+    </div>
+    <div class="field"><label class="field-label">Monthly net income *</label><input class="input" placeholder="Net take-home"></div>
+    <div class="field"><label class="field-label">Employer</label><input class="input" placeholder="Current employer name"></div>
+  </div>
+  <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button class="btn btn-primary" data-modal="formBuilderModal">Edit template</button></div>
+</div></div>
+
+<!-- 8. Channel Detail -->
+<div class="modal-backdrop" id="channelDetailModal"><div class="modal lg">
+  <div class="modal-header"><div><h3 class="modal-title">Channel Detail — Mobile App</h3><div class="modal-sub">iOS & Android · Retail segment</div></div><button class="modal-close" data-close>×</button></div>
+  <div class="modal-body">
+    <div class="kv-grid" style="margin-bottom:16px;">
+      <div><div class="kv-label">Apps today</div><div class="kv-val">82</div></div>
+      <div><div class="kv-label">Conversion rate</div><div class="kv-val">68%</div></div>
+      <div><div class="kv-label">Avg completion time</div><div class="kv-val">4.2 min</div></div>
+      <div><div class="kv-label">Abandonment rate</div><div class="kv-val">32%</div></div>
+    </div>
+    <svg class="mini-chart" viewBox="0 0 480 120" preserveAspectRatio="none">
+      <g stroke="#e8e6df"><line x1="0" y1="30" x2="480" y2="30"/><line x1="0" y1="60" x2="480" y2="60"/><line x1="0" y1="90" x2="480" y2="90"/></g>
+      <path d="M0,100 L60,82 L120,88 L180,64 L240,70 L300,52 L360,58 L420,42 L480,36" fill="none" stroke="#5b5bf5" stroke-width="2.5"/>
+    </svg>
+    <div style="margin-top:14px;">
+      <div class="config-row"><div><div class="config-label">Status</div></div><span class="badge success"><span class="badge-dot"></span>Live</span></div>
+      <div class="config-row"><div><div class="config-label">API endpoint</div></div><span class="mono" style="font-size:11px;">/api/v2/apply/retail</span></div>
+      <div class="config-row"><div><div class="config-label">SLA target</div></div><span>Decision within 24h</span></div>
+    </div>
+  </div>
+  <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-modal="channelConfigModal">Configure</button><button class="btn btn-primary" data-close>Close</button></div>
+</div></div>
+
+<!-- 9. Channel Config -->
+<div class="modal-backdrop" id="channelConfigModal"><div class="modal">
+  <div class="modal-header"><div><h3 class="modal-title">Configure Channels</h3><div class="modal-sub">Enable, disable, and set SLA per channel</div></div><button class="modal-close" data-close>×</button></div>
+  <div class="modal-body">
+    <div class="config-row"><div><div class="config-label">Mobile App</div><div class="config-desc">SLA: 24h decision</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+    <div class="config-row"><div><div class="config-label">Web Portal</div><div class="config-desc">SLA: 48h decision</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+    <div class="config-row"><div><div class="config-label">USSD</div><div class="config-desc">SLA: 2h auto decision</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+    <div class="config-row"><div><div class="config-label">Agent Network</div><div class="config-desc">SLA: 48h decision</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+    <div class="config-row"><div><div class="config-label">API / Embedded</div><div class="config-desc">SLA: real-time auto</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+    <div class="config-row"><div><div class="config-label">Corporate API</div><div class="config-desc">SLA: 5 business days</div></div><label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label></div>
+  </div>
+  <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Channel configuration saved">Save</button></div>
+</div></div>
+
+<!-- 10. Channel Stats -->
+<div class="modal-backdrop" id="channelStatsModal"><div class="modal lg">
+  <div class="modal-header"><div><h3 class="modal-title">Channel Analytics</h3><div class="modal-sub">Application volume and conversion by channel</div></div><button class="modal-close" data-close>×</button></div>
+  <div class="modal-body">
+    <div class="dist-row"><div class="dist-label">Mobile App</div><div class="dist-bar"><span style="width:45%;background:#5b5bf5;"></span></div><div class="dist-val">82 apps</div></div>
+    <div class="dist-row"><div class="dist-label">Web Portal</div><div class="dist-bar"><span style="width:22%;background:#0284c7;"></span></div><div class="dist-val">41 apps</div></div>
+    <div class="dist-row"><div class="dist-label">Agent / POS</div><div class="dist-bar"><span style="width:18%;background:#7c3aed;"></span></div><div class="dist-val">33 apps</div></div>
+    <div class="dist-row"><div class="dist-label">USSD</div><div class="dist-bar"><span style="width:15%;background:#d97706;"></span></div><div class="dist-val">28 apps</div></div>
+    <div class="dist-row"><div class="dist-label">SME Portal</div><div class="dist-bar"><span style="width:8%;background:#16a34a;"></span></div><div class="dist-val">14 apps</div></div>
+    <div class="dist-row"><div class="dist-label">API / Embedded</div><div class="dist-bar"><span style="width:12%;background:#16a34a;"></span></div><div class="dist-val">22 apps</div></div>
+  </div>
+  <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button class="btn btn-primary" data-modal="exportModal">Export</button></div>
+</div></div>
+
+<!-- 11. Funnel -->
+<div class="modal-backdrop" id="funnelModal"><div class="modal lg">
+  <div class="modal-header"><div><h3 class="modal-title">Conversion Funnel</h3><div class="modal-sub">Application pipeline drop-off analysis</div></div><button class="modal-close" data-close>×</button></div>
+  <div class="modal-body">
+    <div style="padding:8px 0;">
+      <div class="funnel-bar" style="background:#5b5bf5;width:100%;">Submitted — 184</div>
+      <div class="funnel-bar" style="background:#0284c7;width:88%;">Data Verification — 162</div>
+      <div class="funnel-bar" style="background:#16a34a;width:77%;">Pre-screened — 141</div>
+      <div class="funnel-bar" style="background:#d97706;width:55%;">Underwriting — 101</div>
+      <div class="funnel-bar" style="background:#7c3aed;width:35%;">Approved — 64</div>
+      <div class="funnel-bar" style="background:#dc2626;width:18%;">Declined — 34</div>
+    </div>
+    <div class="legend" style="justify-content:center;margin-top:12px;">
+      <span><span class="legend-dot" style="background:#5b5bf5;"></span>Today's volume</span>
+    </div>
+  </div>
+  <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+</div></div>
+
+<!-- 12. SLA Config -->
+<div class="modal-backdrop" id="slaConfigModal"><div class="modal">
+  <div class="modal-header"><div><h3 class="modal-title">SLA Configuration</h3><div class="modal-sub">Define turnaround time per stage and product</div></div><button class="modal-close" data-close>×</button></div>
+  <div class="modal-body">
+    <div class="field"><label class="field-label">Product type</label><select class="select-field"><option>Retail — Small ticket</option><option>Retail — Large ticket</option><option>SME</option><option>Corporate</option><option>Real Estate</option></select></div>
+    <div class="config-row"><div><div class="config-label">Verification</div></div><input class="input" style="width:80px;" value="4"></div>
+    <div class="config-row"><div><div class="config-label">Pre-screening</div></div><input class="input" style="width:80px;" value="1"></div>
+    <div class="config-row"><div><div class="config-label">Underwriting</div></div><input class="input" style="width:80px;" value="48"></div>
+    <div class="config-row"><div><div class="config-label">Decision</div></div><input class="input" style="width:80px;" value="72"></div>
+    <div class="alert info" style="margin-top:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>Values in hours. Breach triggers alert and escalation to senior officer.</div>
+  </div>
+  <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="SLA rules updated">Save SLA rules</button></div>
+</div></div>
+
+<!-- 13. SLA Breach Resolution -->
+<div class="modal-backdrop" id="slaBreachModal"><div class="modal lg">
+  <div class="modal-header"><div><h3 class="modal-title">SLA Breach Resolution</h3><div class="modal-sub">12 applications breached SLA</div></div><button class="modal-close" data-close>×</button></div>
+  <div class="modal-body">
+    <div class="alert danger" style="margin-bottom:12px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>12 applications have exceeded their stage SLA. Immediate action required.</div>
+    <table class="table">
+      <thead><tr><th>App ID</th><th>Stage</th><th>Breach</th><th>Assigned</th><th></th></tr></thead>
+      <tbody>
+        <tr><td class="mono">APP-2026-2822</td><td>Verification</td><td><span class="badge danger">+6h</span></td><td>S. Karanja</td><td class="right"><button class="btn btn-light btn-sm" data-modal="reassignModal">Reassign</button></td></tr>
+        <tr><td class="mono">APP-2026-2815</td><td>Underwriting</td><td><span class="badge danger">+12h</span></td><td>J. Mwangi</td><td class="right"><button class="btn btn-light btn-sm" data-modal="reassignModal">Reassign</button></td></tr>
+        <tr><td class="mono">APP-2026-2801</td><td>Pre-screen</td><td><span class="badge danger">+3h</span></td><td>A. Lopez</td><td class="right"><button class="btn btn-light btn-sm" data-modal="reassignModal">Escalate</button></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button class="btn btn-primary" data-result="Bulk escalation sent to officers">Escalate all</button></div>
+</div></div>
+
+<!-- 14. Reassign Officer -->
+<div class="modal-backdrop" id="reassignModal"><div class="modal">
+  <div class="modal-header"><div><h3 class="modal-title">Reassign Application</h3><div class="modal-sub">Transfer to another credit officer</div></div><button class="modal-close" data-close>×</button></div>
+  <div class="modal-body">
+    <label class="choice-row selected"><input type="radio" name="officer" checked><span class="avatar">JM</span><div style="flex:1;"><div class="choice-title">J. Mwangi</div><div class="choice-desc">Lead credit officer · 8 open</div></div></label>
+    <label class="choice-row"><input type="radio" name="officer"><span class="avatar">SK</span><div style="flex:1;"><div class="choice-title">S. Karanja</div><div class="choice-desc">Senior officer · 5 open</div></div></label>
+    <label class="choice-row"><input type="radio" name="officer"><span class="avatar">AL</span><div style="flex:1;"><div class="choice-title">A. Lopez</div><div class="choice-desc">Officer · 3 open</div></div></label>
+  </div>
+  <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Application reassigned">Reassign</button></div>
+</div></div>
+
+<!-- 15. Eligibility Rules -->
+<div class="modal-backdrop" id="eligibilityModal"><div class="modal lg">
+  <div class="modal-header"><div><h3 class="modal-title">Eligibility Rule Engine</h3><div class="modal-sub">Admin-editable product eligibility criteria</div></div><button class="modal-close" data-close>×</button></div>
+  <div class="modal-body">
+    <div class="field"><label class="field-label">Product</label><select class="select-field"><option>Personal Loan</option><option>BNPL</option><option>Working Capital</option><option>Home Loan</option></select></div>
+    <div class="config-row"><div><div class="config-label">Minimum age</div></div><input class="input" style="width:80px;" value="18"></div>
+    <div class="config-row"><div><div class="config-label">Maximum age at maturity</div></div><input class="input" style="width:80px;" value="65"></div>
+    <div class="config-row"><div><div class="config-label">Minimum monthly income</div></div><input class="input" style="width:120px;" value="KES 20,000"></div>
+    <div class="config-row"><div><div class="config-label">Minimum credit bureau score</div></div><input class="input" style="width:80px;" value="450"></div>
+    <div class="config-row"><div><div class="config-label">Maximum DTI ratio</div></div><input class="input" style="width:80px;" value="50%"></div>
+    <div class="config-row"><div><div class="config-label">Active PAR 30 disqualifies</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+    <div class="config-row"><div><div class="config-label">Sanctions list auto-decline</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+  </div>
+  <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Eligibility rules updated">Save rules</button></div>
+</div></div>
+
+<!-- 16. Bureau Modal -->
+<div class="modal-backdrop" id="bureauModal"><div class="modal lg">
+  <div class="modal-header"><div><h3 class="modal-title">Credit Bureau Integration</h3><div class="modal-sub">Live score pull and bureau configuration</div></div><button class="modal-close" data-close>×</button></div>
+  <div class="modal-body">
+    <div class="config-row"><div><div class="config-label">CRB Africa</div><div class="config-desc">Kenya — real-time API</div></div><span class="badge success"><span class="badge-dot"></span>Connected</span></div>
+    <div class="config-row"><div><div class="config-label">Metropol</div><div class="config-desc">Kenya — real-time API</div></div><span class="badge success"><span class="badge-dot"></span>Connected</span></div>
+    <div class="config-row"><div><div class="config-label">TransUnion</div><div class="config-desc">Multi-market</div></div><span class="badge success"><span class="badge-dot"></span>Connected</span></div>
+    <div class="config-row"><div><div class="config-label">Experian</div><div class="config-desc">UK / US markets</div></div><span class="badge warning"><span class="badge-dot"></span>Setup pending</span></div>
+    <div style="margin-top:16px;font-weight:600;margin-bottom:8px;">Bureau pull today</div>
+    <div class="dist-row"><div class="dist-label">CRB Africa</div><div class="dist-bar"><span style="width:60%;background:#5b5bf5;"></span></div><div class="dist-val">110 pulls</div></div>
+    <div class="dist-row"><div class="dist-label">Metropol</div><div class="dist-bar"><span style="width:22%;background:#7c3aed;"></span></div><div class="dist-val">40 pulls</div></div>
+    <div class="dist-row"><div class="dist-label">TransUnion</div><div class="dist-bar"><span style="width:18%;background:#16a34a;"></span></div><div class="dist-val">34 pulls</div></div>
+  </div>
+  <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button class="btn btn-primary" data-result="Bureau configuration saved">Save settings</button></div>
+</div></div>
+
+<!-- 17. KYC Modal -->
+<div class="modal-backdrop" id="kycModal"><div class="modal">
+  <div class="modal-header"><div><h3 class="modal-title">KYC / KYB Configuration</h3><div class="modal-sub">Identity verification settings</div></div><button class="modal-close" data-close>×</button></div>
+  <div class="modal-body">
+    <div class="config-row"><div><div class="config-label">ID document scan (Smile ID)</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+    <div class="config-row"><div><div class="config-label">Liveness / selfie check</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+    <div class="config-row"><div><div class="config-label">Business registration check (KYB)</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+    <div class="config-row"><div><div class="config-label">Director / UBO verification</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+    <div class="config-row"><div><div class="config-label">Address verification</div></div><label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label></div>
+    <div class="field" style="margin-top:12px;"><label class="field-label">Failure action</label><select class="select-field"><option>Flag for manual review</option><option>Auto-decline</option></select></div>
+  </div>
+  <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="KYC configuration saved">Save</button></div>
+</div></div>
+
+<!-- 18. Fraud Screen -->
+<div class="modal-backdrop" id="fraudScreenModal"><div class="modal">
+  <div class="modal-header"><div><h3 class="modal-title">Fraud Detection Screening</h3><div class="modal-sub">Pre-screening signals</div></div><button class="modal-close" data-close>×</button></div>
+  <div class="modal-body">
+    <div class="config-row"><div><div class="config-label">Device fingerprinting</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+    <div class="config-row"><div><div class="config-label">Velocity rules (multiple apps)</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+    <div class="config-row"><div><div class="config-label">Synthetic identity detection</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+    <div class="config-row"><div><div class="config-label">Address consistency check</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+    <div class="config-row"><div><div class="config-label">Document forgery AI scan</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+    <div style="margin-top:14px;"><div class="kv-label">Fraud flags today</div><div style="font-size:18px;font-weight:700;color:var(--danger);">8</div></div>
+  </div>
+  <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Fraud screening configuration saved">Save</button></div>
+</div></div>
+
+<!-- 19. Sanctions -->
+<div class="modal-backdrop" id="sanctionsModal"><div class="modal">
+  <div class="modal-header"><div><h3 class="modal-title">Watchlist & Sanctions Config</h3><div class="modal-sub">Screening lists and sensitivity</div></div><button class="modal-close" data-close>×</button></div>
+  <div class="modal-body">
+    <div class="config-row"><div><div class="config-label">OFAC SDN list</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+    <div class="config-row"><div><div class="config-label">UN Security Council</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+    <div class="config-row"><div><div class="config-label">EU Consolidated list</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+    <div class="config-row"><div><div class="config-label">PEP (Politically Exposed)</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+    <div class="config-row"><div><div class="config-label">Adverse media screening</div></div><label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label></div>
+    <div class="field" style="margin-top:12px;"><label class="field-label">Match threshold</label><select class="select-field"><option>Exact match only</option><option>80% fuzzy match</option><option>95% fuzzy match</option></select></div>
+  </div>
+  <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Sanctions config saved">Save</button></div>
+</div></div>
+
+<!-- 20. Exposure Modal -->
+<div class="modal-backdrop" id="exposureModal"><div class="modal lg">
+  <div class="modal-header"><div><h3 class="modal-title">Single Borrower Exposure Check</h3><div class="modal-sub">2 alerts — existing borrower limit review</div></div><button class="modal-close" data-close>×</button></div>
+  <div class="modal-body">
+    <div class="alert warning" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>2 applicants have existing exposure approaching or exceeding single borrower limit.</div>
+    <table class="table">
+      <thead><tr><th>Borrower</th><th>Existing</th><th>New Request</th><th>Limit</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>Umbrella Ltd</td><td>$1.8M</td><td>$500K</td><td>$2M</td><td><span class="badge warning">At limit</span></td></tr>
+        <tr><td>H. Owuor</td><td>$40K</td><td>$15K</td><td>$50K</td><td><span class="badge danger">Over limit</span></td></tr>
+      </tbody>
+    </table>
+    <div class="field" style="margin-top:14px;"><label class="field-label">Single borrower limit (USD equivalent)</label><input class="input" value="2,000,000"></div>
+  </div>
+  <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button class="btn btn-primary" data-result="Exposure limit updated">Update limits</button></div>
+</div></div>
+
+<!-- 21. Pre-Screen Result -->
+<div class="modal-backdrop" id="prescreenResultModal"><div class="modal lg">
+  <div class="modal-header"><div><h3 class="modal-title">Pre-Screen Result — APP-2026-2841</h3><div class="modal-sub">M. Otieno · Personal Loan</div></div><button class="modal-close" data-close>×</button></div>
+  <div class="modal-body">
+    <div class="kv-grid" style="margin-bottom:14px;">
+      <div><div class="kv-label">Bureau score</div><div class="kv-val" style="color:var(--success);">718</div></div>
+      <div><div class="kv-label">Recommendation</div><div class="kv-val"><span class="badge success">Proceed</span></div></div>
+    </div>
+    <div class="check-row"><div><div class="config-label">Eligibility check</div></div><span class="badge success">Pass</span></div>
+    <div class="check-row"><div><div class="config-label">Credit bureau</div></div><span class="badge success">718 — Pass</span></div>
+    <div class="check-row"><div><div class="config-label">KYC verification</div></div><span class="badge success">Verified</span></div>
+    <div class="check-row"><div><div class="config-label">Fraud screening</div></div><span class="badge success">Clear</span></div>
+    <div class="check-row"><div><div class="config-label">Sanctions / watchlist</div></div><span class="badge success">Clear</span></div>
+    <div class="check-row"><div><div class="config-label">Single borrower limit</div></div><span class="badge success">Within limit</span></div>
+  </div>
+  <div class="modal-footer modal-footer-end">
+    <button class="btn btn-light" data-modal="applicationDetailModal">Full application</button>
+    <button class="btn btn-primary" data-result="Application advanced to underwriting">Advance</button>
+  </div>
+</div></div>
+
+<!-- 22. Rule Engine -->
+<div class="modal-backdrop" id="ruleEngineModal"><div class="modal lg">
+  <div class="modal-header"><div><h3 class="modal-title">Pre-Screening Rule Engine</h3><div class="modal-sub">Admin-configurable eligibility and scoring rules</div></div><button class="modal-close" data-close>×</button></div>
+  <div class="modal-body">
+    <div class="field"><label class="field-label">Product</label><select class="select-field"><option>All products</option><option>Personal Loan</option><option>BNPL</option><option>Working Capital</option></select></div>
+    <div class="config-row"><div><div class="config-label">Auto-approve if score &gt;= 700 AND amount &lt; $10,000</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+    <div class="config-row"><div><div class="config-label">Auto-decline if score &lt; 450</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+    <div class="config-row"><div><div class="config-label">Auto-decline if PAR 90 active</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+    <div class="config-row"><div><div class="config-label">Flag for manual if sanctions soft match</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+    <div class="config-row"><div><div class="config-label">Require guarantor if DTI &gt; 45%</div></div><label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label></div>
+    <div class="alert info" style="margin-top:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>Rule changes take effect on next application cycle after save.</div>
+  </div>
+  <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Rule engine configuration saved">Save rules</button></div>
+</div></div>
+
+<!-- 23. Scorecard Config -->
+<div class="modal-backdrop" id="scorecardConfigModal"><div class="modal lg">
+  <div class="modal-header"><div><h3 class="modal-title">Scorecard Configuration</h3><div class="modal-sub">Admin-editable weights per scoring variable</div></div><button class="modal-close" data-close>×</button></div>
+  <div class="modal-body">
+    <div class="field"><label class="field-label">Scorecard model</label><select class="select-field"><option>Retail — Behavioral v3</option><option>SME — Financial v2</option><option>Corporate — Analyst v1</option></select></div>
+    <div class="config-row"><div><div class="config-label">Credit history weight</div></div><input class="input" style="width:80px;" value="30%"></div>
+    <div class="config-row"><div><div class="config-label">Income stability weight</div></div><input class="input" style="width:80px;" value="25%"></div>
+    <div class="config-row"><div><div class="config-label">DTI ratio weight</div></div><input class="input" style="width:80px;" value="20%"></div>
+    <div class="config-row"><div><div class="config-label">Behavioral / transactional</div></div><input class="input" style="width:80px;" value="15%"></div>
+    <div class="config-row"><div><div class="config-label">KYC quality</div></div><input class="input" style="width:80px;" value="10%"></div>
+    <div class="alert info" style="margin-top:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>Weights must total 100%. Model retrain required for structural changes.</div>
+  </div>
+  <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Scorecard weights updated">Save scorecard</button></div>
+</div></div>
+
+<!-- 24. Threshold Modal -->
+<div class="modal-backdrop" id="thresholdModal"><div class="modal">
+  <div class="modal-header"><div><h3 class="modal-title">Auto-Decision Thresholds</h3><div class="modal-sub">Admin-editable approval and decline limits</div></div><button class="modal-close" data-close>×</button></div>
+  <div class="modal-body">
+    <div class="field"><label class="field-label">Auto-approve minimum score</label><input class="input" value="650"></div>
+    <div class="field"><label class="field-label">Auto-approve maximum ticket</label><input class="input" value="$10,000"></div>
+    <div class="field"><label class="field-label">Auto-decline maximum score</label><input class="input" value="449"></div>
+    <div class="field"><label class="field-label">Manual review band</label><input class="input" value="450 – 649" readonly></div>
+    <label class="choice-row selected"><input type="checkbox" checked><div><div class="choice-title">Enforce minimum yield floor on auto-approve</div><div class="choice-desc">Reject if priced below cost of funds</div></div></label>
+  </div>
+  <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Thresholds updated">Save thresholds</button></div>
+</div></div>
+
+<!-- 25. Scorecard Detail -->
+<div class="modal-backdrop" id="scorecardDetailModal"><div class="modal lg">
+  <div class="modal-header"><div><h3 class="modal-title">Full Scorecard — APP-2026-2841</h3><div class="modal-sub">M. Otieno · Personal Loan</div></div><button class="modal-close" data-close>×</button></div>
+  <div class="modal-body">
+    <div class="kv-grid" style="margin-bottom:14px;">
+      <div><div class="kv-label">Composite score</div><div style="font-size:28px;font-weight:700;color:var(--primary);">718</div></div>
+      <div><div class="kv-label">Risk grade</div><div><span class="grade" style="background:var(--success-soft);color:var(--success);">A</span></div></div>
+      <div><div class="kv-label">Recommendation</div><div class="kv-val"><span class="badge success">Auto-approve</span></div></div>
+      <div><div class="kv-label">Proposed rate</div><div class="kv-val">14.5% p.a.</div></div>
+    </div>
+    <div class="dist-row"><div class="dist-label">Credit history</div><div class="dist-bar"><span style="width:82%;background:#16a34a;"></span></div><div class="dist-val">82/100</div></div>
+    <div class="dist-row"><div class="dist-label">Income stability</div><div class="dist-bar"><span style="width:75%;background:#5b5bf5;"></span></div><div class="dist-val">75/100</div></div>
+    <div class="dist-row"><div class="dist-label">DTI ratio</div><div class="dist-bar"><span style="width:68%;background:#5b5bf5;"></span></div><div class="dist-val">68/100</div></div>
+    <div class="dist-row"><div class="dist-label">Behavioral score</div><div class="dist-bar"><span style="width:90%;background:#7c3aed;"></span></div><div class="dist-val">90/100</div></div>
+    <div class="dist-row"><div class="dist-label">KYC quality</div><div class="dist-bar"><span style="width:100%;background:#16a34a;"></span></div><div class="dist-val">100/100</div></div>
+  </div>
+  <div class="modal-footer"><button class="btn btn-danger" data-modal="declineModal">Override — Decline</button><div style="display:flex;gap:8px;"><button class="btn btn-light" data-close>Close</button><button class="btn btn-primary" data-result="Application approved and queued for disbursement">Confirm approval</button></div></div>
+</div></div>
+
+<!-- 26. Grade Detail -->
+<div class="modal-backdrop" id="gradeDetailModal"><div class="modal">
+  <div class="modal-header"><div><h3 class="modal-title">Grade A — Auto-Approve Band</h3><div class="modal-sub">Score 750–850 · 28 applications today</div></div><button class="modal-close" data-close>×</button></div>
+  <div class="modal-body">
+    <div class="kv-grid">
+      <div><div class="kv-label">Applications</div><div class="kv-val">28</div></div>
+      <div><div class="kv-label">Total value</div><div class="kv-val">$1.82M</div></div>
+      <div><div class="kv-label">Avg ticket</div><div class="kv-val">$65,000</div></div>
+      <div><div class="kv-label">Interest rate range</div><div class="kv-val">12%–14.5%</div></div>
+    </div>
+    <div class="alert success" style="margin-top:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>All Grade A applications are auto-approved subject to yield floor check.</div>
+  </div>
+  <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-modal="thresholdModal">Edit threshold</button><button class="btn btn-primary" data-close>Close</button></div>
+</div></div>
+
+<!-- 27. Manual Review Queue -->
+<div class="modal-backdrop" id="manualReviewModal"><div class="modal lg">
+  <div class="modal-header"><div><h3 class="modal-title">Manual Review Queue</h3><div class="modal-sub">49 applications requiring officer decision</div></div><button class="modal-close" data-close>×</button></div>
+  <div class="modal-body">
+    <div class="field-row" style="margin-bottom:12px;">
+      <div class="field"><label class="field-label">Filter by grade</label><select class="select-field"><option>All grades</option><option>Grade C</option><option>Grade D</option></select></div>
+      <div class="field"><label class="field-label">Assigned officer</label><select class="select-field"><option>All officers</option><option>J. Mwangi</option><option>S. Karanja</option><option>A. Lopez</option></select></div>
+    </div>
+    <table class="table"><thead><tr><th>App ID</th><th>Name</th><th>Product</th><th>Grade</th><th>Amount</th><th>Officer</th><th></th></tr></thead>
+    <tbody>
+      <tr data-modal="reviewQueueModal"><td class="mono">APP-2839</td><td>A. Wanjiru</td><td>BNPL</td><td><span class="grade" style="background:var(--primary-soft);color:var(--primary);font-size:11px;width:22px;height:22px;">C</span></td><td>$420</td><td>J. Mwangi</td><td class="right"><button class="btn btn-light btn-sm" data-modal="reviewQueueModal">Review</button></td></tr>
+      <tr data-modal="reviewQueueModal"><td class="mono">APP-2831</td><td>P. Kariuki</td><td>Personal</td><td><span class="grade" style="background:var(--warning-soft);color:var(--warning);font-size:11px;width:22px;height:22px;">D</span></td><td>$3,200</td><td>S. Karanja</td><td class="right"><button class="btn btn-light btn-sm" data-modal="reviewQueueModal">Review</button></td></tr>
+      <tr data-modal="reviewQueueModal"><td class="mono">APP-2825</td><td>Soylent Inc</td><td>WCL</td><td><span class="grade" style="background:var(--primary-soft);color:var(--primary);font-size:11px;width:22px;height:22px;">C</span></td><td>$90K</td><td>A. Lopez</td><td class="right"><button class="btn btn-light btn-sm" data-modal="reviewQueueModal">Review</button></td></tr>
+    </tbody></table>
+  </div>
+  <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button class="btn btn-primary" data-modal="reassignModal">Bulk reassign</button></div>
+</div></div>
+
+<!-- 28. Review Queue Item -->
+<div class="modal-backdrop" id="reviewQueueModal"><div class="modal lg">
+  <div class="modal-header"><div><h3 class="modal-title">Manual Review — APP-2026-2839</h3><div class="modal-sub">A. Wanjiru · BNPL · $420 · Grade C</div></div><button class="modal-close" data-close>×</button></div>
+  <div class="modal-body">
+    <div class="alert warning" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>Referred for manual review: income mismatch on bank statement vs. declared.</div>
+    <div class="kv-grid" style="margin-bottom:14px;">
+      <div><div class="kv-label">Declared income</div><div class="kv-val">KES 38,000/mo</div></div>
+      <div><div class="kv-label">Statement average</div><div class="kv-val">KES 22,400/mo</div></div>
+      <div><div class="kv-label">Score</div><div class="kv-val">580 / 850</div></div>
+      <div><div class="kv-label">DTI (declared)</div><div class="kv-val">31%</div></div>
+    </div>
+    <div class="field"><label class="field-label">Officer note</label><textarea class="textarea" placeholder="Findings and recommendation..."></textarea></div>
+    <div class="field"><label class="field-label">Decision</label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-success btn-sm" data-result="Application approved with note">Approve</button>
+        <button class="btn btn-light btn-sm" data-result="Counter-offer terms sent to applicant">Counter-offer</button>
+        <button class="btn btn-danger btn-sm" data-modal="declineModal">Decline</button>
+        <button class="btn btn-light btn-sm" data-result="More information requested from applicant">Request more info</button>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button></div>
+</div></div>
+
+<!-- 29. Decline Modal -->
+<div class="modal-backdrop" id="declineModal"><div class="modal">
+  <div class="modal-header"><div><h3 class="modal-title">Decline Application</h3><div class="modal-sub">Record reason for regulatory compliance</div></div><button class="modal-close" data-close>×</button></div>
+  <div class="modal-body">
+    <div class="field"><label class="field-label">Primary decline reason</label><select class="select-field"><option>Insufficient income</option><option>Poor credit history</option><option>High DTI ratio</option><option>KYC failure</option><option>Sanctions match</option><option>Policy breach</option><option>Single borrower limit</option></select></div>
+    <div class="field"><label class="field-label">Decline note (internal)</label><textarea class="textarea" placeholder="Internal rationale for audit trail..."></textarea></div>
+    <label class="choice-row selected"><input type="checkbox" checked><div><div class="choice-title">Send decline letter to applicant</div><div class="choice-desc">Auto-generated with regulatory decline reasons</div></div></label>
+  </div>
+  <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-danger" data-result="Application declined and letter sent">Confirm decline</button></div>
+</div></div>
+
+<!-- 30. Auto-Approve / Auto-Decline Stats -->
+<div class="modal-backdrop" id="autoApproveModal"><div class="modal">
+  <div class="modal-header"><div><h3 class="modal-title">Auto-Approved Today</h3><div class="modal-sub">58 approvals · $4.2M value</div></div><button class="modal-close" data-close>×</button></div>
+  <div class="modal-body">
+    <div class="dist-row"><div class="dist-label">Grade A</div><div class="dist-bar"><span style="width:48%;background:#16a34a;"></span></div><div class="dist-val">28</div></div>
+    <div class="dist-row"><div class="dist-label">Grade B</div><div class="dist-bar"><span style="width:52%;background:#5b5bf5;"></span></div><div class="dist-val">30</div></div>
+    <div class="alert success" style="margin-top:12px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Average decision time: 47 seconds for auto-approvals.</div>
+  </div>
+  <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button class="btn btn-primary" data-modal="exportModal">Export</button></div>
+</div></div>
+
+<div class="modal-backdrop" id="autoDeclineModal"><div class="modal">
+  <div class="modal-header"><div><h3 class="modal-title">Auto-Declined Today</h3><div class="modal-sub">34 declines · 18.5% decline rate</div></div><button class="modal-close" data-close>×</button></div>
+  <div class="modal-body">
+    <div class="dist-row"><div class="dist-label">Score below 450</div><div class="dist-bar"><span style="width:55%;background:#dc2626;"></span></div><div class="dist-val">19</div></div>
+    <div class="dist-row"><div class="dist-label">PAR 90 active</div><div class="dist-bar"><span style="width:23%;background:#d97706;"></span></div><div class="dist-val">8</div></div>
+    <div class="dist-row"><div class="dist-label">KYB / KYC fail</div><div class="dist-bar"><span style="width:20%;background:#7c3aed;"></span></div><div class="dist-val">7</div></div>
+  </div>
+  <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+</div></div>
+
+<div class="modal-backdrop" id="submittedModal"><div class="modal">
+  <div class="modal-header"><div><h3 class="modal-title">Submitted Today — 184 Applications</h3><div class="modal-sub">+22 vs yesterday</div></div><button class="modal-close" data-close>×</button></div>
+  <div class="modal-body">
+    <div class="dist-row"><div class="dist-label">Retail</div><div class="dist-bar"><span style="width:55%;background:#5b5bf5;"></span></div><div class="dist-val">101</div></div>
+    <div class="dist-row"><div class="dist-label">SME</div><div class="dist-bar"><span style="width:24%;background:#7c3aed;"></span></div><div class="dist-val">44</div></div>
+    <div class="dist-row"><div class="dist-label">Corporate</div><div class="dist-bar"><span style="width:10%;background:#d97706;"></span></div><div class="dist-val">19</div></div>
+    <div class="dist-row"><div class="dist-label">Real Estate</div><div class="dist-bar"><span style="width:11%;background:#16a34a;"></span></div><div class="dist-val">20</div></div>
+  </div>
+  <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+</div></div>
+
+<div class="modal-backdrop" id="prescreenedModal"><div class="modal">
+  <div class="modal-header"><div><h3 class="modal-title">Pre-screened — 141 Applications</h3><div class="modal-sub">76.6% pass rate</div></div><button class="modal-close" data-close>×</button></div>
+  <div class="modal-body">
+    <div class="kv-grid">
+      <div><div class="kv-label">Passed all checks</div><div class="kv-val">109</div></div>
+      <div><div class="kv-label">Partial pass</div><div class="kv-val">32</div></div>
+      <div><div class="kv-label">Avg bureau score</div><div class="kv-val">628</div></div>
+      <div><div class="kv-label">KYC pass rate</div><div class="kv-val">94.8%</div></div>
+    </div>
+  </div>
+  <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+</div></div>
+
+<!-- Filter / Export / Notifications -->
+<div class="modal-backdrop" id="filterModal"><div class="modal">
+  <div class="modal-header"><div><h3 class="modal-title">Filters</h3><div class="modal-sub">Refine application pipeline view</div></div><button class="modal-close" data-close>×</button></div>
+  <div class="modal-body">
+    <div class="field"><label class="field-label">Segment</label><select class="select-field"><option>All</option><option>Retail</option><option>SME</option><option>Corporate</option><option>Real Estate</option></select></div>
+    <div class="field"><label class="field-label">Status</label><select class="select-field"><option>All</option><option>Submitted</option><option>Pre-screened</option><option>Underwriting</option><option>Approved</option><option>Declined</option></select></div>
+    <div class="field"><label class="field-label">Officer</label><select class="select-field"><option>All officers</option><option>J. Mwangi</option><option>S. Karanja</option><option>A. Lopez</option></select></div>
+    <div class="field"><label class="field-label">Date range</label><select class="select-field"><option>Today</option><option>Last 7 days</option><option>This month</option></select></div>
+  </div>
+  <div class="modal-footer"><button class="btn btn-ghost" data-result="Filters reset">Reset</button><div style="display:flex;gap:8px;"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Filters applied">Apply</button></div></div>
+</div></div>
+
+<div class="modal-backdrop" id="exportModal"><div class="modal">
+  <div class="modal-header"><div><h3 class="modal-title">Export Report</h3><div class="modal-sub">Application intake and screening data</div></div><button class="modal-close" data-close>×</button></div>
+  <div class="modal-body">
+    <div class="field"><label class="field-label">Report type</label><select class="select-field"><option>Application register</option><option>Pre-screening results</option><option>Scorecard output</option><option>SLA performance</option><option>Channel analytics</option></select></div>
+    <div class="field"><label class="field-label">Format</label><select class="select-field"><option>PDF</option><option>CSV</option><option>XLSX</option></select></div>
+    <div class="field"><label class="field-label">Period</label><select class="select-field"><option>Today</option><option>Last 7 days</option><option>This month</option></select></div>
+  </div>
+  <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Report generated and queued">Generate</button></div>
+</div></div>
+
+<div class="modal-backdrop" id="notificationsModal"><div class="modal">
+  <div class="modal-header"><div><h3 class="modal-title">Notifications</h3><div class="modal-sub">Application intake alerts</div></div><button class="modal-close" data-close>×</button></div>
+  <div class="modal-body" style="padding:0;">
+    <div class="list-item"><div class="list-left"><div class="list-icon" style="background:var(--danger-soft);color:var(--danger);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg></div><div><div class="list-title">SLA breach — APP-2026-2822</div><div class="list-sub">Verification stage +6h</div></div></div><button class="btn btn-light btn-sm" data-modal="slaBreachModal">Fix</button></div>
+    <div class="list-item"><div class="list-left"><div class="list-icon" style="background:var(--warning-soft);color:var(--warning);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg></div><div><div class="list-title">Exposure alert — H. Owuor</div><div class="list-sub">Single borrower limit exceeded</div></div></div><button class="btn btn-light btn-sm" data-modal="exposureModal">Review</button></div>
+    <div class="list-item"><div class="list-left"><div class="list-icon" style="background:var(--success-soft);color:var(--success);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div><div><div class="list-title">58 auto-approvals processed</div><div class="list-sub">$4.2M approved value today</div></div></div><button class="btn btn-light btn-sm" data-modal="autoApproveModal">View</button></div>
+  </div>
+  <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-result="Notifications marked as read">Mark read</button><button class="btn btn-light" data-close>Close</button></div>
+</div></div>
+
+<div class="modal-backdrop" id="resultModal"><div class="modal">
+  <div class="modal-header"><div><h3 class="modal-title">Action Complete</h3><div class="modal-sub">PayMo Lending operation completed</div></div><button class="modal-close" data-close>×</button></div>
+  <div class="modal-body"><div class="alert success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span id="resultMessage">Action completed.</span></div></div>
+  <div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Done</button></div>
+</div></div>
+
+<!-- Nav modals -->
+<div class="modal-backdrop" id="navCommandModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Lending Command Center</h3><div class="modal-sub">Dashboard 3.1</div></div><button class="modal-close" data-close>×</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">Gross book</div><div class="kv-val">$482.4M</div></div><div><div class="kv-label">Active loans</div><div class="kv-val">12,841</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+<div class="modal-backdrop" id="navProductsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Loan Products</h3><div class="modal-sub">Page 3.2 — Products & Pricing</div></div><button class="modal-close" data-close>×</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">Retail products</div><div class="kv-val">7</div></div><div><div class="kv-label">SME products</div><div class="kv-val">6</div></div><div><div class="kv-label">Corporate</div><div class="kv-val">5</div></div><div><div class="kv-label">Real Estate</div><div class="kv-val">5</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+<div class="modal-backdrop" id="navUnderwritingModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Credit Underwriting</h3><div class="modal-sub">Page 3.4</div></div><button class="modal-close" data-close>×</button></div><div class="modal-body"><div class="alert info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>31 applications currently in underwriting queue.</div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+<div class="modal-backdrop" id="navPortfolioModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Portfolio</h3><div class="modal-sub">Page 3.5 — Loan portfolio</div></div><button class="modal-close" data-close>×</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">Total book</div><div class="kv-val">$482.4M</div></div><div><div class="kv-label">PAR 30</div><div class="kv-val">4.2%</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+<div class="modal-backdrop" id="navCollectionsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Collections</h3><div class="modal-sub">Page 3.6 — Loan collections</div></div><button class="modal-close" data-close>×</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">Collection rate</div><div class="kv-val">96.8%</div></div><div><div class="kv-label">NPL ratio</div><div class="kv-val">2.4%</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+<div class="modal-backdrop" id="navRiskModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Risk & Compliance</h3><div class="modal-sub">Credit risk controls</div></div><button class="modal-close" data-close>×</button></div><div class="modal-body"><div class="alert warning"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>2 exposure limit breaches require immediate review.</div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+<div class="modal-backdrop" id="navAnalyticsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Analytics</h3><div class="modal-sub">Lending analytics dashboard</div></div><button class="modal-close" data-close>×</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">Avg ticket</div><div class="kv-val">$37,600</div></div><div><div class="kv-label">Approval rate</div><div class="kv-val">34.8%</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+<!-- ═══ SCRIPT ═══ -->
+<script>
+  const sidebar = document.getElementById('sidebar');
+  document.getElementById('sidebarToggle').addEventListener('click', () => sidebar.classList.toggle('expanded'));
+  document.getElementById('mobileMenuBtn').addEventListener('click', () => sidebar.classList.toggle('mobile-open'));
+
+  function openModal(id) { const m = document.getElementById(id); if (m) m.classList.add('show'); }
+  function closeAll() { document.querySelectorAll('.modal-backdrop.show').forEach(m => m.classList.remove('show')); }
+  function setResult(msg) { closeAll(); document.getElementById('resultMessage').textContent = msg; openModal('resultModal'); }
+
+  document.addEventListener('click', e => {
+    if (e.target.closest('.toggle')) return;
+    const c = e.target.closest('[data-close]');   if (c) { e.stopPropagation(); closeAll(); return; }
+    const r = e.target.closest('[data-result]');  if (r) { e.stopPropagation(); setResult(r.dataset.result); return; }
+    const o = e.target.closest('[data-modal]');   if (o) { e.stopPropagation(); openModal(o.dataset.modal); }
+  });
+  document.querySelectorAll('.modal-backdrop').forEach(b => b.addEventListener('click', e => { if (e.target === b) closeAll(); }));
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAll(); });
+
+  // Tabs
+  function switchTab(name) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.dataset.panel === name));
+  }
+  document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => switchTab(t.dataset.tab)));
+
+  // Choice rows
+  document.querySelectorAll('.choice-row').forEach(row => {
+    row.addEventListener('click', () => {
+      const radio = row.querySelector('input[type="radio"]');
+      if (radio) {
+        document.querySelectorAll(`input[name="${radio.name}"]`).forEach(i => i.closest('.choice-row')?.classList.remove('selected'));
+        radio.checked = true; row.classList.add('selected');
+      }
+      const cb = row.querySelector('input[type="checkbox"]');
+      if (cb && !radio) row.classList.toggle('selected', cb.checked);
+    });
+  });
+
+  // 5-step wizard
+  function setupStepper(modalId, stepperId, backId, nextId, total, done) {
+    const root = document.getElementById(modalId);
+    let cur = 1;
+    const render = () => {
+      document.querySelectorAll(`#${stepperId} .step`).forEach((s, i) => { s.classList.toggle('active', i+1 === cur); s.classList.toggle('done', i+1 < cur); });
+      root.querySelectorAll('.step-panel').forEach(p => p.classList.toggle('active', +p.dataset.step === cur));
+      document.getElementById(backId).disabled = cur === 1;
+      document.getElementById(nextId).textContent = cur === total ? 'Submit' : 'Next →';
+    };
+    document.getElementById(backId).addEventListener('click', () => { if (cur > 1) { cur--; render(); } });
+    document.getElementById(nextId).addEventListener('click', () => { if (cur < total) { cur++; render(); } else { cur = 1; render(); setResult(done); } });
+    render();
+  }
+  setupStepper('newApplicationModal','appStepper','appBack','appNext',5,'Application submitted — pre-screening started');
+
+  // Auto-refresh ticker simulation
+  const tickerData = [
+    { id: 'appsCount', base: 184, delta: 1 },
+  ];
+  setInterval(() => {
+    const el = document.querySelectorAll('.ticker-item .kpi-val');
+    // subtle live-feel: just update the first stat card occasionally
+    const submitted = document.querySelector('.stats-row .stat-value');
+    if (submitted && Math.random() > 0.7) {
+      const current = parseInt(submitted.textContent) || 184;
+      submitted.textContent = current + 1;
+    }
+  }, 5000);
+</script>
+</body>
+</html>

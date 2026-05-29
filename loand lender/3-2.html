@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Loan Products & Pricing Engine — PayMo Lending</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="stylesheet" href="master.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    /* ─── page-level layout helpers ─── */
+    .two-col   { display:grid; grid-template-columns:1.45fr 1fr; gap:16px; }
+    .three-col { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+    .four-col  { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+    .legend    { display:flex; gap:14px; flex-wrap:wrap; font-size:11px; color:var(--text-3); }
+    .legend-dot{ width:8px; height:8px; border-radius:50%; display:inline-block; margin-right:5px; vertical-align:middle; }
+    .dist-row  { display:flex; align-items:center; gap:12px; margin-bottom:13px; }
+    .dist-label{ width:170px; font-size:12px; font-weight:500; }
+    .dist-bar  { flex:1; height:9px; border-radius:999px; background:var(--surface-3); overflow:hidden; }
+    .dist-bar span{ display:block; height:100%; border-radius:999px; }
+    .dist-val  { width:80px; text-align:right; font-size:12px; font-weight:600; }
+    .kv-grid   { display:grid; grid-template-columns:repeat(2,1fr); gap:12px 18px; }
+    .kv-label  { font-size:11px; color:var(--text-3); text-transform:uppercase; letter-spacing:.06em; }
+    .kv-val    { font-size:13px; font-weight:600; margin-top:2px; }
+    .mini-chart{ width:100%; height:148px; }
+    .timeline  { position:relative; padding-left:24px; }
+    .timeline:before{ content:""; position:absolute; top:6px; bottom:6px; left:8px; width:2px; background:var(--border); }
+    .tl-item   { position:relative; padding-bottom:14px; }
+    .tl-item:before{ content:""; position:absolute; left:-20px; top:4px; width:10px; height:10px; border-radius:50%; background:var(--primary); border:2px solid #fff; }
+    .tl-time   { font-size:11px; color:var(--text-3); }
+    .tl-text   { font-size:13px; margin-top:2px; }
+    .config-row{ display:flex; align-items:center; justify-content:space-between; gap:14px; padding:12px 0; border-bottom:1px solid var(--border-soft); }
+    .config-row:last-child{ border-bottom:0; }
+    .config-label{ font-size:13px; font-weight:600; }
+    .config-desc{ font-size:11px; color:var(--text-3); margin-top:2px; }
+    .ring-wrap { position:relative; width:130px; height:130px; margin:0 auto; }
+    .ring-center{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+    .donut     { transform:rotate(-90deg); }
+    .donut circle{ fill:none; stroke-width:13; }
+    /* ─── product catalog cards ─── */
+    .prod-seg  { margin-bottom:24px; }
+    .seg-label { font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--text-3); margin-bottom:10px; }
+    .prod-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+    .prod-card { border:1px solid var(--border-soft); border-radius:12px; padding:14px; background:var(--surface); cursor:pointer; transition:all .15s; }
+    .prod-card:hover{ border-color:var(--primary); box-shadow:var(--shadow-lg); }
+    .prod-card.selected{ border-color:var(--primary); background:var(--primary-soft); }
+    .prod-icon { width:34px; height:34px; border-radius:10px; display:flex; align-items:center; justify-content:center; margin-bottom:8px; }
+    .prod-icon svg{ width:16px; height:16px; }
+    .prod-name { font-size:13px; font-weight:600; }
+    .prod-sub  { font-size:11px; color:var(--text-3); margin-top:2px; }
+    .health-dot{ width:9px; height:9px; border-radius:50%; display:inline-block; margin-right:4px; }
+    /* ─── pricing matrix ─── */
+    .matrix-table{ width:100%; border-collapse:collapse; font-size:12px; }
+    .matrix-table th,.matrix-table td{ padding:10px 12px; text-align:center; border:1px solid var(--border-soft); }
+    .matrix-table th{ background:var(--surface-2); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.05em; }
+    .cell-green{ background:#dcfce7; color:#15803d; font-weight:600; }
+    .cell-amber{ background:#fef3c7; color:#b45309; font-weight:600; }
+    .cell-red  { background:#fee2e2; color:#b91c1c; font-weight:600; }
+    /* ─── fee builder ─── */
+    .fee-row   { display:grid; grid-template-columns:1.4fr .6fr .6fr 36px; gap:8px; align-items:center; margin-bottom:8px; }
+    .slider-field{ display:flex; align-items:center; gap:10px; }
+    .slider-field input[type=range]{ flex:1; accent-color:var(--primary); }
+    /* ─── performance analytics ─── */
+    .perf-table th{ font-size:10px; }
+    .trend-up  { color:var(--success); }
+    .trend-dn  { color:var(--danger); }
+    /* admin permission bar */
+    .admin-bar{ display:flex; align-items:center; gap:8px; background:linear-gradient(90deg,#1a1a1a 0%,#2d2d3a 100%); color:#fff; padding:8px 18px; font-size:12px; }
+    .admin-bar svg{ width:14px; height:14px; }
+    .admin-chip{ background:rgba(255,255,255,.15); padding:2px 10px; border-radius:20px; font-size:11px; }
+    @media(max-width:1100px){
+      .two-col,.prod-grid{ grid-template-columns:1fr; }
+      .three-col{ grid-template-columns:1fr 1fr; }
+    }
+    @media(max-width:768px){
+      .three-col,.four-col,.prod-grid{ grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ═══════════════ SIDEBAR ═══════════════ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">P</div>
+    <nav class="sidebar-nav">
+      <button class="sidebar-item" title="Dashboard 1 — BaaS" data-modal="navBaasModal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        <span class="sidebar-label">BaaS Hub</span>
+      </button>
+      <button class="sidebar-item" title="Lending Command Center" data-modal="navCommandModal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
+        <span class="sidebar-label">Command Center</span>
+      </button>
+      <button class="sidebar-item active" title="Loan Products & Pricing">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        <span class="sidebar-label">Products & Pricing</span>
+      </button>
+      <button class="sidebar-item" title="Application Intake" data-modal="navIntakeModal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        <span class="sidebar-label">Intake</span>
+      </button>
+      <button class="sidebar-item" title="Underwriting" data-modal="navUnderwritingModal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        <span class="sidebar-label">Underwriting</span>
+      </button>
+      <button class="sidebar-item" title="Loan Book" data-modal="navBookModal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"/><path d="M5 6l7-3 7 3"/><path d="M3 10h18"/></svg>
+        <span class="sidebar-label">Loan Book</span>
+      </button>
+      <button class="sidebar-item" title="Collections" data-modal="navCollectionsModal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"/></svg>
+        <span class="sidebar-label">Collections</span>
+      </button>
+      <button class="sidebar-item" title="Risk & Compliance" data-modal="navRiskModal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <span class="sidebar-label">Risk</span>
+      </button>
+      <button class="sidebar-item" title="Reports & Analytics" data-modal="navReportsModal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+        <span class="sidebar-label">Reports</span>
+      </button>
+    </nav>
+    <button class="sidebar-expand" id="sidebarToggle">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      <span class="sidebar-label">Collapse</span>
+    </button>
+  </aside>
+
+  <!-- ═══════════════ MAIN ═══════════════ -->
+  <main class="main">
+
+    <!-- Admin permission bar -->
+    <div class="admin-bar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <span>Admin Mode</span>
+      <span class="admin-chip">Credit Products</span>
+      <span class="admin-chip">Pricing Engine</span>
+      <span class="admin-chip">Full Edit</span>
+      <span style="margin-left:auto;opacity:.7;">Session: admin@paymo.com</span>
+      <button class="btn btn-light btn-sm" style="background:rgba(255,255,255,.12);color:#fff;border-color:rgba(255,255,255,.2);" data-modal="permissionsModal">Permissions</button>
+    </div>
+
+    <div class="topbar">
+      <div>
+        <div class="crumb">
+          <button class="mobile-menu-btn btn btn-light btn-sm" id="mobileMenuBtn" style="margin-right:8px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+          <span>Lending</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          <span>Loan Products &amp; Pricing Engine</span>
+        </div>
+        <h1 class="page-title">Loan Products &amp; Pricing Engine</h1>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-light btn-icon" data-modal="notificationsModal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        </button>
+        <button class="btn btn-light" data-modal="filterModal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+          <span class="btn-text">Filter</span>
+        </button>
+        <button class="btn btn-light" data-modal="exportModal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span class="btn-text">Export</span>
+        </button>
+        <button class="btn btn-light" data-modal="pricingCampaignModal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4-6.3-4.6L5.7 21.4 8 14 2 9.4h7.6z"/></svg>
+          <span class="btn-text">Campaign</span>
+        </button>
+        <button class="btn btn-primary" data-modal="newProductWizardModal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          New Product
+        </button>
+      </div>
+    </div>
+
+    <!-- ── STAT CARDS ── -->
+    <div class="stats-row">
+      <div class="stat-card" data-modal="portfolioSnapshotModal">
+        <div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg></div>
+        <div class="stat-label">Active Products</div>
+        <div class="stat-value">25</div>
+        <div class="stat-trend up"><span>2 in beta · 3 pending review</span></div>
+      </div>
+      <div class="stat-card" data-modal="yieldModal">
+        <div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+        <div class="stat-label">Blended Yield</div>
+        <div class="stat-value">18.4%</div>
+        <div class="stat-trend up"><span>+0.6% vs last quarter</span></div>
+      </div>
+      <div class="stat-card" data-modal="nplModal">
+        <div class="stat-icon red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg></div>
+        <div class="stat-label">Portfolio NPL</div>
+        <div class="stat-value">3.8%</div>
+        <div class="stat-trend down"><span>+0.2% MoM — watch</span></div>
+      </div>
+      <div class="stat-card" data-modal="nimModal">
+        <div class="stat-icon purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></div>
+        <div class="stat-label">Net Interest Margin</div>
+        <div class="stat-value">12.1%</div>
+        <div class="stat-trend up"><span>Target 11.5% ✓</span></div>
+      </div>
+      <div class="stat-card" data-modal="costOfRiskModal">
+        <div class="stat-icon amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+        <div class="stat-label">Cost of Risk</div>
+        <div class="stat-value">4.2%</div>
+        <div class="stat-trend down"><span>+0.4% vs budget</span></div>
+      </div>
+    </div>
+
+    <!-- ── TABS ── -->
+    <div class="panel">
+      <div class="tabs" id="mainTabs">
+        <button class="tab active" data-tab="catalog">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/></svg>
+          Product Catalog
+        </button>
+        <button class="tab" data-tab="config">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9"/></svg>
+          Product Config
+        </button>
+        <button class="tab" data-tab="pricing">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+          Pricing Engine
+        </button>
+        <button class="tab" data-tab="analytics">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
+          Performance Analytics
+        </button>
+      </div>
+
+      <!-- ════ TAB 1: PRODUCT CATALOG ════ -->
+      <div class="tab-panel active" data-panel="catalog">
+        <div class="panel-body">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px;">
+            <div style="display:flex;gap:8px;align-items:center;">
+              <div class="search-box" style="min-width:220px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input id="prodSearch" placeholder="Search products..."></div>
+              <select class="select" id="segFilter"><option>All Segments</option><option>Retail</option><option>SME</option><option>Corporate</option><option>Real Estate</option></select>
+              <select class="select" id="statusFilter"><option>All Status</option><option>Active</option><option>Beta</option><option>Review</option><option>Inactive</option></select>
+            </div>
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-light btn-sm" data-modal="bulkEditModal">Bulk Edit</button>
+              <button class="btn btn-primary btn-sm" data-modal="newProductWizardModal">+ New Product</button>
+            </div>
+          </div>
+
+          <!-- RETAIL -->
+          <div class="prod-seg" data-seg="Retail">
+            <div class="seg-label" style="color:var(--info);">Retail Products</div>
+            <div class="prod-grid" id="retailGrid">
+              <div class="prod-card" data-seg="Retail" data-name="Personal Loan" data-modal="productDetailModal">
+                <div class="prod-icon" style="background:var(--info-soft);color:var(--info);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20v-2a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v2"/></svg></div>
+                <div class="prod-name">Personal Loan</div>
+                <div class="prod-sub">Unsecured · $500–$50K · 3–60 mo</div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
+                  <span class="badge success"><span class="badge-dot"></span>Active</span>
+                  <span style="font-size:12px;font-weight:600;">Yield 24%</span>
+                </div>
+              </div>
+              <div class="prod-card" data-seg="Retail" data-name="Salary Advance" data-modal="productDetailModal">
+                <div class="prod-icon" style="background:var(--success-soft);color:var(--success);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></div>
+                <div class="prod-name">Salary Advance</div>
+                <div class="prod-sub">Payroll-linked · up to 3× salary</div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
+                  <span class="badge success"><span class="badge-dot"></span>Active</span>
+                  <span style="font-size:12px;font-weight:600;">Yield 18%</span>
+                </div>
+              </div>
+              <div class="prod-card" data-seg="Retail" data-name="BNPL" data-modal="productDetailModal">
+                <div class="prod-icon" style="background:var(--purple-soft);color:var(--purple);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div>
+                <div class="prod-name">BNPL</div>
+                <div class="prod-sub">Merchant POS · 4 instalments</div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
+                  <span class="badge success"><span class="badge-dot"></span>Active</span>
+                  <span style="font-size:12px;font-weight:600;">Yield 22%</span>
+                </div>
+              </div>
+              <div class="prod-card" data-seg="Retail" data-name="Credit Card" data-modal="productDetailModal">
+                <div class="prod-icon" style="background:var(--warning-soft);color:var(--warning);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div>
+                <div class="prod-name">Credit Card</div>
+                <div class="prod-sub">Revolving · $500–$20K limit</div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
+                  <span class="badge warning"><span class="badge-dot"></span>Beta</span>
+                  <span style="font-size:12px;font-weight:600;">Yield 28%</span>
+                </div>
+              </div>
+              <div class="prod-card" data-seg="Retail" data-name="Education Loan" data-modal="productDetailModal">
+                <div class="prod-icon" style="background:var(--primary-soft);color:var(--primary);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></div>
+                <div class="prod-name">Education Loan</div>
+                <div class="prod-sub">Up to $30K · 12–84 months</div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
+                  <span class="badge success"><span class="badge-dot"></span>Active</span>
+                  <span style="font-size:12px;font-weight:600;">Yield 16%</span>
+                </div>
+              </div>
+              <div class="prod-card" data-seg="Retail" data-name="Medical Emergency" data-modal="productDetailModal">
+                <div class="prod-icon" style="background:var(--danger-soft);color:var(--danger);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg></div>
+                <div class="prod-name">Medical Emergency</div>
+                <div class="prod-sub">Instant · up to $10K · 6–24 mo</div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
+                  <span class="badge success"><span class="badge-dot"></span>Active</span>
+                  <span style="font-size:12px;font-weight:600;">Yield 21%</span>
+                </div>
+              </div>
+              <div class="prod-card" data-seg="Retail" data-name="Asset Finance" data-modal="productDetailModal">
+                <div class="prod-icon" style="background:var(--success-soft);color:var(--success);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div>
+                <div class="prod-name">Asset Finance</div>
+                <div class="prod-sub">Vehicle · Electronics · Secured</div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
+                  <span class="badge success"><span class="badge-dot"></span>Active</span>
+                  <span style="font-size:12px;font-weight:600;">Yield 20%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SME -->
+          <div class="prod-seg" data-seg="SME">
+            <div class="seg-label" style="color:var(--warning);">SME Products</div>
+            <div class="prod-grid">
+              <div class="prod-card" data-seg="SME" data-name="Working Capital" data-modal="productDetailModal">
+                <div class="prod-icon" style="background:var(--warning-soft);color:var(--warning);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
+                <div class="prod-name">Working Capital</div>
+                <div class="prod-sub">$10K–$500K · 3–18 months</div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
+                  <span class="badge success"><span class="badge-dot"></span>Active</span>
+                  <span style="font-size:12px;font-weight:600;">Yield 26%</span>
+                </div>
+              </div>
+              <div class="prod-card" data-seg="SME" data-name="Invoice Financing" data-modal="productDetailModal">
+                <div class="prod-icon" style="background:var(--info-soft);color:var(--info);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+                <div class="prod-name">Invoice Financing</div>
+                <div class="prod-sub">Up to 85% advance · 30–90 days</div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
+                  <span class="badge success"><span class="badge-dot"></span>Active</span>
+                  <span style="font-size:12px;font-weight:600;">Yield 22%</span>
+                </div>
+              </div>
+              <div class="prod-card" data-seg="SME" data-name="PO Financing" data-modal="productDetailModal">
+                <div class="prod-icon" style="background:var(--purple-soft);color:var(--purple);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/></svg></div>
+                <div class="prod-name">PO Financing</div>
+                <div class="prod-sub">Purchase order backed</div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
+                  <span class="badge success"><span class="badge-dot"></span>Active</span>
+                  <span style="font-size:12px;font-weight:600;">Yield 24%</span>
+                </div>
+              </div>
+              <div class="prod-card" data-seg="SME" data-name="Equipment Loan" data-modal="productDetailModal">
+                <div class="prod-icon" style="background:var(--success-soft);color:var(--success);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83"/></svg></div>
+                <div class="prod-name">Equipment Loan</div>
+                <div class="prod-sub">Machinery secured · 12–60 mo</div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
+                  <span class="badge success"><span class="badge-dot"></span>Active</span>
+                  <span style="font-size:12px;font-weight:600;">Yield 19%</span>
+                </div>
+              </div>
+              <div class="prod-card" data-seg="SME" data-name="Trade Finance" data-modal="productDetailModal">
+                <div class="prod-icon" style="background:var(--primary-soft);color:var(--primary);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
+                <div class="prod-name">Trade Finance</div>
+                <div class="prod-sub">L/C · Bank guarantees</div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
+                  <span class="badge success"><span class="badge-dot"></span>Active</span>
+                  <span style="font-size:12px;font-weight:600;">Yield 17%</span>
+                </div>
+              </div>
+              <div class="prod-card" data-seg="SME" data-name="Merchant Cash Advance" data-modal="productDetailModal">
+                <div class="prod-icon" style="background:var(--danger-soft);color:var(--danger);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+                <div class="prod-name">Merchant Cash Advance</div>
+                <div class="prod-sub">Revenue-based · factor rate</div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
+                  <span class="badge warning"><span class="badge-dot"></span>Beta</span>
+                  <span style="font-size:12px;font-weight:600;">Yield 35%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- CORPORATE -->
+          <div class="prod-seg" data-seg="Corporate">
+            <div class="seg-label" style="color:var(--primary);">Corporate Products</div>
+            <div class="prod-grid">
+              <div class="prod-card" data-seg="Corporate" data-name="Term Loan" data-modal="productDetailModal">
+                <div class="prod-icon" style="background:var(--primary-soft);color:var(--primary);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg></div>
+                <div class="prod-name">Term Loan</div>
+                <div class="prod-sub">$500K–$50M · 1–7 years</div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
+                  <span class="badge success"><span class="badge-dot"></span>Active</span>
+                  <span style="font-size:12px;font-weight:600;">Yield 15%</span>
+                </div>
+              </div>
+              <div class="prod-card" data-seg="Corporate" data-name="Revolving Credit" data-modal="productDetailModal">
+                <div class="prod-icon" style="background:var(--purple-soft);color:var(--purple);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></div>
+                <div class="prod-name">Revolving Credit Facility</div>
+                <div class="prod-sub">Draw-down & repay · 12–36 mo</div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
+                  <span class="badge success"><span class="badge-dot"></span>Active</span>
+                  <span style="font-size:12px;font-weight:600;">Yield 16%</span>
+                </div>
+              </div>
+              <div class="prod-card" data-seg="Corporate" data-name="Overdraft" data-modal="productDetailModal">
+                <div class="prod-icon" style="background:var(--warning-soft);color:var(--warning);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/></svg></div>
+                <div class="prod-name">Overdraft Facility</div>
+                <div class="prod-sub">On-demand · current account</div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
+                  <span class="badge success"><span class="badge-dot"></span>Active</span>
+                  <span style="font-size:12px;font-weight:600;">Yield 20%</span>
+                </div>
+              </div>
+              <div class="prod-card" data-seg="Corporate" data-name="Project Finance" data-modal="productDetailModal">
+                <div class="prod-icon" style="background:var(--info-soft);color:var(--info);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/></svg></div>
+                <div class="prod-name">Project Finance</div>
+                <div class="prod-sub">Infrastructure · SPV-based</div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
+                  <span class="badge success"><span class="badge-dot"></span>Active</span>
+                  <span style="font-size:12px;font-weight:600;">Yield 14%</span>
+                </div>
+              </div>
+              <div class="prod-card" data-seg="Corporate" data-name="Bridge Loan" data-modal="productDetailModal">
+                <div class="prod-icon" style="background:var(--danger-soft);color:var(--danger);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg></div>
+                <div class="prod-name">Bridge Loan</div>
+                <div class="prod-sub">Short-term · 3–12 months</div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
+                  <span class="badge success"><span class="badge-dot"></span>Active</span>
+                  <span style="font-size:12px;font-weight:600;">Yield 22%</span>
+                </div>
+              </div>
+              <div class="prod-card" data-seg="Corporate" data-name="Syndicated Loan" data-modal="productDetailModal">
+                <div class="prod-icon" style="background:var(--success-soft);color:var(--success);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg></div>
+                <div class="prod-name">Syndicated Loan</div>
+                <div class="prod-sub">PayMo as lead arranger</div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
+                  <span class="badge gray"><span class="badge-dot"></span>Review</span>
+                  <span style="font-size:12px;font-weight:600;">Yield 13%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- REAL ESTATE -->
+          <div class="prod-seg" data-seg="Real Estate">
+            <div class="seg-label" style="color:var(--success);">Real Estate Products</div>
+            <div class="prod-grid">
+              <div class="prod-card" data-seg="Real Estate" data-name="Residential Mortgage" data-modal="productDetailModal">
+                <div class="prod-icon" style="background:var(--success-soft);color:var(--success);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
+                <div class="prod-name">Residential Mortgage</div>
+                <div class="prod-sub">Up to $500K · 10–30 years</div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
+                  <span class="badge success"><span class="badge-dot"></span>Active</span>
+                  <span style="font-size:12px;font-weight:600;">Yield 12%</span>
+                </div>
+              </div>
+              <div class="prod-card" data-seg="Real Estate" data-name="Construction Finance" data-modal="productDetailModal">
+                <div class="prod-icon" style="background:var(--warning-soft);color:var(--warning);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
+                <div class="prod-name">Construction Finance</div>
+                <div class="prod-sub">Progress draw-down · 12–36 mo</div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
+                  <span class="badge success"><span class="badge-dot"></span>Active</span>
+                  <span style="font-size:12px;font-weight:600;">Yield 15%</span>
+                </div>
+              </div>
+              <div class="prod-card" data-seg="Real Estate" data-name="CRE Loan" data-modal="productDetailModal">
+                <div class="prod-icon" style="background:var(--primary-soft);color:var(--primary);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"/><path d="M5 6l7-3 7 3"/><path d="M3 10h18"/><path d="M4 10v11"/><path d="M20 10v11"/></svg></div>
+                <div class="prod-name">CRE Loan</div>
+                <div class="prod-sub">Commercial RE · LTV max 65%</div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
+                  <span class="badge success"><span class="badge-dot"></span>Active</span>
+                  <span style="font-size:12px;font-weight:600;">Yield 14%</span>
+                </div>
+              </div>
+              <div class="prod-card" data-seg="Real Estate" data-name="Land Acquisition" data-modal="productDetailModal">
+                <div class="prod-icon" style="background:var(--info-soft);color:var(--info);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 18l4-4 4 4 4-6 4 6"/></svg></div>
+                <div class="prod-name">Land Acquisition</div>
+                <div class="prod-sub">Title-deed secured · 2–7 years</div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
+                  <span class="badge success"><span class="badge-dot"></span>Active</span>
+                  <span style="font-size:12px;font-weight:600;">Yield 16%</span>
+                </div>
+              </div>
+              <div class="prod-card" data-seg="Real Estate" data-name="Refinance" data-modal="productDetailModal">
+                <div class="prod-icon" style="background:var(--purple-soft);color:var(--purple);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></div>
+                <div class="prod-name">Refinancing / Top-up</div>
+                <div class="prod-sub">Equity release on existing loan</div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
+                  <span class="badge success"><span class="badge-dot"></span>Active</span>
+                  <span style="font-size:12px;font-weight:600;">Yield 13%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════ TAB 2: PRODUCT CONFIG ════ -->
+      <div class="tab-panel" data-panel="config">
+        <div class="panel-body">
+          <div class="two-col">
+            <div>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+                <h2 class="panel-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg>Product Configuration — Personal Loan</h2>
+                <div style="display:flex;gap:8px;">
+                  <select class="select" id="configProduct">
+                    <option>Personal Loan</option><option>Salary Advance</option><option>BNPL</option><option>Working Capital</option><option>Term Loan</option><option>Residential Mortgage</option>
+                  </select>
+                  <button class="btn btn-primary btn-sm" data-modal="saveConfigModal">Save Config</button>
+                </div>
+              </div>
+
+              <div style="background:var(--surface-2);border-radius:14px;padding:18px;margin-bottom:14px;">
+                <div class="seg-label" style="margin-bottom:10px;">Eligibility Criteria</div>
+                <div class="field-row">
+                  <div class="field"><label class="field-label">Min age</label><input class="input" value="21"></div>
+                  <div class="field"><label class="field-label">Max age</label><input class="input" value="65"></div>
+                </div>
+                <div class="field"><label class="field-label">Employment status required</label>
+                  <select class="select-field"><option>Employed (formal)</option><option>Self-employed</option><option>Any</option></select>
+                </div>
+                <div class="field"><label class="field-label">Min monthly income</label><input class="input" value="$800"></div>
+                <div class="field"><label class="field-label">Min credit bureau score</label><input class="input" value="580"></div>
+                <div class="field"><label class="field-label">Nationality</label><input class="input" value="Any — subject to KYC"></div>
+              </div>
+
+              <div style="background:var(--surface-2);border-radius:14px;padding:18px;margin-bottom:14px;">
+                <div class="seg-label" style="margin-bottom:10px;">Loan Amount & Tenor</div>
+                <div class="field-row">
+                  <div class="field"><label class="field-label">Min amount ($)</label><input class="input" value="500"></div>
+                  <div class="field"><label class="field-label">Max amount ($)</label><input class="input" value="50000"></div>
+                </div>
+                <div class="field-row">
+                  <div class="field"><label class="field-label">Min tenor (months)</label><input class="input" value="3"></div>
+                  <div class="field"><label class="field-label">Max tenor (months)</label><input class="input" value="60"></div>
+                </div>
+                <div class="field"><label class="field-label">Grace period (days)</label><input class="input" value="7"></div>
+              </div>
+
+              <div style="background:var(--surface-2);border-radius:14px;padding:18px;margin-bottom:14px;">
+                <div class="seg-label" style="margin-bottom:10px;">Interest Rate Structure</div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+                  <button class="btn btn-primary btn-sm" id="rateTypeReducing">Reducing Balance</button>
+                  <button class="btn btn-light btn-sm" id="rateTypeFlat">Flat Rate</button>
+                  <button class="btn btn-light btn-sm" id="rateTypeFixed">Fixed</button>
+                  <button class="btn btn-light btn-sm" id="rateTypeFloat">Floating</button>
+                </div>
+                <div class="field-row">
+                  <div class="field"><label class="field-label">Base rate (%)</label><input class="input" value="8.0"></div>
+                  <div class="field"><label class="field-label">Risk margin (%)</label><input class="input" value="12.0"></div>
+                </div>
+                <div class="field"><label class="field-label">Min yield floor (%)</label><input class="input" value="18.0"></div>
+              </div>
+            </div>
+
+            <div>
+              <div style="background:var(--surface-2);border-radius:14px;padding:18px;margin-bottom:14px;">
+                <div class="seg-label" style="margin-bottom:10px;">Fee Structure</div>
+                <div class="fee-row"><strong style="font-size:12px;">Fee type</strong><strong style="font-size:12px;">Rate</strong><strong style="font-size:12px;">Waivable</strong><span></span></div>
+                <div class="fee-row">
+                  <input class="input" value="Processing fee">
+                  <input class="input" value="2.0%">
+                  <label class="toggle" style="margin:0;"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+                  <button class="btn btn-ghost btn-sm" data-result="Fee row removed">✕</button>
+                </div>
+                <div class="fee-row">
+                  <input class="input" value="Late payment fee">
+                  <input class="input" value="5.0%">
+                  <label class="toggle" style="margin:0;"><input type="checkbox"><span class="toggle-slider"></span></label>
+                  <button class="btn btn-ghost btn-sm" data-result="Fee row removed">✕</button>
+                </div>
+                <div class="fee-row">
+                  <input class="input" value="Prepayment penalty">
+                  <input class="input" value="1.5%">
+                  <label class="toggle" style="margin:0;"><input type="checkbox"><span class="toggle-slider"></span></label>
+                  <button class="btn btn-ghost btn-sm" data-result="Fee row removed">✕</button>
+                </div>
+                <div class="fee-row">
+                  <input class="input" value="Commitment fee">
+                  <input class="input" value="0.5%">
+                  <label class="toggle" style="margin:0;"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+                  <button class="btn btn-ghost btn-sm" data-result="Fee row removed">✕</button>
+                </div>
+                <button class="btn btn-light btn-sm" data-result="New fee row added" style="margin-top:6px;">+ Add fee</button>
+              </div>
+
+              <div style="background:var(--surface-2);border-radius:14px;padding:18px;margin-bottom:14px;">
+                <div class="seg-label" style="margin-bottom:10px;">Collateral & Insurance</div>
+                <div class="config-row"><div><div class="config-label">Collateral required</div><div class="config-desc">Unsecured — no asset pledge</div></div><label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label></div>
+                <div class="config-row"><div><div class="config-label">Life insurance mandatory</div><div class="config-desc">Credit life policy on disbursement</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+                <div class="config-row"><div><div class="config-label">Motor / asset insurance</div><div class="config-desc">Required for asset finance products</div></div><label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label></div>
+              </div>
+
+              <div style="background:var(--surface-2);border-radius:14px;padding:18px;">
+                <div class="seg-label" style="margin-bottom:10px;">Tier Limits per Segment</div>
+                <table class="table"><thead><tr><th>Tier</th><th>Min score</th><th>Max ($)</th><th>Rate adj</th></tr></thead>
+                <tbody>
+                  <tr><td>Premium A</td><td>750+</td><td>$50,000</td><td>-2%</td></tr>
+                  <tr><td>Standard B</td><td>650–749</td><td>$25,000</td><td>Base</td></tr>
+                  <tr><td>High-risk C</td><td>580–649</td><td>$10,000</td><td>+4%</td></tr>
+                </tbody></table>
+                <button class="btn btn-light btn-sm" style="margin-top:10px;" data-modal="editTiersModal">Edit tiers</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════ TAB 3: PRICING ENGINE ════ -->
+      <div class="tab-panel" data-panel="pricing">
+        <div class="panel-body">
+          <div class="two-col">
+            <div>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+                <h2 class="panel-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/></svg>Risk-based Pricing Matrix</h2>
+                <button class="btn btn-primary btn-sm" data-modal="editMatrixModal">Edit Matrix</button>
+              </div>
+
+              <div style="overflow-x:auto;margin-bottom:18px;">
+                <table class="matrix-table">
+                  <thead>
+                    <tr><th>Product / Grade</th><th>A (750+)</th><th>B (650–749)</th><th>C (580–649)</th><th>D (&lt;580)</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr><td><strong>Personal Loan</strong></td><td class="cell-green">18%</td><td class="cell-green">22%</td><td class="cell-amber">26%</td><td class="cell-red">30%</td></tr>
+                    <tr><td><strong>Salary Advance</strong></td><td class="cell-green">14%</td><td class="cell-green">18%</td><td class="cell-amber">22%</td><td class="cell-red">26%</td></tr>
+                    <tr><td><strong>Working Capital</strong></td><td class="cell-green">20%</td><td class="cell-green">24%</td><td class="cell-amber">28%</td><td class="cell-red">34%</td></tr>
+                    <tr><td><strong>Invoice Financing</strong></td><td class="cell-green">16%</td><td class="cell-green">20%</td><td class="cell-amber">24%</td><td class="cell-red">28%</td></tr>
+                    <tr><td><strong>Term Loan</strong></td><td class="cell-green">13%</td><td class="cell-green">15%</td><td class="cell-amber">18%</td><td class="cell-red">22%</td></tr>
+                    <tr><td><strong>Residential Mortgage</strong></td><td class="cell-green">10%</td><td class="cell-green">12%</td><td class="cell-amber">14%</td><td class="cell-red">16%</td></tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div style="background:var(--surface-2);border-radius:14px;padding:18px;margin-bottom:14px;">
+                <div class="seg-label" style="margin-bottom:12px;">Rate Builder — Live Preview</div>
+                <div class="field"><label class="field-label">Base rate (central bank / SOFR)</label>
+                  <div class="slider-field"><input type="range" min="4" max="15" value="8" id="baseSlider"><strong id="baseVal">8.0%</strong></div>
+                </div>
+                <div class="field"><label class="field-label">Risk margin</label>
+                  <div class="slider-field"><input type="range" min="0" max="20" value="10" id="riskSlider"><strong id="riskVal">10.0%</strong></div>
+                </div>
+                <div class="field"><label class="field-label">Liquidity margin</label>
+                  <div class="slider-field"><input type="range" min="0" max="8" value="2" id="liqSlider"><strong id="liqVal">2.0%</strong></div>
+                </div>
+                <div class="field"><label class="field-label">Operational margin</label>
+                  <div class="slider-field"><input type="range" min="0" max="5" value="1" id="opsSlider"><strong id="opsVal">1.0%</strong></div>
+                </div>
+                <div style="background:var(--primary-soft);padding:12px;border-radius:10px;display:flex;justify-content:space-between;align-items:center;">
+                  <strong>Total offered rate</strong>
+                  <strong id="totalRate" style="font-size:22px;color:var(--primary);">21.0%</strong>
+                </div>
+                <div class="field" style="margin-top:10px;"><label class="field-label">Min yield floor enforcement</label>
+                  <input class="input" value="18.0%" id="yieldFloor">
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h2 class="panel-title" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4-6.3-4.6L5.7 21.4 8 14 2 9.4h7.6z"/></svg>Segment Pricing & Campaigns</h2>
+
+              <div style="background:var(--surface-2);border-radius:14px;padding:16px;margin-bottom:14px;">
+                <div class="seg-label" style="margin-bottom:10px;">Customer Segment Overrides</div>
+                <div class="config-row"><div><div class="config-label">Premium (A-grade)</div><div class="config-desc">Negotiated rates — relationship pricing</div></div><input class="input" value="-2%" style="width:70px;text-align:center;"></div>
+                <div class="config-row"><div><div class="config-label">Standard (B-grade)</div><div class="config-desc">Published matrix rate</div></div><input class="input" value="0%" style="width:70px;text-align:center;"></div>
+                <div class="config-row"><div><div class="config-label">High-risk (C/D-grade)</div><div class="config-desc">Risk-adjusted premium</div></div><input class="input" value="+4%" style="width:70px;text-align:center;"></div>
+              </div>
+
+              <div style="background:var(--surface-2);border-radius:14px;padding:16px;margin-bottom:14px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                  <div class="seg-label">Active Pricing Campaigns</div>
+                  <button class="btn btn-primary btn-sm" data-modal="pricingCampaignModal">+ Campaign</button>
+                </div>
+                <div class="list-item" style="padding:10px 0;"><div class="list-left"><div class="list-icon" style="background:var(--success-soft);color:var(--success);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4-6.3-4.6L5.7 21.4 8 14 2 9.4h7.6z"/></svg></div><div><div class="list-title">Feb Salary Advance Promo</div><div class="list-sub">-3% rate for new customers · ends 28 Feb</div></div></div><button class="btn btn-light btn-sm" data-modal="campaignDetailModal">Edit</button></div>
+                <div class="list-item" style="padding:10px 0;"><div class="list-left"><div class="list-icon" style="background:var(--primary-soft);color:var(--primary);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4-6.3-4.6L5.7 21.4 8 14 2 9.4h7.6z"/></svg></div><div><div class="list-title">SME Growth Q1</div><div class="list-sub">0% processing fee for WC loans · ends 31 Mar</div></div></div><button class="btn btn-light btn-sm" data-modal="campaignDetailModal">Edit</button></div>
+              </div>
+
+              <div style="background:var(--surface-2);border-radius:14px;padding:16px;">
+                <div class="seg-label" style="margin-bottom:10px;">Competitive Benchmark</div>
+                <table class="table"><thead><tr><th>Product</th><th>PayMo</th><th>Market avg</th><th>Gap</th></tr></thead>
+                <tbody>
+                  <tr><td>Personal Loan</td><td>24%</td><td>26%</td><td class="trend-up">-2%</td></tr>
+                  <tr><td>Working Capital</td><td>26%</td><td>28%</td><td class="trend-up">-2%</td></tr>
+                  <tr><td>Mortgage</td><td>12%</td><td>13.5%</td><td class="trend-up">-1.5%</td></tr>
+                  <tr><td>BNPL</td><td>22%</td><td>24%</td><td class="trend-up">-2%</td></tr>
+                </tbody></table>
+                <button class="btn btn-light btn-sm" style="margin-top:10px;" data-modal="benchmarkModal">Full benchmark report</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════ TAB 4: ANALYTICS ════ -->
+      <div class="tab-panel" data-panel="analytics">
+        <div class="panel-body">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
+            <h2 class="panel-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>Product Performance Analytics</h2>
+            <div style="display:flex;gap:8px;">
+              <select class="select"><option>Last 30 days</option><option>Last quarter</option><option>YTD</option></select>
+              <button class="btn btn-light btn-sm" data-modal="exportModal">Export</button>
+            </div>
+          </div>
+
+          <div class="table-wrap" style="margin-bottom:20px;">
+            <table class="table perf-table">
+              <thead>
+                <tr>
+                  <th>Product</th><th>Book size</th><th>Volume (MTD)</th><th>Avg ticket</th>
+                  <th>PAR 30</th><th>NPL %</th><th>Yield</th><th>CAC</th><th>Profit margin</th><th>Trend</th><th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr data-modal="productAnalyticsModal"><td><strong>Personal Loan</strong></td><td>$142M</td><td>$18.4M</td><td>$4,200</td><td><span class="badge warning">4.8%</span></td><td>3.2%</td><td>24%</td><td>$42</td><td class="trend-up">38%</td><td class="trend-up">↑</td><td class="right"><button class="btn btn-light btn-sm" data-modal="productAnalyticsModal">Detail</button></td></tr>
+                <tr data-modal="productAnalyticsModal"><td><strong>Salary Advance</strong></td><td>$48M</td><td>$6.2M</td><td>$1,800</td><td><span class="badge success">1.2%</span></td><td>0.8%</td><td>18%</td><td>$12</td><td class="trend-up">51%</td><td class="trend-up">↑</td><td class="right"><button class="btn btn-light btn-sm" data-modal="productAnalyticsModal">Detail</button></td></tr>
+                <tr data-modal="productAnalyticsModal"><td><strong>BNPL</strong></td><td>$24M</td><td>$4.8M</td><td>$320</td><td><span class="badge warning">6.1%</span></td><td>4.4%</td><td>22%</td><td>$8</td><td class="trend-up">34%</td><td class="trend-dn">↓</td><td class="right"><button class="btn btn-light btn-sm" data-modal="productAnalyticsModal">Detail</button></td></tr>
+                <tr data-modal="productAnalyticsModal"><td><strong>Working Capital</strong></td><td>$88M</td><td>$12.1M</td><td>$48,000</td><td><span class="badge warning">5.2%</span></td><td>3.8%</td><td>26%</td><td>$180</td><td class="trend-up">42%</td><td class="trend-up">↑</td><td class="right"><button class="btn btn-light btn-sm" data-modal="productAnalyticsModal">Detail</button></td></tr>
+                <tr data-modal="productAnalyticsModal"><td><strong>Invoice Financing</strong></td><td>$34M</td><td>$8.4M</td><td>$28,000</td><td><span class="badge success">2.1%</span></td><td>1.4%</td><td>22%</td><td>$95</td><td class="trend-up">48%</td><td class="trend-up">↑</td><td class="right"><button class="btn btn-light btn-sm" data-modal="productAnalyticsModal">Detail</button></td></tr>
+                <tr data-modal="productAnalyticsModal"><td><strong>Term Loan (Corp)</strong></td><td>$92M</td><td>$14.2M</td><td>$2.1M</td><td><span class="badge success">1.8%</span></td><td>1.2%</td><td>15%</td><td>$420</td><td class="trend-up">44%</td><td class="trend-up">↑</td><td class="right"><button class="btn btn-light btn-sm" data-modal="productAnalyticsModal">Detail</button></td></tr>
+                <tr data-modal="productAnalyticsModal"><td><strong>Residential Mortgage</strong></td><td>$54M</td><td>$4.1M</td><td>$210,000</td><td><span class="badge success">1.1%</span></td><td>0.6%</td><td>12%</td><td>$620</td><td class="trend-up">28%</td><td class="trend-dn">↓</td><td class="right"><button class="btn btn-light btn-sm" data-modal="productAnalyticsModal">Detail</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="two-col">
+            <div>
+              <h2 class="panel-title" style="margin-bottom:12px;font-size:14px;">Profitability by Product (MTD)</h2>
+              <div style="background:var(--surface-2);border-radius:14px;padding:16px;">
+                <svg class="mini-chart" viewBox="0 0 680 148" preserveAspectRatio="none">
+                  <g stroke="#e8e6df"><line x1="0" y1="40" x2="680" y2="40"/><line x1="0" y1="80" x2="680" y2="80"/><line x1="0" y1="120" x2="680" y2="120"/></g>
+                  <path d="M0,112 L80,98 L160,104 L240,80 L320,86 L400,60 L480,68 L560,46 L640,40 L680,34" fill="none" stroke="#5b5bf5" stroke-width="3"/>
+                  <path d="M0,122 L80,116 L160,118 L240,108 L320,110 L400,98 L480,100 L560,90 L640,86 L680,80" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-dasharray="5,4"/>
+                </svg>
+                <div class="legend" style="justify-content:center;margin-top:8px;"><span><span class="legend-dot" style="background:#5b5bf5;"></span>Revenue</span><span><span class="legend-dot" style="background:#16a34a;"></span>Net profit</span></div>
+              </div>
+            </div>
+            <div>
+              <h2 class="panel-title" style="margin-bottom:12px;font-size:14px;">Cross-sell & Upsell</h2>
+              <div style="background:var(--surface-2);border-radius:14px;padding:16px;">
+                <div class="dist-row"><div class="dist-label">Personal → BNPL</div><div class="dist-bar"><span style="width:62%;background:#7c3aed;"></span></div><div class="dist-val">62%</div></div>
+                <div class="dist-row"><div class="dist-label">Salary → Credit Card</div><div class="dist-bar"><span style="width:48%;background:#5b5bf5;"></span></div><div class="dist-val">48%</div></div>
+                <div class="dist-row"><div class="dist-label">WC → Trade Finance</div><div class="dist-bar"><span style="width:38%;background:#16a34a;"></span></div><div class="dist-val">38%</div></div>
+                <div class="dist-row"><div class="dist-label">Mortgage → Top-up</div><div class="dist-bar"><span style="width:28%;background:#d97706;"></span></div><div class="dist-val">28%</div></div>
+                <button class="btn btn-light btn-sm" style="margin-top:6px;" data-modal="crossSellModal">Cross-sell report</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     MODALS  (30+)
+═══════════════════════════════════════════ -->
+
+<!-- 1. Product Detail -->
+<div class="modal-backdrop" id="productDetailModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Personal Loan — Product Sheet</h3><div class="modal-sub">Retail segment · Admin editable</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid" style="margin-bottom:16px;"><div><div class="kv-label">Status</div><div class="kv-val"><span class="badge success">Active</span></div></div><div><div class="kv-label">Book size</div><div class="kv-val">$142M</div></div><div><div class="kv-label">Amount range</div><div class="kv-val">$500 – $50,000</div></div><div><div class="kv-label">Tenor</div><div class="kv-val">3 – 60 months</div></div><div><div class="kv-label">Yield (blended)</div><div class="kv-val">24%</div></div><div><div class="kv-label">NPL</div><div class="kv-val">3.2%</div></div></div><div class="timeline"><div class="tl-item"><div class="tl-time">10 Jan 2026</div><div class="tl-text">Rate floor raised to 18% by credit committee</div></div><div class="tl-item"><div class="tl-time">01 Dec 2025</div><div class="tl-text">BNPL cross-sell trigger added for grade-A borrowers</div></div><div class="tl-item"><div class="tl-time">15 Oct 2025</div><div class="tl-text">Max tenor extended from 48 to 60 months</div></div></div></div><div class="modal-footer"><button class="btn btn-danger" data-modal="deactivateProductModal">Deactivate</button><div style="display:flex;gap:8px;"><button class="btn btn-light" data-modal="productAnalyticsModal">Analytics</button><button class="btn btn-primary" onclick="closeAll();switchTab('config')">Configure</button></div></div></div></div>
+
+<!-- 2. New Product Wizard -->
+<div class="modal-backdrop" id="newProductWizardModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">New Loan Product</h3><div class="modal-sub">Guided product setup</div></div><button class="modal-close" data-close>x</button></div><div class="stepper" id="npStepper"><div class="step active"><div class="step-num">1</div>Segment</div><div class="step-line"></div><div class="step"><div class="step-num">2</div>Parameters</div><div class="step-line"></div><div class="step"><div class="step-num">3</div>Pricing</div><div class="step-line"></div><div class="step"><div class="step-num">4</div>Approve</div></div><div class="modal-body"><div class="step-panel active" data-step="1"><div class="field"><label class="field-label">Product name</label><input class="input" placeholder="e.g. Green Energy Loan"></div><label class="choice-row selected"><input type="radio" name="seg" checked><div><div class="choice-title">Retail</div><div class="choice-desc">Consumer lending</div></div></label><label class="choice-row"><input type="radio" name="seg"><div><div class="choice-title">SME</div><div class="choice-desc">Business lending</div></div></label><label class="choice-row"><input type="radio" name="seg"><div><div class="choice-title">Corporate</div><div class="choice-desc">Large enterprise</div></div></label><label class="choice-row"><input type="radio" name="seg"><div><div class="choice-title">Real Estate</div><div class="choice-desc">Property-backed</div></div></label></div><div class="step-panel" data-step="2"><div class="field-row"><div class="field"><label class="field-label">Min amount ($)</label><input class="input" value="1000"></div><div class="field"><label class="field-label">Max amount ($)</label><input class="input" value="100000"></div></div><div class="field-row"><div class="field"><label class="field-label">Min tenor (mo)</label><input class="input" value="6"></div><div class="field"><label class="field-label">Max tenor (mo)</label><input class="input" value="84"></div></div><div class="field"><label class="field-label">Grace period (days)</label><input class="input" value="7"></div><div class="field"><label class="field-label">Interest structure</label><select class="select-field"><option>Reducing balance</option><option>Flat rate</option><option>Fixed</option><option>Floating</option></select></div></div><div class="step-panel" data-step="3"><div class="field-row"><div class="field"><label class="field-label">Base rate (%)</label><input class="input" value="8.0"></div><div class="field"><label class="field-label">Risk margin (%)</label><input class="input" value="10.0"></div></div><div class="field-row"><div class="field"><label class="field-label">Processing fee (%)</label><input class="input" value="2.0"></div><div class="field"><label class="field-label">Late fee (%)</label><input class="input" value="5.0"></div></div><div class="field"><label class="field-label">Min yield floor (%)</label><input class="input" value="16.0"></div></div><div class="step-panel" data-step="4"><div class="alert success" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Product ready for credit committee approval.</div><div class="kv-grid"><div><div class="kv-label">Name</div><div class="kv-val">Green Energy Loan</div></div><div><div class="kv-label">Segment</div><div class="kv-val">Retail</div></div><div><div class="kv-label">Range</div><div class="kv-val">$1K – $100K</div></div><div><div class="kv-label">Effective yield</div><div class="kv-val">18.0%</div></div></div></div></div><div class="modal-footer"><button class="btn btn-light" id="npBack" disabled>Back</button><button class="btn btn-primary" id="npNext">Next</button></div></div></div>
+
+<!-- 3. Save Config -->
+<div class="modal-backdrop" id="saveConfigModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Save Product Configuration</h3><div class="modal-sub">Changes will be applied immediately</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="alert warning" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>Changes to rate floors or fees require credit committee sign-off.</div><div class="field"><label class="field-label">Change note (audit trail)</label><textarea class="textarea" placeholder="Describe why this configuration is changing..."></textarea></div><div class="field"><label class="field-label">Effective date</label><input class="input" type="date" value="2026-02-12"></div><label class="choice-row selected"><input type="checkbox" checked><div><div class="choice-title">Notify credit committee</div><div class="choice-desc">Send config diff for review</div></div></label></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Configuration saved and sent for credit committee review">Save & Notify</button></div></div></div>
+
+<!-- 4. Edit Tiers -->
+<div class="modal-backdrop" id="editTiersModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Edit Customer Tiers</h3><div class="modal-sub">Admin — adjust tier scoring bands and limits</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><table class="table"><thead><tr><th>Tier</th><th>Min score</th><th>Max score</th><th>Max loan ($)</th><th>Rate adj (%)</th></tr></thead><tbody><tr><td><input class="input" value="Premium A" style="min-width:90px;"></td><td><input class="input" value="750"></td><td><input class="input" value="850"></td><td><input class="input" value="50000"></td><td><input class="input" value="-2"></td></tr><tr><td><input class="input" value="Standard B"></td><td><input class="input" value="650"></td><td><input class="input" value="749"></td><td><input class="input" value="25000"></td><td><input class="input" value="0"></td></tr><tr><td><input class="input" value="High-risk C"></td><td><input class="input" value="580"></td><td><input class="input" value="649"></td><td><input class="input" value="10000"></td><td><input class="input" value="+4"></td></tr></tbody></table></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Tier configuration updated">Save tiers</button></div></div></div>
+
+<!-- 5. Edit Pricing Matrix -->
+<div class="modal-backdrop" id="editMatrixModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Edit Pricing Matrix</h3><div class="modal-sub">Admin — risk-based rate matrix</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="alert info" style="margin-bottom:12px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>All changes are audit-logged and notified to the credit committee.</div><div style="overflow-x:auto;"><table class="matrix-table"><thead><tr><th>Product</th><th>A (750+)</th><th>B (650–749)</th><th>C (580–649)</th><th>D (&lt;580)</th></tr></thead><tbody><tr><td>Personal Loan</td><td><input class="input" value="18%" style="width:60px;text-align:center;"></td><td><input class="input" value="22%" style="width:60px;text-align:center;"></td><td><input class="input" value="26%" style="width:60px;text-align:center;"></td><td><input class="input" value="30%" style="width:60px;text-align:center;"></td></tr><tr><td>Working Capital</td><td><input class="input" value="20%" style="width:60px;text-align:center;"></td><td><input class="input" value="24%" style="width:60px;text-align:center;"></td><td><input class="input" value="28%" style="width:60px;text-align:center;"></td><td><input class="input" value="34%" style="width:60px;text-align:center;"></td></tr><tr><td>Mortgage</td><td><input class="input" value="10%" style="width:60px;text-align:center;"></td><td><input class="input" value="12%" style="width:60px;text-align:center;"></td><td><input class="input" value="14%" style="width:60px;text-align:center;"></td><td><input class="input" value="16%" style="width:60px;text-align:center;"></td></tr></tbody></table></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Pricing matrix updated and submitted for approval">Save matrix</button></div></div></div>
+
+<!-- 6. Pricing Campaign -->
+<div class="modal-backdrop" id="pricingCampaignModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Pricing Campaign</h3><div class="modal-sub">Create promotional rate offer</div></div><button class="modal-close" data-close>x</button></div><div class="stepper" id="campStepper"><div class="step active"><div class="step-num">1</div>Target</div><div class="step-line"></div><div class="step"><div class="step-num">2</div>Rate</div><div class="step-line"></div><div class="step"><div class="step-num">3</div>Duration</div></div><div class="modal-body"><div class="step-panel active" data-step="1"><div class="field"><label class="field-label">Campaign name</label><input class="input" value="Q1 Growth Push"></div><div class="field"><label class="field-label">Target products</label><select class="select-field"><option>Personal Loan</option><option>Salary Advance</option><option>Working Capital</option></select></div><label class="choice-row selected"><input type="radio" name="ct" checked><div><div class="choice-title">New customers only</div></div></label><label class="choice-row"><input type="radio" name="ct"><div><div class="choice-title">All eligible customers</div></div></label></div><div class="step-panel" data-step="2"><div class="field"><label class="field-label">Rate adjustment</label><select class="select-field"><option>-1%</option><option>-2%</option><option>-3%</option><option>-5%</option></select></div><label class="choice-row selected"><input type="checkbox" checked><div><div class="choice-title">Waive processing fee</div></div></label><div class="field"><label class="field-label">Min yield floor check</label><input class="input" value="18%" readonly></div></div><div class="step-panel" data-step="3"><div class="field-row"><div class="field"><label class="field-label">Start date</label><input class="input" type="date" value="2026-02-13"></div><div class="field"><label class="field-label">End date</label><input class="input" type="date" value="2026-03-31"></div></div><div class="field"><label class="field-label">Max applications</label><input class="input" value="500"></div></div></div><div class="modal-footer"><button class="btn btn-light" id="campBack" disabled>Back</button><button class="btn btn-primary" id="campNext">Next</button></div></div></div>
+
+<!-- 7. Campaign Detail -->
+<div class="modal-backdrop" id="campaignDetailModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Feb Salary Advance Promo</h3><div class="modal-sub">Active campaign — editable</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid" style="margin-bottom:14px;"><div><div class="kv-label">Discount</div><div class="kv-val">-3% rate</div></div><div><div class="kv-label">Ends</div><div class="kv-val">28 Feb 2026</div></div><div><div class="kv-label">Applications</div><div class="kv-val">184 / 400</div></div><div><div class="kv-label">Disbursed</div><div class="kv-val">$2.8M</div></div></div><div class="field"><label class="field-label">Adjust end date</label><input class="input" type="date" value="2026-02-28"></div><div class="field"><label class="field-label">Adjust max applications</label><input class="input" value="400"></div></div><div class="modal-footer"><button class="btn btn-danger" data-result="Campaign paused">Pause campaign</button><div style="display:flex;gap:8px;"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Campaign updated">Save changes</button></div></div></div></div>
+
+<!-- 8. Product Analytics Detail -->
+<div class="modal-backdrop" id="productAnalyticsModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Personal Loan — Analytics Deep Dive</h3><div class="modal-sub">Last 30 days</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="four-col" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;"><div style="background:var(--surface-2);border-radius:12px;padding:14px;"><div class="kv-label">Revenue</div><div style="font-size:20px;font-weight:700;">$5.4M</div></div><div style="background:var(--surface-2);border-radius:12px;padding:14px;"><div class="kv-label">Cost of funds</div><div style="font-size:20px;font-weight:700;">$1.2M</div></div><div style="background:var(--surface-2);border-radius:12px;padding:14px;"><div class="kv-label">Provisions</div><div style="font-size:20px;font-weight:700;">$620K</div></div><div style="background:var(--surface-2);border-radius:12px;padding:14px;"><div class="kv-label">Net profit</div><div style="font-size:20px;font-weight:700;color:var(--success);">$3.58M</div></div></div><svg class="mini-chart" viewBox="0 0 600 148" preserveAspectRatio="none"><g stroke="#e8e6df"><line x1="0" y1="40" x2="600" y2="40"/><line x1="0" y1="80" x2="600" y2="80"/><line x1="0" y1="120" x2="600" y2="120"/></g><path d="M0,112 L75,100 L150,104 L225,82 L300,86 L375,62 L450,68 L525,48 L600,42" fill="none" stroke="#5b5bf5" stroke-width="3"/></svg></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-modal="exportModal">Export</button><button class="btn btn-primary" data-close>Close</button></div></div></div>
+
+<!-- 9. Cross-Sell Report -->
+<div class="modal-backdrop" id="crossSellModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Cross-sell & Upsell Report</h3><div class="modal-sub">Product upgrade path analytics</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="dist-row"><div class="dist-label">Personal → BNPL</div><div class="dist-bar"><span style="width:62%;background:#7c3aed;"></span></div><div class="dist-val">62%</div></div><div class="dist-row"><div class="dist-label">Salary → Credit Card</div><div class="dist-bar"><span style="width:48%;background:#5b5bf5;"></span></div><div class="dist-val">48%</div></div><div class="dist-row"><div class="dist-label">WC → Trade Finance</div><div class="dist-bar"><span style="width:38%;background:#16a34a;"></span></div><div class="dist-val">38%</div></div><div class="dist-row"><div class="dist-label">Mortgage → Top-up</div><div class="dist-bar"><span style="width:28%;background:#d97706;"></span></div><div class="dist-val">28%</div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button class="btn btn-primary" data-modal="exportModal">Export</button></div></div></div>
+
+<!-- 10. Deactivate Product -->
+<div class="modal-backdrop" id="deactivateProductModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Deactivate Product</h3><div class="modal-sub">Stops new origination — existing loans unaffected</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="alert danger" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>This will stop all new applications for this product. Existing borrowers are unaffected.</div><div class="field"><label class="field-label">Reason</label><select class="select-field"><option>Risk review — paused</option><option>Product replaced</option><option>Regulatory hold</option><option>Low demand</option></select></div><div class="field"><label class="field-label">Effective date</label><input class="input" type="date" value="2026-02-13"></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-danger" data-result="Product deactivated — credit committee notified">Deactivate</button></div></div></div>
+
+<!-- 11. Bulk Edit -->
+<div class="modal-backdrop" id="bulkEditModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Bulk Edit Products</h3><div class="modal-sub">Apply change to multiple products at once</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Apply to segment</label><select class="select-field"><option>Retail</option><option>SME</option><option>Corporate</option><option>Real Estate</option><option>All</option></select></div><div class="field"><label class="field-label">Field to change</label><select class="select-field"><option>Processing fee</option><option>Grace period</option><option>Min yield floor</option><option>Max loan amount</option></select></div><div class="field"><label class="field-label">New value</label><input class="input" placeholder="e.g. 2.5%"></div><div class="field"><label class="field-label">Change note</label><textarea class="textarea" placeholder="Audit trail reason..."></textarea></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Bulk edit submitted for approval">Submit for approval</button></div></div></div>
+
+<!-- 12. Portfolio Snapshot -->
+<div class="modal-backdrop" id="portfolioSnapshotModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Portfolio Snapshot</h3><div class="modal-sub">Book breakdown by product and currency</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="dist-row"><div class="dist-label">Retail</div><div class="dist-bar"><span style="width:44%;background:#0284c7;"></span></div><div class="dist-val">$214M</div></div><div class="dist-row"><div class="dist-label">SME</div><div class="dist-bar"><span style="width:28%;background:#7c3aed;"></span></div><div class="dist-val">$136M</div></div><div class="dist-row"><div class="dist-label">Corporate</div><div class="dist-bar"><span style="width:20%;background:#16a34a;"></span></div><div class="dist-val">$96M</div></div><div class="dist-row"><div class="dist-label">Real Estate</div><div class="dist-bar"><span style="width:8%;background:#d97706;"></span></div><div class="dist-val">$36M</div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button class="btn btn-primary" data-modal="exportModal">Export</button></div></div></div>
+
+<!-- 13. Yield Modal -->
+<div class="modal-backdrop" id="yieldModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Blended Yield Breakdown</div><div class="modal-sub">Weighted average by book size</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="dist-row"><div class="dist-label">Retail</div><div class="dist-bar"><span style="width:100%;background:#0284c7;"></span></div><div class="dist-val">22.4%</div></div><div class="dist-row"><div class="dist-label">SME</div><div class="dist-bar"><span style="width:88%;background:#7c3aed;"></span></div><div class="dist-val">24.2%</div></div><div class="dist-row"><div class="dist-label">Corporate</div><div class="dist-bar"><span style="width:58%;background:#16a34a;"></span></div><div class="dist-val">15.1%</div></div><div class="dist-row"><div class="dist-label">Real Estate</div><div class="dist-bar"><span style="width:50%;background:#d97706;"></span></div><div class="dist-val">13.4%</div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+<!-- 14. NPL Modal -->
+<div class="modal-backdrop" id="nplModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">NPL by Product</h3><div class="modal-sub">Non-performing loans — as at today</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><table class="table"><thead><tr><th>Product</th><th>NPL %</th><th>NPL value</th><th>Trend</th></tr></thead><tbody><tr><td>BNPL</td><td><span class="badge danger">4.4%</span></td><td>$1.06M</td><td class="trend-dn">↑ worsening</td></tr><tr><td>Working Capital</td><td><span class="badge warning">3.8%</span></td><td>$3.34M</td><td class="trend-up">↓ improving</td></tr><tr><td>Personal Loan</td><td><span class="badge warning">3.2%</span></td><td>$4.54M</td><td class="trend-up">↔ stable</td></tr><tr><td>Salary Advance</td><td><span class="badge success">0.8%</span></td><td>$384K</td><td class="trend-up">↓ improving</td></tr></tbody></table></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+<!-- 15. NIM Modal -->
+<div class="modal-backdrop" id="nimModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Net Interest Margin</h3><div class="modal-sub">Revenue minus cost of funds / avg assets</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">Interest income</div><div class="kv-val">$8.84M MTD</div></div><div><div class="kv-label">Cost of funds</div><div class="kv-val">$2.12M MTD</div></div><div><div class="kv-label">NIM</div><div class="kv-val">12.1%</div></div><div><div class="kv-label">Target</div><div class="kv-val">11.5% ✓</div></div></div><div class="alert success" style="margin-top:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>NIM is 0.6% above target. Driven by strong SME yield.</div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+<!-- 16. Cost of Risk -->
+<div class="modal-backdrop" id="costOfRiskModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Cost of Risk</h3><div class="modal-sub">Provisions as % of average loan book</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">Provisions raised</div><div class="kv-val">$2.04M MTD</div></div><div><div class="kv-label">Avg book</div><div class="kv-val">$480M</div></div><div><div class="kv-label">CoR (annualised)</div><div class="kv-val">4.2%</div></div><div><div class="kv-label">Budget</div><div class="kv-val">3.8% ⚠</div></div></div><div class="alert warning" style="margin-top:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>BNPL provisions are driving CoR above budget. Review underwriting criteria.</div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button class="btn btn-primary" data-modal="editMatrixModal">Adjust pricing</button></div></div></div>
+
+<!-- 17. Benchmark -->
+<div class="modal-backdrop" id="benchmarkModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Competitive Benchmark</h3><div class="modal-sub">PayMo vs market average — Feb 2026</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><table class="table"><thead><tr><th>Product</th><th>PayMo rate</th><th>Market avg</th><th>Best competitor</th><th>Position</th></tr></thead><tbody><tr><td>Personal Loan</td><td>24%</td><td>26%</td><td>21% (BankX)</td><td><span class="badge success">Competitive</span></td></tr><tr><td>Working Capital</td><td>26%</td><td>28%</td><td>23% (FinCo)</td><td><span class="badge success">Competitive</span></td></tr><tr><td>Mortgage</td><td>12%</td><td>13.5%</td><td>10.5% (MortgageCo)</td><td><span class="badge warning">Watch</span></td></tr><tr><td>BNPL</td><td>22%</td><td>24%</td><td>18% (BNPLApp)</td><td><span class="badge warning">Watch</span></td></tr></tbody></table></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button class="btn btn-primary" data-modal="exportModal">Export benchmark</button></div></div></div>
+
+<!-- 18. Permissions -->
+<div class="modal-backdrop" id="permissionsModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Admin Permissions</h3><div class="modal-sub">Roles and access for Loan Products & Pricing</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><table class="table"><thead><tr><th>Permission</th><th>Admin</th><th>Credit Officer</th><th>Analyst</th></tr></thead><tbody><tr><td>Create/edit products</td><td><span class="badge success">Full</span></td><td><span class="badge warning">Draft</span></td><td><span class="badge gray">View</span></td></tr><tr><td>Edit pricing matrix</td><td><span class="badge success">Full</span></td><td><span class="badge warning">Propose</span></td><td><span class="badge gray">View</span></td></tr><tr><td>Launch campaigns</td><td><span class="badge success">Full</span></td><td><span class="badge success">Full</span></td><td><span class="badge gray">View</span></td></tr><tr><td>Deactivate products</td><td><span class="badge success">Full</span></td><td><span class="badge gray">View</span></td><td><span class="badge gray">None</span></td></tr></tbody></table></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button class="btn btn-primary" data-result="Permission changes saved">Update permissions</button></div></div></div>
+
+<!-- 19. Export -->
+<div class="modal-backdrop" id="exportModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Export</h3><div class="modal-sub">Products, pricing, and analytics data</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Report</label><select class="select-field"><option>Product catalog</option><option>Pricing matrix</option><option>Performance analytics</option><option>Competitive benchmark</option><option>Fee schedule</option></select></div><div class="field"><label class="field-label">Format</label><select class="select-field"><option>PDF</option><option>CSV</option><option>XLSX</option></select></div><div class="field"><label class="field-label">Period</label><select class="select-field"><option>Current snapshot</option><option>Last 30 days</option><option>Last quarter</option><option>YTD</option></select></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Export generated and downloading">Generate export</button></div></div></div>
+
+<!-- 20. Filter -->
+<div class="modal-backdrop" id="filterModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Filters</h3><div class="modal-sub">Refine product and pricing views</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Segment</label><select class="select-field"><option>All</option><option>Retail</option><option>SME</option><option>Corporate</option><option>Real Estate</option></select></div><div class="field"><label class="field-label">Status</label><select class="select-field"><option>All</option><option>Active</option><option>Beta</option><option>Review</option><option>Inactive</option></select></div><div class="field"><label class="field-label">Yield range</label><select class="select-field"><option>All</option><option>Under 15%</option><option>15–20%</option><option>20–25%</option><option>Over 25%</option></select></div></div><div class="modal-footer"><button class="btn btn-ghost" data-result="Filters reset">Reset</button><div style="display:flex;gap:8px;"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Filters applied">Apply</button></div></div></div></div>
+
+<!-- 21. Notifications -->
+<div class="modal-backdrop" id="notificationsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Notifications</h3><div class="modal-sub">Pricing and product events</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body" style="padding:0;"><div class="list-item"><div class="list-left"><div class="list-icon" style="background:var(--warning-soft);color:var(--warning);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg></div><div><div class="list-title">BNPL NPL above 4% threshold</div><div class="list-sub">Review pricing matrix for BNPL grade D</div></div></div><button class="btn btn-light btn-sm" data-modal="nplModal">Review</button></div><div class="list-item"><div class="list-left"><div class="list-icon" style="background:var(--success-soft);color:var(--success);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div><div><div class="list-title">Feb Salary Promo: 184/400 applications</div><div class="list-sub">Campaign 46% utilised</div></div></div><button class="btn btn-light btn-sm" data-modal="campaignDetailModal">View</button></div><div class="list-item"><div class="list-left"><div class="list-icon" style="background:var(--primary-soft);color:var(--primary);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg></div><div><div class="list-title">Credit Card beta review due</div><div class="list-sub">Q1 performance review — approval needed</div></div></div><button class="btn btn-light btn-sm" data-modal="productDetailModal">Review</button></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-result="All notifications marked as read">Mark read</button><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+<!-- 22. Result (confirmation replacement for toasts) -->
+<div class="modal-backdrop" id="resultModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Action Complete</h3><div class="modal-sub">PayMo Lending — admin operation</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="alert success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span id="resultMessage">Action completed.</span></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Done</button></div></div></div>
+
+<!-- nav modals -->
+<div class="modal-backdrop" id="navBaasModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">BaaS Hub</h3><div class="modal-sub">Dashboard 1 — Banking-as-a-Service</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">Daily txn volume</div><div class="kv-val">$8.4M</div></div><div><div class="kv-label">APIs live</div><div class="kv-val">14</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+<div class="modal-backdrop" id="navCommandModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Lending Command Center</div><div class="modal-sub">Dashboard 3.1 — portfolio overview</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">Gross book</div><div class="kv-val">$482.4M</div></div><div><div class="kv-label">NPL</div><div class="kv-val">3.8%</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+<div class="modal-backdrop" id="navIntakeModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Application Intake</h3><div class="modal-sub">Dashboard 3.3 — pre-screening</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">Pending review</div><div class="kv-val">184</div></div><div><div class="kv-label">Auto-approved</div><div class="kv-val">42</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+<div class="modal-backdrop" id="navUnderwritingModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Credit Underwriting</h3><div class="modal-sub">Dashboard 3.4 — decisioning</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">In queue</div><div class="kv-val">62</div></div><div><div class="kv-label">Avg TAT</div><div class="kv-val">4.2h</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+<div class="modal-backdrop" id="navBookModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Loan Book</h3><div class="modal-sub">Active loans and servicing</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">Active loans</div><div class="kv-val">12,841</div></div><div><div class="kv-label">Disbursed MTD</div><div class="kv-val">$48.2M</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+<div class="modal-backdrop" id="navCollectionsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Collections</h3><div class="modal-sub">Repayments, dunning, recoveries</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">Collected MTD</div><div class="kv-val">$44.8M</div></div><div><div class="kv-label">Collection rate</div><div class="kv-val">94.8%</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+<div class="modal-backdrop" id="navRiskModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Risk & Compliance</h3><div class="modal-sub">Credit risk, covenants, provisions</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="alert warning"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>2 covenant breaches require immediate review.</div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+<div class="modal-backdrop" id="navReportsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Reports & Analytics</h3><div class="modal-sub">Lending MIS and regulatory reports</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">Reports MTD</div><div class="kv-val">18</div></div><div><div class="kv-label">Regulatory pending</div><div class="kv-val">3</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button class="btn btn-primary" data-modal="exportModal">Generate report</button></div></div></div>
+
+<script>
+  /* ── sidebar ── */
+  const sidebar = document.getElementById('sidebar');
+  document.getElementById('sidebarToggle').addEventListener('click', () => sidebar.classList.toggle('expanded'));
+  document.getElementById('mobileMenuBtn').addEventListener('click', () => sidebar.classList.toggle('mobile-open'));
+
+  /* ── modals ── */
+  function openModal(id) { const m = document.getElementById(id); if (m) m.classList.add('show'); }
+  function closeAll() { document.querySelectorAll('.modal-backdrop.show').forEach(m => m.classList.remove('show')); }
+  function setResult(msg) { closeAll(); document.getElementById('resultMessage').textContent = msg; openModal('resultModal'); }
+  function switchTab(n) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === n));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.dataset.panel === n));
+  }
+  document.addEventListener('click', e => {
+    if (e.target.closest('.toggle')) return;
+    const c = e.target.closest('[data-close]');   if (c) { e.preventDefault(); e.stopPropagation(); closeAll(); return; }
+    const r = e.target.closest('[data-result]');   if (r) { e.preventDefault(); e.stopPropagation(); setResult(r.dataset.result); return; }
+    const o = e.target.closest('[data-modal]');    if (o) { e.preventDefault(); e.stopPropagation(); openModal(o.dataset.modal); }
+  });
+  document.querySelectorAll('.modal-backdrop').forEach(b => b.addEventListener('click', e => { if (e.target === b) closeAll(); }));
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAll(); });
+  document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => switchTab(t.dataset.tab)));
+
+  /* ── choice rows ── */
+  document.querySelectorAll('.choice-row').forEach(row => {
+    row.addEventListener('click', () => {
+      const radio = row.querySelector('input[type="radio"]');
+      if (radio) {
+        document.querySelectorAll(`input[name="${radio.name}"]`).forEach(i => i.closest('.choice-row')?.classList.remove('selected'));
+        radio.checked = true; row.classList.add('selected');
+      }
+      const cb = row.querySelector('input[type="checkbox"]');
+      if (cb && !radio) row.classList.toggle('selected', cb.checked);
+    });
+  });
+
+  /* ── rate-type buttons ── */
+  document.querySelectorAll('[id^="rateType"]').forEach(btn => btn.addEventListener('click', () => {
+    document.querySelectorAll('[id^="rateType"]').forEach(b => { b.className = 'btn btn-light btn-sm'; });
+    btn.className = 'btn btn-primary btn-sm';
+  }));
+
+  /* ── pricing sliders ── */
+  function recalc() {
+    const b = +document.getElementById('baseSlider').value;
+    const ri = +document.getElementById('riskSlider').value;
+    const li = +document.getElementById('liqSlider').value;
+    const op = +document.getElementById('opsSlider').value;
+    document.getElementById('baseVal').textContent = b.toFixed(1) + '%';
+    document.getElementById('riskVal').textContent = ri.toFixed(1) + '%';
+    document.getElementById('liqVal').textContent = li.toFixed(1) + '%';
+    document.getElementById('opsVal').textContent = op.toFixed(1) + '%';
+    document.getElementById('totalRate').textContent = (b + ri + li + op).toFixed(1) + '%';
+  }
+  ['baseSlider','riskSlider','liqSlider','opsSlider'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.addEventListener('input', recalc);
+  });
+
+  /* ── multi-step steppers ── */
+  function setupStepper(rootId, stepperId, backId, nextId, total, done) {
+    const root = document.getElementById(rootId); if (!root) return;
+    let cur = 1;
+    const render = () => {
+      root.querySelectorAll(`#${stepperId} .step`).forEach((s, i) => { s.classList.toggle('active', i+1===cur); s.classList.toggle('done', i+1<cur); });
+      root.querySelectorAll('.step-panel').forEach(p => p.classList.toggle('active', +p.dataset.step === cur));
+      document.getElementById(backId).disabled = cur === 1;
+      document.getElementById(nextId).textContent = cur === total ? 'Submit' : 'Next';
+    };
+    document.getElementById(backId).addEventListener('click', () => { if (cur>1){cur--; render();} });
+    document.getElementById(nextId).addEventListener('click', () => { if (cur<total){cur++; render();} else { cur=1; render(); setResult(done); } });
+    render();
+  }
+  setupStepper('newProductWizardModal','npStepper','npBack','npNext',4,'New product submitted for credit committee approval');
+  setupStepper('pricingCampaignModal','campStepper','campBack','campNext',3,'Pricing campaign created and active');
+
+  /* ── catalog filter & search ── */
+  function filterCatalog() {
+    const q = (document.getElementById('prodSearch').value || '').toLowerCase();
+    const seg = document.getElementById('segFilter').value;
+    const st = document.getElementById('statusFilter').value;
+    document.querySelectorAll('.prod-card[data-name]').forEach(card => {
+      const matchQ = card.dataset.name.toLowerCase().includes(q) || card.textContent.toLowerCase().includes(q);
+      const matchSeg = seg === 'All Segments' || card.dataset.seg === seg;
+      const badge = card.querySelector('.badge');
+      const cardStatus = badge ? badge.textContent.trim() : '';
+      const matchSt = st === 'All Status' || cardStatus === st;
+      card.style.display = matchQ && matchSeg && matchSt ? '' : 'none';
+    });
+    document.querySelectorAll('.prod-seg').forEach(seg => {
+      const anyVisible = [...seg.querySelectorAll('.prod-card')].some(c => c.style.display !== 'none');
+      seg.style.display = anyVisible ? '' : 'none';
+    });
+  }
+  document.getElementById('prodSearch').addEventListener('input', filterCatalog);
+  document.getElementById('segFilter').addEventListener('change', filterCatalog);
+  document.getElementById('statusFilter').addEventListener('change', filterCatalog);
+</script>
+</body>
+</html>

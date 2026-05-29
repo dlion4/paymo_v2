@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Restructuring & Forbearance - PayMo Lending</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="stylesheet" href="master.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    .two-col { display: grid; grid-template-columns: 1.4fr 1fr; gap: 16px; }
+    .distressed-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; }
+    .workout-card { background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius); padding: 18px; cursor: pointer; transition: all .15s; }
+    .workout-card:hover { border-color: var(--primary); box-shadow: var(--shadow-lg); }
+    .status-strip { width: 4px; border-radius: 4px; margin-right: 12px; }
+    .status-strip.stage-1 { background: var(--success); }
+    .status-strip.stage-2 { background: var(--warning); }
+    .status-strip.stage-3 { background: var(--danger); }
+    .kv-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 18px; }
+    .kv-label { font-size: 10px; color: var(--text-4); text-transform: uppercase; letter-spacing: .06em; }
+    .kv-val { font-size: 13px; font-weight: 600; margin-top: 2px; }
+    .editable-field { border: 1px dashed transparent; padding: 2px 4px; border-radius: 4px; }
+    .editable-field:hover { border-color: var(--border); background: var(--surface-2); }
+    .editable-field:focus { outline: none; border-color: var(--primary); background: var(--primary-soft); }
+    .timeline { position: relative; padding-left: 24px; }
+    .timeline:before { content: ""; position: absolute; top: 6px; bottom: 6px; left: 8px; width: 2px; background: var(--border); }
+    .tl-item { position: relative; padding-bottom: 14px; }
+    .tl-item:before { content: ""; position: absolute; left: -20px; top: 4px; width: 10px; height: 10px; border-radius: 50%; background: var(--primary); border: 2px solid #fff; }
+    .tl-time { font-size: 10px; color: var(--text-4); }
+    .tl-text { font-size: 12px; margin-top: 2px; }
+    .comparison-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
+    .comparison-box { background: var(--surface-2); border-radius: 12px; padding: 14px; }
+    .comparison-header { font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-3); margin-bottom: 8px; }
+    .opt-card { border: 1px solid var(--border); border-radius: 12px; padding: 12px; display: flex; align-items: flex-start; gap: 12px; cursor: pointer; transition: all .1s; }
+    .opt-card:hover { border-color: var(--primary); background: var(--primary-soft); }
+    .opt-card.selected { border-color: var(--primary); background: var(--primary-soft); }
+    .impact-pill { font-size: 10px; padding: 1px 6px; border-radius: 4px; font-weight: 600; }
+    .impact-pill.neg { background: var(--danger-soft); color: var(--danger); }
+    .impact-pill.pos { background: var(--success-soft); color: var(--success); }
+    @media (max-width: 1024px) { .two-col { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">P</div>
+      <nav class="sidebar-nav">
+        <button class="sidebar-item" title="Command Center" data-modal="navCommandModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg><span class="sidebar-label">Dashboard</span></button>
+        <button class="sidebar-item" title="Applications" data-modal="navAppsModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg><span class="sidebar-label">Applications</span></button>
+        <button class="sidebar-item" title="Active Loans" data-modal="navLoansModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg><span class="sidebar-label">Loans</span></button>
+        <button class="sidebar-item" title="Collections" data-modal="navCollectionsModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path></svg><span class="sidebar-label">Collections</span></button>
+        <button class="sidebar-item active" title="Restructuring"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 9.58V.6L4.26 21.27a.3.3 0 0 0 .3.27h2.09"></path><path d="M4 14.41v8.99l15.74-20.67a.3.3 0 0 0-.3-.27h-2.09"></path></svg><span class="sidebar-label">Workouts</span></button>
+        <button class="sidebar-item" title="Write-offs" data-modal="navWriteOffModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg><span class="sidebar-label">Write-offs</span></button>
+        <button class="sidebar-item" title="Analytics" data-modal="navAnalyticsModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="20" x2="12" y2="10"></line><line x1="18" y1="20" x2="18" y2="4"></line><line x1="6" y1="20" x2="6" y2="16"></line></svg><span class="sidebar-label">Analytics</span></button>
+      </nav>
+      <button class="sidebar-expand" id="sidebarToggle"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg><span class="sidebar-label">Collapse</span></button>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <div class="crumb">
+            <button class="mobile-menu-btn btn btn-light btn-sm" id="mobileMenuBtn" style="margin-right:8px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+            <span>Workout Unit</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg><span>Restructuring & Forbearance</span>
+          </div>
+          <h1 class="page-title">Restructuring & Forbearance</h1>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-light btn-icon" data-modal="notificationsModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg></button>
+          <button class="btn btn-light" data-modal="permissionsModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>Workout Admin</button>
+          <button class="btn btn-light" data-modal="provisioningModal">Calculate ECL</button>
+          <button class="btn btn-primary" data-modal="workoutWizardModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>Initiate Workout</button>
+        </div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card" data-modal="watchlistModal"><div class="stat-icon amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></div><div class="stat-label">Watchlist (Stage 2)</div><div class="stat-value">214</div><div class="stat-trend up"><span>+12 new triggers</span></div></div>
+        <div class="stat-card" data-modal="distressedModal"><div class="stat-icon red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path></svg></div><div class="stat-label">Distressed (Stage 3)</div><div class="stat-value">84</div><div class="stat-trend down"><span>-5 restructured</span></div></div>
+        <div class="stat-card" data-modal="forbearanceModal"><div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></div><div class="stat-label">Under Forbearance</div><div class="stat-value">42</div><div class="stat-trend neutral"><span>Avg 3.2 months</span></div></div>
+        <div class="stat-card" data-modal="provisioningModal"><div class="stat-icon purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"></path></svg></div><div class="stat-label">Total Provisions</div><div class="stat-value">$8.2M</div><div class="stat-trend up"><span>IFRS 9 compliant</span></div></div>
+        <div class="stat-card" data-modal="writeOffModal"><div class="stat-icon red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></div><div class="stat-label">Write-offs (YTD)</div><div class="stat-value">$2.4M</div><div class="stat-trend down"><span>4.1% recovery</span></div></div>
+      </div>
+
+      <div class="panel">
+        <div class="tabs" id="mainTabs">
+          <button class="tab active" data-tab="identification"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>Loan Identification</button>
+          <button class="tab" data-tab="restructuring"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>Restructuring Workout</button>
+          <button class="tab" data-tab="forbearance"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>Forbearance Tracking</button>
+          <button class="tab" data-tab="accounting"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"></path></svg>Provisioning & IFRS 9</button>
+        </div>
+
+        <section class="tab-panel active" data-panel="identification">
+          <div class="panel-body">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
+              <h2 class="panel-title">Early Warning Signals & Watchlist</h2>
+              <div class="panel-actions">
+                <div class="search-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg><input placeholder="Search watchlist..."></div>
+                <button class="btn btn-light btn-sm" data-modal="ewsConfigModal">EWS Triggers</button>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table class="table">
+                <thead><tr><th>Account</th><th>Borrower</th><th>Trigger</th><th>DPD</th><th>Rating</th><th>Exposure</th><th></th></tr></thead>
+                <tbody>
+                  <tr data-modal="accountEwsModal">
+                    <td class="mono">LOAN-88421</td><td>Acme Logistics</td><td><span class="badge warning">Covenant Breach</span></td><td>5 days</td><td>B- <svg viewBox="0 0 24 24" width="10" fill="none" stroke="currentColor" stroke-width="3" style="display:inline;"><polyline points="6 9 12 15 18 9"></polyline></svg></td><td>$1.2M</td><td class="right"><button class="btn btn-light btn-sm">Assess</button></td>
+                  </tr>
+                  <tr data-modal="accountEwsModal">
+                    <td class="mono">LOAN-92018</td><td>Globex Corp</td><td><span class="badge warning">Rating Downgrade</span></td><td>0 days</td><td>BB <svg viewBox="0 0 24 24" width="10" fill="none" stroke="currentColor" stroke-width="3" style="display:inline;"><polyline points="6 9 12 15 18 9"></polyline></svg></td><td>$4.8M</td><td class="right"><button class="btn btn-light btn-sm">Assess</button></td>
+                  </tr>
+                  <tr data-modal="accountEwsModal">
+                    <td class="mono">LOAN-77122</td><td>Retail Group</td><td><span class="badge danger">Missed Payment</span></td><td>32 days</td><td>C <svg viewBox="0 0 24 24" width="10" fill="none" stroke="currentColor" stroke-width="3" style="display:inline;"><polyline points="6 9 12 15 18 9"></polyline></svg></td><td>$840K</td><td class="right"><button class="btn btn-light btn-sm">Assess</button></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="tab-panel" data-panel="restructuring">
+          <div class="panel-body">
+            <div class="two-col">
+              <div>
+                <h2 class="panel-title" style="margin-bottom:14px;">Active Restructuring Cases</h2>
+                <div class="distressed-grid">
+                  <div class="workout-card" data-modal="workoutDetailModal">
+                    <div style="display:flex;">
+                      <div class="status-strip stage-3"></div>
+                      <div style="flex:1;">
+                        <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+                          <span class="mono" style="font-size:11px;color:var(--text-3);">CASE-WORK-2026-44</span>
+                          <span class="badge danger">Stage 3</span>
+                        </div>
+                        <div style="font-weight:600;margin-bottom:4px;">Stark Industries Ltd</div>
+                        <div class="list-sub">Corporate Term Loan · $8.2M exposure</div>
+                        <div class="kv-grid" style="margin-top:12px;">
+                          <div><div class="kv-label">Proposed</div><div class="kv-val">Term Extension</div></div>
+                          <div><div class="kv-label">Status</div><div class="kv-val">Documentation</div></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="workout-card" data-modal="workoutDetailModal">
+                    <div style="display:flex;">
+                      <div class="status-strip stage-2"></div>
+                      <div style="flex:1;">
+                        <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+                          <span class="mono" style="font-size:11px;color:var(--text-3);">CASE-WORK-2026-45</span>
+                          <span class="badge warning">Stage 2</span>
+                        </div>
+                        <div style="font-weight:600;margin-bottom:4px;">Wayne Enterprises</div>
+                        <div class="list-sub">SME Working Capital · $420K exposure</div>
+                        <div class="kv-grid" style="margin-top:12px;">
+                          <div><div class="kv-label">Proposed</div><div class="kv-val">Rate Reduction</div></div>
+                          <div><div class="kv-label">Status</div><div class="kv-val">Negotiation</div></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="uw-card">
+                <h3 class="uw-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>Restructuring Toolbox</h3>
+                <div style="display:flex;flex-direction:column;gap:8px;">
+                  <div class="opt-card" data-modal="termExtensionModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg><div><div style="font-weight:600;font-size:13px;">Term Extension</div><div class="list-sub">Extend tenor to reduce monthly burden</div></div></div>
+                  <div class="opt-card" data-modal="rateReductionModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20"><path d="M23 18l-9-11-7 11H23z"></path></svg><div><div style="font-weight:600;font-size:13px;">Interest Rate Reduction</div><div class="list-sub">Adjust yield to borrower's cash flow</div></div></div>
+                  <div class="opt-card" data-modal="holidayModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg><div><div style="font-weight:600;font-size:13px;">Repayment Holiday</div><div class="list-sub">Suspend principal/interest for N months</div></div></div>
+                  <div class="opt-card" data-modal="forgivenessModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20"><path d="M20.84 4.61a5.5 5.0 0 0 0-7.78 7.78 0 0 0 0-7.78l-1.06 1.06a5.5 5.0 0 1 1 7.78 7.78 0 0 1 1 0z"></path></svg><div><div style="font-weight:600;font-size:13px;">Partial Forgiveness</div><div class="list-sub">Write-off portion of principal (last resort)</div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="tab-panel" data-panel="forbearance">
+          <div class="panel-body">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+              <h2 class="panel-title">Forbearance Inventory & Exit Tracking</h2>
+              <button class="btn btn-light btn-sm" data-modal="regulatoryModal">Regulatory Report</button>
+            </div>
+            <div class="table-wrap">
+              <table class="table">
+                <thead><tr><th>Borrower</th><th>Measure</th><th>Start Date</th><th>Exit Date</th><th>Classification</th><th>Cures</th><th></th></tr></thead>
+                <tbody>
+                  <tr data-modal="forbearanceDetailModal">
+                    <td>Savanna Traders</td><td>Moratorium</td><td>12 Jan 2026</td><td>12 Jul 2026</td><td><span class="badge info">Restructured</span></td><td>0/3</td><td class="right"><button class="btn btn-light btn-sm">Track</button></td>
+                  </tr>
+                  <tr data-modal="forbearanceDetailModal">
+                    <td>Nexus Payroll</td><td>Rate Floor</td><td>01 Feb 2026</td><td>01 Feb 2027</td><td><span class="badge warning">Substandard</span></td><td>1/12</td><td class="right"><button class="btn btn-light btn-sm">Track</button></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="tab-panel" data-panel="accounting">
+          <div class="panel-body">
+            <div class="two-col">
+              <div>
+                <h2 class="panel-title" style="margin-bottom:14px;">IFRS 9 Stage Migration</h2>
+                <div style="background:var(--surface-2);border-radius:14px;padding:18px;margin-bottom:16px;">
+                  <div class="dist-row"><div class="dist-label">Stage 1 (Normal)</div><div class="dist-bar"><span style="width:78%;background:var(--success);"></span></div><div class="dist-val">$143.5M</div></div>
+                  <div class="dist-row"><div class="dist-label">Stage 2 (SICR)</div><div class="dist-bar"><span style="width:18%;background:var(--warning);"></span></div><div class="dist-val">$33.1M</div></div>
+                  <div class="dist-row"><div class="dist-label">Stage 3 (Default)</div><div class="dist-bar"><span style="width:4%;background:var(--danger);"></span></div><div class="dist-val">$7.4M</div></div>
+                </div>
+                <h2 class="panel-title" style="margin-bottom:12px;font-size:14px;">Pending Write-offs</h2>
+                <div class="list-item" style="padding-left:0;padding-right:0;"><div class="list-left"><div class="list-icon" style="background:var(--danger-soft);color:var(--danger);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path></svg></div><div><div class="list-title">Retail Micro-Loan Pool</div><div class="list-sub">114 small loans · $120,400 total</div></div></div><button class="btn btn-danger btn-sm" data-modal="writeOffApprovalModal">Approve</button></div>
+              </div>
+              <div class="uw-card">
+                <h3 class="uw-title">Provision Calculation (ECL)</h3>
+                <div class="kv-grid" style="margin-bottom:14px;">
+                  <div><div class="kv-label">PD (Stage 1)</div><div class="kv-val">0.8%</div></div>
+                  <div><div class="kv-label">PD (Stage 2)</div><div class="kv-val">4.2%</div></div>
+                  <div><div class="kv-label">LGD (Average)</div><div class="kv-val">45%</div></div>
+                  <div><div class="kv-label">EAD (Total)</div><div class="kv-val">$184.0M</div></div>
+                </div>
+                <div class="alert info" style="margin-top:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg>Next provision run scheduled for month-end. ECL impact estimated at +$420K.</div>
+                <button class="btn btn-primary" style="margin-top:14px;width:100%;" data-modal="provisioningModal">Run Provisioning Engine</button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- ============ MODALS ============ -->
+
+  <div class="modal-backdrop" id="workoutWizardModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Initiate Restructuring Workout</h3><div class="modal-sub">Step-by-step distressed loan modification</div></div><button class="modal-close" data-close>x</button></div><div class="stepper" id="workStepper"><div class="step active"><div class="step-num">1</div>Account</div><div class="step-line"></div><div class="step"><div class="step-num">2</div>Options</div><div class="step-line"></div><div class="step"><div class="step-num">3</div>Impact</div><div class="step-line"></div><div class="step"><div class="step-num">4</div>Approval</div></div><div class="modal-body"><div class="step-panel active" data-step="1"><div class="field"><label class="field-label">Select Distressed Account</label><select class="select-field"><option>LOAN-88421 · Acme Logistics · $1.2M</option><option>LOAN-77122 · Retail Group · $840K</option></select></div><div class="alert warning" style="margin-top:12px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg>Acme Logistics is currently in Stage 2 (SICR) due to covenant breach.</div></div><div class="step-panel" data-step="2"><label class="choice-row selected"><input type="checkbox" checked><div><div class="choice-title">Term Extension</div><div class="choice-desc">Add 24 months to maturity</div></div></label><label class="choice-row"><input type="checkbox"><div><div class="choice-title">Interest Rate Holiday</div><div class="choice-desc">0% interest for 6 months</div></div></label><label class="choice-row"><input type="checkbox"><div><div class="choice-title">Principal Holiday</div><div class="choice-desc">Interest-only payments for 12 months</div></div></label></div><div class="step-panel" data-step="3"><div class="comparison-grid"><div class="comparison-box"><div class="comparison-header">Pre-Restructure</div><div class="kv-label">Payment</div><div class="kv-val">$48,000 /mo</div><div class="kv-label">Maturity</div><div class="kv-val">Dec 2027</div></div><div class="comparison-box"><div class="comparison-header">Post-Restructure</div><div class="kv-label">Payment</div><div class="kv-val" style="color:var(--success);">$28,500 /mo</div><div class="kv-label">Maturity</div><div class="kv-val">Dec 2029</div></div></div></div><div class="step-panel" data-step="4"><div class="field"><label class="field-label">Decision Authority</label><select class="select-field"><option>Credit Workout Committee</option><option>Board Risk Committee (>$5M)</option></select></div><div class="field"><label class="field-label">Workout Officer Note</label><textarea class="textarea" placeholder="Justification for restructuring..."></textarea></div></div></div><div class="modal-footer"><button class="btn btn-light" id="workBack" disabled>Back</button><button class="btn btn-primary" id="workNext">Next</button></div></div></div>
+
+  <div class="modal-backdrop" id="ewsConfigModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Early Warning Signal Configuration</h3><div class="modal-sub">Define triggers for automated watchlist enrollment</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="config-row"><div><div class="config-label">DPD Trigger</div><div class="config-desc">Enroll in watchlist when DPD > 5 days</div></div><input class="input" style="width:80px;" value="5"></div><div class="config-row"><div><div class="config-label">Covenant Tracking</div><div class="config-desc">Enroll on any "Hard" covenant breach</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div><div class="config-row"><div><div class="config-label">Open Banking Anomaly</div><div class="config-desc">Enroll if revenue drops > 30% month-on-month</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div><div class="config-row"><div><div class="config-label">Social Media / Media Scan</div><div class="config-desc">Negative sentiment/legal action detection</div></div><label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="EWS triggers updated">Save triggers</button></div></div></div>
+
+  <div class="modal-backdrop" id="accountEwsModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Watchlist Assessment — Acme Logistics</h3><div class="modal-sub">Trigger: Covenant Breach · Stage 2</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="two-col"><div class="uw-card"><div><div class="kv-label">Violation</div><div class="kv-val" style="color:var(--danger);">Minimum Current Ratio</div></div><div class="kv-grid" style="margin-top:12px;"><div><div class="kv-label">Required</div><div class="kv-val">1.2x</div></div><div><div class="kv-label">Actual</div><div class="kv-val" style="color:var(--danger);">0.95x</div></div></div><div class="field" style="margin-top:14px;"><label class="field-label">Borrower explanation</label><div class="list-sub">"Temporary liquidity crunch due to supplier prepayment. Expected correction in Q2."</div></div></div><div><h3 class="uw-title">Recommendation</h3><label class="choice-row selected"><input type="radio" name="rec" checked><div><div class="choice-title">Wait & Watch</div><div class="choice-desc">Monitor for 30 days</div></div></label><label class="choice-row"><input type="radio" name="rec"><div><div class="choice-title">Initiate Restructuring</div><div class="choice-desc">Propose term modification</div></div></label></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button class="btn btn-primary" data-result="Account status updated to Wait & Watch">Submit recommendation</button></div></div></div>
+
+  <div class="modal-backdrop" id="workoutDetailModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Workout Case: Stark Industries Ltd</h3><div class="modal-sub">Stage 3 Workout · Exposure $8.2M</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid" style="margin-bottom:16px;"><div><div class="kv-label">Original Principal</div><div class="kv-val">$10.0M</div></div><div><div class="kv-label">Outstanding</div><div class="kv-val">$8.2M</div></div><div><div class="kv-label">Classification</div><div class="kv-val"><span class="badge danger">Default / Non-Performing</span></div></div><div><div class="kv-label">IFRS 9 Provision</div><div class="kv-val">$3.69M (45%)</div></div></div><div class="timeline"><div class="tl-item"><div class="tl-time">Yesterday</div><div class="tl-text">Legal documentation for collateral substitution received</div></div><div class="tl-item"><div class="tl-time">3 days ago</div><div class="tl-text">Credit Committee approved 24-month term extension</div></div></div></div><div class="modal-footer"><button class="btn btn-light" data-modal="collateralModal">Substitute Collateral</button><div style="display:flex;gap:8px;"><button class="btn btn-light" data-close>Close</button><button class="btn btn-primary" data-result="Legal pack finalized">Finalize docs</button></div></div></div></div>
+
+  <div class="modal-backdrop" id="provisioningModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">IFRS 9 Provisioning Engine</h3><div class="modal-sub">Calculated Expected Credit Loss (ECL)</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="four-col" style="margin-bottom:16px;"><div class="comparison-box"><div>Stage 1</div><div style="font-size:20px;font-weight:700;">$1.1M</div><div class="impact-pill pos">No Change</div></div><div class="comparison-box"><div>Stage 2</div><div style="font-size:20px;font-weight:700;">$3.4M</div><div class="impact-pill neg">+$240K</div></div><div class="comparison-box"><div>Stage 3</div><div style="font-size:20px;font-weight:700;">$3.7M</div><div class="impact-pill neg">+$180K</div></div><div class="comparison-box"><div>Total ECL</div><div style="font-size:20px;font-weight:700;">$8.2M</div><div class="impact-pill neg">+$420K</div></div></div><div class="alert info" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg>Based on forward-looking macroeconomic scenarios (Base, Optimistic, Pessimistic).</div><label class="choice-row selected"><input type="checkbox" checked><div><div class="choice-title">Post to General Ledger</div><div class="choice-desc">Update provision accounts in Core Banking</div></div></label></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Provisions posted to GL">Post Provisions</button></div></div></div>
+
+  <div class="modal-backdrop" id="writeOffApprovalModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Approve Write-off</h3><div class="modal-sub">Retail Micro-Loan Pool · 114 accounts</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="alert danger" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path></svg>Action will remove $120,400 from the balance sheet asset register.</div><div class="kv-grid" style="margin-bottom:14px;"><div><div class="kv-label">Total Amount</div><div class="kv-val">$120,400</div></div><div><div class="kv-label">Total Provisioned</div><div class="kv-val">$120,400 (100%)</div></div></div><div class="field"><label class="field-label">Approval Authority</label><select class="select-field"><option>CFO · Faith Njeri</option><option>Audit Committee</option></select></div><div class="field"><label class="field-label">Board Resolution Upload</label><input type="file" class="input"></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-danger" data-result="Write-off approved and executed">Approve write-off</button></div></div></div>
+
+  <div class="modal-backdrop" id="termExtensionModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Term Extension Builder</h3><div class="modal-sub">Modify loan duration</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Current Maturity</label><div class="kv-val">12 Dec 2027</div></div><div class="field"><label class="field-label">New Maturity</label><input type="date" class="input" value="2029-12-12"></div><div class="alert info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg>Extensions > 12 months require specific classification in regulatory reporting.</div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Term extension terms saved">Save modification</button></div></div></div>
+
+  <div class="modal-backdrop" id="forbearanceDetailModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Forbearance Tracker</h3><div class="modal-sub">Savanna Traders · Moratorium</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="two-col"><div><div class="kv-grid" style="margin-bottom:16px;"><div><div class="kv-label">Start Date</div><div class="kv-val">12 Jan 2026</div></div><div><div class="kv-label">End Date</div><div class="kv-val">12 Jul 2026</div></div><div><div class="kv-label">Cure Period</div><div class="kv-val">3 consecutive payments</div></div><div><div class="kv-label">Progress</div><div class="kv-val">0/3 payments made</div></div></div><div class="dist-row"><div class="dist-label">Period Elapsed</div><div class="dist-bar"><span style="width:25%;background:var(--primary);"></span></div><div class="dist-val">1.5 / 6 months</div></div></div><div><h3 class="uw-title">Compliance status</h3><div class="config-row"><div><div class="config-label">FBE Classification</div><div class="config-desc">Correctly flagged in core</div></div><span class="badge success">Yes</span></div><div class="config-row"><div><div class="config-label">Regulatory Reporting</div><div class="config-desc">Included in FINREP template</div></div><span class="badge success">Yes</span></div><button class="btn btn-light btn-sm" style="margin-top:14px;width:100%;" data-modal="regulatoryModal">View FinRep Report</button></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button class="btn btn-primary" data-result="Forbearance notes updated">Update status</button></div></div></div>
+
+  <div class="modal-backdrop" id="regulatoryModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Regulatory Forbearance Report</h3><div class="modal-sub">Quarterly Distressed Asset Disclosure</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><table class="table"><thead><tr><th>Reg Category</th><th>Count</th><th>Value</th><th>Provisioning %</th></tr></thead><tbody><tr><td>Forborne Performing</td><td>22</td><td>$14.2M</td><td>4.2%</td></tr><tr><td>Forborne Non-Performing</td><td>20</td><td>$8.9M</td><td>45.0%</td></tr><tr><td>Cured (Watchlist)</td><td>12</td><td>$4.1M</td><td>1.2%</td></tr></tbody></table></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button class="btn btn-primary" data-result="Report exported for Central Bank submission">Export XML/XBRL</button></div></div></div>
+
+  <div class="modal-backdrop" id="writeOffModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Write-off & Recovery Dashboard</h3><div class="modal-sub">$2.4M total write-offs YTD</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="two-col"><div><div class="dist-row"><div class="dist-label">Retail Pool</div><div class="dist-bar"><span style="width:65%;background:var(--danger);"></span></div><div class="dist-val">$1.56M</div></div><div class="dist-row"><div class="dist-label">SME Pool</div><div class="dist-bar"><span style="width:25%;background:var(--danger);"></span></div><div class="dist-val">$600K</div></div><div class="dist-row"><div class="dist-label">Corporate</div><div class="dist-bar"><span style="width:10%;background:var(--danger);"></span></div><div class="dist-val">$240K</div></div></div><div class="uw-card"><h3 class="uw-title">Post-Writeoff Recoveries</h3><div style="font-size:24px;font-weight:700;color:var(--success);">$98,400</div><div class="list-sub">4.1% of written off amount</div><button class="btn btn-light btn-sm" style="margin-top:12px;width:100%;" data-modal="recoveryModal">Record recovery</button></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="recoveryModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Post-Writeoff Recovery</h3><div class="modal-sub">Record payment for off-balance-sheet asset</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Original Account ID</label><input class="input" placeholder="LOAN-XXXXX"></div><div class="field"><label class="field-label">Recovery Amount</label><input class="input" value="0.00"></div><div class="field"><label class="field-label">Recovery Source</label><select class="select-field"><option>Direct payment</option><option>Collateral liquidation</option><option>Third-party agency</option></select></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Recovery recorded and credited to P&L">Record</button></div></div></div>
+
+  <div class="modal-backdrop" id="permissionsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Workout Unit Permissions</h3><div class="modal-sub">Admin Access Control</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="config-row"><div><div class="config-label">Propose Restructuring</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div><div class="config-row"><div><div class="config-label">Approve Forgiveness</div><div class="config-desc">Limited to $10,000</div></div><label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label></div><div class="config-row"><div><div class="config-label">Post IFRS 9 Provisions</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div><div class="config-row"><div><div class="config-label">Execute Write-off</div><div class="config-desc">Board approval usually required</div></div><label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button class="btn btn-primary" data-result="Permissions updated">Save</button></div></div></div>
+
+  <div class="modal-backdrop" id="resultModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title" id="resultTitle">Operation Complete</h3><div class="modal-sub">PayMo Lending Operation System</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="alert success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg><span id="resultMessage">Success.</span></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Done</button></div></div></div>
+
+  <div class="modal-backdrop" id="navCommandModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Command Center</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">Navigate back to Lending Command Center dashboard.</div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Go</button></div></div></div>
+  <div class="modal-backdrop" id="navAppsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Applications</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">View loan application pipeline.</div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Go</button></div></div></div>
+  <div class="modal-backdrop" id="navLoansModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Loans</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">View performing loan inventory.</div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Go</button></div></div></div>
+  <div class="modal-backdrop" id="navCollectionsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Collections</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">View recovery and DPD tracking.</div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Go</button></div></div></div>
+  <div class="modal-backdrop" id="navWriteOffModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Write-offs</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">View write-off ledger and recovery tracking.</div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Go</button></div></div></div>
+  <div class="modal-backdrop" id="navAnalyticsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Analytics</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">Lending division risk analytics.</div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Go</button></div></div></div>
+  <div class="modal-backdrop" id="notificationsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Notifications</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">System alerts and workout notifications.</div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Close</button></div></div></div>
+  <div class="modal-backdrop" id="watchlistModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Watchlist Detail</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">Breakdown of 214 Stage 2 loans.</div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Close</button></div></div></div>
+  <div class="modal-backdrop" id="distressedModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Distressed Inventory</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">Breakdown of 84 Stage 3 loans.</div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Close</button></div></div></div>
+  <div class="modal-backdrop" id="forbearanceModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Active Forbearance</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">Breakdown of 42 active measures.</div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Close</button></div></div></div>
+  <div class="modal-backdrop" id="rateReductionModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Rate Reduction</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">Configure discounted interest rate.</div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Apply</button></div></div></div>
+  <div class="modal-backdrop" id="holidayModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Repayment Holiday</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">Configure principal/interest suspension.</div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Apply</button></div></div></div>
+  <div class="modal-backdrop" id="forgivenessModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Debt Forgiveness</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">Calculate and approve partial principal write-off.</div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Apply</button></div></div></div>
+  <div class="modal-backdrop" id="collateralModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Collateral Substitution</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">Replace or add security on existing loan.</div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Save</button></div></div></div>
+
+  <script>
+    const sidebar = document.getElementById('sidebar');
+    document.getElementById('sidebarToggle').addEventListener('click', () => sidebar.classList.toggle('expanded'));
+    document.getElementById('mobileMenuBtn').addEventListener('click', () => sidebar.classList.toggle('mobile-open'));
+
+    function openModal(id) { const m = document.getElementById(id); if (m) m.classList.add('show'); }
+    function closeAll() { document.querySelectorAll('.modal-backdrop.show').forEach(m => m.classList.remove('show')); }
+    
+    document.addEventListener('click', e => {
+      if (e.target.closest('.toggle') || e.target.closest('.editable-field')) { return; }
+      const close = e.target.closest('[data-close]');
+      if (close) { e.preventDefault(); e.stopPropagation(); closeAll(); return; }
+      const result = e.target.closest('[data-result]');
+      if (result) { e.preventDefault(); e.stopPropagation(); setResult(result.dataset.result); return; }
+      const opener = e.target.closest('[data-modal]');
+      if (opener) { e.preventDefault(); e.stopPropagation(); openModal(opener.dataset.modal); }
+    });
+    
+    document.querySelectorAll('.modal-backdrop').forEach(b => b.addEventListener('click', e => { if (e.target === b) closeAll(); }));
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAll(); });
+
+    function setResult(message) {
+      closeAll();
+      document.getElementById('resultMessage').textContent = message;
+      openModal('resultModal');
+    }
+
+    function switchTab(name) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.dataset.panel === name));
+    }
+    document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => switchTab(tab.dataset.tab)));
+
+    function setupStepper(rootId, stepperId, backId, nextId, total, doneMessage) {
+      const root = document.getElementById(rootId);
+      if (!root) return;
+      let current = 1;
+      const render = () => {
+        document.querySelectorAll(`#${stepperId} .step`).forEach((s, i) => { s.classList.toggle('active', i + 1 === current); s.classList.toggle('done', i + 1 < current); });
+        root.querySelectorAll('.step-panel').forEach(p => p.classList.toggle('active', Number(p.dataset.step) === current));
+        document.getElementById(backId).disabled = current === 1;
+        document.getElementById(nextId).textContent = current === total ? 'Execute' : 'Next';
+      };
+      document.getElementById(backId).addEventListener('click', () => { if (current > 1) { current--; render(); } });
+      document.getElementById(nextId).addEventListener('click', () => { if (current < total) { current++; render(); } else { current = 1; render(); setResult(doneMessage); } });
+      render();
+    }
+    setupStepper('workoutWizardModal', 'workStepper', 'workBack', 'workNext', 4, 'Restructuring workout plan initiated for approval');
+  </script>
+</body>
+</html>

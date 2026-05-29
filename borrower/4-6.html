@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Statements & Documents - PayMo Borrower Portal</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="stylesheet" href="master.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    .doc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+    .doc-card { background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius); padding: 18px; transition: all .15s; cursor: pointer; display: flex; align-items: flex-start; gap: 16px; }
+    .doc-card:hover { border-color: var(--primary); box-shadow: var(--shadow-lg); transform: translateY(-1px); }
+    .doc-icon { width: 44px; height: 44px; border-radius: 12px; background: var(--bg-soft); color: var(--text-3); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .doc-icon.pdf { background: #fee2e2; color: #dc2626; }
+    .doc-icon.zip { background: #e0f2fe; color: #0284c7; }
+    .doc-info { flex: 1; min-width: 0; }
+    .doc-name { font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .doc-meta { font-size: 11px; color: var(--text-4); margin-top: 2px; }
+    .doc-actions { display: flex; gap: 8px; margin-top: 12px; }
+    
+    .stmt-preview { background: var(--surface-2); border-radius: 12px; padding: 24px; border: 1px solid var(--border-soft); font-family: 'Inter', sans-serif; }
+    .stmt-header { display: flex; justify-content: space-between; border-bottom: 2px solid var(--text); padding-bottom: 16px; margin-bottom: 20px; }
+    .stmt-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .stmt-table th { text-align: left; padding: 8px; border-bottom: 1px solid var(--text); color: var(--text-2); font-weight: 600; }
+    .stmt-table td { padding: 8px; border-bottom: 1px solid var(--border-soft); }
+    
+    .vault-tabs { display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 4px; }
+    .vault-tab { padding: 8px 16px; border-radius: 99px; font-size: 13px; font-weight: 500; background: var(--surface); border: 1px solid var(--border); color: var(--text-3); white-space: nowrap; }
+    .vault-tab.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+    
+    .noc-card { border-left: 4px solid var(--primary); }
+    .noc-card.success { border-left-color: var(--success); }
+    .noc-card.warning { border-left-color: var(--warning); }
+    
+    .stat-card-doc { display: flex; flex-direction: column; align-items: center; text-align: center; }
+    .doc-type-badge { font-size: 9px; font-weight: 700; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; margin-bottom: 8px; align-self: flex-start; }
+
+    .search-input-group { position: relative; width: 100%; max-width: 400px; }
+    .search-input-group svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-4); }
+    .search-input-group input { width: 100%; padding: 10px 12px 10px 38px; border: 1px solid var(--border); border-radius: 10px; outline: none; }
+
+    @media (max-width: 768px) { .doc-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">P</div>
+      <nav class="sidebar-nav">
+        <button class="sidebar-item" title="Dashboard" data-modal="navDashModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg><span class="sidebar-label">Dashboard</span></button>
+        <button class="sidebar-item" title="Apply" data-modal="navApplyModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"></path></svg><span class="sidebar-label">Apply</span></button>
+        <button class="sidebar-item" title="My Loans" data-modal="navLoansModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"></path></svg><span class="sidebar-label">My Loans</span></button>
+        <button class="sidebar-item" title="Payments" data-modal="navPaymentsModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg><span class="sidebar-label">Payments</span></button>
+        <button class="sidebar-item active" title="Documents"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg><span class="sidebar-label">Documents</span></button>
+        <button class="sidebar-item" title="Support" data-modal="navSupportModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.38 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.38 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg><span class="sidebar-label">Support</span></button>
+      </nav>
+      <button class="sidebar-expand" id="sidebarToggle"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg><span class="sidebar-label">Collapse</span></button>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <div class="crumb">
+            <button class="mobile-menu-btn btn btn-light btn-sm" id="mobileMenuBtn" style="margin-right:8px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+            <span>Credit Portal</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg><span>Statements & Documents</span>
+          </div>
+          <h1 class="page-title">Statements & Documents</h1>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-light btn-icon" title="Notifications" data-modal="notificationsModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg></button>
+          <button class="btn btn-light" data-modal="filterModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg><span class="btn-text">Filters</span></button>
+          <button class="btn btn-primary" data-modal="requestNocModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>Request NOC</button>
+        </div>
+      </div>
+
+      <!-- Quick Stats -->
+      <div class="stats-row">
+        <div class="stat-card" data-modal="vaultSummaryModal"><div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg></div><div class="stat-label">Total Documents</div><div class="stat-value">24</div><div class="stat-trend up"><span>All verified</span></div></div>
+        <div class="stat-card" data-modal="taxDocsModal"><div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></div><div class="stat-label">Tax Certificates</div><div class="stat-value">3</div><div class="stat-trend neutral"><span>FY 2025 ready</span></div></div>
+        <div class="stat-card" data-modal="recentActivityModal"><div class="stat-icon purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg></div><div class="stat-label">Recent Generates</div><div class="stat-value">2</div><div class="stat-trend up"><span>Last 30 days</span></div></div>
+        <div class="stat-card" data-modal="nocStatusModal"><div class="stat-icon amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg></div><div class="stat-label">Pending NOCs</div><div class="stat-value">1</div><div class="stat-trend warning"><span>Awaiting valuation</span></div></div>
+        <div class="stat-card" data-modal="storageUsageModal"><div class="stat-icon gray"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></div><div class="stat-label">Vault Usage</div><div class="stat-value">4.2<span style="font-size:12px;color:var(--text-3); font-weight:500;">MB</span></div><div class="stat-trend up"><span>Unlimited storage</span></div></div>
+      </div>
+
+      <div class="panel">
+        <div class="tabs" id="mainTabs">
+          <button class="tab active" data-tab="generator"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>Statement Generator</button>
+          <button class="tab" data-tab="tax"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>Tax Documents</button>
+          <button class="tab" data-tab="vault"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>Document Vault</button>
+          <button class="tab" data-tab="noc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>No-Objection Certificates</button>
+        </div>
+
+        <!-- Section 1: Statement Generator -->
+        <section class="tab-panel active" data-panel="generator">
+          <div class="panel-body">
+            <div class="two-col">
+              <div class="uw-card">
+                <h3 class="uw-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>Configuration</h3>
+                <div class="field"><label class="field-label">Select Loan Facility</label><select class="select-field"><option>Personal Loan - LN-2025-8842 ($12,450 outstanding)</option><option>Salary Advance - LN-2026-1120 ($1,200 outstanding)</option></select></div>
+                <div class="field-row">
+                  <div class="field"><label class="field-label">Statement Type</label><select class="select-field"><option>Full Account Statement</option><option>Repayment Summary</option><option>Interest Calculation</option></select></div>
+                  <div class="field"><label class="field-label">Output Format</label><select class="select-field"><option>PDF Document</option><option>CSV / Excel</option><option>JSON (API)</option></select></div>
+                </div>
+                <div class="field-row">
+                  <div class="field"><label class="field-label">From Date</label><input type="date" class="input" value="2026-01-01"></div>
+                  <div class="field"><label class="field-label">To Date</label><input type="date" class="input" value="2026-02-15"></div>
+                </div>
+                <div style="display:flex;gap:10px;margin-top:10px;">
+                  <button class="btn btn-primary" data-modal="generateConfirmModal">Generate Statement</button>
+                  <button class="btn btn-light" data-modal="emailStatementModal">Email to Accountant</button>
+                </div>
+              </div>
+              <div class="uw-card">
+                <h3 class="uw-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>Instant Preview</h3>
+                <div class="stmt-preview">
+                  <div class="stmt-header">
+                    <div><div style="font-weight:700;font-size:16px;">PAYMO LENDING</div><div class="doc-meta">Account Statement</div></div>
+                    <div style="text-align:right;"><div class="doc-name">LN-2025-8842</div><div class="doc-meta">Jane Wanjiru</div></div>
+                  </div>
+                  <table class="stmt-table">
+                    <thead><tr><th>Date</th><th>Transaction</th><th style="text-align:right;">Amount</th></tr></thead>
+                    <tbody>
+                      <tr><td>01 Feb 2026</td><td>Repayment - PayMo Wallet</td><td style="text-align:right;color:var(--success);">+$450.00</td></tr>
+                      <tr><td>31 Jan 2026</td><td>Interest Posting</td><td style="text-align:right;color:var(--danger);">-$84.20</td></tr>
+                      <tr><td>01 Jan 2026</td><td>Repayment - Bank Transfer</td><td style="text-align:right;color:var(--success);">+$450.00</td></tr>
+                    </tbody>
+                  </table>
+                  <div style="text-align:right;margin-top:14px;"><span class="kv-label">Total Balance:</span> <strong style="font-size:16px;">$12,450.00</strong></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Section 2: Tax Documents -->
+        <section class="tab-panel" data-panel="tax">
+          <div class="panel-body">
+            <div class="panel-header" style="padding:0 0 18px;border-bottom:0;"><h2 class="panel-title">Tax Year 2025</h2></div>
+            <div class="doc-grid">
+              <div class="doc-card" data-modal="previewPdfModal">
+                <div class="doc-icon pdf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></div>
+                <div class="doc-info"><div class="doc-name">Annual Interest Paid Certificate</div><div class="doc-meta">FY 2025 · 142 KB</div><div class="doc-actions"><button class="btn btn-light btn-sm">Download</button><button class="btn btn-light btn-sm" data-modal="emailStatementModal">Email</button></div></div>
+              </div>
+              <div class="doc-card" data-modal="previewPdfModal">
+                <div class="doc-icon pdf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></div>
+                <div class="doc-info"><div class="doc-name">Withholding Tax Summary</div><div class="doc-meta">FY 2025 · 88 KB</div><div class="doc-actions"><button class="btn btn-light btn-sm">Download</button></div></div>
+              </div>
+              <div class="doc-card" data-modal="previewPdfModal">
+                <div class="doc-icon pdf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></div>
+                <div class="doc-info"><div class="doc-name">Year-End Loan Summary</div><div class="doc-meta">FY 2025 · 210 KB</div><div class="doc-actions"><button class="btn btn-light btn-sm">Download</button></div></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Section 3: Loan Documents Vault -->
+        <section class="tab-panel" data-panel="vault">
+          <div class="panel-body">
+            <div class="vault-tabs">
+              <button class="vault-tab active">All Files</button>
+              <button class="vault-tab">Agreements</button>
+              <button class="vault-tab">Security</button>
+              <button class="vault-tab">Insurance</button>
+              <button class="vault-tab">Valuations</button>
+            </div>
+            <div class="search-input-group" style="margin-bottom:20px;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              <input placeholder="Search documents by name or date...">
+            </div>
+            <div class="doc-grid">
+              <div class="doc-card" data-modal="previewPdfModal"><div class="doc-icon pdf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg></div><div class="doc-info"><span class="doc-type-badge" style="background:var(--primary-soft);color:var(--primary);">Agreement</span><div class="doc-name">Original Loan Facility Agreement</div><div class="doc-meta">Signed 12 Aug 2025 · 1.2 MB</div><div class="doc-actions"><button class="btn btn-light btn-sm">Download</button><button class="btn btn-light btn-sm" data-modal="shareDocModal">Share</button></div></div></div>
+              <div class="doc-card" data-modal="previewPdfModal"><div class="doc-icon pdf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg></div><div class="doc-info"><span class="doc-type-badge" style="background:var(--success-soft);color:var(--success);">Security</span><div class="doc-name">Registered Mortgage Deed</div><div class="doc-meta">Riverside Heights · 2.4 MB</div><div class="doc-actions"><button class="btn btn-light btn-sm">Download</button></div></div></div>
+              <div class="doc-card" data-modal="previewPdfModal"><div class="doc-icon pdf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg></div><div class="doc-info"><span class="doc-type-badge" style="background:var(--warning-soft);color:var(--warning);">Insurance</span><div class="doc-name">Life & Credit Insurance Policy</div><div class="doc-meta">Valid till Aug 2026 · 450 KB</div><div class="doc-actions"><button class="btn btn-light btn-sm">Download</button></div></div></div>
+              <div class="doc-card" data-modal="previewPdfModal"><div class="doc-icon pdf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg></div><div class="doc-info"><span class="doc-type-badge" style="background:var(--purple-soft);color:var(--purple);">Valuation</span><div class="doc-name">Property Valuation Report</div><div class="doc-meta">Feb 2026 · 3.1 MB</div><div class="doc-actions"><button class="btn btn-light btn-sm">Download</button></div></div></div>
+              <div class="doc-card" data-modal="previewPdfModal"><div class="doc-icon zip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></div><div class="doc-info"><span class="doc-type-badge" style="background:var(--info-soft);color:var(--info);">Archived</span><div class="doc-name">Application Document Bundle</div><div class="doc-meta">All KYC files · ZIP · 4.8 MB</div><div class="doc-actions"><button class="btn btn-light btn-sm">Download All</button></div></div></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Section 4: No-Objection Certificates -->
+        <section class="tab-panel" data-panel="noc">
+          <div class="panel-body">
+            <div class="two-col">
+              <div>
+                <h2 class="panel-title" style="margin-bottom:14px;">Active Requests</h2>
+                <div class="doc-card noc-card warning" data-modal="nocDetailModal">
+                  <div class="doc-info">
+                    <div style="display:flex;justify-content:space-between;align-items:center;"><strong>NOC for Partial Collateral Release</strong><span class="badge warning">In Progress</span></div>
+                    <div class="doc-meta">Riverside Heights Phase 1 · ID: NOC-48219</div>
+                    <div class="timeline" style="margin-top:14px;">
+                      <div class="tl-item"><div class="tl-time">Yesterday</div><div class="tl-text">Request submitted by user</div></div>
+                      <div class="tl-item"><div class="tl-time">Today</div><div class="tl-text">Valuation review pending from Credit division</div></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="doc-card noc-card success" style="margin-top:12px;" data-modal="nocDetailModal">
+                  <div class="doc-info">
+                    <div style="display:flex;justify-content:space-between;align-items:center;"><strong>NOC for Loan Closure</strong><span class="badge success">Issued</span></div>
+                    <div class="doc-meta">Salary Advance LN-2026-1120 · ID: NOC-48110</div>
+                    <div class="doc-actions"><button class="btn btn-primary btn-sm">Download NOC</button></div>
+                  </div>
+                </div>
+              </div>
+              <div class="uw-card">
+                <h3 class="uw-title">Request a New NOC</h3>
+                <div class="field"><label class="field-label">Purpose</label><select class="select-field"><option>Loan Closure Certificate</option><option>Partial Security Release</option><option>Lien Removal</option><option>Switch Insurer</option></select></div>
+                <div class="field"><label class="field-label">Select Facility</label><select class="select-field"><option>Personal Loan - LN-2025-8842</option></select></div>
+                <div class="field"><label class="field-label">Justification</label><textarea class="textarea" placeholder="Explain the reason for this request..."></textarea></div>
+                <button class="btn btn-primary" style="width:100%;" data-modal="requestNocWizardModal">Proceed to Request</button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- ============ MODALS (20+) ============ -->
+
+  <div class="modal-backdrop" id="generateConfirmModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Generate Statement</h3><div class="modal-sub">Finalize and download your document</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="alert info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg>Statement will cover KES 480K loan from 01 Jan 2026 to 15 Feb 2026.</div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Statement generated successfully">Confirm & Download</button></div></div></div>
+
+  <div class="modal-backdrop" id="emailStatementModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Email Statement</h3><div class="modal-sub">Send document to recipient</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Recipient Email</label><input class="input" value="accountant@business.com"></div><div class="field"><label class="field-label">Subject</label><input class="input" value="PayMo Loan Statement - Jane Wanjiru"></div><div class="field"><label class="field-label">Note (Optional)</label><textarea class="textarea"></textarea></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Statement emailed to recipient">Send Email</button></div></div></div>
+
+  <div class="modal-backdrop" id="previewPdfModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Document Preview</h3><div class="modal-sub">Annual Interest Paid Certificate.pdf</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="invoice-paper" style="height:400px;display:flex;align-items:center;justify-content:center;color:var(--text-4);">[ PDF VIEWER RENDERING ]</div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-result="Document downloaded">Download</button><button class="btn btn-primary" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="shareDocModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Share Document</h3><div class="modal-sub">Generate a temporary secure link</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Link Expiry</label><select class="select-field"><option>1 Hour</option><option>24 Hours</option><option>7 Days</option></select></div><label class="choice-row selected"><input type="checkbox" checked><div><div class="choice-title">Require Password</div><div class="choice-desc">Recipient must enter code to view</div></div></label><div class="field" style="margin-top:14px;"><label class="field-label">Secure Link</label><input class="input mono" readonly value="https://pay.mo/v/88fG2p1"></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-result="Link copied to clipboard">Copy Link</button><button class="btn btn-primary" data-close>Done</button></div></div></div>
+
+  <div class="modal-backdrop" id="requestNocWizardModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Request NOC</h3><div class="modal-sub">Multi-step request workflow</div></div><button class="modal-close" data-close>x</button></div><div class="stepper" id="nocStepper"><div class="step active"><div class="step-num">1</div>Details</div><div class="step-line"></div><div class="step"><div class="step-num">2</div>Security</div><div class="step-line"></div><div class="step"><div class="step-num">3</div>Review</div></div><div class="modal-body"><div class="step-panel active" data-step="1"><div class="field"><label class="field-label">NOC Type</label><select class="select-field"><option>Closure Certificate</option><option>Collateral Release</option></select></div><div class="field"><label class="field-label">Bank/Financier (for release)</label><input class="input" placeholder="e.g. NCBA Bank"></div></div><div class="step-panel" data-step="2"><label class="choice-row selected"><input type="checkbox" checked><div><div class="choice-title">Riverside Heights Property</div><div class="choice-desc">Title LR. No. 209/1182/3</div></div></label><div class="alert info" style="margin-top:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg>Partial release requires a fresh valuation if older than 6 months.</div></div><div class="step-panel" data-step="3"><div class="kv-grid"><div><div class="kv-label">Type</div><div class="kv-val">Partial Release</div></div><div><div class="kv-label">Asset</div><div class="kv-val">Riverside Heights</div></div><div><div class="kv-label">Fee</div><div class="kv-val">$50.00</div></div></div></div></div><div class="modal-footer"><button class="btn btn-light" id="nocBack" disabled>Back</button><button class="btn btn-primary" id="nocNext">Next</button></div></div></div>
+
+  <div class="modal-backdrop" id="vaultSummaryModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Vault Summary</h3><div class="modal-sub">Total storage & classification</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="dist-row"><div class="dist-label">Legal Agreements</div><div class="dist-bar"><span style="width:40%;background:var(--primary);"></span></div><div class="dist-val">8 files</div></div><div class="dist-row"><div class="dist-label">Tax Docs</div><div class="dist-bar"><span style="width:20%;background:var(--success);"></span></div><div class="dist-val">3 files</div></div><div class="dist-row"><div class="dist-label">Valuations</div><div class="dist-bar"><span style="width:25%;background:var(--warning);"></span></div><div class="dist-val">5 files</div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <!-- Nav Modals -->
+  <div class="modal-backdrop" id="navDashModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Lending Dashboard</h3><div class="modal-sub">Overview of your credit facilities</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><button class="btn btn-primary" style="width:100%;">Return to Home</button></div></div></div>
+  <div class="modal-backdrop" id="navApplyModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">New Application</h3><div class="modal-sub">Start a new loan request</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><button class="btn btn-primary" style="width:100%;">View Products</button></div></div></div>
+  <div class="modal-backdrop" id="navLoansModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">My Loans</h3><div class="modal-sub">Manage active credit</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><button class="btn btn-primary" style="width:100%;">Go to My Loans</button></div></div></div>
+  <div class="modal-backdrop" id="navPaymentsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Payments</h3><div class="modal-sub">Make or schedule repayments</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><button class="btn btn-primary" style="width:100%;">Make a Payment</button></div></div></div>
+  <div class="modal-backdrop" id="navSupportModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Support</h3><div class="modal-sub">Help with documents or loans</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><button class="btn btn-primary" style="width:100%;">Start Live Chat</button></div></div></div>
+
+  <!-- Operational Modals -->
+  <div class="modal-backdrop" id="notificationsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Notifications</h3><div class="modal-sub">Document & statement alerts</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body" style="padding:0;"><div class="list-item"><div class="list-left"><div class="list-icon" style="background:var(--success-soft);color:var(--success);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg></div><div><div class="list-title">Interest Paid Certificate ready</div><div class="list-sub">Tax year 2025 document generated</div></div></div></div><div class="list-item"><div class="list-left"><div class="list-icon" style="background:var(--warning-soft);color:var(--warning);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg></div><div><div class="list-title">NOC pending valuation</div><div class="list-sub">Property visit scheduled for Feb 20</div></div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+  <div class="modal-backdrop" id="filterModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Filters</h3><div class="modal-sub">Find specific documents</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Document Type</label><select class="select-field"><option>All Documents</option><option>Statements</option><option>Legal Agreements</option><option>Tax Certificates</option></select></div><div class="field"><label class="field-label">Facility</label><select class="select-field"><option>All Facilities</option><option>LN-2025-8842</option><option>LN-2026-1120</option></select></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Filters applied">Apply Filters</button></div></div></div>
+  <div class="modal-backdrop" id="requestNocModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Request NOC</h3><div class="modal-sub">New No-Objection Certificate request</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Purpose</label><select class="select-field"><option>Loan Closure</option><option>Partial Collateral Release</option></select></div><div class="alert info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg>NOCs are typically processed within 3-5 business days.</div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-modal="requestNocWizardModal">Continue</button></div></div></div>
+  <div class="modal-backdrop" id="taxDocsModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Tax Documents Inventory</h3><div class="modal-sub">Ready for fiscal reporting</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="doc-grid"><div class="doc-card" data-modal="previewPdfModal"><div class="doc-info"><div class="doc-name">FY 2025 Summary</div></div></div><div class="doc-card" data-modal="previewPdfModal"><div class="doc-info"><div class="doc-name">FY 2024 Archive</div></div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+  <div class="modal-backdrop" id="recentActivityModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Recent Generates</h3><div class="modal-sub">History of statement generation</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="timeline"><div class="tl-item"><div class="tl-time">Yesterday</div><div class="tl-text">Full Account Statement · LN-2025-8842</div></div><div class="tl-item"><div class="tl-time">2 days ago</div><div class="tl-text">Repayment Summary · LN-2026-1120</div></div></div></div></div></div>
+  <div class="modal-backdrop" id="nocStatusModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">NOC Request Status</h3><div class="modal-sub">Tracking active certificates</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="config-row"><div><div class="config-label">NOC-48219</div><div class="config-desc">Riverside Heights Phase 1</div></div><span class="badge warning">In Review</span></div><div class="config-row"><div><div class="config-label">NOC-48110</div><div class="config-desc">Salary Advance closure</div></div><span class="badge success">Issued</span></div></div></div></div>
+  <div class="modal-backdrop" id="storageUsageModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Vault Usage</h3><div class="modal-sub">Account data residency</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div style="text-align:center;"><div class="money-large">4.2 MB</div><div class="list-sub">Used of unlimited PayMo vault storage</div></div></div></div></div>
+  <div class="modal-backdrop" id="nocDetailModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">NOC Details</h3><div class="modal-sub">Tracking ID: NOC-48219</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">Status</div><div class="kv-val"><span class="badge warning">Processing</span></div></div><div><div class="kv-label">Facility</div><div class="kv-val">LN-2025-8842</div></div></div></div></div></div>
+  <div class="modal-backdrop" id="resultModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Action Successful</h3><div class="modal-sub">PayMo Borrower Portal</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="alert success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg><span id="resultMessage">Operation completed.</span></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Dismiss</button></div></div></div>
+
+  <script>
+    const sidebar = document.getElementById('sidebar');
+    document.getElementById('sidebarToggle').addEventListener('click', () => sidebar.classList.toggle('expanded'));
+    document.getElementById('mobileMenuBtn').addEventListener('click', () => sidebar.classList.toggle('mobile-open'));
+
+    function openModal(id) { const m = document.getElementById(id); if (m) m.classList.add('show'); }
+    function closeAll() { document.querySelectorAll('.modal-backdrop.show').forEach(m => m.classList.remove('show')); }
+    
+    document.addEventListener('click', e => {
+      const close = e.target.closest('[data-close]');
+      if (close) { e.preventDefault(); e.stopPropagation(); closeAll(); return; }
+      
+      const result = e.target.closest('[data-result]');
+      if (result) {
+        e.preventDefault(); e.stopPropagation();
+        closeAll();
+        document.getElementById('resultMessage').textContent = result.dataset.result;
+        openModal('resultModal');
+        return;
+      }
+      
+      const opener = e.target.closest('[data-modal]');
+      if (opener) {
+        e.preventDefault(); e.stopPropagation();
+        openModal(opener.dataset.modal);
+      }
+    });
+
+    document.querySelectorAll('.modal-backdrop').forEach(b => b.addEventListener('click', e => { if (e.target === b) closeAll(); }));
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAll(); });
+
+    function switchTab(name) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.dataset.panel === name));
+    }
+    document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => switchTab(tab.dataset.tab)));
+
+    document.querySelectorAll('.choice-row').forEach(row => {
+      row.addEventListener('click', () => {
+        const checkbox = row.querySelector('input[type="checkbox"]');
+        if (checkbox) {
+          checkbox.checked = !checkbox.checked;
+          row.classList.toggle('selected', checkbox.checked);
+        }
+      });
+    });
+
+    function setupStepper(rootId, stepperId, backId, nextId, total, doneMessage) {
+      const root = document.getElementById(rootId);
+      if (!root) return;
+      let current = 1;
+      const render = () => {
+        document.querySelectorAll(`#${stepperId} .step`).forEach((s, i) => { 
+          s.classList.toggle('active', i + 1 === current); 
+          s.classList.toggle('done', i + 1 < current); 
+        });
+        root.querySelectorAll('.step-panel').forEach(p => p.classList.toggle('active', Number(p.dataset.step) === current));
+        document.getElementById(backId).disabled = current === 1;
+        document.getElementById(nextId).textContent = current === total ? 'Submit Request' : 'Next';
+      };
+      document.getElementById(backId).addEventListener('click', () => { if (current > 1) { current--; render(); } });
+      document.getElementById(nextId).addEventListener('click', () => {
+        if (current < total) { current++; render(); } 
+        else {
+          current = 1; render();
+          closeAll();
+          document.getElementById('resultMessage').textContent = doneMessage;
+          openModal('resultModal');
+        }
+      });
+      render();
+    }
+    setupStepper('requestNocWizardModal', 'nocStepper', 'nocBack', 'nocNext', 3, 'NOC request submitted successfully');
+
+  </script>
+</body>
+</html>

@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Business Borrower Portal - PayMo Lending</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="stylesheet" href="master.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    .two-col { display: grid; grid-template-columns: 1.6fr 1fr; gap: 16px; }
+    .three-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .four-col { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .usage-bar { height: 10px; border-radius: 999px; background: var(--surface-3); overflow: hidden; margin: 8px 0; }
+    .usage-bar span { display: block; height: 100%; border-radius: 999px; transition: width .4s ease; }
+    .money-large { font-size: 28px; font-weight: 700; letter-spacing: -.03em; }
+    .kv-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px 18px; }
+    .kv-label { font-size: 10px; color: var(--text-4); text-transform: uppercase; letter-spacing: .07em; }
+    .kv-val { font-size: 14px; font-weight: 600; margin-top: 2px; }
+    .user-card { border: 1px solid var(--border-soft); border-radius: 12px; padding: 14px; display: flex; align-items: center; gap: 12px; background: var(--surface); cursor: pointer; transition: all .15s; }
+    .user-card:hover { border-color: var(--primary); box-shadow: var(--shadow-sm); }
+    .trade-status { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+    .deadline-card { background: var(--warning-soft); border: 1px solid var(--warning); border-radius: 12px; padding: 14px; display: flex; gap: 12px; }
+    .facility-selector { display: grid; grid-template-columns: 1fr; gap: 10px; }
+    .fac-item { border: 1px solid var(--border); border-radius: 12px; padding: 14px; cursor: pointer; transition: all .15s; }
+    .fac-item.selected { border-color: var(--primary); background: var(--primary-soft); }
+    .timeline { position: relative; padding-left: 24px; }
+    .timeline:before { content: ""; position: absolute; top: 6px; bottom: 6px; left: 8px; width: 2px; background: var(--border); }
+    .tl-item { position: relative; padding-bottom: 14px; }
+    .tl-item:before { content: ""; position: absolute; left: -20px; top: 4px; width: 10px; height: 10px; border-radius: 50%; background: var(--primary); border: 2px solid #fff; }
+    .tl-time { font-size: 10px; color: var(--text-4); }
+    .tl-text { font-size: 12px; margin-top: 2px; }
+    .config-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border-soft); }
+    .config-row:last-child { border-bottom: 0; }
+    .config-label { font-size: 13px; font-weight: 600; }
+    .config-desc { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+    @media (max-width: 1100px) { .two-col { grid-template-columns: 1fr; } .three-col { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 768px) { .three-col, .four-col { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">P</div>
+      <nav class="sidebar-nav">
+        <button class="sidebar-item active" title="Credit Dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg><span class="sidebar-label">Credit Hub</span></button>
+        <button class="sidebar-item" title="Drawdown" data-modal="drawdownWizardModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path></svg><span class="sidebar-label">Drawdown</span></button>
+        <button class="sidebar-item" title="Covenants" data-modal="reportingModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg><span class="sidebar-label">Covenants</span></button>
+        <button class="sidebar-item" title="Trade Finance" data-modal="navTradeModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg><span class="sidebar-label">Trade</span></button>
+        <button class="sidebar-item" title="Treasury" data-modal="navTreasuryModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg><span class="sidebar-label">Treasury</span></button>
+        <button class="sidebar-item" title="Users" data-modal="userManagementModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg><span class="sidebar-label">Users</span></button>
+        <button class="sidebar-item" title="Repayments" data-modal="repaymentModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg><span class="sidebar-label">Repayments</span></button>
+        <button class="sidebar-item" title="Settings" data-modal="settingsModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg><span class="sidebar-label">Settings</span></button>
+      </nav>
+      <button class="sidebar-expand" id="sidebarToggle"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg><span class="sidebar-label">Collapse</span></button>
+    </aside>
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <div class="crumb">
+            <button class="mobile-menu-btn btn btn-light btn-sm" id="mobileMenuBtn" style="margin-right:8px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+            <span>Borrower Portal</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg><span>Globex Manufacturing Ltd</span>
+          </div>
+          <h1 class="page-title">Business Credit Dashboard</h1>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-light btn-icon" data-modal="notificationsModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg></button>
+          <button class="btn btn-light" data-modal="reportingModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>Compliance Status</button>
+          <button class="btn btn-primary" data-modal="drawdownWizardModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>Request Drawdown</button>
+        </div>
+      </div>
+      <div class="stats-row">
+        <div class="stat-card" data-modal="facilityDetailModal"><div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg></div><div class="stat-label">Total Facilities</div><div class="stat-value">$12.5M</div><div class="stat-trend up"><span>3 active lines</span></div></div>
+        <div class="stat-card" data-modal="usageStatsModal"><div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 17 8.5 12 1 22"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg></div><div class="stat-label">Utilization</div><div class="stat-value">62%</div><div class="stat-trend neutral"><span>$7.75M deployed</span></div></div>
+        <div class="stat-card" data-modal="drawdownWizardModal"><div class="stat-icon purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"></path></svg></div><div class="stat-label">Available Headroom</div><div class="stat-value">$4.75M</div><div class="stat-trend up"><span>Ready for drawdown</span></div></div>
+        <div class="stat-card" data-modal="reportingModal"><div class="stat-icon amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div><div class="stat-label">Next Board Report</div><div class="stat-value">Mar 15</div><div class="stat-trend down"><span>12 days left</span></div></div>
+        <div class="stat-card" data-modal="cashPositionModal"><div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg></div><div class="stat-label">Treasury Cash</div><div class="stat-value">$2.4M</div><div class="stat-trend up"><span>Linked accounts</span></div></div>
+      </div>
+      <div class="panel">
+        <div class="tabs" id="mainTabs">
+          <button class="tab active" data-tab="facilities"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>Facilities</button>
+          <button class="tab" data-tab="users"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>User Management</button>
+          <button class="tab" data-tab="compliance"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>Covenants</button>
+          <button class="tab" data-tab="trade"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>Trade Finance</button>
+          <button class="tab" data-tab="treasury"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line></svg>Treasury</button>
+        </div>
+        <section class="tab-panel active" data-panel="facilities">
+          <div class="panel-body">
+            <div class="two-col">
+              <div>
+                <h2 class="panel-title" style="margin-bottom:14px;">Active Credit Facilities</h2>
+                <div class="fac-item selected" data-modal="facilityDetailModal" style="margin-bottom:12px;">
+                  <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                    <div><div style="font-weight:700;font-size:16px;">Revolving Credit Facility (RCF)</div><div class="list-sub">FAC-RCF-9901 · Maturity: Dec 2028</div></div>
+                    <span class="badge success">Active</span>
+                  </div>
+                  <div style="margin-top:16px;">
+                    <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;"><span>Utilization: $6.2M</span><span>Limit: $10M</span></div>
+                    <div class="usage-bar"><span style="width:62%;background:var(--primary);"></span></div>
+                    <div style="text-align:right;font-size:11px;color:var(--text-3);">$3.8M Headroom available</div>
+                  </div>
+                  <div style="display:flex;gap:8px;margin-top:14px;"><button class="btn btn-primary btn-sm" data-modal="drawdownWizardModal">Drawdown</button><button class="btn btn-light btn-sm" data-modal="repaymentModal">Repay</button></div>
+                </div>
+                <div class="fac-item" data-modal="facilityDetailModal">
+                  <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                    <div><div style="font-weight:700;font-size:16px;">Term Loan A</div><div class="list-sub">FAC-TERM-8812 · Maturity: Jun 2030</div></div>
+                    <span class="badge success">Active</span>
+                  </div>
+                  <div style="margin-top:16px;">
+                    <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;"><span>Outstanding: $2.5M</span><span>Principal: $2.5M</span></div>
+                    <div class="usage-bar"><span style="width:100%;background:var(--success);"></span></div>
+                    <div style="text-align:right;font-size:11px;color:var(--text-3);">Fully drawn · Monthly repayment $52k</div>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <h2 class="panel-title" style="margin-bottom:14px;">Recent Drawdowns</h2>
+                <div class="timeline">
+                  <div class="tl-item"><div class="tl-time">Yesterday</div><div class="tl-text">Drawdown of $500,000 for Inventory completed.</div></div>
+                  <div class="tl-item"><div class="tl-time">12 Feb 2026</div><div class="tl-text">Drawdown of $1.2M approved by Internal Board.</div></div>
+                  <div class="tl-item"><div class="tl-time">01 Feb 2026</div><div class="tl-text">Monthly interest payment of $42,100 settled.</div></div>
+                </div>
+                <button class="btn btn-light btn-sm" style="width:100%;margin-top:10px;" data-modal="drawdownHistoryModal">View all drawdowns</button>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section class="tab-panel" data-panel="users">
+          <div class="panel-body">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+              <h2 class="panel-title">Multi-User Access Control</h2>
+              <button class="btn btn-primary btn-sm" data-modal="addUserModal">+ Add user</button>
+            </div>
+            <div class="three-col">
+              <div class="user-card" data-modal="editUserModal"><div class="avatar">SJ</div><div style="flex:1;"><div style="font-weight:600;">Sarah Johnson</div><div class="list-sub">Admin · Full Access</div></div><span class="badge success">Active</span></div>
+              <div class="user-card" data-modal="editUserModal"><div class="avatar">MK</div><div style="flex:1;"><div style="font-weight:600;">Mark Kamau</div><div class="list-sub">Treasury · $500k limit</div></div><span class="badge success">Active</span></div>
+              <div class="user-card" data-modal="editUserModal"><div class="avatar">AL</div><div style="flex:1;"><div style="font-weight:600;">Alice Leka</div><div class="list-sub">Auditor · View only</div></div><span class="badge primary">External</span></div>
+            </div>
+            <div style="margin-top:22px;"><h3 class="uw-title">Corporate Approval Matrix</h3><table class="table"><thead><tr><th>User Role</th><th>Initiate Drawdown</th><th>Approve Drawdown</th><th>Submit Covenants</th></tr></thead><tbody><tr><td>Admin</td><td><span class="badge success">Yes</span></td><td><span class="badge success">All</span></td><td><span class="badge success">Yes</span></td></tr><tr><td>Treasury</td><td><span class="badge success">Yes</span></td><td><span class="badge warning">&lt;$500k</span></td><td><span class="badge success">Yes</span></td></tr><tr><td>View Only</td><td><span class="badge gray">No</span></td><td><span class="badge gray">No</span></td><td><span class="badge gray">No</span></td></tr></tbody></table></div>
+          </div>
+        </section>
+        <section class="tab-panel" data-panel="compliance">
+          <div class="panel-body">
+            <div class="two-col">
+              <div>
+                <h2 class="panel-title" style="margin-bottom:14px;">Covenant Self-Reporting</h2>
+                <div class="deadline-card" style="margin-bottom:16px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg><div><div style="font-weight:700;">Action Required: Q1 Financials</div><div style="font-size:12px;">Submit by Mar 31 to remain compliant.</div></div><button class="btn btn-primary btn-sm" style="margin-left:auto;" data-modal="uploadFinancialsModal">Upload</button></div>
+                <div class="uw-card"><h3 class="uw-title">Covenant Preview (Pro-forma)</h3><div class="kv-grid"><div><div class="kv-label">Current DSCR</div><div class="kv-val">2.1x</div><div class="list-sub">Limit > 1.5x</div></div><div><div class="kv-label">Net Leverage</div><div class="kv-val">2.8x</div><div class="list-sub">Limit < 3.5x</div></div><div><div class="kv-label">Interest Cover</div><div class="kv-val">4.2x</div><div class="list-sub">Limit > 2.5x</div></div><div><div class="kv-label">Asset Coverage</div><div class="kv-val">1.4x</div><div class="list-sub">Limit > 1.2x</div></div></div><button class="btn btn-light btn-sm" style="width:100%;margin-top:14px;" data-modal="calculationDetailModal">View calculation logic</button></div>
+              </div>
+              <div class="uw-card"><h3 class="uw-title">Compliance History</h3><div class="config-row"><div><div class="config-label">FY25 Audited Accounts</div><div class="config-desc">Submitted Jan 12</div></div><span class="badge success">Compliant</span></div><div class="config-row"><div><div class="config-label">Q4 Financials</div><div class="config-desc">Submitted Oct 15</div></div><span class="badge success">Compliant</span></div><div class="config-row"><div><div class="config-label">Insurance Cert (Plant)</div><div class="config-desc">Verified Sep 01</div></div><span class="badge success">Active</span></div><button class="btn btn-light btn-sm" style="width:100%;margin-top:10px;" data-modal="complianceAuditModal">Full audit log</button></div>
+            </div>
+          </div>
+        </section>
+        <section class="tab-panel" data-panel="trade">
+          <div class="panel-body">
+            <div style="display:flex;justify-content:space-between;gap:12px;margin-bottom:16px;"><h2 class="panel-title">Trade Finance & Guarantees</h2><div style="display:flex;gap:8px;"><button class="btn btn-light" data-modal="lcWizardModal">New L/C</button><button class="btn btn-primary" data-modal="guaranteeWizardModal">New Guarantee</button></div></div>
+            <table class="table"><thead><tr><th>Facility</th><th>Type</th><th>Limit</th><th>Available</th><th>Status</th></tr></thead><tbody><tr><td>Import L/C Line</td><td>Trade</td><td>$5M</td><td>$1.2M</td><td><span class="badge success">Active</span></td></tr><tr><td>Bid Bonds</td><td>Guarantee</td><td>$2M</td><td>$2M</td><td><span class="badge success">Active</span></td></tr></tbody></table>
+            <div style="margin-top:18px;"><h3 class="uw-title">Active Trade Instruments</h3><div class="list-item" data-modal="instrumentDetailModal"><div class="list-left"><div class="list-icon blue" style="background:var(--info-soft);color:var(--info);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg></div><div><div class="list-title">Letter of Credit #LC-88421</div><div class="list-sub">Beneficiary: Shanghai Steel · $840k · Dec 12 Exp</div></div></div><span class="badge info">Dispatched</span></div></div>
+          </div>
+        </section>
+        <section class="tab-panel" data-panel="treasury">
+          <div class="panel-body"><div class="two-col"><div><h2 class="panel-title" style="margin-bottom:14px;">Corporate Treasury Integration</h2><div style="background:var(--surface-2);border-radius:14px;padding:18px;margin-bottom:14px;"><div class="kv-label">Net cash position</div><div class="money-large">$2,412,800</div><div style="margin-top:10px;display:flex;gap:12px;"><span class="badge success">Chase Linked</span><span class="badge success">HSBC Linked</span></div><button class="btn btn-primary btn-sm" style="width:100%;margin-top:14px;" data-modal="linkTreasuryModal">Manage API link</button></div><div class="uw-card"><h3 class="uw-title">Auto-Repayment Schedule</h3><div class="config-row"><div><div class="config-label">Principal Sweep</div><div class="config-desc">Sweep from Chase on 1st of month</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div><div class="config-row"><div><div class="config-label">Interest Payment</div><div class="config-desc">Auto-settle on invoice generation</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div></div></div><div class="uw-card"><h3 class="uw-title">Integrated Bank Balances</h3><table class="table"><thead><tr><th>Bank</th><th>Account</th><th>Available</th></tr></thead><tbody><tr><td>Chase</td><td>Operating ****2081</td><td>$1.14M</td></tr><tr><td>HSBC</td><td>Treasury ****4421</td><td>$1.27M</td></tr></tbody></table><button class="btn btn-light btn-sm" style="width:100%;margin-top:14px;" data-modal="treasurySyncModal">Refresh balances</button></div></div></div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- ============ MODALS ============ -->
+  <div class="modal-backdrop" id="drawdownWizardModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Request Facility Drawdown</h3><div class="modal-sub">Submit a new request from available headroom</div></div><button class="modal-close" data-close>x</button></div><div class="stepper" id="drwStepper"><div class="step active"><div class="step-num">1</div>Facility</div><div class="step-line"></div><div class="step"><div class="step-num">2</div>Amount</div><div class="step-line"></div><div class="step"><div class="step-num">3</div>Docs</div><div class="step-line"></div><div class="step"><div class="step-num">4</div>Review</div></div><div class="modal-body"><div class="step-panel active" data-step="1"><div class="facility-selector"><label class="fac-item selected"><input type="radio" name="fac" checked><div><strong>Revolving Credit Facility (RCF)</strong><div class="list-sub">Headroom: $3.8M · Rate: 4.2% + LIBOR</div></div></label><label class="fac-item"><input type="radio" name="fac"><div><strong>Short Term Line</strong><div class="list-sub">Headroom: $950k · Rate: 8.5% Fixed</div></div></label></div></div><div class="step-panel" data-step="2"><div class="field"><label class="field-label">Drawdown amount</label><input class="input" value="500000"></div><div class="field"><label class="field-label">Purpose of funds</label><select class="select-field"><option>Working Capital / Inventory</option><option>Payroll funding</option><option>CapEx purchase</option><option>Bridge funding</option></select></div></div><div class="step-panel" data-step="3"><div style="border:2px dashed var(--border);padding:32px;text-align:center;border-radius:14px;"><svg width="40" height="40" style="margin:0 auto 12px;color:var(--text-4);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><div>Drop supporting docs (PO, Invoice)</div></div></div><div class="step-panel" data-step="4"><div class="alert info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg>This request requires approval from Sarah Johnson (Admin).</div><div class="kv-grid" style="margin-top:14px;"><div><div class="kv-label">Amount</div><div class="kv-val">$500,000</div></div><div><div class="kv-label">Facility</div><div class="kv-val">RCF</div></div></div></div></div><div class="modal-footer"><button class="btn btn-light" id="drwBack" disabled>Back</button><button class="btn btn-primary" id="drwNext">Next</button></div></div></div>
+
+  <div class="modal-backdrop" id="reportingModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Covenant & Reporting Center</h3><div class="modal-sub">Upcoming reporting deadlines and compliance status</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><table class="table"><thead><tr><th>Requirement</th><th>Frequency</th><th>Deadline</th><th>Status</th></tr></thead><tbody><tr><td>Management Accounts</td><td>Quarterly</td><td>31 Mar 2026</td><td><span class="badge warning">Due soon</span></td></tr><tr><td>Compliance Certificate</td><td>Semi-annual</td><td>31 Mar 2026</td><td><span class="badge warning">Due soon</span></td></tr><tr><td>Insurance Renewal</td><td>Annual</td><td>12 May 2026</td><td><span class="badge success">Verified</span></td></tr></tbody></table></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button class="btn btn-primary" data-modal="uploadFinancialsModal">Submit report</button></div></div></div>
+
+  <div class="modal-backdrop" id="uploadFinancialsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Submit Financial Data</h3><div class="modal-sub">Upload Q1 management accounts</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Period</label><select class="select-field"><option>Q1 2026</option><option>FY 2025 Audited</option></select></div><div style="border:2px dashed var(--border);padding:24px;text-align:center;border-radius:14px;"><div style="font-weight:600;">Drop financials here</div><div class="list-sub">PDF or XLSX up to 20MB</div></div><label class="choice-row selected" style="margin-top:12px;"><input type="checkbox" checked><div><div class="choice-title">Certify accuracy</div><div class="choice-desc">Confirm data matches board-approved books</div></div></label></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Financials submitted for analysis">Submit</button></div></div></div>
+
+  <div class="modal-backdrop" id="facilityDetailModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Revolving Credit Facility (RCF)</h3><div class="modal-sub">FAC-RCF-9901 · USD 10,000,000</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid" style="margin-bottom:18px;"><div><div class="kv-label">Interest rate</div><div class="kv-val">4.2% + 3M LIBOR</div></div><div><div class="kv-label">Maturity date</div><div class="kv-val">12 Dec 2028</div></div><div><div class="kv-label">Last drawdown</div><div class="kv-val">$500k on 18 Feb</div></div><div><div class="kv-label">Total interest paid</div><div class="kv-val">$184k YTD</div></div></div><h3 class="uw-title">Utilization Breakdown</h3><div class="dist-row"><div class="dist-label">Drawn</div><div class="dist-bar"><span style="width:62%;background:var(--primary);"></span></div><div class="dist-val">$6.2M</div></div><div class="dist-row"><div class="dist-label">Pending</div><div class="dist-bar"><span style="width:5%;background:var(--warning);"></span></div><div class="dist-val">$500k</div></div><div class="dist-row"><div class="dist-label">Available</div><div class="dist-bar"><span style="width:33%;background:var(--success);"></span></div><div class="dist-val">$3.3M</div></div></div><div class="modal-footer"><button class="btn btn-light" data-modal="drawdownHistoryModal">Drawdown history</button><button class="btn btn-primary" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="userManagementModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Authorized Corporate Users</h3><div class="modal-sub">Manage roles and approval thresholds</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="list-item"><div class="list-left"><div class="avatar">SJ</div><div><div class="list-title">Sarah Johnson</div><div class="list-sub">Admin · Created drawdown FAC-9918</div></div></div><button class="btn btn-light btn-sm" data-modal="editUserModal">Edit</button></div><div class="list-item"><div class="list-left"><div class="avatar">MK</div><div><div class="list-title">Mark Kamau</div><div class="list-sub">Treasury · Initiated $500k drawdown</div></div></div><button class="btn btn-light btn-sm" data-modal="editUserModal">Edit</button></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button class="btn btn-primary" data-modal="addUserModal">Add user</button></div></div></div>
+
+  <div class="modal-backdrop" id="editUserModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Edit User Permissions</h3><div class="modal-sub">Sarah Johnson</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Role</label><select class="select-field"><option>Corporate Admin</option><option>Treasury Officer</option><option>View-only Auditor</option></select></div><div class="field"><label class="field-label">Approval limit ($)</label><input class="input" value="10000000"></div><div class="config-row"><div><div class="config-label">MFA required for drawdown</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="User permissions updated">Save changes</button></div></div></div>
+
+  <div class="modal-backdrop" id="addUserModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Add Corporate User</h3><div class="modal-sub">Invite to Globex credit portal</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Email address</label><input class="input" placeholder="user@globex.com"></div><div class="field"><label class="field-label">Full name</label><input class="input" placeholder="Full name"></div><div class="field"><label class="field-label">Initial role</label><select class="select-field"><option>Treasury Officer</option><option>View-only</option><option>Admin</option></select></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Invitation sent to user">Send invitation</button></div></div></div>
+
+  <div class="modal-backdrop" id="lcWizardModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Apply for Letter of Credit</h3><div class="modal-sub">New trade finance instrument application</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Beneficiary name</label><input class="input" placeholder="e.g. Shanghai Steel Ltd"></div><div class="field-row"><div class="field"><label class="field-label">L/C Amount</label><input class="input" value="840000"></div><div class="field"><label class="field-label">Currency</label><select class="select-field"><option>USD</option><option>EUR</option><option>GBP</option></select></div></div><div class="field"><label class="field-label">Expiry date</label><input class="input" type="date"></div><div class="field"><label class="field-label">Shipping docs required</label><textarea class="textarea" placeholder="Bill of lading, Commercial Invoice, etc"></textarea></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="L/C application submitted to Trade Desk">Submit L/C app</button></div></div></div>
+
+  <div class="modal-backdrop" id="guaranteeWizardModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">New Guarantee Request</h3><div class="modal-sub">Bid bonds, Performance bonds, etc</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Guarantee type</label><select class="select-field"><option>Bid Bond</option><option>Performance Guarantee</option><option>Advance Payment Bond</option></select></div><div class="field"><label class="field-label">Amount</label><input class="input" value="100000"></div><div class="field"><label class="field-label">Beneficiary</label><input class="input" placeholder="Entity name"></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Guarantee request submitted">Submit request</button></div></div></div>
+
+  <div class="modal-backdrop" id="instrumentDetailModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Letter of Credit #LC-88421</h3><div class="modal-sub">Beneficiary: Shanghai Steel Ltd</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="timeline"><div class="tl-item"><div class="tl-time">Yesterday</div><div class="tl-text">Trade desk dispatched L/C to beneficiary bank</div></div><div class="tl-item"><div class="tl-time">14 Feb</div><div class="tl-text">Shipping documents received and verified</div></div></div><div style="margin-top:14px;background:var(--surface-2);padding:14px;border-radius:12px;"><div class="kv-label">Next step</div><div style="font-weight:600;">Awaiting presentation of bill of lading for settlement</div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-result="Document pack downloaded">Download docs</button><button class="btn btn-primary" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="linkTreasuryModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Treasury Integration</h3><div class="modal-sub">Link via API to ERP/Treasury systems</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">System provider</label><select class="select-field"><option>SAP Treasury</option><option>Oracle NetSuite</option><option>Kyriba</option><option>Custom API (webhook)</option></select></div><div class="config-row"><div><div class="config-label">Auto-sync balance</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div><div class="config-row"><div><div class="config-label">Auto-repay on sweep</div></div><label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Treasury integration updated">Save API config</button></div></div></div>
+
+  <div class="modal-backdrop" id="cashPositionModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Cash Position (Integrated)</h3><div class="modal-sub">View across linked accounts</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="dist-row"><div class="dist-label">Chase (USD)</div><div class="dist-bar"><span style="width:48%;background:var(--primary);"></span></div><div class="dist-val">$1.14M</div></div><div class="dist-row"><div class="dist-label">HSBC (EUR)</div><div class="dist-bar"><span style="width:52%;background:var(--success);"></span></div><div class="dist-val">$1.27M</div></div><div class="alert success" style="margin-top:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>Total Liquidity: $2.41M. Covers 46 interest cycles.</div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="repaymentModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Make a Repayment</h3><div class="modal-sub">Settle principal or interest</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Source account</label><select class="select-field"><option>Chase Operating (****2081)</option><option>HSBC Treasury (****4421)</option></select></div><div class="field-row"><div class="field"><label class="field-label">Amount</label><input class="input" value="52100"></div><div class="field"><label class="field-label">Repayment type</label><select class="select-field"><option>Monthly Interest</option><option>Principal reduction</option><option>Full settlement</option></select></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Repayment scheduled for settlement">Pay now</button></div></div></div>
+
+  <div class="modal-backdrop" id="usageStatsModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Facility Usage Stats</h3><div class="modal-sub">Globex Manufacturing · FAC-RCF-9901</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><svg class="mini-chart" viewBox="0 0 600 150" preserveAspectRatio="none"><g stroke="#e8e6df"><line x1="0" y1="40" x2="600" y2="40"></line><line x1="0" y1="80" x2="600" y2="80"></line><line x1="0" y1="120" x2="600" y2="120"></line></g><path d="M0,110 L100,98 L200,105 L300,82 L400,88 L500,64 L600,72 L600,150 L0,150 Z" fill="#eef0ff"></path><path d="M0,110 L100,98 L200,105 L300,82 L400,88 L500,64 L600,72" fill="none" stroke="#5b5bf5" stroke-width="3"></path></svg><div class="legend" style="margin-top:10px;justify-content:center;"><span><span class="legend-dot" style="background:#5b5bf5;"></span>Drawn Balance</span></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="settingsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Portal Settings</h3><div class="modal-sub">Account and notification preferences</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="config-row"><div><div class="config-label">Email Notifications</div><div class="config-desc">Drawdowns and repayments</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div><div class="config-row"><div><div class="config-label">Compliance Alerts</div><div class="config-desc">30-day notice for covenants</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div><div class="config-row"><div><div class="config-label">2FA for Admin</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Settings saved">Save preferences</button></div></div></div>
+
+  <div class="modal-backdrop" id="notificationsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Notifications</h3><div class="modal-sub">Latest Globex credit activity</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body" style="padding:0;"><div class="list-item"><div class="list-left"><div class="list-icon" style="background:var(--warning-soft);color:var(--warning);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg></div><div><div class="list-title">Q1 Financials due</div><div class="list-sub">12 days left to submit</div></div></div></div><div class="list-item"><div class="list-left"><div class="list-icon" style="background:var(--success-soft);color:var(--success);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg></div><div><div class="list-title">Drawdown approved</div><div class="list-sub">$500,000 processed</div></div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-result="Notifications cleared">Clear all</button><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="resultModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title" id="resultTitle">Success</h3><div class="modal-sub">PayMo operation completed</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="alert success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg><span id="resultMessage">Action completed.</span></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Done</button></div></div></div>
+
+  <!-- Sidebar module-level simple modals -->
+  <div class="modal-backdrop" id="navTradeModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Trade Finance</h3><div class="modal-sub">Globex active trade book</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">Active L/Cs</div><div class="kv-val">2</div></div><div><div class="kv-label">Guarantees</div><div class="kv-val">$1.2M</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button class="btn btn-primary" onclick="switchTab('trade');closeAll();">View trade tab</button></div></div></div>
+  <div class="modal-backdrop" id="navTreasuryModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Treasury Management</h3><div class="modal-sub">Globex treasury integrations</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">Integrated Banks</div><div class="kv-val">2</div></div><div><div class="kv-label">Auto-sweeps</div><div class="kv-val">Enabled</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button class="btn btn-primary" onclick="switchTab('treasury');closeAll();">View treasury tab</button></div></div></div>
+  <div class="modal-backdrop" id="drawdownHistoryModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Drawdown History</h3><div class="modal-sub">RCF history for FAC-9901</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><table class="table"><thead><tr><th>Date</th><th>Amount</th><th>Status</th></tr></thead><tbody><tr><td>18 Feb</td><td>$500,000</td><td><span class="badge success">Settled</span></td></tr><tr><td>12 Feb</td><td>$1,200,000</td><td><span class="badge success">Settled</span></td></tr><tr><td>05 Jan</td><td>$850,000</td><td><span class="badge success">Settled</span></td></tr></tbody></table></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+  <div class="modal-backdrop" id="calculationDetailModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Covenant Calculation Logic</h3><div class="modal-sub">Transparency in compliance metrics</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div style="background:var(--surface-2);padding:14px;border-radius:12px;font-family:'JetBrains Mono',monospace;font-size:12px;">DSCR = (Net Operating Income + Depreciation) / (Principal + Interest)</div><div style="margin-top:14px;"><div class="kv-label">Current data source</div><div class="kv-val">Pro-forma management accounts (Jan-Feb 2026)</div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+  <div class="modal-backdrop" id="complianceAuditModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Compliance Audit Trail</h3><div class="modal-sub">All submissions and verifications</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="timeline"><div class="tl-item"><div class="tl-time">12 Jan</div><div class="tl-text">Audited FY25 financials verified by PayMo Credit Team</div></div><div class="tl-item"><div class="tl-time">02 Jan</div><div class="tl-text">Audited accounts submitted by Sarah Johnson</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+  <div class="modal-backdrop" id="treasurySyncModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Treasury Balance Refresh</h3><div class="modal-sub">Sync linked corporate accounts</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="alert info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg>Fetching balances from Chase and HSBC via API.</div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Treasury balances refreshed successfully">Refresh now</button></div></div></div>
+
+  <script>
+    const sidebar = document.getElementById('sidebar');
+    document.getElementById('sidebarToggle').addEventListener('click', () => sidebar.classList.toggle('expanded'));
+    document.getElementById('mobileMenuBtn').addEventListener('click', () => sidebar.classList.toggle('mobile-open'));
+
+    function openModal(id) { const m = document.getElementById(id); if (m) m.classList.add('show'); }
+    function closeAll() { document.querySelectorAll('.modal-backdrop.show').forEach(m => m.classList.remove('show')); }
+    document.addEventListener('click', e => {
+      if (e.target.closest('.toggle') || e.target.closest('input') || e.target.closest('select') || e.target.closest('textarea')) return;
+      const close = e.target.closest('[data-close]');
+      if (close) { e.preventDefault(); e.stopPropagation(); closeAll(); return; }
+      const result = e.target.closest('[data-result]');
+      if (result) { e.preventDefault(); e.stopPropagation(); setResult(result.dataset.result); return; }
+      const opener = e.target.closest('[data-modal]');
+      if (opener) { e.preventDefault(); e.stopPropagation(); openModal(opener.dataset.modal); }
+    });
+    document.querySelectorAll('.modal-backdrop').forEach(b => b.addEventListener('click', e => { if (e.target === b) closeAll(); }));
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAll(); });
+
+    function setResult(message) {
+      closeAll();
+      document.getElementById('resultMessage').textContent = message;
+      openModal('resultModal');
+    }
+
+    function switchTab(name) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.dataset.panel === name));
+    }
+    document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => switchTab(tab.dataset.tab)));
+
+    document.querySelectorAll('.fac-item, .choice-row').forEach(row => {
+      row.addEventListener('click', (e) => {
+        if (e.target.closest('input')) return;
+        const radio = row.querySelector('input[type="radio"]');
+        if (radio) {
+          document.querySelectorAll(`input[name="${radio.name}"]`).forEach(i => i.closest('.fac-item, .choice-row')?.classList.remove('selected'));
+          radio.checked = true;
+          row.classList.add('selected');
+        }
+        const checkbox = row.querySelector('input[type="checkbox"]');
+        if (checkbox && !radio) {
+          checkbox.checked = !checkbox.checked;
+          row.classList.toggle('selected', checkbox.checked);
+        }
+      });
+    });
+
+    function setupStepper(rootId, stepperId, backId, nextId, total, doneMessage) {
+      const root = document.getElementById(rootId);
+      if (!root) return;
+      let current = 1;
+      const render = () => {
+        root.querySelectorAll(`#${stepperId} .step`).forEach((s, i) => { s.classList.toggle('active', i + 1 === current); s.classList.toggle('done', i + 1 < current); });
+        root.querySelectorAll('.step-panel').forEach(p => p.classList.toggle('active', Number(p.dataset.step) === current));
+        root.querySelector(`#${backId}`).disabled = current === 1;
+        root.querySelector(`#${nextId}`).textContent = current === total ? 'Submit' : 'Next';
+      };
+      root.querySelector(`#${backId}`).addEventListener('click', () => { if (current > 1) { current--; render(); } });
+      root.querySelector(`#${nextId}`).addEventListener('click', () => { if (current < total) { current++; render(); } else { current = 1; render(); setResult(doneMessage); } });
+      render();
+    }
+    setupStepper('drawdownWizardModal', 'drwStepper', 'drwBack', 'drwNext', 4, 'Drawdown request submitted for corporate approval');
+  </script>
+</body>
+</html>

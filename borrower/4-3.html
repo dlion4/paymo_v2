@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Loans & Credit Facilities - PayMo Borrower</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="stylesheet" href="./master.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    .facility-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .facility-card { background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius); padding: 18px; cursor: pointer; transition: all .15s; }
+    .facility-card:hover { border-color: var(--primary); box-shadow: var(--shadow-lg); transform: translateY(-1px); }
+    .facility-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+    .facility-icon svg { width: 20px; height: 22px; }
+    .repayment-bar { height: 6px; border-radius: 99px; background: var(--surface-3); overflow: hidden; margin: 12px 0; }
+    .repayment-bar span { display: block; height: 100%; border-radius: 99px; background: var(--primary); }
+    .two-col { display: grid; grid-template-columns: 1.5fr 1fr; gap: 16px; }
+    .kv-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px 18px; }
+    .kv-label { font-size: 10px; color: var(--text-4); text-transform: uppercase; letter-spacing: .07em; }
+    .kv-val { font-size: 13px; font-weight: 600; margin-top: 2px; }
+    .gauge-wrap { position: relative; width: 150px; height: 150px; margin: 0 auto; }
+    .gauge-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .donut { transform: rotate(-90deg); }
+    .donut circle { fill: none; stroke-width: 14; }
+    .timeline { position: relative; padding-left: 24px; }
+    .timeline:before { content: ""; position: absolute; top: 6px; bottom: 6px; left: 8px; width: 2px; background: var(--border); }
+    .tl-item { position: relative; padding-bottom: 14px; }
+    .tl-item:before { content: ""; position: absolute; left: -20px; top: 4px; width: 10px; height: 10px; border-radius: 50%; background: var(--primary); border: 2px solid #fff; }
+    .tl-time { font-size: 10px; color: var(--text-4); }
+    .tl-text { font-size: 12px; margin-top: 2px; }
+    .paid-row td { color: var(--text-4); text-decoration: line-through; }
+    .paid-row .badge { text-decoration: none; }
+    .limit-gauge { height: 12px; border-radius: 99px; background: var(--surface-3); position: relative; margin-top: 10px; }
+    .limit-used { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--primary), #7c3aed); position: relative; }
+    .limit-pointer { position: absolute; top: -20px; right: 0; transform: translateX(50%); font-size: 11px; font-weight: 600; }
+    @media (max-width: 1100px) { .facility-grid { grid-template-columns: repeat(2, 1fr); } .two-col { grid-template-columns: 1fr; } }
+    @media (max-width: 768px) { .facility-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">P</div>
+      <nav class="sidebar-nav">
+        <button class="sidebar-item" title="Dashboard" data-modal="navDashboardModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg><span class="sidebar-label">Dashboard</span></button>
+        <button class="sidebar-item" title="Apply for Loan" data-modal="navApplyModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg><span class="sidebar-label">Apply Now</span></button>
+        <button class="sidebar-item active" title="My Loans"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="M9 12l2 2 4-4"></path></svg><span class="sidebar-label">My Loans</span></button>
+        <button class="sidebar-item" title="Wallets" data-modal="navWalletsModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"></path></svg><span class="sidebar-label">Wallets</span></button>
+        <button class="sidebar-item" title="Repayments" data-modal="navRepayModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg><span class="sidebar-label">Repay</span></button>
+        <button class="sidebar-item" title="Documents" data-modal="navDocsModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg><span class="sidebar-label">Documents</span></button>
+        <button class="sidebar-item" title="Settings" data-modal="navSettingsModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg><span class="sidebar-label">Settings</span></button>
+      </nav>
+      <button class="sidebar-expand" id="sidebarToggle"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg><span class="sidebar-label">Collapse</span></button>
+    </aside>
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <div class="crumb">
+            <button class="mobile-menu-btn btn btn-light btn-sm" id="mobileMenuBtn" style="margin-right:8px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+            <span>Borrower Portal</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg><span>My Loans / Credit Facilities</span>
+          </div>
+          <h1 class="page-title">My Loans & Facilities</h1>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-light btn-icon" data-modal="notificationsModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg></button>
+          <button class="btn btn-light" data-modal="filterModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg><span class="btn-text">Filter</span></button>
+          <button class="btn btn-light" data-modal="exportSummaryModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg><span class="btn-text">Export</span></button>
+          <button class="btn btn-primary" data-modal="navApplyModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>New Loan</button>
+        </div>
+      </div>
+      <div class="stats-row">
+        <div class="stat-card" data-modal="activeSummaryModal"><div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg></div><div class="stat-label">Active Facilities</div><div class="stat-value">3</div><div class="stat-trend up"><span>All on track</span></div></div>
+        <div class="stat-card" data-modal="balanceTotalModal"><div class="stat-icon purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"></path></svg></div><div class="stat-label">Total Outstanding</div><div class="stat-value">KES 1.8M</div><div class="stat-trend down"><span>-KES 140K vs last month</span></div></div>
+        <div class="stat-card" data-modal="repayNextModal"><div class="stat-icon amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div><div class="stat-label">Next Repayment</div><div class="stat-value">KES 42,500</div><div class="stat-trend neutral"><span>Due in 4 days</span></div></div>
+        <div class="stat-card" data-modal="creditLimitModal"><div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg></div><div class="stat-label">Used Credit</div><div class="stat-value">42%</div><div class="stat-trend up"><span>KES 1.2M available</span></div></div>
+        <div class="stat-card" data-modal="scoreModal"><div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4-6.3-4.6L5.7 21.4 8 14 2 9.4h7.6z"></path></svg></div><div class="stat-label">Internal Score</div><div class="stat-value">742</div><div class="stat-trend up"><span>Excellent</span></div></div>
+      </div>
+      <div class="panel">
+        <div class="tabs" id="mainTabs">
+          <button class="tab active" data-tab="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>Active Facilities</button>
+          <button class="tab" data-tab="revolving"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>Revolving Credit</button>
+          <button class="tab" data-tab="closed"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>Closed Facilities</button>
+        </div>
+        <section class="tab-panel active" data-panel="active">
+          <div class="panel-body">
+            <div class="panel-header" style="padding:0 0 18px;border-bottom:0;">
+              <h2 class="panel-title">Active Loans & Contracts</h2>
+              <div class="panel-actions">
+                <select class="select" id="sortActive"><option>Sort by: Next Due</option><option>Sort by: Balance</option><option>Sort by: Product</option></select>
+                <button class="btn btn-primary btn-sm" data-modal="navRepayModal">Make a Repayment</button>
+              </div>
+            </div>
+            <div class="facility-grid">
+              <div class="facility-card" data-modal="facilityDetailModal">
+                <div class="dir-card-head"><div class="dir-card-left"><div class="facility-icon" style="background:var(--primary-soft);color:var(--primary);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"></path><path d="M5 21V7l7-4 7 4v14"></path></svg></div><div><h4>Residential Mortgage</h4><div class="sub">REF: MOR-8821</div></div></div><span class="badge success"><span class="badge-dot"></span>Current</span></div>
+                <div class="kv-grid" style="margin-top:14px;"><div><div class="kv-label">Original</div><div class="kv-val">KES 4.2M</div></div><div><div class="kv-label">Outstanding</div><div class="kv-val">KES 3.1M</div></div></div>
+                <div class="repayment-bar"><span style="width:26%;"></span></div>
+                <div style="display:flex;justify-content:space-between;align-items:center;"><div class="list-sub">Next: 01 Mar · KES 42,500</div><button class="btn btn-ghost btn-sm" data-close>View Details</button></div>
+              </div>
+              <div class="facility-card" data-modal="facilityDetailModal">
+                <div class="dir-card-head"><div class="dir-card-left"><div class="facility-icon" style="background:var(--purple-soft);color:var(--purple);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg></div><div><h4>SME Working Capital</h4><div class="sub">REF: BUS-1044</div></div></div><span class="badge success"><span class="badge-dot"></span>Current</span></div>
+                <div class="kv-grid" style="margin-top:14px;"><div><div class="kv-label">Original</div><div class="kv-val">KES 800,000</div></div><div><div class="kv-label">Outstanding</div><div class="kv-val">KES 420,000</div></div></div>
+                <div class="repayment-bar"><span style="width:48%;"></span></div>
+                <div style="display:flex;justify-content:space-between;align-items:center;"><div class="list-sub">Next: 15 Mar · KES 28,000</div><button class="btn btn-ghost btn-sm" data-close>View Details</button></div>
+              </div>
+              <div class="facility-card" data-modal="facilityDetailModal">
+                <div class="dir-card-head"><div class="dir-card-left"><div class="facility-icon" style="background:var(--warning-soft);color:var(--warning);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg></div><div><h4>Asset Finance (Vehicle)</h4><div class="sub">REF: AST-9920</div></div></div><span class="badge warning"><span class="badge-dot"></span>Grace Period</span></div>
+                <div class="kv-grid" style="margin-top:14px;"><div><div class="kv-label">Original</div><div class="kv-val">KES 1.2M</div></div><div><div class="kv-label">Outstanding</div><div class="kv-val">KES 840,000</div></div></div>
+                <div class="repayment-bar"><span style="width:30%;"></span></div>
+                <div style="display:flex;justify-content:space-between;align-items:center;"><div class="list-sub">Next: 22 Feb · KES 34,200</div><button class="btn btn-ghost btn-sm" data-close>View Details</button></div>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section class="tab-panel" data-panel="revolving">
+          <div class="panel-body">
+            <div class="two-col">
+              <div class="uw-card">
+                <h3 class="panel-title" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path></svg>Credit Line Management</h3>
+                <div class="kv-grid" style="margin-bottom:18px;">
+                  <div><div class="kv-label">Limit</div><div class="kv-val">KES 2,000,000</div></div>
+                  <div><div class="kv-label">Available</div><div class="kv-val" style="color:var(--success);">KES 1,160,000</div></div>
+                  <div><div class="kv-label">Used</div><div class="kv-val">KES 840,000</div></div>
+                  <div><div class="kv-label">Interest Accrued</div><div class="kv-val">KES 12,400</div></div>
+                </div>
+                <div class="limit-gauge"><div class="limit-used" style="width:42%;"><div class="limit-pointer">Used: 42%</div></div></div>
+                <div style="display:flex;gap:10px;margin-top:28px;">
+                  <button class="btn btn-primary" data-modal="drawdownModal">New Drawdown</button>
+                  <button class="btn btn-light" data-modal="limitIncreaseModal">Request Limit Increase</button>
+                </div>
+              </div>
+              <div>
+                <h3 class="panel-title" style="margin-bottom:12px;">Drawdown History</h3>
+                <div class="table-wrap"><table class="table"><thead><tr><th>Date</th><th>Amount</th><th>Status</th></tr></thead><tbody>
+                  <tr><td>12 Feb</td><td>KES 140K</td><td><span class="badge success">Active</span></td></tr>
+                  <tr><td>01 Jan</td><td>KES 300K</td><td><span class="badge success">Active</span></td></tr>
+                  <tr><td>15 Nov</td><td>KES 400K</td><td><span class="badge success">Active</span></td></tr>
+                </tbody></table></div>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section class="tab-panel" data-panel="closed">
+          <div class="panel-body">
+            <h2 class="panel-title" style="margin-bottom:14px;">Historical Loans</h2>
+            <div class="table-wrap"><table class="table"><thead><tr><th>Facility</th><th>Closed Date</th><th>Total Repaid</th><th>Ref</th><th></th></tr></thead><tbody>
+              <tr><td>Salary Advance</td><td>12 Dec 2025</td><td>KES 84,200</td><td>SAL-4410</td><td class="right"><button class="btn btn-light btn-sm" data-modal="reapplyModal">Reapply</button></td></tr>
+              <tr><td>Personal Loan</td><td>15 Aug 2025</td><td>KES 240,000</td><td>PER-0081</td><td class="right"><button class="btn btn-light btn-sm" data-modal="closureModal">Certificate</button></td></tr>
+              <tr><td>Buy-now-pay-later</td><td>02 May 2025</td><td>KES 12,900</td><td>BNP-9921</td><td class="right"><button class="btn btn-light btn-sm" data-modal="reapplyModal">Reapply</button></td></tr>
+            </tbody></table></div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="facilityDetailModal"><div class="modal xl"><div class="modal-header"><div><h3 class="modal-title">Residential Mortgage — MOR-8821</h3><div class="modal-sub">Current · KES 3,142,000 Outstanding</div></div><button class="modal-close" data-close>x</button></div><div class="tabs" style="padding:0 24px;border-bottom:1px solid var(--border-soft);"><button class="tab active" data-tab="f-summary">Summary</button><button class="tab" data-tab="f-schedule">Schedule</button><button class="tab" data-tab="f-txns">Transactions</button><button class="tab" data-tab="f-docs">Documents</button></div><div class="modal-body"><div class="tab-panel active" data-panel="f-summary"><div class="kv-grid"><div><div class="kv-label">Disbursement Date</div><div class="kv-val">15 Jan 2024</div></div><div><div class="kv-label">Disbursed Amount</div><div class="kv-val">KES 4,200,000</div></div><div><div class="kv-label">Current Principal</div><div class="kv-val">KES 3,080,000</div></div><div><div class="kv-label">Accrued Interest</div><div class="kv-val">KES 62,000</div></div><div><div class="kv-label">Interest Rate</div><div class="kv-val">12.5% p.a (Floating)</div></div><div><div class="kv-label">Remaining Tenor</div><div class="kv-val">144 months</div></div></div><div class="alert info" style="margin-top:18px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg>Next repayment of KES 42,500 due on 01 Mar 2026 via direct debit.</div></div><div class="tab-panel" data-panel="f-schedule"><table class="table"><thead><tr><th>Inst #</th><th>Due Date</th><th>Amount</th><th>Status</th></tr></thead><tbody><tr class="paid-row"><td>24</td><td>01 Feb 2026</td><td>KES 42,500</td><td><span class="badge success">Paid</span></td></tr><tr><td>25</td><td>01 Mar 2026</td><td>KES 42,500</td><td><span class="badge info">Upcoming</span></td></tr><tr><td>26</td><td>01 Apr 2026</td><td>KES 42,500</td><td><span class="badge info">Upcoming</span></td></tr></tbody></table></div><div class="tab-panel" data-panel="f-txns"><div style="display:flex;justify-content:space-between;margin-bottom:12px;"><select class="select btn-sm"><option>All Transactions</option><option>Repayments</option><option>Fees</option></select><button class="btn btn-light btn-sm" data-result="Transaction history downloaded">Download CSV</button></div><table class="table"><thead><tr><th>Date</th><th>Type</th><th>Amount</th><th>Ref</th></tr></thead><tbody><tr><td>01 Feb 2026</td><td>Repayment</td><td>-KES 42,500</td><td>TXN-9982</td></tr><tr><td>15 Jan 2026</td><td>Interest Posting</td><td>+KES 32,100</td><td>SYS-INT-01</td></tr></tbody></table></div><div class="tab-panel" data-panel="f-docs"><div class="list-item"><div class="list-left"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg><div><div class="list-title">Loan Agreement.pdf</div><div class="list-sub">Signed 15 Jan 2024</div></div></div><button class="btn btn-light btn-sm" data-result="Document downloaded">Download</button></div><div class="list-item"><div class="list-left"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg><div><div class="list-title">Valuation Report.pdf</div><div class="list-sub">Riverside Heights</div></div></div><button class="btn btn-light btn-sm" data-result="Document downloaded">Download</button></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button class="btn btn-primary" data-modal="navRepayModal">Make Payment</button></div></div></div>
+
+  <div class="modal-backdrop" id="drawdownModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">New Credit Drawdown</h3><div class="modal-sub">Available: KES 1,160,000</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Amount to Draw</label><input class="input" value="100000"></div><div class="field"><label class="field-label">Disburse to Wallet</label><select class="select-field"><option>Main Business Wallet · KES 2.4M</option><option>Payroll Wallet · KES 180K</option></select></div><div class="alert info">Funds will be available instantly in your selected wallet.</div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Drawdown of KES 100,000 initiated">Confirm Drawdown</button></div></div></div>
+
+  <div class="modal-backdrop" id="limitIncreaseModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Request Limit Increase</h3><div class="modal-sub">Current limit: KES 2,000,000</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Requested New Limit</label><input class="input" value="3000000"></div><div class="field"><label class="field-label">Reason for Increase</label><textarea class="textarea" placeholder="Describe the business need..."></textarea></div><div class="alert warning">Increase requests may require updated financial statements.</div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Limit increase request submitted for review">Submit Request</button></div></div></div>
+
+  <div class="modal-backdrop" id="reapplyModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Reapply for Loan</h3><div class="modal-sub">Re-using profile for quick application</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="alert success" style="margin-bottom:14px;">Your profile is up to date. You can reapply for the "Salary Advance" facility instantly.</div><div class="field"><label class="field-label">Desired Amount</label><input class="input" value="84200"></div><div class="field"><label class="field-label">Tenor</label><select class="select-field"><option>30 Days</option><option>60 Days</option></select></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Loan application submitted">Submit Application</button></div></div></div>
+
+  <div class="modal-backdrop" id="closureModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Closure Certificate</h3><div class="modal-sub">Facility PER-0081 fully repaid</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div style="text-align:center;padding:22px;border:1px solid var(--border-soft);border-radius:14px;background:var(--surface-2);"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin:0 auto 12px;color:var(--success);"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg><div style="font-weight:700;font-size:18px;">Loan Satisfied</div><div class="list-sub">All obligations for this facility have been met.</div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button class="btn btn-primary" data-result="Closure certificate downloaded">Download PDF</button></div></div></div>
+
+  <!-- Common Navigation Modals -->
+  <div class="modal-backdrop" id="navDashboardModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Borrower Dashboard</h3><div class="modal-sub">Portfolio overview</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="alert info">Daily overview of your financial position with PayMo.</div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+  <div class="modal-backdrop" id="navApplyModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">New Credit Application</h3><div class="modal-sub">Choose a product segment</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="facility-grid"><div class="facility-card"><div class="facility-icon blue" style="background:var(--info-soft);color:var(--info);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div><div style="font-weight:600;margin-top:10px;">Retail Loans</div><div class="list-sub">Personal, Advance, BNPL</div></div><div class="facility-card"><div class="facility-icon purple" style="background:var(--purple-soft);color:var(--purple);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"></path><path d="M3 7l9-4 9 4v14H3V7z"></path></svg></div><div style="font-weight:600;margin-top:10px;">SME Loans</div><div class="list-sub">Working Capital, Invoice</div></div><div class="facility-card"><div class="facility-icon amber" style="background:var(--warning-soft);color:var(--warning);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"></path><path d="M5 21V7l7-4 7 4v14"></path></svg></div><div style="font-weight:600;margin-top:10px;">Real Estate</div><div class="list-sub">Mortgage, Construction</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+  <div class="modal-backdrop" id="navWalletsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">My Wallets</h3><div class="modal-sub">KES 2,420,100 available</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">Business Wallet</div><div class="kv-val">KES 2.4M</div></div><div><div class="kv-label">Float Wallet</div><div class="kv-val">KES 20.1K</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+  <div class="modal-backdrop" id="navRepayModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Quick Repayment</h3><div class="modal-sub">Choose facility to repay</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Loan Facility</label><select class="select-field"><option>Residential Mortgage · KES 42,500 due</option><option>SME Working Capital · KES 28,000 due</option></select></div><div class="field"><label class="field-label">Amount</label><input class="input" value="42500"></div><div class="field"><label class="field-label">Source</label><select class="select-field"><option>Business Wallet · KES 2.4M</option><option>M-Pesa / Bank</option></select></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Repayment of KES 42,500 processed">Repay Now</button></div></div></div>
+  <div class="modal-backdrop" id="navDocsModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Document Vault</h3><div class="modal-sub">Lending related files</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><table class="table"><thead><tr><th>Document</th><th>Date</th><th>Type</th><th></th></tr></thead><tbody><tr><td>Loan Agreement - MOR-8821</td><td>15 Jan 2024</td><td>Signed PDF</td><td class="right"><button class="btn btn-light btn-sm" data-result="File downloaded">Download</button></td></tr><tr><td>Insurance Policy</td><td>15 Jan 2026</td><td>Active</td><td class="right"><button class="btn btn-light btn-sm" data-result="File downloaded">Download</button></td></tr></tbody></table></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+  <div class="modal-backdrop" id="navSettingsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Borrower Settings</h3><div class="modal-sub">Lending preferences</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="config-row"><div><div class="config-label">Auto-repay</div><div class="config-desc">Debit wallet on due date</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div><div class="config-row"><div><div class="config-label">Repayment alerts</div><div class="config-desc">Notify 3 days before due</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <!-- Summary Modals for stats -->
+  <div class="modal-backdrop" id="activeSummaryModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Active Facilities Summary</h3><div class="modal-sub">3 active loans</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="dist-row"><div class="dist-label">Mortgage</div><div class="dist-bar"><span style="width:75%;background:var(--primary);"></span></div><div class="dist-val">75% Left</div></div><div class="dist-row"><div class="dist-label">SME Loan</div><div class="dist-bar"><span style="width:52%;background:var(--primary);"></span></div><div class="dist-val">52% Left</div></div><div class="dist-row"><div class="dist-label">Asset Finance</div><div class="dist-bar"><span style="width:70%;background:var(--primary);"></span></div><div class="dist-val">70% Left</div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+  <div class="modal-backdrop" id="balanceTotalModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Outstanding Balance</h3><div class="modal-sub">Total KES 1.8M principal</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">Mortgage</div><div class="kv-val">KES 3.1M</div></div><div><div class="kv-label">SME</div><div class="kv-val">KES 420K</div></div><div><div class="kv-label">Asset</div><div class="kv-val">KES 840K</div></div></div><div style="margin-top:14px;font-size:12px;color:var(--text-3);">Balance includes principal + current cycle interest.</div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+  <div class="modal-backdrop" id="repayNextModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Next Repayment</h3><div class="modal-sub">Due in 4 days</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">Amount</div><div class="kv-val">KES 42,500</div></div><div><div class="kv-label">Due Date</div><div class="kv-val">01 Mar 2026</div></div></div><button class="btn btn-primary" style="width:100%;margin-top:14px;" data-modal="navRepayModal">Repay Early</button></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+  <div class="modal-backdrop" id="creditLimitModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Used Credit Detailed</h3><div class="modal-sub">KES 2M Total Limit</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="gauge-wrap"><svg width="150" height="150" viewBox="0 0 150 150" class="donut"><circle cx="75" cy="75" r="56" stroke="#eef0ff"></circle><circle cx="75" cy="75" r="56" stroke="var(--primary)" stroke-dasharray="352" stroke-dashoffset="204"></circle></svg><div class="gauge-center"><div style="font-size:24px;font-weight:700;">42%</div><div class="kv-label">Used</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button class="btn btn-primary" data-modal="drawdownModal">Drawdown</button></div></div></div>
+  <div class="modal-backdrop" id="scoreModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Credit Score Insights</h3><div class="modal-sub">742 - Excellent</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="alert success">You are in the top 10% of borrowers. You qualify for lower interest rates on your next loan.</div><div class="config-row"><div><div class="config-label">Repayment history</div></div><span class="badge success">Perfect</span></div><div class="config-row"><div><div class="config-label">Credit utilization</div></div><span class="badge success">Good</span></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <!-- Additional Modals to exceed 20 count -->
+  <div class="modal-backdrop" id="repaymentDetailModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Repayment Detail</h3><div class="modal-sub">TXN-9982 · KES 42,500</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">Date</div><div class="kv-val">01 Feb 2026</div></div><div><div class="kv-label">Source</div><div class="kv-val">Business Wallet</div></div><div><div class="kv-label">Applied to Principal</div><div class="kv-val">KES 32,400</div></div><div><div class="kv-label">Applied to Interest</div><div class="kv-val">KES 10,100</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+  <div class="modal-backdrop" id="statementWizardModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Statement Generator</h3><div class="modal-sub">Custom reporting</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Date Range</label><input type="date" class="input" style="margin-bottom:10px;"><input type="date" class="input"></div><label class="choice-row"><input type="checkbox"><div><div class="choice-title">Include fully repaid facilities</div></div></label></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Statement generated">Generate</button></div></div></div>
+  <div class="modal-backdrop" id="supportModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Lending Support</h3><div class="modal-sub">Contact credit officer</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Subject</label><select class="select-field"><option>Repayment issue</option><option>Statement query</option><option>Limit increase</option></select></div><textarea class="textarea" placeholder="Message..."></textarea></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Message sent to officer">Send</button></div></div></div>
+  <div class="modal-backdrop" id="earlySettlementModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Early Settlement Quote</h3><div class="modal-sub">Facility MOR-8821</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="alert info">Settling early may waive future interest but might incur a small processing fee.</div><div class="kv-grid"><div><div class="kv-label">Settlement Amount</div><div class="kv-val">KES 3,092,000</div></div><div><div class="kv-label">Savings</div><div class="kv-val" style="color:var(--success);">KES 142,000</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-modal="navRepayModal">Settle Now</button></div></div></div>
+  <div class="modal-backdrop" id="autoPayConfigModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Configure Auto-Repay</h3><div class="modal-sub">Set and forget</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Source Wallet</label><select class="select-field"><option>Main Wallet</option></select></div><div class="field"><label class="field-label">Trigger Day</label><select class="select-field"><option>On due date</option><option>2 days before</option></select></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Auto-repay updated">Save</button></div></div></div>
+
+  <div class="modal-backdrop" id="notificationsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Notifications</h3><div class="modal-sub">Borrower alerts</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body" style="padding:0;"><div class="list-item"><div class="list-left"><div class="list-icon amber" style="background:var(--warning-soft);color:var(--warning);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg></div><div><div class="list-title">Asset Finance in Grace Period</div><div class="list-sub">Repayment due in 2 days</div></div></div><button class="btn btn-light btn-sm" data-modal="navRepayModal">Pay</button></div><div class="list-item"><div class="list-left"><div class="list-icon success" style="background:var(--success-soft);color:var(--success);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg></div><div><div class="list-title">Mortgage payment confirmed</div><div class="list-sub">KES 42,500 settled</div></div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+  <div class="modal-backdrop" id="filterModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Filter Facilities</h3><div class="modal-sub">Refine your list</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Status</label><select class="select-field"><option>All Active</option><option>Current</option><option>Overdue</option></select></div><div class="field"><label class="field-label">Product Type</label><select class="select-field"><option>All Products</option><option>Mortgage</option><option>SME</option></select></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Filters applied">Apply Filters</button></div></div></div>
+  <div class="modal-backdrop" id="exportSummaryModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Export Statement</h3><div class="modal-sub">Consolidated lending report</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Period</label><select class="select-field"><option>Current Month</option><option>Last 3 Months</option><option>Financial Year</option></select></div><div class="field"><label class="field-label">Format</label><select class="select-field"><option>PDF Statement</option><option>Excel Ledger</option></select></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Statement generated and downloading">Generate</button></div></div></div>
+
+  <div class="modal-backdrop" id="resultModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title" id="resultTitle">Action Complete</h3><div class="modal-sub">Operation successful</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="alert success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg><span id="resultMessage">Action completed.</span></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Done</button></div></div></div>
+
+  <script>
+    const sidebar = document.getElementById('sidebar');
+    document.getElementById('sidebarToggle').addEventListener('click', () => sidebar.classList.toggle('expanded'));
+    document.getElementById('mobileMenuBtn').addEventListener('click', () => sidebar.classList.toggle('mobile-open'));
+
+    function openModal(id) { const m = document.getElementById(id); if (m) m.classList.add('show'); }
+    function closeAll() { document.querySelectorAll('.modal-backdrop.show').forEach(m => m.classList.remove('show')); }
+    document.addEventListener('click', e => {
+      const close = e.target.closest('[data-close]');
+      if (close) { e.preventDefault(); e.stopPropagation(); closeAll(); return; }
+      const result = e.target.closest('[data-result]');
+      if (result) { e.preventDefault(); e.stopPropagation(); setResult(result.dataset.result); return; }
+      const opener = e.target.closest('[data-modal]');
+      if (opener) { e.preventDefault(); e.stopPropagation(); openModal(opener.dataset.modal); }
+    });
+    document.querySelectorAll('.modal-backdrop').forEach(b => b.addEventListener('click', e => { if (e.target === b) closeAll(); }));
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAll(); });
+
+    function setResult(message) {
+      closeAll();
+      document.getElementById('resultMessage').textContent = message;
+      openModal('resultModal');
+    }
+
+    function switchTab(name) {
+      const parent = event?.target.closest('.tabs')?.parentElement || document.querySelector('.main .panel');
+      const tabs = parent.querySelectorAll('.tab');
+      const panels = parent.querySelectorAll('.tab-panel');
+      tabs.forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+      panels.forEach(p => p.classList.toggle('active', p.dataset.panel === name));
+    }
+    document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => switchTab(tab.dataset.tab)));
+
+    document.querySelectorAll('.choice-row').forEach(row => {
+      row.addEventListener('click', () => {
+        const radio = row.querySelector('input[type="radio"]');
+        if (radio) {
+          document.querySelectorAll(`input[name="${radio.name}"]`).forEach(i => i.closest('.choice-row')?.classList.remove('selected'));
+          radio.checked = true;
+          row.classList.add('selected');
+        }
+        const checkbox = row.querySelector('input[type="checkbox"]');
+        if (checkbox && !radio) row.classList.toggle('selected', checkbox.checked);
+      });
+    });
+  </script>
+</body>
+</html>

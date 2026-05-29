@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Loan Servicing & Account Administration - PayMo Lending</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="stylesheet" href="master.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    .two-col { display: grid; grid-template-columns: 1.6fr 1fr; gap: 16px; }
+    .three-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .four-col { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .balance-breakdown { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .balance-item { background: var(--surface-2); border-radius: 12px; padding: 12px; border: 1px solid var(--border-soft); }
+    .balance-item .val { font-size: 18px; font-weight: 700; margin-top: 2px; }
+    .acc-editable { border-bottom: 1px dashed var(--border); transition: all 0.15s; cursor: text; }
+    .acc-editable:hover { border-bottom-color: var(--primary); color: var(--primary); }
+    .acc-editable:focus { outline: none; border-bottom: 2px solid var(--primary); background: var(--primary-soft); border-radius: 4px 4px 0 0; }
+    .dpd-pill { font-weight: 700; color: #fff; padding: 2px 8px; border-radius: 6px; font-size: 11px; }
+    .dpd-0 { background: var(--success); }
+    .dpd-30 { background: var(--warning); }
+    .dpd-60 { background: #ea580c; }
+    .dpd-90 { background: var(--danger); }
+    .repayment-chart { width: 100%; height: 120px; }
+    .status-stepper { display: flex; gap: 4px; margin-top: 8px; }
+    .status-dot { height: 6px; flex: 1; background: var(--surface-3); border-radius: 10px; }
+    .status-dot.active { background: var(--primary); }
+    .status-dot.risk { background: var(--danger); }
+    .comm-log { max-height: 300px; overflow-y: auto; }
+    .comm-item { border-left: 2px solid var(--border); padding-left: 14px; margin-bottom: 14px; position: relative; }
+    .comm-item:before { content: ""; position: absolute; left: -5px; top: 0; width: 8px; height: 8px; border-radius: 50%; background: var(--border); }
+    .comm-item.important:before { background: var(--primary); }
+    @media (max-width: 1100px) { .two-col { grid-template-columns: 1fr; } }
+    @media (max-width: 768px) { .three-col, .four-col { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- Sidebar - Active on Servicing -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">P</div>
+      <nav class="sidebar-nav">
+        <button class="sidebar-item" title="Portfolio" data-modal="navPortfolioModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg><span class="sidebar-label">Portfolio</span></button>
+        <button class="sidebar-item" title="Applications" data-modal="navAppsModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg><span class="sidebar-label">Applications</span></button>
+        <button class="sidebar-item" title="Underwriting" data-modal="navUwModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg><span class="sidebar-label">Underwriting</span></button>
+        <button class="sidebar-item active" title="Servicing"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg><span class="sidebar-label">Servicing</span></button>
+        <button class="sidebar-item" title="Collections" data-modal="navCollectionsModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path></svg><span class="sidebar-label">Collections</span></button>
+        <button class="sidebar-item" title="Accounting" data-modal="navAccountingModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"></path></svg><span class="sidebar-label">Accounting</span></button>
+        <button class="sidebar-item" title="Customers" data-modal="navCustomersModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg><span class="sidebar-label">Customers</span></button>
+        <button class="sidebar-item" title="Settings" data-modal="navSettingsModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg><span class="sidebar-label">Settings</span></button>
+      </nav>
+      <button class="sidebar-expand" id="sidebarToggle"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg><span class="sidebar-label">Collapse</span></button>
+    </aside>
+
+    <main class="main">
+      <!-- Topbar -->
+      <div class="topbar">
+        <div>
+          <div class="crumb">
+            <button class="mobile-menu-btn btn btn-light btn-sm" id="mobileMenuBtn" style="margin-right:8px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+            <span>Lending Operations</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg><span>Loan Servicing</span>
+          </div>
+          <h1 class="page-title">Loan Servicing & Administration</h1>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-light btn-icon" data-modal="notificationsModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg></button>
+          <button class="btn btn-light" data-modal="filterModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>Filters</button>
+          <button class="btn btn-light" data-modal="exportModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>Export</button>
+          <button class="btn btn-primary" data-modal="disburseWizardModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>Disburse Loan</button>
+        </div>
+      </div>
+
+      <!-- Key KPIs -->
+      <div class="stats-row">
+        <div class="stat-card" data-modal="bookModal"><div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"></path><path d="M5 6l7-3 7 3"></path><path d="M3 10h18"></path></svg></div><div class="stat-label">Total Loan Book</div><div class="stat-value">$184.2M</div><div class="stat-trend up"><span>+4.2% MoM</span></div></div>
+        <div class="stat-card" data-modal="accrualModal"><div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"></path></svg></div><div class="stat-label">Interest Accrued (MTD)</div><div class="stat-value">$1.14M</div><div class="stat-trend up"><span>Yield: 14.8%</span></div></div>
+        <div class="stat-card" data-modal="repaymentsModal"><div class="stat-icon purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg></div><div class="stat-label">Collections (MTD)</div><div class="stat-value">$32.1M</div><div class="stat-trend up"><span>96.4% success</span></div></div>
+        <div class="stat-card" data-modal="watchlistModal"><div class="stat-icon amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div><div class="stat-label">Watchlist (PAR 30)</div><div class="stat-value">$6.8M</div><div class="stat-trend down"><span>4.8% of book</span></div></div>
+        <div class="stat-card" data-modal="defaultsModal"><div class="stat-icon red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path></svg></div><div class="stat-label">Loss / Written Off</div><div class="stat-value">$1.2M</div><div class="stat-trend neutral"><span>Provisioned</span></div></div>
+      </div>
+
+      <!-- Main Panels -->
+      <div class="panel">
+        <div class="tabs" id="mainTabs">
+          <button class="tab active" data-tab="register"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>Loan Register</button>
+          <button class="tab" data-tab="detail"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>Account Detail</button>
+          <button class="tab" data-tab="interest"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"></path></svg>Interest & Fees</button>
+          <button class="tab" data-tab="schedule"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>Schedule Engine</button>
+          <button class="tab" data-tab="status"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>Status Management</button>
+        </div>
+
+        <!-- Section 1: Loan Account Register -->
+        <section class="tab-panel active" data-panel="register">
+          <div class="panel-body">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:12px;flex-wrap:wrap;">
+              <h2 class="panel-title">Active Loan Book</h2>
+              <div class="panel-actions">
+                <div class="search-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg><input placeholder="Search borrower or ID..."></div>
+                <select class="select"><option>All Products</option><option>Retail</option><option>SME</option><option>Corporate</option><option>Real Estate</option></select>
+                <button class="btn btn-light btn-sm" data-modal="bulkActionModal">Bulk Actions</button>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Loan ID</th><th>Borrower</th><th>Principal</th><th>Interest</th><th>Total Balance</th><th>Next Due</th><th>DPD</th><th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr onclick="switchTab('detail')">
+                    <td class="mono">LOAN-88421</td><td>Acme Logistics Ltd</td><td>$480,000</td><td>$12,400</td><td>$492,400</td><td>26 Feb 2026</td><td><span class="dpd-pill dpd-0">0</span></td><td><span class="badge success">Active</span></td>
+                  </tr>
+                  <tr onclick="switchTab('detail')">
+                    <td class="mono">LOAN-88419</td><td>Sarah Wanjiru</td><td>$12,000</td><td>$450</td><td>$12,450</td><td>18 Feb 2026</td><td><span class="dpd-pill dpd-30">12</span></td><td><span class="badge warning">Watchlist</span></td>
+                  </tr>
+                  <tr onclick="switchTab('detail')">
+                    <td class="mono">LOAN-88402</td><td>Globex Corp</td><td>$2,400,000</td><td>$84,000</td><td>$2,484,000</td><td>15 Mar 2026</td><td><span class="dpd-pill dpd-0">0</span></td><td><span class="badge success">Active</span></td>
+                  </tr>
+                  <tr onclick="switchTab('detail')">
+                    <td class="mono">LOAN-88391</td><td>Stark Industries</td><td>$8,200,000</td><td>$312,000</td><td>$8,512,000</td><td>Overdue</td><td><span class="dpd-pill dpd-90">94</span></td><td><span class="badge danger">Substandard</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- Section 2: Individual Loan Account Detail -->
+        <section class="tab-panel" data-panel="detail">
+          <div class="panel-body">
+            <div class="two-col">
+              <div>
+                <div class="uw-card" style="margin-bottom:16px;">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+                    <h3 class="panel-title">LOAN-88421 - Acme Logistics Ltd</h3>
+                    <div style="display:flex;gap:6px;">
+                      <button class="btn btn-light btn-sm" data-modal="editBorrowerModal">Edit Profile</button>
+                      <button class="btn btn-light btn-sm" data-modal="commModal">Add Log</button>
+                    </div>
+                  </div>
+                  <div class="kv-grid" style="margin-bottom:18px;">
+                    <div><div class="kv-label">Borrower</div><div class="kv-val"><span class="acc-editable" contenteditable="true">Acme Logistics Ltd</span></div></div>
+                    <div><div class="kv-label">Officer</div><div class="kv-val">Sarah Karanja</div></div>
+                    <div><div class="kv-label">Product</div><div class="kv-val">SME Term Loan</div></div>
+                    <div><div class="kv-label">Disbursed</div><div class="kv-val">12 Dec 2025</div></div>
+                    <div><div class="kv-label">Tenor</div><div class="kv-val">24 Months</div></div>
+                    <div><div class="kv-label">Collateral</div><div class="kv-val" style="color:var(--success);">Verified (Asset)</div></div>
+                  </div>
+                  <div class="balance-breakdown">
+                    <div class="balance-item"><div class="kv-label">Principal O/S</div><div class="val">$480,000</div></div>
+                    <div class="balance-item"><div class="kv-label">Accrued Interest</div><div class="val">$12,400</div></div>
+                    <div class="balance-item"><div class="kv-label">Fees & Penalties</div><div class="val">$1,200</div></div>
+                    <div class="balance-item"><div class="kv-label">Total Balance</div><div class="val" style="color:var(--primary);">$493,600</div></div>
+                  </div>
+                </div>
+                <div class="uw-card">
+                  <h3 class="panel-title" style="margin-bottom:12px;">Transaction History</h3>
+                  <table class="table" style="font-size:12px;">
+                    <thead><tr><th>Date</th><th>Description</th><th>Type</th><th class="right">Amount</th></tr></thead>
+                    <tbody>
+                      <tr><td>12 Feb 2026</td><td>Interest Accrual</td><td>Interest</td><td class="right">$2,100</td></tr>
+                      <tr><td>01 Feb 2026</td><td>Repayment Recvd</td><td>Credit</td><td class="right" style="color:var(--success);">($24,800)</td></tr>
+                      <tr><td>12 Jan 2026</td><td>Interest Accrual</td><td>Interest</td><td class="right">$2,100</td></tr>
+                      <tr><td>01 Jan 2026</td><td>Repayment Recvd</td><td>Credit</td><td class="right" style="color:var(--success);">($24,800)</td></tr>
+                    </tbody>
+                  </table>
+                  <button class="btn btn-light btn-sm" style="margin-top:10px;width:100%;" data-modal="txnModal">View All Transactions</button>
+                </div>
+              </div>
+              <div>
+                <div class="uw-card" style="margin-bottom:16px;">
+                  <h3 class="panel-title" style="margin-bottom:12px;">Communication Log</h3>
+                  <div class="comm-log">
+                    <div class="comm-item important"><div class="tl-time">14 Feb 2026 · 10:42</div><div class="tl-text">Called CFO regarding potential early repayment in Q3. Requested restructuring docs.</div></div>
+                    <div class="comm-item"><div class="tl-time">02 Feb 2026 · 09:15</div><div class="tl-text">Automated payment receipt sent via email.</div></div>
+                    <div class="comm-item"><div class="tl-time">15 Jan 2026 · 14:20</div><div class="tl-text">Site visit completed. Collateral inspected and in good condition.</div></div>
+                  </div>
+                  <button class="btn btn-light btn-sm" style="margin-top:10px;width:100%;" data-modal="addCommModal">+ Add Log Entry</button>
+                </div>
+                <div class="uw-card">
+                  <h3 class="panel-title" style="margin-bottom:12px;">Collateral Summary</h3>
+                  <div class="config-row"><div><div class="config-label">Asset: Warehouse Hub</div><div class="config-desc">Valuation: $1.2M · LTV: 40%</div></div><span class="badge success">Verified</span></div>
+                  <div class="config-row"><div><div class="config-label">Insurance Policy</div><div class="config-desc">Expires: 12 Jun 2026</div></div><span class="badge success">Active</span></div>
+                  <button class="btn btn-light btn-sm" style="margin-top:10px;width:100%;" data-modal="collateralModal">Manage Collateral</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Section 3: Interest & Fee Management -->
+        <section class="tab-panel" data-panel="interest">
+          <div class="panel-body">
+            <div class="two-col">
+              <div>
+                <div class="uw-card" style="margin-bottom:16px;">
+                  <h3 class="panel-title" style="margin-bottom:14px;">Interest Engine Configuration</h3>
+                  <div class="field"><label class="field-label">Calculation Method</label><select class="select-field"><option>Amortized (Reducing Balance)</option><option>Flat Rate</option><option>Simple Interest</option></select></div>
+                  <div class="field-row">
+                    <div class="field"><label class="field-label">Interest Rate</label><input class="input" value="14.5% p.a."></div>
+                    <div class="field"><label class="field-label">Rate Type</label><select class="select-field"><option>Fixed</option><option>Floating (Benchmark + Margin)</option></select></div>
+                  </div>
+                  <div class="field"><label class="field-label">Accrual Frequency</label><select class="select-field"><option>Daily (Standard)</option><option>Monthly</option><option>Quarterly</option></select></div>
+                  <button class="btn btn-primary" style="width:100%;" data-modal="rateChangeModal">Post Rate Change</button>
+                </div>
+              </div>
+              <div>
+                <div class="uw-card">
+                  <h3 class="panel-title" style="margin-bottom:14px;">Fee Posting & Penalties</h3>
+                  <div class="config-row"><div><div class="config-label">Processing Fee</div><div class="config-desc">Posted at disbursement</div></div><span class="kv-val">$4,800</span></div>
+                  <div class="config-row"><div><div class="config-label">Late Payment Fee</div><div class="config-desc">2% per month overdue</div></div><span class="kv-val" style="color:var(--danger);">$240</span></div>
+                  <div class="config-row"><div><div class="config-label">Prepayment Penalty</div><div class="config-desc">1% of principal remaining</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+                  <button class="btn btn-light" style="margin-top:14px;width:100%;" data-modal="postFeeModal">Post Manual Fee</button>
+                  <button class="btn btn-light" style="margin-top:8px;width:100%;" data-modal="capitalizationModal">Capitalize Interest</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Section 4: Repayment Schedule Engine -->
+        <section class="tab-panel" data-panel="schedule">
+          <div class="panel-body">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+              <h2 class="panel-title">Repayment Schedule</h2>
+              <div style="display:flex;gap:8px;">
+                <button class="btn btn-light btn-sm" data-modal="recalculateModal">Recalculate Prepayment</button>
+                <button class="btn btn-light btn-sm" data-modal="rescheduleModal">Reschedule / Restructure</button>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table class="table" style="font-size:13px;">
+                <thead><tr><th>Instalment</th><th>Due Date</th><th>Principal</th><th>Interest</th><th>Total Payment</th><th>Status</th></tr></thead>
+                <tbody>
+                  <tr><td>#3</td><td>26 Feb 2026</td><td>$22,700</td><td>$2,100</td><td>$24,800</td><td><span class="badge info">Upcoming</span></td></tr>
+                  <tr><td>#2</td><td>26 Jan 2026</td><td>$22,700</td><td>$2,100</td><td>$24,800</td><td><span class="badge success">Paid</span></td></tr>
+                  <tr><td>#1</td><td>26 Dec 2025</td><td>$22,700</td><td>$2,100</td><td>$24,800</td><td><span class="badge success">Paid</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- Section 5: Loan Status Management -->
+        <section class="tab-panel" data-panel="status">
+          <div class="panel-body">
+            <div class="two-col">
+              <div>
+                <div class="uw-card">
+                  <h3 class="panel-title" style="margin-bottom:12px;">Loan Status Workflow</h3>
+                  <div class="status-stepper">
+                    <div class="status-dot active" title="Active"></div>
+                    <div class="status-dot" title="Watchlist"></div>
+                    <div class="status-dot" title="Substandard"></div>
+                    <div class="status-dot" title="Doubtful"></div>
+                    <div class="status-dot" title="Loss"></div>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;font-size:11px;margin-top:6px;color:var(--text-3);">
+                    <span>Active</span><span>Watchlist</span><span>Substandard</span><span>Loss</span>
+                  </div>
+                  <div class="field" style="margin-top:20px;"><label class="field-label">Set Manual Status Override</label><select class="select-field"><option>Active (Current)</option><option>Watchlist</option><option>Substandard</option><option>Doubtful</option><option>Loss</option><option>Written Off</option></select></div>
+                  <div class="field"><label class="field-label">Override Reason</label><textarea class="textarea"></textarea></div>
+                  <button class="btn btn-primary" style="width:100%;" data-modal="approveStatusModal">Submit for Approval</button>
+                </div>
+              </div>
+              <div>
+                <div class="uw-card">
+                  <h3 class="panel-title" style="margin-bottom:12px;">Automatic Triggers</h3>
+                  <div class="config-row"><div><div class="config-label">DPD &gt; 30 Days</div><div class="config-desc">Move to Watchlist</div></div><span class="badge success">ON</span></div>
+                  <div class="config-row"><div><div class="config-label">DPD &gt; 90 Days</div><div class="config-desc">Move to Substandard</div></div><span class="badge success">ON</span></div>
+                  <div class="config-row"><div><div class="config-label">Covenant Breach</div><div class="config-desc">Immediate move to Substandard</div></div><span class="badge success">ON</span></div>
+                  <div class="config-row"><div><div class="config-label">Interest Capitalization</div><div class="config-desc">Limit to 3 months max</div></div><span class="kv-val">ON</span></div>
+                  <button class="btn btn-light" style="margin-top:14px;width:100%;" data-modal="writeOffModal">Initiate Write-Off</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- ============ MODALS (25+) ============ -->
+  
+  <div class="modal-backdrop" id="disburseWizardModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Disburse Approved Loan</h3><div class="modal-sub">Final funding and schedule generation</div></div><button class="modal-close" data-close>x</button></div><div class="stepper" id="disbStepper"><div class="step active"><div class="step-num">1</div>Approval</div><div class="step-line"></div><div class="step"><div class="step-num">2</div>Funding</div><div class="step-line"></div><div class="step"><div class="step-num">3</div>Schedule</div><div class="step-line"></div><div class="step"><div class="step-num">4</div>Disburse</div></div><div class="modal-body"><div class="step-panel active" data-step="1"><div class="field"><label class="field-label">Select Approved Application</label><select class="select-field"><option>APP-01847 · Jane Wanjiru · KES 480K</option><option>APP-01840 · Globex · USD 2.8M</option></select></div></div><div class="step-panel" data-step="2"><div class="field"><label class="field-label">Source of Funds</label><select class="select-field"><option>PayMo Capital Pool</option><option>Warehouse Facility A (Standard Chartered)</option></select></div><div class="alert info">Available Liquidity: $24.8M</div></div><div class="step-panel" data-step="3"><div class="field"><label class="field-label">Repayment Start Date</label><input type="date" class="input" value="2026-03-01"></div><button class="btn btn-light btn-sm">Generate Sample Schedule</button></div><div class="step-panel" data-step="4"><div class="alert success">Everything is ready. Clicking disburse will move funds via PesaLink/ACH.</div></div></div><div class="modal-footer"><button class="btn btn-light" id="disbBack" disabled>Back</button><button class="btn btn-primary" id="disbNext">Next</button></div></div></div>
+
+  <div class="modal-backdrop" id="bulkActionModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Bulk Portfolio Actions</h3><div class="modal-sub">Apply changes to selected records</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Action</label><select class="select-field"><option>Apply Interest Rate Change</option><option>Move to Watchlist</option><option>Assign to Collection Officer</option></select></div><div class="field"><label class="field-label">Value</label><input class="input" placeholder="New rate or value"></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Bulk action applied to 14 loans">Apply</button></div></div></div>
+
+  <div class="modal-backdrop" id="editBorrowerModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Edit Borrower Profile</h3><div class="modal-sub">Contact and identity info</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Email Address</label><input class="input" value="finance@acme.com"></div><div class="field"><label class="field-label">Phone Number</label><input class="input" value="+254 712 345678"></div><div class="field"><label class="field-label">Mailing Address</label><textarea class="textarea">Nairobi Hub, Westlands</textarea></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Profile updated">Save Changes</button></div></div></div>
+
+  <div class="modal-backdrop" id="commModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Add Communication Log</h3><div class="modal-sub">Record borrower interaction</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Interaction Type</label><select class="select-field"><option>Phone Call</option><option>Email</option><option>In-Person Visit</option><option>SMS</option></select></div><div class="field"><label class="field-label">Notes</label><textarea class="textarea" placeholder="Detail of communication..."></textarea></div><label class="choice-row selected"><input type="checkbox" checked><div><div class="choice-title">Mark as Important</div><div class="choice-desc">Pin to top of log</div></div></label></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Interaction logged">Save Log</button></div></div></div>
+
+  <div class="modal-backdrop" id="txnModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Full Transaction Ledger</h3><div class="modal-sub">All postings for LOAN-88421</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><table class="table"><thead><tr><th>Date</th><th>Type</th><th>Principal</th><th>Interest</th><th>Balance</th></tr></thead><tbody><tr><td>12 Feb</td><td>Interest</td><td>-</td><td>$2,100</td><td>$493,600</td></tr><tr><td>01 Feb</td><td>Payment</td><td>($22,700)</td><td>($2,100)</td><td>$491,500</td></tr></tbody></table></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="collateralModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Collateral Management</h3><div class="modal-sub">Assets securing the facility</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="config-row"><div><div class="config-label">Warehouse Property</div><div class="config-desc">Valuation: $1.2M · Charge: 1st</div></div><button class="btn btn-light btn-sm">Update Valuation</button></div><div class="config-row"><div><div class="config-label">Fixed Floating Charge</div><div class="config-desc">All company assets</div></div><button class="btn btn-light btn-sm">View Legal Doc</button></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button class="btn btn-primary" data-result="New asset added to collateral pool">Add Asset</button></div></div></div>
+
+  <div class="modal-backdrop" id="rateChangeModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Post Rate Change</h3><div class="modal-sub">Update interest rate for this facility</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">New Rate</label><input class="input" value="15.0%"></div><div class="field"><label class="field-label">Effective Date</label><input type="date" class="input" value="2026-03-01"></div><div class="field"><label class="field-label">Change Reason</label><select class="select-field"><option>Benchmark index change</option><option>Risk reassessment</option><option>Restructuring</option></select></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Rate change scheduled for next cycle">Apply Rate</button></div></div></div>
+
+  <div class="modal-backdrop" id="postFeeModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Post Manual Fee</h3><div class="modal-sub">Charge non-standard fees</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Fee Amount</label><input class="input" value="100.00"></div><div class="field"><label class="field-label">Fee Category</label><select class="select-field"><option>Late Payment Fee</option><option>Legal Fee</option><option>Insurance Premium</option><option>Valuation Fee</option></select></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Fee posted to account balance">Post Fee</button></div></div></div>
+
+  <div class="modal-backdrop" id="capitalizationModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Interest Capitalization</h3><div class="modal-sub">Move accrued interest to principal</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="alert warning">This increases the principal balance and will result in higher interest charges.</div><div class="kv-grid"><div><div class="kv-label">Accrued Interest</div><div class="kv-val">$12,400</div></div><div><div class="kv-label">New Principal</div><div class="kv-val">$492,400</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Interest capitalized into principal balance">Execute</button></div></div></div>
+
+  <div class="modal-backdrop" id="recalculateModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Prepayment Recalculation</h3><div class="modal-sub">Impact of early principal payment</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Prepayment Amount</label><input class="input" value="50000"></div><div class="field"><label class="field-label">Impact Type</label><select class="select-field"><option>Reduce Instalment Amount</option><option>Reduce Remaining Tenor</option></select></div><div style="background:var(--surface-2);padding:14px;border-radius:12px;margin-top:14px;"><div class="kv-label">New Monthly Payment</div><div style="font-size:22px;font-weight:700;">$21,420</div><div class="list-sub">Saving $3,380 per month</div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Prepayment impact applied to schedule">Apply</button></div></div></div>
+
+  <div class="modal-backdrop" id="rescheduleModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Restructure & Reschedule</h3><div class="modal-sub">Change loan terms for better recovery</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field-row"><div class="field"><label class="field-label">Extend Tenor (+ months)</label><input class="input" value="12"></div><div class="field"><label class="field-label">Interest Holiday (months)</label><input class="input" value="3"></div></div><div class="alert info">Extending tenor reduces DTI and eases borrower cash flow.</div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Loan terms restructured - new schedule generated">Save Changes</button></div></div></div>
+
+  <div class="modal-backdrop" id="approveStatusModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Submit Status Change</h3><div class="modal-sub">Requires credit manager approval</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">Old Status</div><div class="kv-val">Active</div></div><div><div class="kv-label">New Status</div><div class="kv-val" style="color:var(--danger);">Substandard</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Status change request submitted to manager">Submit</button></div></div></div>
+
+  <div class="modal-backdrop" id="writeOffModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Initiate Loan Write-Off</h3><div class="modal-sub">Account for uncollectible loss</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="alert danger">Writing off will zero out the balance and move to historical recovery tracking.</div><div class="field"><label class="field-label">Write-Off Amount</label><input class="input" value="480000" readonly></div><div class="field"><label class="field-label">Approval Authority</label><select class="select-field"><option>Credit Risk Committee</option><option>Board Level</option></select></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-danger" data-result="Write-off request escalated to Risk Committee">Initiate</button></div></div></div>
+
+  <!-- Standard UI Modals -->
+  <div class="modal-backdrop" id="filterModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Filters</h3><div class="modal-sub">Refine register view</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Loan Status</label><select class="select-field"><option>All</option><option>Active</option><option>Watchlist</option><option>Overdue</option></select></div><div class="field"><label class="field-label">Risk Grade</label><select class="select-field"><option>All</option><option>A - Prime</option><option>B - Standard</option><option>C - High Risk</option></select></div></div><div class="modal-footer"><button class="btn btn-ghost" data-result="Filters reset">Reset</button><button class="btn btn-primary" data-result="Filters applied">Apply</button></div></div></div>
+
+  <div class="modal-backdrop" id="exportModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Export Portfolio Data</h3><div class="modal-sub">Download servicing records</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Format</label><select class="select-field"><option>Excel (.xlsx)</option><option>CSV</option><option>PDF Summary</option></select></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Data export started">Generate</button></div></div></div>
+
+  <div class="modal-backdrop" id="notificationsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">System Alerts</h3><div class="modal-sub">Ongoing operations</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body" style="padding:0;"><div class="list-item"><div class="list-left"><div class="list-icon" style="background:var(--danger-soft);color:var(--danger);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg></div><div><div class="list-title">Insurance Expiry</div><div class="list-sub">Skyline Dev (APP-01831) expires in 4 days</div></div></div></div><div class="list-item"><div class="list-left"><div class="list-icon" style="background:var(--success-soft);color:var(--success);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg></div><div><div class="list-title">Repayment Success</div><div class="list-sub">Globex Corp - $84,000 received</div></div></div></div></div></div></div>
+
+  <div class="modal-backdrop" id="resultModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Action Successful</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="alert success"><span id="resultMessage">Update complete.</span></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Done</button></div></div></div>
+
+  <!-- Nav Modals (Placeholders for other Dashboard 3 pages) -->
+  <div class="modal-backdrop" id="navPortfolioModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Portfolio Overview</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">Navigate to Lending Command Center.</div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+  <div class="modal-backdrop" id="navAppsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Intake Pipeline</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">Navigate to Application Pipeline Board.</div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+  <div class="modal-backdrop" id="navUwModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Underwriting Workbench</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">Navigate to Underwriting & Decisioning.</div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+  <div class="modal-backdrop" id="navCollectionsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Recovery Operations</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">Navigate to Arrears & Collections.</div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+  <div class="modal-backdrop" id="navAccountingModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Lending Ledger</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">Navigate to Portfolio Accounting.</div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+  <div class="modal-backdrop" id="navCustomersModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Borrower Directory</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">Navigate to Customer Management.</div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+  <div class="modal-backdrop" id="navSettingsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Lending Config</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">Interest engines and policy settings.</div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <script>
+    const sidebar = document.getElementById('sidebar');
+    document.getElementById('sidebarToggle').addEventListener('click', () => sidebar.classList.toggle('expanded'));
+    document.getElementById('mobileMenuBtn').addEventListener('click', () => sidebar.classList.toggle('mobile-open'));
+
+    function openModal(id) { const m = document.getElementById(id); if (m) m.classList.add('show'); }
+    function closeAll() { document.querySelectorAll('.modal-backdrop.show').forEach(m => m.classList.remove('show')); }
+    
+    document.addEventListener('click', e => {
+      const close = e.target.closest('[data-close]');
+      if (close) { e.preventDefault(); closeAll(); return; }
+      const result = e.target.closest('[data-result]');
+      if (result) { e.preventDefault(); setResult(result.dataset.result); return; }
+      const opener = e.target.closest('[data-modal]');
+      if (opener) { e.preventDefault(); openModal(opener.dataset.modal); }
+    });
+    
+    document.querySelectorAll('.modal-backdrop').forEach(b => b.addEventListener('click', e => { if (e.target === b) closeAll(); }));
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAll(); });
+
+    function setResult(message) {
+      closeAll();
+      document.getElementById('resultMessage').textContent = message;
+      openModal('resultModal');
+    }
+
+    function switchTab(name) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.dataset.panel === name));
+    }
+    document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => switchTab(tab.dataset.tab)));
+
+    function setupStepper(rootId, stepperId, backId, nextId, total, doneMessage) {
+      const root = document.getElementById(rootId);
+      if(!root) return;
+      let current = 1;
+      const render = () => {
+        document.querySelectorAll(`#${stepperId} .step`).forEach((s, i) => { 
+          s.classList.toggle('active', i + 1 === current); 
+          s.classList.toggle('done', i + 1 < current); 
+        });
+        root.querySelectorAll('.step-panel').forEach(p => p.classList.toggle('active', Number(p.dataset.step) === current));
+        document.getElementById(backId).disabled = current === 1;
+        document.getElementById(nextId).textContent = current === total ? 'Complete' : 'Next';
+      };
+      document.getElementById(backId).addEventListener('click', () => { if (current > 1) { current--; render(); } });
+      document.getElementById(nextId).addEventListener('click', () => { 
+        if (current < total) { current++; render(); } 
+        else { current = 1; render(); setResult(doneMessage); } 
+      });
+      render();
+    }
+    setupStepper('disburseWizardModal', 'disbStepper', 'disbBack', 'disbNext', 4, 'Loan disbursed successfully. Funds sent to borrower.');
+  </script>
+</body>
+</html>

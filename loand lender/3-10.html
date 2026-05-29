@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Covenant Monitoring — PayMo Lending</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="stylesheet" href="master.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    .two-col { display: grid; grid-template-columns: 1.6fr 1fr; gap: 16px; }
+    .three-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .four-col { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .cov-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; }
+    .cov-card { background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius); padding: 18px; cursor: pointer; transition: all .15s; }
+    .cov-card:hover { border-color: var(--primary); box-shadow: var(--shadow-lg); transform: translateY(-1px); }
+    .status-strip { height: 4px; border-radius: 4px; margin-bottom: 12px; }
+    .status-strip.compliant { background: var(--success); }
+    .status-strip.breached { background: var(--danger); }
+    .status-strip.waived { background: var(--info); }
+    .status-strip.review { background: var(--warning); }
+    .kv-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 18px; }
+    .kv-label { font-size: 10px; color: var(--text-4); text-transform: uppercase; letter-spacing: .07em; }
+    .kv-val { font-size: 13px; font-weight: 600; margin-top: 2px; }
+    .test-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border-soft); }
+    .test-row:last-child { border-bottom: 0; }
+    .test-label { flex: 1; font-size: 13px; font-weight: 500; }
+    .test-actual { width: 80px; font-weight: 700; text-align: right; }
+    .test-target { width: 80px; font-size: 12px; color: var(--text-3); text-align: right; }
+    .test-status { width: 24px; display: flex; justify-content: flex-end; }
+    .test-status svg { width: 16px; height: 16px; }
+    .mini-chart { width: 100%; height: 140px; }
+    .legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 11px; color: var(--text-3); }
+    .legend-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; vertical-align: middle; }
+    .timeline { position: relative; padding-left: 24px; }
+    .timeline:before { content: ""; position: absolute; top: 6px; bottom: 6px; left: 8px; width: 2px; background: var(--border); }
+    .tl-item { position: relative; padding-bottom: 14px; }
+    .tl-item:before { content: ""; position: absolute; left: -20px; top: 4px; width: 10px; height: 10px; border-radius: 50%; background: var(--primary); border: 2px solid #fff; }
+    .tl-item.danger:before { background: var(--danger); }
+    .tl-time { font-size: 10px; color: var(--text-4); }
+    .tl-text { font-size: 12px; margin-top: 2px; }
+    .editable { border-bottom: 1px dashed var(--border); cursor: pointer; transition: all .15s; }
+    .editable:hover { background: var(--surface-2); border-color: var(--primary); }
+    @media (max-width: 1100px) { .two-col { grid-template-columns: 1fr; } .three-col { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 768px) { .three-col, .four-col { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">P</div>
+      <nav class="sidebar-nav">
+        <button class="sidebar-item" title="Command Center" data-modal="navCommandModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg><span class="sidebar-label">Dashboard</span></button>
+        <button class="sidebar-item" title="Products" data-modal="navProductsModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path></svg><span class="sidebar-label">Products</span></button>
+        <button class="sidebar-item" title="Applications" data-modal="navAppsModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg><span class="sidebar-label">Applications</span></button>
+        <button class="sidebar-item" title="Underwriting" data-modal="navUwModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg><span class="sidebar-label">Underwriting</span></button>
+        <button class="sidebar-item" title="Servicing" data-modal="navServicingModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg><span class="sidebar-label">Servicing</span></button>
+        <button class="sidebar-item active" title="Covenants"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg><span class="sidebar-label">Covenants</span></button>
+        <button class="sidebar-item" title="Collateral" data-modal="navCollateralModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg><span class="sidebar-label">Collateral</span></button>
+        <button class="sidebar-item" title="Risk" data-modal="navRiskModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg><span class="sidebar-label">Risk</span></button>
+        <button class="sidebar-item" title="Analytics" data-modal="navAnalyticsModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="20" x2="12" y2="10"></line><line x1="18" y1="20" x2="18" y2="4"></line><line x1="6" y1="20" x2="6" y2="16"></line></svg><span class="sidebar-label">Analytics</span></button>
+      </nav>
+      <button class="sidebar-expand" id="sidebarToggle"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg><span class="sidebar-label">Collapse</span></button>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <div class="crumb">
+            <button class="mobile-menu-btn btn btn-light btn-sm" id="mobileMenuBtn" style="margin-right:8px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+            <span>Lending</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg><span>Covenant Monitoring</span>
+          </div>
+          <h1 class="page-title">Covenant Monitoring</h1>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-light btn-icon" data-modal="notificationsModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg></button>
+          <button class="btn btn-light" data-modal="permissionModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg><span class="btn-text">Admin Control</span></button>
+          <button class="btn btn-light" data-modal="filterModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg><span class="btn-text">Filters</span></button>
+          <button class="btn btn-light" data-modal="exportModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline></svg>Export</button>
+          <button class="btn btn-primary" data-modal="addCovenantModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>Define Covenant</button>
+        </div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card" data-modal="activeCovenantsModal"><div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path></svg></div><div class="stat-label">Active Covenants</div><div class="stat-value">412</div><div class="stat-trend up"><span>Across 86 facilities</span></div></div>
+        <div class="stat-card" data-modal="breachQueueModal"><div class="stat-icon red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path></svg></div><div class="stat-label">Active Breaches</div><div class="stat-value">14</div><div class="stat-trend down"><span>8 in remediation</span></div></div>
+        <div class="stat-card" data-modal="upcomingTestsModal"><div class="stat-icon amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div><div class="stat-label">Tests Due (30d)</div><div class="stat-value">62</div><div class="stat-trend up"><span>Quarter-end peak</span></div></div>
+        <div class="stat-card" data-modal="reportingHealthModal"><div class="stat-icon purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg></div><div class="stat-label">Reporting Health</div><div class="stat-value">94.2%</div><div class="stat-trend up"><span>+1.2% this month</span></div></div>
+        <div class="stat-card" data-modal="waiverModal"><div class="stat-icon info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path></svg></div><div class="stat-label">Active Waivers</div><div class="stat-value">7</div><div class="stat-trend neutral"><span>Standard terms</span></div></div>
+      </div>
+
+      <div class="panel">
+        <div class="tabs" id="mainTabs">
+          <button class="tab active" data-tab="dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>Covenant Dashboard</button>
+          <button class="tab" data-tab="financial"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"></path></svg>Financial Testing</button>
+          <button class="tab" data-tab="reporting"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg>Information Tracking</button>
+          <button class="tab" data-tab="breach"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path></svg>Breach Management</button>
+        </div>
+
+        <!-- ===== COVENANT DASHBOARD ===== -->
+        <section class="tab-panel active" data-panel="dashboard">
+          <div class="panel-body">
+            <div class="two-col">
+              <div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+                  <h2 class="panel-title" style="margin:0;">Active Portfolio Monitoring</h2>
+                  <div style="display:flex;gap:8px;">
+                    <div class="search-box" style="min-width:200px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle></svg><input id="covSearch" placeholder="Search borrower..."></div>
+                    <select class="select" id="statusFilter"><option>All Status</option><option>Compliant</option><option>Breached</option><option>Waived</option></select>
+                  </div>
+                </div>
+                <div class="cov-grid" id="covGrid">
+                  <div class="cov-card" data-modal="facilityMonitoringModal">
+                    <div class="status-strip compliant"></div>
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                      <div><h4 style="margin:0;">Globex Manufacturing</h4><div class="sub">Corporate · USD 2.8M Term Loan</div></div>
+                      <span class="badge success">Compliant</span>
+                    </div>
+                    <div class="kv-grid" style="margin-top:14px;">
+                      <div><div class="kv-label">Covenants</div><div class="kv-val">4 Active</div></div>
+                      <div><div class="kv-label">Next Test</div><div class="kv-val">31 Mar 2026</div></div>
+                      <div><div class="kv-label">DSCR</div><div class="kv-val">2.4x (Min 1.5x)</div></div>
+                      <div><div class="kv-label">Leverage</div><div class="kv-val">1.8x (Max 3.0x)</div></div>
+                    </div>
+                  </div>
+                  <div class="cov-card" data-modal="facilityMonitoringModal">
+                    <div class="status-strip breached"></div>
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                      <div><h4 style="margin:0;">Skyline Developers</h4><div class="sub">RE · KES 120M Construction</div></div>
+                      <span class="badge danger">Breached</span>
+                    </div>
+                    <div class="kv-grid" style="margin-top:14px;">
+                      <div><div class="kv-label">Covenants</div><div class="kv-val">6 Active</div></div>
+                      <div><div class="kv-label">Next Test</div><div class="kv-val">15 Mar 2026</div></div>
+                      <div><div class="kv-label">LTV</div><div class="kv-val" style="color:var(--danger);">82% (Max 75%)</div></div>
+                      <div><div class="kv-label">Reporting</div><div class="kv-val">Overdue</div></div>
+                    </div>
+                  </div>
+                  <div class="cov-card" data-modal="facilityMonitoringModal">
+                    <div class="status-strip waived"></div>
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                      <div><h4 style="margin:0;">Acme Logistics</h4><div class="sub">Corporate · USD 1.5M Revolver</div></div>
+                      <span class="badge info">Waived</span>
+                    </div>
+                    <div class="kv-grid" style="margin-top:14px;">
+                      <div><div class="kv-label">Covenants</div><div class="kv-val">3 Active</div></div>
+                      <div><div class="kv-label">Next Test</div><div class="kv-val">30 Jun 2026</div></div>
+                      <div><div class="kv-label">Current Ratio</div><div class="kv-val">1.1x (Waived)</div></div>
+                      <div><div class="kv-label">Expiration</div><div class="kv-val">28 Feb 2026</div></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <h2 class="panel-title" style="margin-bottom:12px;">Portfolio Compliance Trend</h2>
+                <div style="background:var(--surface-2);border-radius:14px;padding:18px;margin-bottom:16px;">
+                  <div class="legend" style="margin-bottom:8px;"><span><span class="legend-dot" style="background:var(--success);"></span>Compliant</span><span><span class="legend-dot" style="background:var(--danger);"></span>Breached</span></div>
+                  <svg class="mini-chart" viewBox="0 0 600 140" preserveAspectRatio="none"><g stroke="#e8e6df"><line x1="0" y1="35" x2="600" y2="35"></line><line x1="0" y1="70" x2="600" y2="70"></line><line x1="0" y1="105" x2="600" y2="105"></line></g><path d="M0,30 L100,28 L200,35 L300,32 L400,25 L500,28 L600,22" fill="none" stroke="var(--success)" stroke-width="3"></path><path d="M0,110 L100,115 L200,108 L300,112 L400,118 L500,114 L600,120" fill="none" stroke="var(--danger)" stroke-width="2" stroke-dasharray="5,3"></path></svg>
+                </div>
+                <h2 class="panel-title" style="margin-bottom:12px;">Upcoming Key Test Dates</h2>
+                <div class="list-item" style="padding-left:0;padding-right:0;"><div class="list-left"><div class="list-icon" style="background:var(--primary-soft);color:var(--primary);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg></div><div><div class="list-title">Globex · Annual Audit</div><div class="list-sub">Due in 12 days · 28 Feb</div></div></div><button class="btn btn-light btn-sm" data-modal="followUpModal">Follow up</button></div>
+                <div class="list-item" style="padding-left:0;padding-right:0;"><div class="list-left"><div class="list-icon" style="background:var(--warning-soft);color:var(--warning);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg></div><div><div class="list-title">Savanna · Q1 Financials</div><div class="list-sub">Due in 18 days · 15 Mar</div></div></div><button class="btn btn-light btn-sm" data-modal="followUpModal">Follow up</button></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== FINANCIAL TESTING ===== -->
+        <section class="tab-panel" data-panel="financial">
+          <div class="panel-body">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:12px;flex-wrap:wrap;">
+              <h2 class="panel-title" style="margin:0;">Automated Financial Testing Engine</h2>
+              <div style="display:flex;gap:8px;">
+                <button class="btn btn-light" data-modal="recalcModal">Recalculate All</button>
+                <button class="btn btn-primary" data-modal="runTestWizardModal">Run New Test</button>
+              </div>
+            </div>
+            <div class="uw-card">
+              <div style="display:flex;justify-content:space-between;margin-bottom:12px;">
+                <div style="font-weight:600;">Active Tests · FY25 Q4 Results</div>
+                <div class="badge primary">Last run 2h ago</div>
+              </div>
+              <div class="table-wrap"><table class="table"><thead><tr><th>Borrower</th><th>Covenant</th><th>Actual</th><th>Threshold</th><th>Status</th><th>Action</th></tr></thead><tbody>
+                <tr data-modal="testDetailModal"><td>Globex Mfg</td><td>Debt Service Coverage (DSCR)</td><td>2.4x</td><td>&gt; 1.5x</td><td><span class="badge success">Pass</span></td><td class="right"><button class="btn btn-light btn-sm">Audit</button></td></tr>
+                <tr data-modal="testDetailModal"><td>Globex Mfg</td><td>Leverage (Debt/EBITDA)</td><td>1.8x</td><td>&lt; 3.0x</td><td><span class="badge success">Pass</span></td><td class="right"><button class="btn btn-light btn-sm">Audit</button></td></tr>
+                <tr data-modal="testDetailModal"><td>Savanna Traders</td><td>Interest Coverage (ICR)</td><td>3.2x</td><td>&gt; 2.5x</td><td><span class="badge success">Pass</span></td><td class="right"><button class="btn btn-light btn-sm">Audit</button></td></tr>
+                <tr data-modal="testDetailModal"><td>Skyline Dev</td><td>Loan-to-Value (LTV)</td><td><span style="color:var(--danger);">82%</span></td><td>&lt; 75%</td><td><span class="badge danger">Fail</span></td><td class="right"><button class="btn btn-danger btn-sm" data-modal="escalateBreachModal">Escalate</button></td></tr>
+              </tbody></table></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== REPORTING TRACKING ===== -->
+        <section class="tab-panel" data-panel="reporting">
+          <div class="panel-body">
+            <div class="two-col">
+              <div>
+                <h2 class="panel-title" style="margin-bottom:14px;">Reporting & Documents Tracker</h2>
+                <div class="table-wrap"><table class="table"><thead><tr><th>Borrower</th><th>Requirement</th><th>Due date</th><th>Status</th></tr></thead><tbody>
+                  <tr data-modal="docReviewModal"><td>Globex Manufacturing</td><td>Audited FY25 Accounts</td><td>28 Feb 2026</td><td><span class="badge info">Pending</span></td></tr>
+                  <tr data-modal="docReviewModal"><td>Acme Logistics</td><td>Management Accounts (Jan)</td><td>15 Feb 2026</td><td><span class="badge success">Received</span></td></tr>
+                  <tr data-modal="docReviewModal"><td>Savanna Traders</td><td>Tax Compliance Cert</td><td>01 Mar 2026</td><td><span class="badge warning">Overdue</span></td></tr>
+                  <tr data-modal="docReviewModal"><td>Skyline Developers</td><td>Quarterly Valuation</td><td>15 Feb 2026</td><td><span class="badge danger">Breached</span></td></tr>
+                </tbody></table></div>
+              </div>
+              <div>
+                <div class="uw-card">
+                  <h3 class="uw-title">Reporting Health Metrics</h3>
+                  <div class="dist-row"><div class="dist-label">On-time rate</div><div class="dist-bar"><span style="width:91%;background:var(--success);"></span></div><div class="dist-val">91.4%</div></div>
+                  <div class="dist-row"><div class="dist-label">Review cycle</div><div class="dist-bar"><span style="width:42%;background:var(--primary);"></span></div><div class="dist-val">1.2 days</div></div>
+                  <div class="dist-row"><div class="dist-label">Document quality</div><div class="dist-bar"><span style="width:84%;background:var(--success);"></span></div><div class="dist-val">8.4 / 10</div></div>
+                  <button class="btn btn-light btn-sm" style="margin-top:10px;width:100%;" data-modal="reportingHealthModal">Full quality report</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== BREACH MANAGEMENT ===== -->
+        <section class="tab-panel" data-panel="breach">
+          <div class="panel-body">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+              <h2 class="panel-title" style="margin:0;">Active Breach & Remediation Queue</h2>
+              <button class="btn btn-primary" data-modal="escalateBreachModal">+ Open Breach Case</button>
+            </div>
+            <div class="cov-grid">
+              <div class="cov-card" data-modal="breachRemediationModal">
+                <div class="status-strip breached"></div>
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                  <div><h4 style="margin:0;">Skyline Developers</h4><div class="sub">LTV Covenant Breach</div></div>
+                  <span class="badge danger">Escalated</span>
+                </div>
+                <div style="margin:14px 0;font-size:12px;"><strong>Issue:</strong> LTV at 82% vs 75% max limit due to project delay and appraisal dip.</div>
+                <div class="dist-row" style="margin-bottom:0;"><div class="dist-label" style="width:100px;">Remediation</div><div class="dist-bar"><span style="width:40%;background:var(--warning);"></span></div><div class="dist-val">40%</div></div>
+              </div>
+              <div class="cov-card" data-modal="breachRemediationModal">
+                <div class="status-strip review"></div>
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                  <div><h4 style="margin:0;">Initech Corp</h4><div class="sub">Reporting Delay</div></div>
+                  <span class="badge warning">Remediation</span>
+                </div>
+                <div style="margin:14px 0;font-size:12px;"><strong>Issue:</strong> Q4 audited financials overdue by 14 days.</div>
+                <div class="dist-row" style="margin-bottom:0;"><div class="dist-label" style="width:100px;">Remediation</div><div class="dist-bar"><span style="width:75%;background:var(--success);"></span></div><div class="dist-val">75%</div></div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- ============ MODALS ============ -->
+
+  <div class="modal-backdrop" id="runTestWizardModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Run Covenant Test</h3><div class="modal-sub">Perform automated financial compliance check</div></div><button class="modal-close" data-close>x</button></div><div class="stepper" id="testStepper"><div class="step active"><div class="step-num">1</div>Facility</div><div class="step-line"></div><div class="step"><div class="step-num">2</div>Financials</div><div class="step-line"></div><div class="step"><div class="step-num">3</div>Testing</div><div class="step-line"></div><div class="step"><div class="step-num">4</div>Review</div></div><div class="modal-body"><div class="step-panel active" data-step="1"><div class="field"><label class="field-label">Select Borrower / Facility</label><select class="select-field"><option>Globex Manufacturing · USD 2.8M Term Loan</option><option>Savanna Traders · KES 4.2M Revolver</option><option>Skyline Developers · KES 120M RE Finance</option></select></div><div class="alert info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg>Selecting a facility will load active covenant definitions.</div></div><div class="step-panel" data-step="2"><div class="field"><label class="field-label">Financial Input Period</label><select class="select-field"><option>FY25 Q4 (ended 31 Dec 2025)</option><option>FY25 Q3</option><option>Annual Audited FY25</option></select></div><div style="background:var(--surface-2);padding:14px;border-radius:12px;"><div class="kv-grid"><div><div class="kv-label">EBITDA</div><div class="kv-val" contenteditable="true" class="editable">USD 684,200</div></div><div><div class="kv-label">Interest Expense</div><div class="kv-val" contenteditable="true" class="editable">USD 142,000</div></div><div><div class="kv-label">Total Debt</div><div class="kv-val" contenteditable="true" class="editable">USD 2,400,000</div></div><div><div class="kv-label">Cash Flow</div><div class="kv-val" contenteditable="true" class="editable">USD 412,000</div></div></div></div></div><div class="step-panel" data-step="3"><div style="font-weight:600;margin-bottom:12px;">Calculating results...</div><div class="test-row"><div class="test-label">DSCR</div><div class="test-actual">2.4x</div><div class="test-target">Min 1.5x</div><div class="test-status" style="color:var(--success);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg></div></div><div class="test-row"><div class="test-label">Leverage</div><div class="test-actual">3.5x</div><div class="test-target">Max 3.0x</div><div class="test-status" style="color:var(--danger);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg></div></div></div><div class="step-panel" data-step="4"><div class="alert danger" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg>Potential breach detected on Leverage Ratio.</div><div class="kv-grid"><div><div class="kv-label">Borrower</div><div class="kv-val">Globex Manufacturing</div></div><div><div class="kv-label">Outcome</div><div class="kv-val" style="color:var(--danger);">Potential Breach</div></div></div><div class="field" style="margin-top:12px;"><label class="field-label">Next Action</label><select class="select-field"><option>Escalate to Credit Committee</option><option>Request Clarification</option><option>Draft Breach Notice</option></select></div></div></div><div class="modal-footer"><button class="btn btn-light" id="testBack" disabled>Back</button><button class="btn btn-primary" id="testNext">Next</button></div></div></div>
+
+  <div class="modal-backdrop" id="facilityMonitoringModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Globex Manufacturing — Facility Monitoring</h3><div class="modal-sub">USD 2.8M Term Loan · Monitoring active since Aug 2024</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid" style="margin-bottom:18px;"><div><div class="kv-label">Status</div><div class="kv-val"><span class="badge success">Compliant</span></div></div><div><div class="kv-label">Exposure</div><div class="kv-val">USD 2,410,200</div></div><div><div class="kv-label">Risk Rating</div><div class="kv-val">BBB+ (Stable)</div></div><div><div class="kv-label">Last Review</div><div class="kv-val">12 Feb 2026</div></div></div><div style="font-weight:600;margin-bottom:10px;">Financial Covenants</div><div style="background:var(--surface-2);border-radius:12px;padding:12px;margin-bottom:14px;"><div class="test-row"><div class="test-label">Minimum DSCR</div><div class="test-actual">2.4x</div><div class="test-target">Min 1.5x</div><div class="test-status" style="color:var(--success);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg></div></div><div class="test-row"><div class="test-label">Maximum Leverage</div><div class="test-actual">1.8x</div><div class="test-target">Max 3.0x</div><div class="test-status" style="color:var(--success);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg></div></div></div><div style="font-weight:600;margin-bottom:10px;">Required Reporting</div><div class="config-row"><div><div class="config-label">Audited FY25 Financials</div><div class="config-desc">Due 28 Feb · Under review</div></div><span class="badge warning">Draft</span></div><div class="config-row"><div><div class="config-label">Quarterly Compliance Cert</div><div class="config-desc">Received 12 Feb</div></div><span class="badge success">Complete</span></div></div><div class="modal-footer"><button class="btn btn-danger" data-modal="escalateBreachModal">Log Breach</button><div style="display:flex;gap:8px;"><button class="btn btn-light" data-modal="waiverModal">Apply Waiver</button><button class="btn btn-primary" data-close>Close</button></div></div></div></div>
+
+  <div class="modal-backdrop" id="addCovenantModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Define New Covenant</h3><div class="modal-sub">Add term to loan agreement monitoring</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Facility</label><select class="select-field"><option>Globex Manufacturing · USD 2.8M</option><option>Acme Logistics · USD 1.5M</option></select></div><div class="field"><label class="field-label">Covenant Category</label><select class="select-field"><option>Financial Covenant</option><option>Information Covenant</option><option>Negative Covenant</option><option>Affirmative Covenant</option></select></div><div class="field"><label class="field-label">Test Frequency</label><select class="select-field"><option>Monthly</option><option>Quarterly</option><option>Semi-annual</option><option>Annual</option></select></div><div class="field"><label class="field-label">Definition / Threshold</label><input class="input" placeholder="e.g. DSCR > 1.5x"></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Covenant defined and added to monitoring">Define Covenant</button></div></div></div>
+
+  <div class="modal-backdrop" id="testDetailModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Covenant Test Audit</h3><div class="modal-sub">FY25 Q4 · Globex Mfg · DSCR</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid" style="margin-bottom:14px;"><div><div class="kv-label">Test Date</div><div class="kv-val">12 Feb 2026</div></div><div><div class="kv-label">Result</div><div class="kv-val" style="color:var(--success);">Pass · 2.4x</div></div></div><div style="font-weight:600;margin-bottom:8px;">Calculation Logic</div><div style="background:var(--surface-2);padding:14px;border-radius:10px;font-family:'JetBrains Mono',monospace;font-size:12px;">(Net Operating Income + Depreciation) / (Principal + Interest Payments)<br><br>(USD 840K + 120K) / (USD 300K + 100K) = 2.4x</div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="escalateBreachModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Escalate Covenant Breach</h3><div class="modal-sub">Initiate formal breach management process</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="alert danger" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg>Logging a breach may trigger default clauses across related facilities.</div><div class="field"><label class="field-label">Remediation Priority</label><select class="select-field"><option>P0 · Immediate Attention</option><option>P1 · Urgent Review</option><option>P2 · Standard Process</option></select></div><div class="field"><label class="field-label">Underwriter Notes</label><textarea class="textarea" placeholder="Detail the nature of the breach..."></textarea></div><label class="choice-row selected"><input type="checkbox" checked><div><div class="choice-title">Run cross-default check</div><div class="choice-desc">Scan for links to other facilities</div></div></label></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-danger" data-result="Breach escalated to committee">Escalate Breach</button></div></div></div>
+
+  <div class="modal-backdrop" id="breachRemediationModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Skyline Developers — Breach Remediation</h3><div class="modal-sub">LTV Covenant Breach · Active remediation</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="timeline"><div class="tl-item danger"><div class="tl-time">15 Feb 2026</div><div class="tl-text">Breach detected: LTV 82% (Threshold 75%)</div></div><div class="tl-item"><div class="tl-time">16 Feb 2026</div><div class="tl-text">Formal breach notice sent to borrower</div></div><div class="tl-item"><div class="tl-time">18 Feb 2026</div><div class="tl-text">Remediation plan received: Capital injection of KES 20M</div></div><div class="tl-item"><div class="tl-time">Now</div><div class="tl-text">Awaiting evidence of funds transfer</div></div></div><div class="field" style="margin-top:14px;"><label class="field-label">Remediation Progress</label><div class="dist-bar"><span style="width:40%;background:var(--warning);"></span></div></div></div><div class="modal-footer"><button class="btn btn-light" data-modal="waiverModal">Draft Waiver</button><div style="display:flex;gap:8px;"><button class="btn btn-light" data-close>Close</button><button class="btn btn-primary" data-result="Remediation plan updated">Update status</button></div></div></div></div>
+
+  <div class="modal-backdrop" id="waiverModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Covenant Waiver Request</h3><div class="modal-sub">Temporary suspension of covenant testing</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Waiver Period</label><select class="select-field"><option>Next test cycle only</option><option>Next 6 months</option><option>Until remediation complete</option></select></div><div class="field"><label class="field-label">Waiver Conditions</label><textarea class="textarea" placeholder="e.g. Waiver subject to 50bps fee and monthly reporting..."></textarea></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Waiver request submitted for approval">Submit Waiver</button></div></div></div>
+
+  <div class="modal-backdrop" id="docReviewModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Document Review Workflow</h3><div class="modal-sub">Savanna Traders · Tax Compliance Cert</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div style="border:2px dashed var(--border);border-radius:12px;padding:32px;text-align:center;background:var(--surface-2);"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5" style="margin-bottom:8px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path></svg><div style="font-weight:500;">Drop compliance certificate here</div><div class="list-sub">or click to browse PDF</div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Document received and verified">Verify receipt</button></div></div></div>
+
+  <div class="modal-backdrop" id="followUpModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Send Reporting Follow-Up</h3><div class="modal-sub">Automated borrower notification</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Template</label><select class="select-field"><option>Gentle reminder (pre-due)</option><option>Standard notice (overdue)</option><option>Formal breach warning (breached)</option></select></div><div class="field"><label class="field-label">Message Preview</label><div style="background:var(--surface-2);padding:12px;border-radius:10px;font-size:13px;color:var(--text-2);">Dear Globex team, this is a reminder that your Audited FY25 Financials are due on 28 Feb 2026. Please upload to the portal.</div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Follow-up reminder sent">Send notification</button></div></div></div>
+
+  <div class="modal-backdrop" id="activeCovenantsModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Active Covenant Book</h3><div class="modal-sub">412 active terms under monitoring</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><table class="table"><thead><tr><th>Category</th><th>Count</th><th>Critical</th><th>Status</th></tr></thead><tbody><tr><td>Financial</td><td>184</td><td>42</td><td><span class="badge success">Active</span></td></tr><tr><td>Information</td><td>128</td><td>12</td><td><span class="badge success">Active</span></td></tr><tr><td>Negative</td><td>62</td><td>8</td><td><span class="badge success">Active</span></td></tr><tr><td>Affirmative</td><td>38</td><td>2</td><td><span class="badge success">Active</span></td></tr></tbody></table></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="breachQueueModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Breach Queue</h3><div class="modal-sub">14 active breaches requiring action</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><table class="table"><thead><tr><th>Borrower</th><th>Breach type</th><th>Age</th><th>Status</th></tr></thead><tbody><tr><td>Skyline Developers</td><td>Financial (LTV)</td><td>12 days</td><td><span class="badge danger">Escalated</span></td></tr><tr><td>Initech Corp</td><td>Reporting</td><td>14 days</td><td><span class="badge warning">Remediation</span></td></tr><tr><td>Vandelay Inc</td><td>Financial (DSCR)</td><td>2 days</td><td><span class="badge info">Review</span></td></tr></tbody></table></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="upcomingTestsModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Upcoming Test Calendar</h3><div class="modal-sub">62 tests due in the next 30 days</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div style="display:grid;grid-template-columns:repeat(7, 1fr);gap:8px;text-align:center;"><div class="kv-label">Mon</div><div class="kv-label">Tue</div><div class="kv-label">Wed</div><div class="kv-label">Thu</div><div class="kv-label">Fri</div><div class="kv-label">Sat</div><div class="kv-label">Sun</div><div style="height:40px;background:var(--surface-3);border-radius:6px;display:flex;align-items:center;justify-content:center;">23</div><div style="height:40px;background:var(--surface-3);border-radius:6px;display:flex;align-items:center;justify-content:center;">24</div><div style="height:40px;background:var(--surface-3);border-radius:6px;display:flex;align-items:center;justify-content:center;">25</div><div style="height:40px;background:var(--surface-3);border-radius:6px;display:flex;align-items:center;justify-content:center;">26</div><div style="height:40px;background:var(--primary-soft);color:var(--primary);border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:700;">27</div><div style="height:40px;background:var(--danger-soft);color:var(--danger);border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:700;">28</div></div><div class="alert info" style="margin-top:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg>Quarterly reporting peak starts Feb 28th.</div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="reportingHealthModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Reporting Health Analysis</h3><div class="modal-sub">Last 12 months data delivery</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="ring-wrap"><svg width="130" height="130" viewBox="0 0 130 130" class="donut"><circle cx="65" cy="65" r="52" stroke="#eef0ff"></circle><circle cx="65" cy="65" r="52" stroke="var(--primary)" stroke-dasharray="327" stroke-dashoffset="19"></circle></svg><div class="ring-center"><div class="kv-label">Health</div><div style="font-size:22px;font-weight:700;">94.2%</div></div></div><div class="config-row" style="margin-top:14px;"><div><div class="config-label">On-time receipts</div></div><span class="badge success">91%</span></div><div class="config-row"><div><div class="config-label">Missing data rate</div></div><span class="badge danger">2.4%</span></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="recalcModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Recalculate Portfolio</h3><div class="modal-sub">Refresh all financial tests</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="alert warning" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg>This will re-run all financial covenants based on the latest uploaded statements.</div><label class="choice-row selected"><input type="checkbox" checked><div><div class="choice-title">Include draft financials</div><div class="choice-desc">Calculate tests on unverified docs</div></div></label></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Portfolio recalculation started for 412 covenants">Run Recalc</button></div></div></div>
+
+  <div class="modal-backdrop" id="permissionModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Lending Division Permissions</h3><div class="modal-sub">Role: Senior Credit Risk Officer</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="config-row"><div><div class="config-label">Edit covenant terms</div><div class="config-desc">Full agreement override</div></div><span class="badge success">Granted</span></div><div class="config-row"><div><div class="config-label">Waiver authority</div><div class="config-desc">Up to USD 10M facility size</div></div><span class="badge success">Granted</span></div><div class="config-row"><div><div class="config-label">Escalate breaches</div><div class="config-desc">Trigger default workflow</div></div><span class="badge success">Granted</span></div><div class="config-row"><div><div class="config-label">Delete covenant book</div><div class="config-desc">Administrative record purge</div></div><span class="badge danger">Restricted</span></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button class="btn btn-primary" data-result="Request sent to system admin">Request elevation</button></div></div></div>
+
+  <div class="modal-backdrop" id="filterModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Filters</h3><div class="modal-sub">Refine monitoring view</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Borrower Type</label><select class="select-field"><option>All</option><option>Corporate</option><option>Real Estate</option></select></div><div class="field"><label class="field-label">Covenant Health</label><div style="display:flex;gap:8px;"><label style="display:flex;align-items:center;gap:6px;font-size:13px;"><input type="checkbox" checked> Compliant</label><label style="display:flex;align-items:center;gap:6px;font-size:13px;"><input type="checkbox" checked> Breached</label><label style="display:flex;align-items:center;gap:6px;font-size:13px;"><input type="checkbox"> Waived</label></div></div></div><div class="modal-footer"><button class="btn btn-ghost" data-result="Filters reset">Reset</button><div style="display:flex;gap:8px;"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Filters applied">Apply</button></div></div></div></div>
+
+  <div class="modal-backdrop" id="exportModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Export Compliance Report</h3><div class="modal-sub">Generate audit-ready document</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Report type</label><select class="select-field"><option>Portfolio compliance summary</option><option>Detailed breach log</option><option>Upcoming test schedule</option><option>Remediation history</option></select></div><div class="field"><label class="field-label">Format</label><select class="select-field"><option>PDF (Internal Memo)</option><option>CSV (Data Audit)</option><option>XLSX (Working Model)</option></select></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Report queued for download">Generate</button></div></div></div>
+
+  <div class="modal-backdrop" id="notificationsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Notifications</h3><div class="modal-sub">Covenant monitoring events</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body" style="padding:0;"><div class="list-item"><div class="list-left"><div class="list-icon" style="background:var(--danger-soft);color:var(--danger);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg></div><div><div class="list-title">Breach: Globex Manufacturing</div><div class="list-sub">Leverage ratio 3.5x · p0 alert</div></div></div><button class="btn btn-light btn-sm" data-modal="escalateBreachModal">Act</button></div><div class="list-item"><div class="list-left"><div class="list-icon" style="background:var(--success-soft);color:var(--success);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg></div><div><div class="list-title">Covenant Pass: Savanna</div><div class="list-sub">DSCR 3.2x verified</div></div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-result="All notifications cleared">Mark read</button><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="resultModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Action Complete</h3><div class="modal-sub">System updated successfully</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="alert success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg><span id="resultMessage">Success</span></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Done</button></div></div></div>
+
+  <div class="modal-backdrop" id="navCommandModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Lending Center</h3><div class="modal-sub">Portfolio Overview</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">Gross book</div><div class="kv-val">$184M</div></div><div><div class="kv-label">Health</div><div class="kv-val">A+</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+  <div class="modal-backdrop" id="navProductsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Products</h3><div class="modal-sub">Lending Catalog</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">Active</div><div class="kv-val">24</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+  <div class="modal-backdrop" id="navAppsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Applications</h3><div class="modal-sub">Underwriting Queue</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">Pending</div><div class="kv-val">148</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+  <div class="modal-backdrop" id="navUwModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Underwriting</h3><div class="modal-sub">Workbench</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><button class="btn btn-primary" style="width:100%;">Go to Underwriting</button></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+  <div class="modal-backdrop" id="navServicingModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Servicing</h3><div class="modal-sub">Loan Management</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">Active loans</div><div class="kv-val">42,180</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+  <div class="modal-backdrop" id="navCollateralModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Collateral</h3><div class="modal-sub">Security Management</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">Total items</div><div class="kv-val">1,842</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+  <div class="modal-backdrop" id="navRiskModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Risk</h3><div class="modal-sub">Monitoring</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">Risk score</div><div class="kv-val">82</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+  <div class="modal-backdrop" id="navAnalyticsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Analytics</h3><div class="modal-sub">Division Stats</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">NIM</div><div class="kv-val">8.4%</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <script>
+    const sidebar = document.getElementById('sidebar');
+    document.getElementById('sidebarToggle').addEventListener('click', () => sidebar.classList.toggle('expanded'));
+    document.getElementById('mobileMenuBtn').addEventListener('click', () => sidebar.classList.toggle('mobile-open'));
+
+    function openModal(id) { const m = document.getElementById(id); if (m) m.classList.add('show'); }
+    function closeAll() { document.querySelectorAll('.modal-backdrop.show').forEach(m => m.classList.remove('show')); }
+    document.addEventListener('click', e => {
+      if (e.target.closest('.toggle') || e.target.closest('.editable')) { return; }
+      const close = e.target.closest('[data-close]');
+      if (close) { e.preventDefault(); e.stopPropagation(); closeAll(); return; }
+      const result = e.target.closest('[data-result]');
+      if (result) { e.preventDefault(); e.stopPropagation(); setResult(result.dataset.result); return; }
+      const opener = e.target.closest('[data-modal]');
+      if (opener) { e.preventDefault(); e.stopPropagation(); openModal(opener.dataset.modal); }
+    });
+    document.querySelectorAll('.modal-backdrop').forEach(b => b.addEventListener('click', e => { if (e.target === b) closeAll(); }));
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAll(); });
+
+    function setResult(message) {
+      closeAll();
+      document.getElementById('resultMessage').textContent = message;
+      openModal('resultModal');
+    }
+
+    function switchTab(name) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.dataset.panel === name));
+    }
+    document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => switchTab(tab.dataset.tab)));
+
+    document.querySelectorAll('.choice-row').forEach(row => {
+      row.addEventListener('click', () => {
+        const radio = row.querySelector('input[type="radio"]');
+        if (radio) {
+          document.querySelectorAll(`input[name="${radio.name}"]`).forEach(i => i.closest('.choice-row')?.classList.remove('selected'));
+          radio.checked = true;
+          row.classList.add('selected');
+        }
+        const checkbox = row.querySelector('input[type="checkbox"]');
+        if (checkbox && !radio) row.classList.toggle('selected', checkbox.checked);
+      });
+    });
+
+    function setupStepper(rootId, stepperId, backId, nextId, total, doneMessage) {
+      const root = document.getElementById(rootId);
+      if (!root) return;
+      let current = 1;
+      const render = () => {
+        document.querySelectorAll(`#${stepperId} .step`).forEach((s, i) => { s.classList.toggle('active', i + 1 === current); s.classList.toggle('done', i + 1 < current); });
+        root.querySelectorAll('.step-panel').forEach(p => p.classList.toggle('active', Number(p.dataset.step) === current));
+        document.getElementById(backId).disabled = current === 1;
+        document.getElementById(nextId).textContent = current === total ? 'Complete' : 'Next';
+      };
+      document.getElementById(backId).addEventListener('click', () => { if (current > 1) { current--; render(); } });
+      document.getElementById(nextId).addEventListener('click', () => { if (current < total) { current++; render(); } else { current = 1; render(); setResult(doneMessage); } });
+      render();
+    }
+    setupStepper('runTestWizardModal', 'testStepper', 'testBack', 'testNext', 4, 'Financial covenant test completed and recorded');
+
+    const covSearch = document.getElementById('covSearch');
+    const statusFilter = document.getElementById('statusFilter');
+    function filterCovenants() {
+      const q = (covSearch.value || '').toLowerCase();
+      const s = statusFilter.value;
+      document.querySelectorAll('#covGrid .cov-card').forEach(card => {
+        const text = card.textContent.toLowerCase();
+        const status = card.querySelector('.badge').textContent;
+        const matchesText = text.includes(q);
+        const matchesStatus = s === 'All Status' || status === s;
+        card.style.display = matchesText && matchesStatus ? '' : 'none';
+      });
+    }
+    covSearch.addEventListener('input', filterCovenants);
+    statusFilter.addEventListener('change', filterCovenants);
+  </script>
+</body>
+</html>

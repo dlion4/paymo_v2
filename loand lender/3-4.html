@@ -1,0 +1,1533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Credit Underwriting & Decisioning — PayMo Lending</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="stylesheet" href="master.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    /* ── page-level extras ── */
+    .two-col   { display:grid; grid-template-columns:1.45fr 1fr; gap:16px; }
+    .three-col { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+    .four-col  { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+    .legend      { display:flex; gap:14px; flex-wrap:wrap; font-size:11px; color:var(--text-3); }
+    .legend-dot  { width:8px; height:8px; border-radius:50%; display:inline-block; margin-right:5px; vertical-align:middle; }
+    .kv-grid     { display:grid; grid-template-columns:repeat(2,1fr); gap:12px 18px; }
+    .kv-label    { font-size:11px; color:var(--text-3); text-transform:uppercase; letter-spacing:.06em; }
+    .kv-val      { font-size:13px; font-weight:600; margin-top:2px; }
+    .dist-row    { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+    .dist-label  { width:160px; font-size:12px; font-weight:500; }
+    .dist-bar    { flex:1; height:9px; border-radius:999px; background:var(--surface-3); overflow:hidden; }
+    .dist-bar span { display:block; height:100%; border-radius:999px; }
+    .dist-val    { width:80px; text-align:right; font-size:12px; font-weight:600; }
+    .config-row  { display:flex; align-items:center; justify-content:space-between; gap:14px; padding:12px 0; border-bottom:1px solid var(--border-soft); }
+    .config-row:last-child { border-bottom:0; }
+    .config-label{ font-size:13px; font-weight:600; }
+    .config-desc { font-size:11px; color:var(--text-3); margin-top:2px; }
+    .timeline    { position:relative; padding-left:24px; }
+    .timeline:before { content:""; position:absolute; top:6px; bottom:6px; left:8px; width:2px; background:var(--border); }
+    .tl-item     { position:relative; padding-bottom:16px; }
+    .tl-item:before { content:""; position:absolute; left:-20px; top:4px; width:10px; height:10px; border-radius:50%; background:var(--primary); border:2px solid #fff; }
+    .tl-time     { font-size:11px; color:var(--text-3); }
+    .tl-text     { font-size:13px; margin-top:2px; }
+    .score-ring  { position:relative; width:120px; height:120px; margin:0 auto; }
+    .score-center{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+    .donut       { transform:rotate(-90deg); }
+    .donut circle{ fill:none; stroke-width:12; }
+    .grade-badge { display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:10px; font-weight:700; font-size:16px; }
+    .check-row   { display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--border-soft); }
+    .check-row:last-child { border-bottom:0; }
+    .check-icon  { width:22px; height:22px; border-radius:6px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .ratio-row   { display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border-soft); }
+    .ratio-row:last-child { border-bottom:0; }
+    .ratio-label { font-size:12px; color:var(--text-2); }
+    .ratio-val   { font-size:13px; font-weight:700; }
+    .tab-badge   { background:var(--surface-3); color:var(--text-2); padding:1px 7px; border-radius:20px; font-size:10px; font-weight:600; }
+    .tab.active .tab-badge { background:var(--primary-soft); color:var(--primary); }
+    .doc-chip    { display:inline-flex; align-items:center; gap:6px; background:var(--surface-2); border:1px solid var(--border); border-radius:8px; padding:5px 10px; font-size:12px; cursor:pointer; }
+    .doc-chip.ok { background:var(--success-soft); border-color:var(--success); color:#15803d; }
+    .doc-chip.missing { background:var(--danger-soft); border-color:var(--danger); color:#b91c1c; }
+    .doc-chip.pending { background:var(--warning-soft); border-color:var(--warning); color:#b45309; }
+    .approval-step { display:flex; align-items:center; gap:14px; padding:12px; border:1px solid var(--border-soft); border-radius:12px; margin-bottom:8px; }
+    .step-avatar { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; flex-shrink:0; }
+    .app-table th, .app-table td { padding:12px 16px; text-align:left; border-bottom:1px solid var(--border-soft); font-size:13px; }
+    .app-table th { font-size:11px; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:.05em; background:var(--surface-2); }
+    .app-table tbody tr:hover { background:var(--surface-2); cursor:pointer; }
+    .risk-flag   { display:inline-flex; align-items:center; gap:5px; padding:3px 9px; border-radius:6px; font-size:11px; font-weight:500; }
+    @media (max-width:1100px) { .two-col { grid-template-columns:1fr; } .three-col { grid-template-columns:1fr 1fr; } }
+    @media (max-width:768px)  { .three-col,.four-col { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ═══════════ SIDEBAR ═══════════ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">P</div>
+    <nav class="sidebar-nav">
+      <button class="sidebar-item" title="Lending Home" data-modal="navLendingHomeModal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        <span class="sidebar-label">Command Center</span>
+      </button>
+      <button class="sidebar-item" title="Loan Products" data-modal="navProductsModal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"/><path d="M7 7h.01"/></svg>
+        <span class="sidebar-label">Products & Pricing</span>
+      </button>
+      <button class="sidebar-item" title="Applications" data-modal="navApplicationsModal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <span class="sidebar-label">Applications</span>
+      </button>
+      <button class="sidebar-item active" title="Underwriting">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+        <span class="sidebar-label">Underwriting</span>
+      </button>
+      <button class="sidebar-item" title="Loan Servicing" data-modal="navServicingModal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span class="sidebar-label">Servicing</span>
+      </button>
+      <button class="sidebar-item" title="Collections" data-modal="navCollectionsModal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"/></svg>
+        <span class="sidebar-label">Collections</span>
+      </button>
+      <button class="sidebar-item" title="Risk & Portfolio" data-modal="navRiskModal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg>
+        <span class="sidebar-label">Risk</span>
+      </button>
+      <button class="sidebar-item" title="Analytics" data-modal="navAnalyticsModal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
+        <span class="sidebar-label">Analytics</span>
+      </button>
+    </nav>
+    <button class="sidebar-expand" id="sidebarToggle">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      <span class="sidebar-label">Collapse</span>
+    </button>
+  </aside>
+
+  <!-- ═══════════ MAIN ═══════════ -->
+  <main class="main">
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <div>
+        <div class="crumb">
+          <button class="mobile-menu-btn btn btn-light btn-sm" id="mobileMenuBtn" style="margin-right:8px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          </button>
+          <span>Lending</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;"><polyline points="9 18 15 12 9 6"/></svg>
+          <span>Credit Underwriting &amp; Decisioning</span>
+        </div>
+        <h1 class="page-title">Credit Underwriting &amp; Decisioning</h1>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-light btn-icon" data-modal="notificationsModal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        </button>
+        <button class="btn btn-light" data-modal="approvalMatrixModal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          <span class="btn-text">Authority Matrix</span>
+        </button>
+        <button class="btn btn-light" data-modal="exportModal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span class="btn-text">Export</span>
+        </button>
+        <button class="btn btn-light" data-modal="filterModal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+          <span class="btn-text">Filter</span>
+        </button>
+        <button class="btn btn-primary" data-modal="startUWModal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          New Assessment
+        </button>
+      </div>
+    </div>
+
+    <!-- STAT CARDS -->
+    <div class="stats-row">
+      <div class="stat-card" data-modal="queueModal">
+        <div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+        <div class="stat-label">In UW Queue</div>
+        <div class="stat-value">84</div>
+        <div class="stat-trend neutral"><span>Across all product lines</span></div>
+      </div>
+      <div class="stat-card" data-modal="decisionedModal">
+        <div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <div class="stat-label">Decisioned Today</div>
+        <div class="stat-value">41</div>
+        <div class="stat-trend up"><span>28 approved, 13 declined</span></div>
+      </div>
+      <div class="stat-card" data-modal="approvalRateModal">
+        <div class="stat-icon purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/></svg></div>
+        <div class="stat-label">Approval Rate</div>
+        <div class="stat-value">68.3%</div>
+        <div class="stat-trend up"><span>+2.1 pts this week</span></div>
+      </div>
+      <div class="stat-card" data-modal="slaModal">
+        <div class="stat-icon amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+        <div class="stat-label">Avg Decision Time</div>
+        <div class="stat-value">4.2h</div>
+        <div class="stat-trend down"><span>SLA target 6h — green</span></div>
+      </div>
+      <div class="stat-card" data-modal="committeeModal">
+        <div class="stat-icon red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg></div>
+        <div class="stat-label">Pending Committee</div>
+        <div class="stat-value">9</div>
+        <div class="stat-trend neutral"><span>3 escalated</span></div>
+      </div>
+    </div>
+
+    <!-- MAIN TAB PANEL -->
+    <div class="panel">
+      <div class="tabs" id="mainTabs">
+        <button class="tab active" data-tab="retail">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+          Retail UW <span class="tab-badge">38</span>
+        </button>
+        <button class="tab" data-tab="sme">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"/><path d="M5 6l7-3 7 3"/><path d="M4 10v11"/><path d="M20 10v11"/></svg>
+          SME UW <span class="tab-badge">22</span>
+        </button>
+        <button class="tab" data-tab="corporate">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+          Corporate UW <span class="tab-badge">9</span>
+        </button>
+        <button class="tab" data-tab="realestate">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          Real Estate UW <span class="tab-badge">15</span>
+        </button>
+        <button class="tab" data-tab="committee">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          Credit Committee <span class="tab-badge">9</span>
+        </button>
+      </div>
+
+      <!-- ══════════════════ TAB: RETAIL ══════════════════ -->
+      <section class="tab-panel active" data-panel="retail">
+        <div class="panel-body">
+          <div class="two-col">
+            <!-- LEFT: queue -->
+            <div>
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
+                <h2 class="panel-title" style="font-size:14px;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                  Retail Underwriting Queue
+                </h2>
+                <div style="display:flex;gap:8px;">
+                  <select class="select" id="retailFilterSel"><option>All Products</option><option>Personal Loan</option><option>Salary Advance</option><option>BNPL</option><option>Credit Card</option></select>
+                  <button class="btn btn-primary btn-sm" data-modal="startUWModal">Start UW</button>
+                </div>
+              </div>
+              <div class="table-wrap">
+                <table class="app-table" style="width:100%;border-collapse:collapse;">
+                  <thead><tr><th>App ID</th><th>Applicant</th><th>Product</th><th>Amount</th><th>Score</th><th>Status</th><th></th></tr></thead>
+                  <tbody>
+                    <tr data-modal="retailUWModal"><td class="mono">APP-8821</td><td>Kevin Mwenda</td><td>Personal Loan</td><td>KES 500K</td><td><span class="badge success">A</span></td><td><span class="badge info">In Progress</span></td><td class="right"><button class="btn btn-light btn-sm" data-modal="retailUWModal">Assess</button></td></tr>
+                    <tr data-modal="retailUWModal"><td class="mono">APP-8820</td><td>Amina Osei</td><td>Salary Advance</td><td>KES 120K</td><td><span class="badge success">A+</span></td><td><span class="badge warning">Docs Pending</span></td><td class="right"><button class="btn btn-light btn-sm" data-modal="docUploadModal">Docs</button></td></tr>
+                    <tr data-modal="retailUWModal"><td class="mono">APP-8819</td><td>James Karuri</td><td>BNPL</td><td>KES 48K</td><td><span class="badge warning">B</span></td><td><span class="badge info">In Progress</span></td><td class="right"><button class="btn btn-light btn-sm" data-modal="retailUWModal">Assess</button></td></tr>
+                    <tr data-modal="retailUWModal"><td class="mono">APP-8818</td><td>Grace Otieno</td><td>Credit Card</td><td>KES 200K</td><td><span class="badge danger">C</span></td><td><span class="badge warning">Referred</span></td><td class="right"><button class="btn btn-light btn-sm" data-modal="counterOfferModal">Counter</button></td></tr>
+                    <tr data-modal="retailUWModal"><td class="mono">APP-8817</td><td>Peter Njuguna</td><td>Personal Loan</td><td>KES 1.2M</td><td><span class="badge warning">B+</span></td><td><span class="badge info">In Progress</span></td><td class="right"><button class="btn btn-light btn-sm" data-modal="retailUWModal">Assess</button></td></tr>
+                    <tr data-modal="retailUWModal"><td class="mono">APP-8816</td><td>Diana Wanjiku</td><td>Salary Advance</td><td>KES 80K</td><td><span class="badge success">A</span></td><td><span class="badge success">Ready to Approve</span></td><td class="right"><button class="btn btn-light btn-sm" data-modal="decisionModal">Decide</button></td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <!-- RIGHT: live scorecard panel -->
+            <div>
+              <h2 class="panel-title" style="font-size:14px;margin-bottom:12px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                Live Scorecard — APP-8821
+              </h2>
+              <div style="background:var(--surface-2);border-radius:14px;padding:18px;margin-bottom:14px;">
+                <div style="display:flex;align-items:center;gap:18px;">
+                  <div class="score-ring">
+                    <svg width="120" height="120" viewBox="0 0 120 120" class="donut"><circle cx="60" cy="60" r="48" stroke="#eef0ff"/><circle cx="60" cy="60" r="48" stroke="#16a34a" stroke-dasharray="301" stroke-dashoffset="60"/></svg>
+                    <div class="score-center"><div class="kv-label">Score</div><div style="font-size:22px;font-weight:700;">780</div></div>
+                  </div>
+                  <div style="flex:1;">
+                    <div class="kv-grid">
+                      <div><div class="kv-label">Grade</div><div class="kv-val"><span class="grade-badge" style="background:var(--success-soft);color:var(--success);">A</span></div></div>
+                      <div><div class="kv-label">DTI</div><div class="kv-val">28.4%</div></div>
+                      <div><div class="kv-label">Net Income</div><div class="kv-val">KES 84K</div></div>
+                      <div><div class="kv-label">Disposable</div><div class="kv-val">KES 60K</div></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- Income checks -->
+              <div style="font-size:12px;font-weight:600;color:var(--text-2);margin-bottom:8px;">Income Verification Checks</div>
+              <div class="check-row"><div class="check-icon" style="background:var(--success-soft);color:var(--success);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><div style="flex:1;"><span class="config-label">Bank statement analysis</span><div class="config-desc">Auto-parsed via open banking — 12 months verified</div></div><button class="btn btn-light btn-sm" data-modal="bankStmtModal">View</button></div>
+              <div class="check-row"><div class="check-icon" style="background:var(--success-soft);color:var(--success);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><div style="flex:1;"><span class="config-label">Payslip verification</span><div class="config-desc">3 months verified — employer matched</div></div><button class="btn btn-light btn-sm" data-modal="docUploadModal">View</button></div>
+              <div class="check-row"><div class="check-icon" style="background:var(--success-soft);color:var(--success);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><div style="flex:1;"><span class="config-label">Employment verification API</span><div class="config-desc">Active employment confirmed — 4.2 years tenure</div></div><button class="btn btn-light btn-sm" data-modal="employmentModal">View</button></div>
+              <div class="check-row"><div class="check-icon" style="background:var(--info-soft);color:var(--info);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><circle cx="12" cy="12" r="8"/></svg></div><div style="flex:1;"><span class="config-label">Alternative data</span><div class="config-desc">M-Pesa history: 18 months — good pattern</div></div><button class="btn btn-light btn-sm" data-modal="altDataModal">View</button></div>
+              <div style="display:flex;gap:8px;margin-top:14px;">
+                <button class="btn btn-light" style="flex:1;" data-modal="debtBurdenModal">Debt Burden</button>
+                <button class="btn btn-light" style="flex:1;" data-modal="behavioralModal">Behavioural</button>
+                <button class="btn btn-primary" style="flex:1;" data-modal="decisionModal">Decision</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══════════════════ TAB: SME ══════════════════ -->
+      <section class="tab-panel" data-panel="sme">
+        <div class="panel-body">
+          <div class="two-col">
+            <div>
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
+                <h2 class="panel-title" style="font-size:14px;">SME Underwriting Queue</h2>
+                <button class="btn btn-primary btn-sm" data-modal="smeUWModal">Open Assessment</button>
+              </div>
+              <div class="table-wrap">
+                <table class="app-table" style="width:100%;border-collapse:collapse;">
+                  <thead><tr><th>App ID</th><th>Business</th><th>Product</th><th>Amount</th><th>Score</th><th>Status</th><th></th></tr></thead>
+                  <tbody>
+                    <tr data-modal="smeUWModal"><td class="mono">SME-3301</td><td>Savanna Agri Ltd</td><td>Working Capital</td><td>$180K</td><td><span class="badge success">BB+</span></td><td><span class="badge info">In Progress</span></td><td class="right"><button class="btn btn-light btn-sm" data-modal="smeUWModal">Assess</button></td></tr>
+                    <tr data-modal="smeUWModal"><td class="mono">SME-3300</td><td>TechHub Nairobi</td><td>Equipment Loan</td><td>$95K</td><td><span class="badge warning">BB</span></td><td><span class="badge warning">Docs Pending</span></td><td class="right"><button class="btn btn-light btn-sm" data-modal="docUploadModal">Docs</button></td></tr>
+                    <tr data-modal="smeUWModal"><td class="mono">SME-3299</td><td>Coastal Exports</td><td>Trade Finance</td><td>$240K</td><td><span class="badge warning">B+</span></td><td><span class="badge warning">Referred</span></td><td class="right"><button class="btn btn-light btn-sm" data-modal="counterOfferModal">Counter</button></td></tr>
+                    <tr data-modal="smeUWModal"><td class="mono">SME-3298</td><td>Bloom Pharmacy</td><td>Invoice Finance</td><td>$42K</td><td><span class="badge success">A-</span></td><td><span class="badge success">Ready</span></td><td class="right"><button class="btn btn-light btn-sm" data-modal="decisionModal">Decide</button></td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div>
+              <h2 class="panel-title" style="font-size:14px;margin-bottom:12px;">SME Assessment — SME-3301</h2>
+              <div style="background:var(--surface-2);border-radius:14px;padding:16px;margin-bottom:12px;">
+                <div class="kv-grid">
+                  <div><div class="kv-label">Business credit score</div><div class="kv-val">72 / 100 (BB+)</div></div>
+                  <div><div class="kv-label">Years in operation</div><div class="kv-val">6 years</div></div>
+                  <div><div class="kv-label">Annual revenue</div><div class="kv-val">$920K</div></div>
+                  <div><div class="kv-label">Cash flow cover</div><div class="kv-val">1.8x</div></div>
+                </div>
+              </div>
+              <div style="font-size:12px;font-weight:600;color:var(--text-2);margin-bottom:8px;">Business Financial Checks</div>
+              <div class="check-row"><div class="check-icon" style="background:var(--success-soft);color:var(--success);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><div style="flex:1;"><span class="config-label">Financial statements (2 yrs)</span><div class="config-desc">Revenue growth 18% YoY — positive trend</div></div><button class="btn btn-light btn-sm" data-modal="financialsModal">View</button></div>
+              <div class="check-row"><div class="check-icon" style="background:var(--success-soft);color:var(--success);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><div style="flex:1;"><span class="config-label">Bank statement (6 months)</span><div class="config-desc">Average monthly credit KES 2.4M</div></div><button class="btn btn-light btn-sm" data-modal="bankStmtModal">View</button></div>
+              <div class="check-row"><div class="check-icon" style="background:var(--warning-soft);color:var(--warning);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div><div style="flex:1;"><span class="config-label">Trade reference checks</span><div class="config-desc">2 of 3 references confirmed</div></div><button class="btn btn-light btn-sm" data-modal="tradeRefModal">Review</button></div>
+              <div class="check-row"><div class="check-icon" style="background:var(--success-soft);color:var(--success);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><div style="flex:1;"><span class="config-label">Owner personal credit</span><div class="config-desc">Score 698 — no adverse</div></div><button class="btn btn-light btn-sm" data-modal="personalCreditModal">View</button></div>
+              <div style="display:flex;gap:8px;margin-top:14px;">
+                <button class="btn btn-light" style="flex:1;" data-modal="cashFlowModal">Cash Flow</button>
+                <button class="btn btn-light" style="flex:1;" data-modal="guaranteeModal">Guarantee</button>
+                <button class="btn btn-primary" style="flex:1;" data-modal="decisionModal">Decision</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══════════════════ TAB: CORPORATE ══════════════════ -->
+      <section class="tab-panel" data-panel="corporate">
+        <div class="panel-body">
+          <div class="two-col">
+            <div>
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
+                <h2 class="panel-title" style="font-size:14px;">Corporate Underwriting Queue</h2>
+                <button class="btn btn-primary btn-sm" data-modal="corpUWModal">Open Assessment</button>
+              </div>
+              <div class="table-wrap">
+                <table class="app-table" style="width:100%;border-collapse:collapse;">
+                  <thead><tr><th>Ref</th><th>Entity</th><th>Facility</th><th>Amount</th><th>Rating</th><th>Stage</th><th></th></tr></thead>
+                  <tbody>
+                    <tr data-modal="corpUWModal"><td class="mono">CORP-1142</td><td>Horizon Plc</td><td>Revolving Credit</td><td>$10M</td><td><span class="badge primary">BBB</span></td><td><span class="badge warning">Ratio Analysis</span></td><td class="right"><button class="btn btn-light btn-sm" data-modal="corpUWModal">Assess</button></td></tr>
+                    <tr data-modal="corpUWModal"><td class="mono">CORP-1141</td><td>Zenith Power</td><td>Project Finance</td><td>$24M</td><td><span class="badge warning">BB</span></td><td><span class="badge info">Structuring</span></td><td class="right"><button class="btn btn-light btn-sm" data-modal="facilityStructModal">Structure</button></td></tr>
+                    <tr data-modal="corpUWModal"><td class="mono">CORP-1140</td><td>Apex Retail</td><td>Term Loan</td><td>$5M</td><td><span class="badge primary">A-</span></td><td><span class="badge success">Ready for CC</span></td><td class="right"><button class="btn btn-light btn-sm" data-modal="creditMemoModal">Memo</button></td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div style="margin-top:16px;">
+                <h2 class="panel-title" style="font-size:14px;margin-bottom:10px;">Ratio Analysis — CORP-1142</h2>
+                <div class="ratio-row"><span class="ratio-label">DSCR (Debt Service Coverage)</span><div style="display:flex;align-items:center;gap:8px;"><strong class="ratio-val">1.42x</strong><span class="badge success">Pass</span></div></div>
+                <div class="ratio-row"><span class="ratio-label">ICR (Interest Coverage)</span><div style="display:flex;align-items:center;gap:8px;"><strong class="ratio-val">3.8x</strong><span class="badge success">Pass</span></div></div>
+                <div class="ratio-row"><span class="ratio-label">Leverage (Debt/EBITDA)</span><div style="display:flex;align-items:center;gap:8px;"><strong class="ratio-val">4.1x</strong><span class="badge warning">Watch</span></div></div>
+                <div class="ratio-row"><span class="ratio-label">Current Ratio</span><div style="display:flex;align-items:center;gap:8px;"><strong class="ratio-val">1.8x</strong><span class="badge success">Pass</span></div></div>
+                <div class="ratio-row"><span class="ratio-label">Net Margin</span><div style="display:flex;align-items:center;gap:8px;"><strong class="ratio-val">12.4%</strong><span class="badge success">Pass</span></div></div>
+                <button class="btn btn-light btn-sm" style="margin-top:10px;" data-modal="peerBenchModal">Peer benchmarking</button>
+              </div>
+            </div>
+            <div>
+              <h2 class="panel-title" style="font-size:14px;margin-bottom:12px;">Facility Structuring — CORP-1142</h2>
+              <div style="background:var(--surface-2);border-radius:14px;padding:16px;margin-bottom:12px;">
+                <div class="kv-grid">
+                  <div><div class="kv-label">Facility type</div><div class="kv-val">Revolving Credit</div></div>
+                  <div><div class="kv-label">Amount</div><div class="kv-val">$10M</div></div>
+                  <div><div class="kv-label">Tenor</div><div class="kv-val">36 months</div></div>
+                  <div><div class="kv-label">Pricing</div><div class="kv-val">SOFR + 380bps</div></div>
+                </div>
+              </div>
+              <div style="font-size:12px;font-weight:600;color:var(--text-2);margin-bottom:8px;">Business Risk Checks</div>
+              <div class="check-row"><div class="check-icon" style="background:var(--success-soft);color:var(--success);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><div style="flex:1;"><span class="config-label">Audited financials (3 yrs)</span><div class="config-desc">PwC-audited, clean opinions</div></div><button class="btn btn-light btn-sm" data-modal="financialsModal">View</button></div>
+              <div class="check-row"><div class="check-icon" style="background:var(--success-soft);color:var(--success);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><div style="flex:1;"><span class="config-label">Industry analysis</span><div class="config-desc">Stable — telecom sector outlook positive</div></div><button class="btn btn-light btn-sm" data-modal="industryModal">View</button></div>
+              <div class="check-row"><div class="check-icon" style="background:var(--warning-soft);color:var(--warning);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div><div style="flex:1;"><span class="config-label">ESG risk assessment</span><div class="config-desc">Medium risk — carbon footprint pending</div></div><button class="btn btn-light btn-sm" data-modal="esgModal">Review</button></div>
+              <div class="check-row"><div class="check-icon" style="background:var(--success-soft);color:var(--success);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><div style="flex:1;"><span class="config-label">Management assessment</span><div class="config-desc">Strong executive team — 12 yr avg tenure</div></div><button class="btn btn-light btn-sm" data-modal="mgmtModal">View</button></div>
+              <div class="check-row"><div class="check-icon" style="background:var(--info-soft);color:var(--info);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><circle cx="12" cy="12" r="8"/></svg></div><div style="flex:1;"><span class="config-label">Covenant package</span><div class="config-desc">Draft covenants under review</div></div><button class="btn btn-light btn-sm" data-modal="covenantsModal">Edit</button></div>
+              <div style="display:flex;gap:8px;margin-top:14px;">
+                <button class="btn btn-light" style="flex:1;" data-modal="cashFlowModal">CF Model</button>
+                <button class="btn btn-light" style="flex:1;" data-modal="facilityStructModal">Structure</button>
+                <button class="btn btn-primary" style="flex:1;" data-modal="creditMemoModal">Draft Memo</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══════════════════ TAB: REAL ESTATE ══════════════════ -->
+      <section class="tab-panel" data-panel="realestate">
+        <div class="panel-body">
+          <div class="two-col">
+            <div>
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
+                <h2 class="panel-title" style="font-size:14px;">Real Estate Underwriting Queue</h2>
+                <button class="btn btn-primary btn-sm" data-modal="reUWModal">Open Assessment</button>
+              </div>
+              <div class="table-wrap">
+                <table class="app-table" style="width:100%;border-collapse:collapse;">
+                  <thead><tr><th>Ref</th><th>Project</th><th>Type</th><th>Amount</th><th>LTV</th><th>Stage</th><th></th></tr></thead>
+                  <tbody>
+                    <tr data-modal="reUWModal"><td class="mono">RE-2241</td><td>Riverside Apts</td><td>Construction</td><td>$8.2M</td><td><span class="badge success">62%</span></td><td><span class="badge info">Valuation</span></td><td class="right"><button class="btn btn-light btn-sm" data-modal="reUWModal">Assess</button></td></tr>
+                    <tr data-modal="reUWModal"><td class="mono">RE-2240</td><td>Parkview Commercial</td><td>CRE</td><td>$14M</td><td><span class="badge warning">74%</span></td><td><span class="badge warning">Legal Review</span></td><td class="right"><button class="btn btn-light btn-sm" data-modal="legalTitleModal">Legal</button></td></tr>
+                    <tr data-modal="reUWModal"><td class="mono">RE-2239</td><td>Westlands Office</td><td>Refinance</td><td>$5.8M</td><td><span class="badge success">58%</span></td><td><span class="badge success">Ready for CC</span></td><td class="right"><button class="btn btn-light btn-sm" data-modal="creditMemoModal">Memo</button></td></tr>
+                    <tr data-modal="reUWModal"><td class="mono">RE-2238</td><td>Mara Lodge Dev.</td><td>Construction</td><td>$3.1M</td><td><span class="badge danger">82%</span></td><td><span class="badge danger">Risk Flag</span></td><td class="right"><button class="btn btn-light btn-sm" data-modal="riskFlagsModal">Flags</button></td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div>
+              <h2 class="panel-title" style="font-size:14px;margin-bottom:12px;">RE Assessment — RE-2241</h2>
+              <div style="background:var(--surface-2);border-radius:14px;padding:16px;margin-bottom:12px;">
+                <div class="kv-grid">
+                  <div><div class="kv-label">GDV (Gross Dev. Value)</div><div class="kv-val">$13.2M</div></div>
+                  <div><div class="kv-label">LTV</div><div class="kv-val">62%</div></div>
+                  <div><div class="kv-label">DSCR</div><div class="kv-val">1.52x</div></div>
+                  <div><div class="kv-label">Pre-sales</div><div class="kv-val">68% committed</div></div>
+                </div>
+              </div>
+              <div style="font-size:12px;font-weight:600;color:var(--text-2);margin-bottom:8px;">Project &amp; Legal Checks</div>
+              <div class="check-row"><div class="check-icon" style="background:var(--success-soft);color:var(--success);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><div style="flex:1;"><span class="config-label">Independent valuation</span><div class="config-desc">Knight Frank — $13.2M completed</div></div><button class="btn btn-light btn-sm" data-modal="valuationModal">View</button></div>
+              <div class="check-row"><div class="check-icon" style="background:var(--success-soft);color:var(--success);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><div style="flex:1;"><span class="config-label">Title deed &amp; encumbrance</span><div class="config-desc">Clean title, no prior encumbrances</div></div><button class="btn btn-light btn-sm" data-modal="legalTitleModal">View</button></div>
+              <div class="check-row"><div class="check-icon" style="background:var(--success-soft);color:var(--success);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><div style="flex:1;"><span class="config-label">Planning &amp; permits</span><div class="config-desc">NCA approved, county approved</div></div><button class="btn btn-light btn-sm" data-modal="permitsModal">View</button></div>
+              <div class="check-row"><div class="check-icon" style="background:var(--warning-soft);color:var(--warning);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="8" x2="12" y2="12"/></svg></div><div style="flex:1;"><span class="config-label">Environmental assessment</span><div class="config-desc">Phase I complete — Phase II pending</div></div><button class="btn btn-light btn-sm" data-modal="envModal">Review</button></div>
+              <div class="check-row"><div class="check-icon" style="background:var(--success-soft);color:var(--success);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><div style="flex:1;"><span class="config-label">Construction contract</span><div class="config-desc">Fixed-price, performance bond in place</div></div><button class="btn btn-light btn-sm" data-modal="constructionModal">View</button></div>
+              <div style="display:flex;gap:8px;margin-top:14px;">
+                <button class="btn btn-light" style="flex:1;" data-modal="valuationModal">Valuation</button>
+                <button class="btn btn-light" style="flex:1;" data-modal="insuranceModal">Insurance</button>
+                <button class="btn btn-primary" style="flex:1;" data-modal="creditMemoModal">Draft Memo</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══════════════════ TAB: CREDIT COMMITTEE ══════════════════ -->
+      <section class="tab-panel" data-panel="committee">
+        <div class="panel-body">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px;">
+            <h2 class="panel-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              Credit Committee Workflow
+            </h2>
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-light" data-modal="approvalMatrixModal">Authority Matrix</button>
+              <button class="btn btn-light" data-modal="minutesModal">Minutes &amp; Records</button>
+              <button class="btn btn-primary" data-modal="committeeModal">Schedule Meeting</button>
+            </div>
+          </div>
+          <!-- CC queue table -->
+          <div class="table-wrap" style="margin-bottom:22px;">
+            <table class="app-table" style="width:100%;border-collapse:collapse;">
+              <thead><tr><th>Credit Memo</th><th>Applicant</th><th>Product</th><th>Amount</th><th>Recommendation</th><th>Authority</th><th>Status</th><th></th></tr></thead>
+              <tbody>
+                <tr data-modal="creditMemoModal"><td class="mono">CM-0481</td><td>Apex Retail</td><td>Term Loan</td><td>$5M</td><td><span class="badge success">Approve</span></td><td>CRO</td><td><span class="badge warning">Pending vote</span></td><td class="right"><button class="btn btn-primary btn-sm" data-modal="ccVoteModal">Vote</button></td></tr>
+                <tr data-modal="creditMemoModal"><td class="mono">CM-0480</td><td>Westlands Office</td><td>CRE Loan</td><td>$5.8M</td><td><span class="badge success">Approve</span></td><td>CEO + CRO</td><td><span class="badge warning">Pending vote</span></td><td class="right"><button class="btn btn-primary btn-sm" data-modal="ccVoteModal">Vote</button></td></tr>
+                <tr data-modal="creditMemoModal"><td class="mono">CM-0479</td><td>Horizon Plc</td><td>Revolving Credit</td><td>$10M</td><td><span class="badge warning">Conditional</span></td><td>Full CC</td><td><span class="badge info">Docs review</span></td><td class="right"><button class="btn btn-light btn-sm" data-modal="creditMemoModal">Review</button></td></tr>
+                <tr data-modal="creditMemoModal"><td class="mono">CM-0478</td><td>Zenith Power</td><td>Project Finance</td><td>$24M</td><td><span class="badge warning">Refer</span></td><td>Board CC</td><td><span class="badge danger">Escalated</span></td><td class="right"><button class="btn btn-light btn-sm" data-modal="appealModal">Escalate</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <!-- Approval workflow visual -->
+          <h2 class="panel-title" style="font-size:14px;margin-bottom:12px;">Live Approval Workflow — CM-0481</h2>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div class="approval-step" style="border-color:var(--success);">
+              <div class="step-avatar" style="background:var(--success-soft);color:var(--success);">UW</div>
+              <div style="flex:1;"><div class="config-label">Underwriter Review</div><div class="config-desc">Sarah Karanja — completed 10:14 AM</div></div>
+              <span class="badge success">Done</span>
+            </div>
+            <div class="approval-step" style="border-color:var(--success);">
+              <div class="step-avatar" style="background:var(--success-soft);color:var(--success);">CA</div>
+              <div style="flex:1;"><div class="config-label">Credit Analyst Recommendation</div><div class="config-desc">Approve — Grade A, $5M, SOFR +310bps</div></div>
+              <span class="badge success">Done</span>
+            </div>
+            <div class="approval-step" style="border-color:var(--primary);">
+              <div class="step-avatar" style="background:var(--primary-soft);color:var(--primary);">CRO</div>
+              <div style="flex:1;"><div class="config-label">Chief Risk Officer</div><div class="config-desc">Pending — authority limit $5M</div></div>
+              <button class="btn btn-primary btn-sm" data-modal="ccVoteModal">Vote now</button>
+            </div>
+            <div class="approval-step">
+              <div class="step-avatar" style="background:var(--surface-3);color:var(--text-3);">DISP</div>
+              <div style="flex:1;"><div class="config-label">Disbursement &amp; Activation</div><div class="config-desc">Awaiting approval to proceed</div></div>
+              <span class="badge gray">Pending</span>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
+            <button class="btn btn-light" data-modal="creditMemoModal">View full credit memo</button>
+            <button class="btn btn-light" data-modal="minutesModal">View committee minutes</button>
+            <button class="btn btn-light" data-modal="appealModal">Appeal process</button>
+            <button class="btn btn-primary" data-modal="ccVoteModal">Cast vote</button>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     MODALS — 30+
+═══════════════════════════════════════════ -->
+
+<!-- 1. Start New UW Wizard -->
+<div class="modal-backdrop" id="startUWModal">
+  <div class="modal lg">
+    <div class="modal-header"><div><h3 class="modal-title">Start New Assessment</h3><div class="modal-sub">Multi-step underwriting wizard</div></div><button class="modal-close" data-close>x</button></div>
+    <div class="stepper" id="startUWStepper">
+      <div class="step active"><div class="step-num">1</div>Type</div><div class="step-line"></div>
+      <div class="step"><div class="step-num">2</div>Applicant</div><div class="step-line"></div>
+      <div class="step"><div class="step-num">3</div>Checklist</div><div class="step-line"></div>
+      <div class="step"><div class="step-num">4</div>Assign</div>
+    </div>
+    <div class="modal-body">
+      <div class="step-panel active" data-step="1">
+        <div style="font-weight:600;margin-bottom:8px;">Select borrower segment</div>
+        <label class="choice-row selected"><input type="radio" name="uwType" checked><div><div class="choice-title">Retail</div><div class="choice-desc">Personal loan, salary advance, BNPL, credit card</div></div></label>
+        <label class="choice-row"><input type="radio" name="uwType"><div><div class="choice-title">SME</div><div class="choice-desc">Working capital, equipment, invoice finance</div></div></label>
+        <label class="choice-row"><input type="radio" name="uwType"><div><div class="choice-title">Corporate</div><div class="choice-desc">Term loan, revolving credit, project finance</div></div></label>
+        <label class="choice-row"><input type="radio" name="uwType"><div><div class="choice-title">Real Estate</div><div class="choice-desc">Construction, mortgage, CRE loan</div></div></label>
+      </div>
+      <div class="step-panel" data-step="2">
+        <div class="field"><label class="field-label">Application reference</label><input class="input" placeholder="APP-XXXX or SME-XXXX"></div>
+        <div class="field-row">
+          <div class="field"><label class="field-label">Requested amount</label><input class="input" value="500,000"></div>
+          <div class="field"><label class="field-label">Currency</label><select class="select-field"><option>KES</option><option>USD</option><option>GBP</option><option>EUR</option></select></div>
+        </div>
+        <div class="field"><label class="field-label">Product</label><select class="select-field"><option>Personal Loan</option><option>Salary Advance</option><option>BNPL</option></select></div>
+      </div>
+      <div class="step-panel" data-step="3">
+        <div style="font-weight:600;margin-bottom:8px;">Required documents</div>
+        <div class="check-row"><div class="check-icon" style="background:var(--success-soft);color:var(--success);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><div style="flex:1;"><span class="config-label">National ID</span></div><span class="badge success">Received</span></div>
+        <div class="check-row"><div class="check-icon" style="background:var(--success-soft);color:var(--success);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><div style="flex:1;"><span class="config-label">3 months payslips</span></div><span class="badge success">Received</span></div>
+        <div class="check-row"><div class="check-icon" style="background:var(--warning-soft);color:var(--warning);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="8" x2="12" y2="12"/></svg></div><div style="flex:1;"><span class="config-label">6 months bank statement</span></div><button class="btn btn-light btn-sm" data-modal="docUploadModal">Upload</button></div>
+        <div class="check-row"><div class="check-icon" style="background:var(--danger-soft);color:var(--danger);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div><div style="flex:1;"><span class="config-label">Credit consent form</span></div><button class="btn btn-light btn-sm" data-modal="docUploadModal">Upload</button></div>
+      </div>
+      <div class="step-panel" data-step="4">
+        <div class="field"><label class="field-label">Assign to underwriter</label><select class="select-field"><option>Sarah Karanja (4 active)</option><option>Michael Otieno (3 active)</option><option>Priya Nair (5 active)</option></select></div>
+        <div class="field"><label class="field-label">SLA target</label><select class="select-field"><option>Standard (6 hours)</option><option>Priority (2 hours)</option><option>Urgent (30 minutes)</option></select></div>
+        <div class="alert success" style="margin-top:10px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Ready to open assessment</div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-light" id="uwBack" disabled>Back</button><button class="btn btn-primary" id="uwNext">Next</button></div>
+  </div>
+</div>
+
+<!-- 2. Retail UW Detail -->
+<div class="modal-backdrop" id="retailUWModal">
+  <div class="modal xl">
+    <div class="modal-header"><div><h3 class="modal-title">Retail Underwriting — APP-8821</h3><div class="modal-sub">Kevin Mwenda — Personal Loan KES 500K</div></div><button class="modal-close" data-close>x</button></div>
+    <div class="modal-body">
+      <div class="kv-grid" style="margin-bottom:16px;">
+        <div><div class="kv-label">Application</div><div class="kv-val mono">APP-8821</div></div>
+        <div><div class="kv-label">Credit score</div><div class="kv-val">780 (Grade A)</div></div>
+        <div><div class="kv-label">DTI</div><div class="kv-val">28.4%</div></div>
+        <div><div class="kv-label">Disposable income</div><div class="kv-val">KES 60,400</div></div>
+        <div><div class="kv-label">EMI proposed</div><div class="kv-val">KES 14,200</div></div>
+        <div><div class="kv-label">Repayment burden</div><div class="kv-val">23.5%</div></div>
+      </div>
+      <div class="two-col">
+        <div>
+          <div style="font-weight:600;font-size:13px;margin-bottom:8px;">Income verification</div>
+          <div class="dist-row"><div class="dist-label">Net monthly salary</div><div class="dist-bar"><span style="width:84%;background:var(--success);"></span></div><div class="dist-val">KES 84K</div></div>
+          <div class="dist-row"><div class="dist-label">M-Pesa monthly avg</div><div class="dist-bar"><span style="width:62%;background:var(--primary);"></span></div><div class="dist-val">KES 62K</div></div>
+          <div class="dist-row"><div class="dist-label">Rental income</div><div class="dist-bar"><span style="width:20%;background:var(--info);"></span></div><div class="dist-val">KES 20K</div></div>
+        </div>
+        <div>
+          <div style="font-weight:600;font-size:13px;margin-bottom:8px;">Debt obligations</div>
+          <div class="ratio-row"><span class="ratio-label">KCB personal loan</span><strong class="ratio-val">KES 12,000/mo</strong></div>
+          <div class="ratio-row"><span class="ratio-label">Utility arrears</span><strong class="ratio-val">None</strong></div>
+          <div class="ratio-row"><span class="ratio-label">HELB balance</span><strong class="ratio-val">KES 48,000</strong></div>
+        </div>
+      </div>
+      <div class="alert info" style="margin-top:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>All income verification checks passed. Behavioural score: 810. Recommend approval at requested amount.</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-light" data-modal="counterOfferModal">Counter-offer</button>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-danger" data-modal="declineModal">Decline</button>
+        <button class="btn btn-light" data-close>Close</button>
+        <button class="btn btn-success" data-modal="decisionModal">Approve</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 3. SME UW Detail -->
+<div class="modal-backdrop" id="smeUWModal">
+  <div class="modal xl">
+    <div class="modal-header"><div><h3 class="modal-title">SME Underwriting — SME-3301</h3><div class="modal-sub">Savanna Agri Ltd — Working Capital $180K</div></div><button class="modal-close" data-close>x</button></div>
+    <div class="modal-body">
+      <div class="kv-grid" style="margin-bottom:16px;">
+        <div><div class="kv-label">Business score</div><div class="kv-val">72/100 (BB+)</div></div>
+        <div><div class="kv-label">Annual revenue</div><div class="kv-val">$920K</div></div>
+        <div><div class="kv-label">Cash flow cover</div><div class="kv-val">1.8x</div></div>
+        <div><div class="kv-label">Owner credit</div><div class="kv-val">698 — clean</div></div>
+      </div>
+      <div class="two-col">
+        <div>
+          <div style="font-weight:600;font-size:13px;margin-bottom:8px;">Financial summary</div>
+          <div class="ratio-row"><span class="ratio-label">Revenue YoY growth</span><strong class="ratio-val">+18%</strong></div>
+          <div class="ratio-row"><span class="ratio-label">EBITDA margin</span><strong class="ratio-val">22%</strong></div>
+          <div class="ratio-row"><span class="ratio-label">Avg monthly bank credit</span><strong class="ratio-val">KES 2.4M</strong></div>
+          <div class="ratio-row"><span class="ratio-label">Existing borrowings</div><strong class="ratio-val">$84K</strong></div>
+        </div>
+        <div>
+          <div style="font-weight:600;font-size:13px;margin-bottom:8px;">Owner / guarantee</div>
+          <div class="ratio-row"><span class="ratio-label">Personal guarantee</span><strong class="ratio-val">Offered — $200K</strong></div>
+          <div class="ratio-row"><span class="ratio-label">Background check</span><strong class="ratio-val">No adverse</strong></div>
+          <div class="ratio-row"><span class="ratio-label">Industry experience</span><strong class="ratio-val">11 years agri</strong></div>
+        </div>
+      </div>
+      <div class="alert success" style="margin-top:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Strong cash flow and trade history. Recommend conditional approval pending final trade reference.</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-light" data-modal="tradeRefModal">Trade References</button>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-danger" data-modal="declineModal">Decline</button>
+        <button class="btn btn-light" data-modal="counterOfferModal">Counter</button>
+        <button class="btn btn-success" data-modal="decisionModal">Approve</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 4. Corporate UW Detail -->
+<div class="modal-backdrop" id="corpUWModal">
+  <div class="modal xl">
+    <div class="modal-header"><div><h3 class="modal-title">Corporate UW — CORP-1142</h3><div class="modal-sub">Horizon Plc — Revolving Credit $10M</div></div><button class="modal-close" data-close>x</button></div>
+    <div class="modal-body">
+      <div class="kv-grid" style="margin-bottom:16px;">
+        <div><div class="kv-label">Internal rating</div><div class="kv-val">BBB</div></div>
+        <div><div class="kv-label">DSCR</div><div class="kv-val">1.42x</div></div>
+        <div><div class="kv-label">Leverage</div><div class="kv-val">4.1x Debt/EBITDA</div></div>
+        <div><div class="kv-label">Pricing</div><div class="kv-val">SOFR + 380bps</div></div>
+      </div>
+      <div class="two-col">
+        <div>
+          <div style="font-weight:600;font-size:13px;margin-bottom:8px;">3-year financial trend</div>
+          <div class="ratio-row"><span class="ratio-label">Revenue 2023</span><strong class="ratio-val">$48M</strong></div>
+          <div class="ratio-row"><span class="ratio-label">Revenue 2024</span><strong class="ratio-val">$54M</strong></div>
+          <div class="ratio-row"><span class="ratio-label">Revenue 2025</span><strong class="ratio-val">$61M</strong></div>
+          <div class="ratio-row"><span class="ratio-label">EBITDA 2025</span><strong class="ratio-val">$14.2M</strong></div>
+        </div>
+        <div>
+          <div style="font-weight:600;font-size:13px;margin-bottom:8px;">Facility structure</div>
+          <div class="ratio-row"><span class="ratio-label">Facility type</span><strong class="ratio-val">Revolving credit</strong></div>
+          <div class="ratio-row"><span class="ratio-label">Tenor</span><strong class="ratio-val">36 months</strong></div>
+          <div class="ratio-row"><span class="ratio-label">Commitment fee</span><strong class="ratio-val">50bps on undrawn</strong></div>
+          <div class="ratio-row"><span class="ratio-label">Security</span><strong class="ratio-val">Debenture + floating charge</strong></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-light" data-modal="covenantsModal">Covenants</button>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-light" data-modal="facilityStructModal">Structure</button>
+        <button class="btn btn-primary" data-modal="creditMemoModal">Draft Memo</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 5. Real Estate UW Detail -->
+<div class="modal-backdrop" id="reUWModal">
+  <div class="modal xl">
+    <div class="modal-header"><div><h3 class="modal-title">RE Underwriting — RE-2241</h3><div class="modal-sub">Riverside Apts — Construction Finance $8.2M</div></div><button class="modal-close" data-close>x</button></div>
+    <div class="modal-body">
+      <div class="kv-grid" style="margin-bottom:16px;">
+        <div><div class="kv-label">GDV</div><div class="kv-val">$13.2M</div></div>
+        <div><div class="kv-label">LTC (Loan to Cost)</div><div class="kv-val">68%</div></div>
+        <div><div class="kv-label">LTV (End)</div><div class="kv-val">62%</div></div>
+        <div><div class="kv-label">DSCR (rental)</div><div class="kv-val">1.52x</div></div>
+        <div><div class="kv-label">Pre-sales committed</div><div class="kv-val">68%</div></div>
+        <div><div class="kv-label">Developer track record</div><div class="kv-val">4 completed projects</div></div>
+      </div>
+      <div class="two-col">
+        <div>
+          <div style="font-weight:600;font-size:13px;margin-bottom:8px;">Project cost breakdown</div>
+          <div class="ratio-row"><span class="ratio-label">Land cost</span><strong class="ratio-val">$2.4M</strong></div>
+          <div class="ratio-row"><span class="ratio-label">Construction cost</span><strong class="ratio-val">$7.8M</strong></div>
+          <div class="ratio-row"><span class="ratio-label">Professional fees</span><strong class="ratio-val">$420K</strong></div>
+          <div class="ratio-row"><span class="ratio-label">Contingency (5%)</span><strong class="ratio-val">$510K</strong></div>
+          <div class="ratio-row"><span class="ratio-label">Total project cost</span><strong class="ratio-val">$11.13M</strong></div>
+        </div>
+        <div>
+          <div style="font-weight:600;font-size:13px;margin-bottom:8px;">Legal &amp; title status</div>
+          <div class="check-row"><div class="check-icon" style="background:var(--success-soft);color:var(--success);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><div><span class="config-label">Title deed (Freehold)</span></div></div>
+          <div class="check-row"><div class="check-icon" style="background:var(--success-soft);color:var(--success);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><div><span class="config-label">No prior encumbrances</span></div></div>
+          <div class="check-row"><div class="check-icon" style="background:var(--warning-soft);color:var(--warning);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="8" x2="12" y2="12"/></svg></div><div><span class="config-label">Environmental Phase II pending</span></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-light" data-modal="legalTitleModal">Legal &amp; Title</button>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-light" data-modal="valuationModal">Valuation</button>
+        <button class="btn btn-primary" data-modal="creditMemoModal">Draft Memo</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 6. Decision Modal -->
+<div class="modal-backdrop" id="decisionModal">
+  <div class="modal lg">
+    <div class="modal-header"><div><h3 class="modal-title">Credit Decision</h3><div class="modal-sub">Record final underwriter recommendation</div></div><button class="modal-close" data-close>x</button></div>
+    <div class="modal-body">
+      <div style="font-weight:600;margin-bottom:8px;">Decision outcome</div>
+      <label class="choice-row selected"><input type="radio" name="decision" checked><div><div class="choice-title">Approve</div><div class="choice-desc">Approve at requested amount and terms</div></div></label>
+      <label class="choice-row"><input type="radio" name="decision"><div><div class="choice-title">Approve with conditions</div><div class="choice-desc">Additional conditions before disbursement</div></div></label>
+      <label class="choice-row"><input type="radio" name="decision"><div><div class="choice-title">Counter-offer</div><div class="choice-desc">Approve at different amount or terms</div></div></label>
+      <label class="choice-row"><input type="radio" name="decision"><div><div class="choice-title">Refer to committee</div><div class="choice-desc">Exceeds underwriter authority</div></div></label>
+      <label class="choice-row"><input type="radio" name="decision"><div><div class="choice-title">Decline</div><div class="choice-desc">Policy breach or unacceptable risk</div></div></label>
+      <div class="field" style="margin-top:14px;"><label class="field-label">Decision rationale</label><textarea class="textarea" placeholder="Summarise key factors driving this decision..."></textarea></div>
+      <div class="field"><label class="field-label">Risk grade assigned</label>
+        <select class="select-field"><option>A+ (Minimal risk)</option><option>A (Low risk)</option><option>B+ (Moderate-low)</option><option>B (Moderate)</option><option>C (High)</option><option>D (Very high)</option></select>
+      </div>
+    </div>
+    <div class="modal-footer modal-footer-end">
+      <button class="btn btn-light" data-close>Cancel</button>
+      <button class="btn btn-primary" data-result="Credit decision recorded and workflow updated">Submit decision</button>
+    </div>
+  </div>
+</div>
+
+<!-- 7. Decline Modal -->
+<div class="modal-backdrop" id="declineModal">
+  <div class="modal">
+    <div class="modal-header"><div><h3 class="modal-title">Decline Application</h3><div class="modal-sub">Record decline reason and notify applicant</div></div><button class="modal-close" data-close>x</button></div>
+    <div class="modal-body">
+      <div class="alert danger" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>This action will decline the application and trigger a decline notification.</div>
+      <div class="field"><label class="field-label">Decline reason</label><select class="select-field"><option>Insufficient income</option><option>High DTI</option><option>Poor credit history</option><option>Policy breach</option><option>Insufficient collateral</option><option>Incomplete documentation</option></select></div>
+      <div class="field"><label class="field-label">Decline notes (internal)</label><textarea class="textarea" placeholder="Internal notes for audit trail..."></textarea></div>
+      <label class="choice-row selected"><input type="checkbox" checked><div><div class="choice-title">Send decline notification to applicant</div><div class="choice-desc">Via email and SMS with reason summary</div></div></label>
+      <label class="choice-row"><input type="checkbox"><div><div class="choice-title">Offer appeal opportunity</div><div class="choice-desc">Include appeal instructions in notification</div></div></label>
+    </div>
+    <div class="modal-footer modal-footer-end">
+      <button class="btn btn-light" data-close>Cancel</button>
+      <button class="btn btn-danger" data-result="Application declined and notification sent">Confirm decline</button>
+    </div>
+  </div>
+</div>
+
+<!-- 8. Counter-Offer -->
+<div class="modal-backdrop" id="counterOfferModal">
+  <div class="modal">
+    <div class="modal-header"><div><h3 class="modal-title">Counter-Offer</h3><div class="modal-sub">Propose alternate terms</div></div><button class="modal-close" data-close>x</button></div>
+    <div class="modal-body">
+      <div class="field-row">
+        <div class="field"><label class="field-label">Original amount</label><input class="input" value="KES 500,000" readonly></div>
+        <div class="field"><label class="field-label">Counter amount</label><input class="input" value="KES 350,000"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label class="field-label">Original tenor</label><input class="input" value="36 months" readonly></div>
+        <div class="field"><label class="field-label">Counter tenor</label><input class="input" value="24 months"></div>
+      </div>
+      <div class="field"><label class="field-label">Rate adjustment</label><select class="select-field"><option>Keep original rate</option><option>Increase by 100bps</option><option>Increase by 200bps</option></select></div>
+      <div class="field"><label class="field-label">Conditions</label><textarea class="textarea" placeholder="Additional conditions for counter-offer..."></textarea></div>
+    </div>
+    <div class="modal-footer modal-footer-end">
+      <button class="btn btn-light" data-close>Cancel</button>
+      <button class="btn btn-primary" data-result="Counter-offer sent to applicant">Send counter-offer</button>
+    </div>
+  </div>
+</div>
+
+<!-- 9. Bank Statement Analysis -->
+<div class="modal-backdrop" id="bankStmtModal">
+  <div class="modal lg">
+    <div class="modal-header"><div><h3 class="modal-title">Bank Statement Analysis</h3><div class="modal-sub">Auto-parsed via open banking — 12 months</div></div><button class="modal-close" data-close>x</button></div>
+    <div class="modal-body">
+      <div class="kv-grid" style="margin-bottom:16px;">
+        <div><div class="kv-label">Average monthly credit</div><div class="kv-val">KES 102,400</div></div>
+        <div><div class="kv-label">Average monthly debit</div><div class="kv-val">KES 78,200</div></div>
+        <div><div class="kv-label">Lowest month</div><div class="kv-val">KES 61,000</div></div>
+        <div><div class="kv-label">Account stability</div><div class="kv-val">High (Score 88)</div></div>
+      </div>
+      <div class="dist-row"><div class="dist-label">Jan</div><div class="dist-bar"><span style="width:75%;background:#5b5bf5;"></span></div><div class="dist-val">KES 97K</div></div>
+      <div class="dist-row"><div class="dist-label">Feb</div><div class="dist-bar"><span style="width:82%;background:#5b5bf5;"></span></div><div class="dist-val">KES 105K</div></div>
+      <div class="dist-row"><div class="dist-label">Mar</div><div class="dist-bar"><span style="width:68%;background:#5b5bf5;"></span></div><div class="dist-val">KES 89K</div></div>
+      <div class="dist-row"><div class="dist-label">Apr</div><div class="dist-bar"><span style="width:90%;background:#5b5bf5;"></span></div><div class="dist-val">KES 116K</div></div>
+      <div class="alert success" style="margin-top:4px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Consistent inflows — no returned cheques — no gambling patterns detected</div>
+    </div>
+    <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+  </div>
+</div>
+
+<!-- 10. Debt Burden -->
+<div class="modal-backdrop" id="debtBurdenModal">
+  <div class="modal lg">
+    <div class="modal-header"><div><h3 class="modal-title">Debt Burden Analysis</h3><div class="modal-sub">Existing obligations from bureau and internal</div></div><button class="modal-close" data-close>x</button></div>
+    <div class="modal-body">
+      <div class="kv-grid" style="margin-bottom:16px;">
+        <div><div class="kv-label">Bureau DTI</div><div class="kv-val">28.4%</div></div>
+        <div><div class="kv-label">Internal DTI (with new loan)</div><div class="kv-val">39.6%</div></div>
+        <div><div class="kv-label">Policy DTI limit</div><div class="kv-val">45%</div></div>
+        <div><div class="kv-label">Disposable after EMI</div><div class="kv-val">KES 46,200</div></div>
+      </div>
+      <table class="table"><thead><tr><th>Lender</th><th>Product</th><th>Outstanding</th><th>Monthly EMI</th></tr></thead>
+        <tbody>
+          <tr><td>KCB Bank</td><td>Personal loan</td><td>KES 240K</td><td>KES 12,000</td></tr>
+          <tr><td>HELB</td><td>Student loan</td><td>KES 48K</td><td>KES 2,000</td></tr>
+          <tr><td>PayMo (new)</td><td>Personal loan</td><td>KES 500K</td><td>KES 14,200</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+  </div>
+</div>
+
+<!-- 11. Behavioural Scoring -->
+<div class="modal-backdrop" id="behavioralModal">
+  <div class="modal">
+    <div class="modal-header"><div><h3 class="modal-title">Behavioural Scoring</h3><div class="modal-sub">Transaction pattern and account stability</div></div><button class="modal-close" data-close>x</button></div>
+    <div class="modal-body">
+      <div class="dist-row"><div class="dist-label">Transaction regularity</div><div class="dist-bar"><span style="width:88%;background:#16a34a;"></span></div><div class="dist-val">88/100</div></div>
+      <div class="dist-row"><div class="dist-label">Account stability</div><div class="dist-bar"><span style="width:84%;background:#16a34a;"></span></div><div class="dist-val">84/100</div></div>
+      <div class="dist-row"><div class="dist-label">Income consistency</div><div class="dist-bar"><span style="width:92%;background:#16a34a;"></span></div><div class="dist-val">92/100</div></div>
+      <div class="dist-row"><div class="dist-label">Risk behaviour flags</div><div class="dist-bar"><span style="width:10%;background:#dc2626;"></span></div><div class="dist-val">Low</div></div>
+      <div class="alert success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>No adverse behavioural flags. Strong income pattern.</div>
+    </div>
+    <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+  </div>
+</div>
+
+<!-- 12. Alternative Data -->
+<div class="modal-backdrop" id="altDataModal">
+  <div class="modal">
+    <div class="modal-header"><div><h3 class="modal-title">Alternative Data Sources</h3><div class="modal-sub">Mobile money, utility, rental history</div></div><button class="modal-close" data-close>x</button></div>
+    <div class="modal-body">
+      <div class="check-row"><div class="check-icon" style="background:var(--success-soft);color:var(--success);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><div style="flex:1;"><span class="config-label">M-Pesa history (18 months)</span><div class="config-desc">Avg KES 62K/month — no missed payments</div></div><span class="badge success">Good</span></div>
+      <div class="check-row"><div class="check-icon" style="background:var(--success-soft);color:var(--success);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><div style="flex:1;"><span class="config-label">Utility payments</span><div class="config-desc">KPLC, Nairobi Water — 24 months on-time</div></div><span class="badge success">Good</span></div>
+      <div class="check-row"><div class="check-icon" style="background:var(--success-soft);color:var(--success);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><div style="flex:1;"><span class="config-label">Rental history</span><div class="config-desc">3-year tenancy — no defaults</div></div><span class="badge success">Good</span></div>
+    </div>
+    <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+  </div>
+</div>
+
+<!-- 13. Employment Verification -->
+<div class="modal-backdrop" id="employmentModal">
+  <div class="modal">
+    <div class="modal-header"><div><h3 class="modal-title">Employment Verification</h3><div class="modal-sub">API-verified employment status</div></div><button class="modal-close" data-close>x</button></div>
+    <div class="modal-body">
+      <div class="kv-grid">
+        <div><div class="kv-label">Employer</div><div class="kv-val">Safaricom PLC</div></div>
+        <div><div class="kv-label">Status</div><div class="kv-val"><span class="badge success">Active</span></div></div>
+        <div><div class="kv-label">Start date</div><div class="kv-val">March 2020</div></div>
+        <div><div class="kv-label">Tenure</div><div class="kv-val">4.2 years</div></div>
+        <div><div class="kv-label">Job grade</div><div class="kv-val">Senior Associate</div></div>
+        <div><div class="kv-label">Verification source</div><div class="kv-val">IPRS + NSSF API</div></div>
+      </div>
+      <div class="alert success" style="margin-top:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Employment confirmed — no discrepancy with declared salary</div>
+    </div>
+    <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+  </div>
+</div>
+
+<!-- 14. Document Upload -->
+<div class="modal-backdrop" id="docUploadModal">
+  <div class="modal">
+    <div class="modal-header"><div><h3 class="modal-title">Document Upload &amp; Verification</h3><div class="modal-sub">Upload and verify required documents</div></div><button class="modal-close" data-close>x</button></div>
+    <div class="modal-body">
+      <div style="border:2px dashed var(--border);border-radius:12px;padding:28px;text-align:center;background:var(--surface-2);margin-bottom:14px;">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5" style="margin-bottom:8px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <div style="font-weight:500;margin-bottom:4px;">Drop files here or click to browse</div>
+        <div style="font-size:11px;color:var(--text-3);">PDF, JPG, PNG — max 25MB per file</div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;">
+        <span class="doc-chip ok"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>National ID</span>
+        <span class="doc-chip ok"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Payslip x3</span>
+        <span class="doc-chip pending"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Bank statement</span>
+        <span class="doc-chip missing"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Credit consent</span>
+      </div>
+    </div>
+    <div class="modal-footer modal-footer-end">
+      <button class="btn btn-light" data-close>Cancel</button>
+      <button class="btn btn-primary" data-result="Documents submitted for verification">Submit documents</button>
+    </div>
+  </div>
+</div>
+
+<!-- 15. Financials Modal -->
+<div class="modal-backdrop" id="financialsModal">
+  <div class="modal lg">
+    <div class="modal-header"><div><h3 class="modal-title">Financial Statements Review</h3><div class="modal-sub">Audited financials — 3 year review</div></div><button class="modal-close" data-close>x</button></div>
+    <div class="modal-body">
+      <table class="table"><thead><tr><th>Metric</th><th>FY2023</th><th>FY2024</th><th>FY2025</th><th>Trend</th></tr></thead>
+        <tbody>
+          <tr><td>Revenue</td><td>$48M</td><td>$54M</td><td>$61M</td><td class="stat-trend up">+12.9%</td></tr>
+          <tr><td>EBITDA</td><td>$11.2M</td><td>$12.8M</td><td>$14.2M</td><td class="stat-trend up">+10.9%</td></tr>
+          <tr><td>Net Income</td><td>$5.8M</td><td>$6.9M</td><td>$7.6M</td><td class="stat-trend up">+10.1%</td></tr>
+          <tr><td>Total Assets</td><td>$84M</td><td>$92M</td><td>$104M</td><td class="stat-trend up">+13.0%</td></tr>
+          <tr><td>Total Debt</td><td>$38M</td><td>$42M</td><td>$44M</td><td class="stat-trend neutral">+4.8%</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="modal-footer modal-footer-end">
+      <button class="btn btn-light" data-modal="peerBenchModal">Peer benchmark</button>
+      <button class="btn btn-primary" data-close>Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- 16. Cash Flow Model -->
+<div class="modal-backdrop" id="cashFlowModal">
+  <div class="modal lg">
+    <div class="modal-header"><div><h3 class="modal-title">Cash Flow Model &amp; Projections</h3><div class="modal-sub">Editable — 12-month forward model</div></div><button class="modal-close" data-close>x</button></div>
+    <div class="modal-body">
+      <div class="alert info" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>Projections auto-generated from historical financials. All fields editable.</div>
+      <table class="table"><thead><tr><th>Period</th><th>Revenue</th><th>Op Costs</th><th>EBITDA</th><th>Debt Service</th><th>FCF</th></tr></thead>
+        <tbody>
+          <tr><td>Q1 2026</td><td><input class="li-input" style="border:1px solid var(--border);border-radius:6px;padding:4px 8px;width:90px;" value="$16.2M"></td><td>$10.4M</td><td>$3.8M</td><td>$1.2M</td><td>$2.6M</td></tr>
+          <tr><td>Q2 2026</td><td><input class="li-input" style="border:1px solid var(--border);border-radius:6px;padding:4px 8px;width:90px;" value="$17.1M"></td><td>$10.8M</td><td>$4.1M</td><td>$1.2M</td><td>$2.9M</td></tr>
+          <tr><td>Q3 2026</td><td><input class="li-input" style="border:1px solid var(--border);border-radius:6px;padding:4px 8px;width:90px;" value="$15.8M"></td><td>$10.2M</td><td>$3.5M</td><td>$1.2M</td><td>$2.3M</td></tr>
+          <tr><td>Q4 2026</td><td><input class="li-input" style="border:1px solid var(--border);border-radius:6px;padding:4px 8px;width:90px;" value="$19.4M"></td><td>$12.1M</td><td>$4.8M</td><td>$1.2M</td><td>$3.6M</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="modal-footer modal-footer-end">
+      <button class="btn btn-light" data-result="Cash flow model saved">Save model</button>
+      <button class="btn btn-primary" data-close>Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- 17. Trade References -->
+<div class="modal-backdrop" id="tradeRefModal">
+  <div class="modal">
+    <div class="modal-header"><div><h3 class="modal-title">Trade Reference Checks</h3><div class="modal-sub">Supplier and customer references</div></div><button class="modal-close" data-close>x</button></div>
+    <div class="modal-body">
+      <div class="check-row"><div class="check-icon" style="background:var(--success-soft);color:var(--success);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><div style="flex:1;"><span class="config-label">Equity Bank (supplier)</span><div class="config-desc">5yr relationship — no defaults</div></div><span class="badge success">Confirmed</span></div>
+      <div class="check-row"><div class="check-icon" style="background:var(--success-soft);color:var(--success);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><div style="flex:1;"><span class="config-label">Nairobi Milling Co (customer)</span><div class="config-desc">3yr contract — consistent payment</div></div><span class="badge success">Confirmed</span></div>
+      <div class="check-row"><div class="check-icon" style="background:var(--warning-soft);color:var(--warning);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="8" x2="12" y2="12"/></svg></div><div style="flex:1;"><span class="config-label">Rift Agro Supplies</span><div class="config-desc">Awaiting response</div></div><button class="btn btn-light btn-sm" data-result="Reminder sent to reference">Send reminder</button></div>
+    </div>
+    <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+  </div>
+</div>
+
+<!-- 18. Personal Credit -->
+<div class="modal-backdrop" id="personalCreditModal">
+  <div class="modal">
+    <div class="modal-header"><div><h3 class="modal-title">Owner Personal Credit Check</h3><div class="modal-sub">Bureau pull — Metropol CRB</div></div><button class="modal-close" data-close>x</button></div>
+    <div class="modal-body">
+      <div class="kv-grid">
+        <div><div class="kv-label">Credit score</div><div class="kv-val">698</div></div>
+        <div><div class="kv-label">Grade</div><div class="kv-val">B+</div></div>
+        <div><div class="kv-label">Adverse listings</div><div class="kv-val">None</div></div>
+        <div><div class="kv-label">Bureau</div><div class="kv-val">Metropol CRB</div></div>
+        <div><div class="kv-label">Active facilities</div><div class="kv-val">2</div></div>
+        <div><div class="kv-label">Total exposure</div><div class="kv-val">$42K</div></div>
+      </div>
+      <div class="alert success" style="margin-top:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>No adverse credit history. Personal guarantee considered adequate.</div>
+    </div>
+    <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+  </div>
+</div>
+
+<!-- 19. Guarantee -->
+<div class="modal-backdrop" id="guaranteeModal">
+  <div class="modal">
+    <div class="modal-header"><div><h3 class="modal-title">Personal Guarantee Assessment</h3><div class="modal-sub">Owner / director guarantee evaluation</div></div><button class="modal-close" data-close>x</button></div>
+    <div class="modal-body">
+      <div class="field"><label class="field-label">Guarantor name</label><input class="input" value="James Githinji (Director)"></div>
+      <div class="field-row">
+        <div class="field"><label class="field-label">Guarantee amount</label><input class="input" value="$200,000"></div>
+        <div class="field"><label class="field-label">Guarantee type</label><select class="select-field"><option>Personal guarantee</option><option>Debenture</option><option>Property charge</option></select></div>
+      </div>
+      <label class="choice-row selected"><input type="checkbox" checked><div><div class="choice-title">Joint and several guarantee</div><div class="choice-desc">Both directors as guarantors</div></div></label>
+      <label class="choice-row"><input type="checkbox"><div><div class="choice-title">Secured by property</div><div class="choice-desc">Residential property title as security</div></div></label>
+    </div>
+    <div class="modal-footer modal-footer-end">
+      <button class="btn btn-light" data-close>Cancel</button>
+      <button class="btn btn-primary" data-result="Guarantee terms confirmed">Confirm guarantee</button>
+    </div>
+  </div>
+</div>
+
+<!-- 20. Facility Structuring -->
+<div class="modal-backdrop" id="facilityStructModal">
+  <div class="modal lg">
+    <div class="modal-header"><div><h3 class="modal-title">Facility Structuring</h3><div class="modal-sub">Amount, tenor, repayment, security &amp; covenants</div></div><button class="modal-close" data-close>x</button></div>
+    <div class="modal-body">
+      <div class="field-row">
+        <div class="field"><label class="field-label">Facility amount</label><input class="input" value="$10,000,000"></div>
+        <div class="field"><label class="field-label">Currency</label><select class="select-field"><option>USD</option><option>KES</option><option>GBP</option><option>EUR</option></select></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label class="field-label">Tenor</label><select class="select-field"><option>12 months</option><option>24 months</option><option>36 months</option><option>60 months</option></select></div>
+        <div class="field"><label class="field-label">Interest type</label><select class="select-field"><option>Floating (SOFR + spread)</option><option>Fixed rate</option><option>Reducing balance</option></select></div>
+      </div>
+      <div class="field"><label class="field-label">Pricing (spread over base)</label><input class="input" value="380bps"></div>
+      <div class="field"><label class="field-label">Repayment structure</label><select class="select-field"><option>Bullet at maturity</option><option>Quarterly amortising</option><option>Monthly amortising</option></select></div>
+      <div class="field"><label class="field-label">Security / collateral</label><select class="select-field"><option>Debenture (all assets)</option><option>Floating charge</option><option>Real property</option><option>Cash collateral</option></select></div>
+    </div>
+    <div class="modal-footer modal-footer-end">
+      <button class="btn btn-light" data-close>Cancel</button>
+      <button class="btn btn-primary" data-result="Facility terms saved to credit memo">Save structure</button>
+    </div>
+  </div>
+</div>
+
+<!-- 21. Covenants -->
+<div class="modal-backdrop" id="covenantsModal">
+  <div class="modal lg">
+    <div class="modal-header"><div><h3 class="modal-title">Covenant Package</h3><div class="modal-sub">Financial and operational covenants — editable</div></div><button class="modal-close" data-close>x</button></div>
+    <div class="modal-body">
+      <div class="config-row"><div><div class="config-label">DSCR minimum</div><div class="config-desc">Tested quarterly</div></div><input class="input" style="width:120px;" value="1.25x"></div>
+      <div class="config-row"><div><div class="config-label">Leverage max (Debt/EBITDA)</div><div class="config-desc">Tested semi-annually</div></div><input class="input" style="width:120px;" value="5.0x"></div>
+      <div class="config-row"><div><div class="config-label">Current ratio minimum</div><div class="config-desc">Tested quarterly</div></div><input class="input" style="width:120px;" value="1.2x"></div>
+      <div class="config-row"><div><div class="config-label">Dividend restriction</div><div class="config-desc">No dividends if DSCR &lt; 1.3x</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+      <div class="config-row"><div><div class="config-label">Change of control</div><div class="config-desc">Notify and consent required for &gt;30% change</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+    </div>
+    <div class="modal-footer modal-footer-end">
+      <button class="btn btn-light" data-close>Cancel</button>
+      <button class="btn btn-primary" data-result="Covenant package saved">Save covenants</button>
+    </div>
+  </div>
+</div>
+
+<!-- 22. Industry Analysis -->
+<div class="modal-backdrop" id="industryModal">
+  <div class="modal">
+    <div class="modal-header"><div><h3 class="modal-title">Industry Analysis</h3><div class="modal-sub">Sector outlook and competitive position</div></div><button class="modal-close" data-close>x</button></div>
+    <div class="modal-body">
+      <div class="kv-grid" style="margin-bottom:14px;">
+        <div><div class="kv-label">Sector</div><div class="kv-val">Telecommunications</div></div>
+        <div><div class="kv-label">Outlook</div><div class="kv-val"><span class="badge success">Positive</span></div></div>
+        <div><div class="kv-label">Market position</div><div class="kv-val">Top 3 in market</div></div>
+        <div><div class="kv-label">Regulatory risk</div><div class="kv-val">Medium</div></div>
+      </div>
+      <div class="dist-row"><div class="dist-label">Market share</div><div class="dist-bar"><span style="width:28%;background:#5b5bf5;"></span></div><div class="dist-val">28%</div></div>
+      <div class="dist-row"><div class="dist-label">Revenue CAGR (3yr)</div><div class="dist-bar"><span style="width:74%;background:#16a34a;"></span></div><div class="dist-val">13%</div></div>
+    </div>
+    <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+  </div>
+</div>
+
+<!-- 23. ESG -->
+<div class="modal-backdrop" id="esgModal">
+  <div class="modal">
+    <div class="modal-header"><div><h3 class="modal-title">ESG Risk Evaluation</h3><div class="modal-sub">Environmental, Social, Governance assessment</div></div><button class="modal-close" data-close>x</button></div>
+    <div class="modal-body">
+      <div class="dist-row"><div class="dist-label">Environmental</div><div class="dist-bar"><span style="width:55%;background:#d97706;"></span></div><div class="dist-val">Medium</div></div>
+      <div class="dist-row"><div class="dist-label">Social</div><div class="dist-bar"><span style="width:78%;background:#16a34a;"></span></div><div class="dist-val">Low</div></div>
+      <div class="dist-row"><div class="dist-label">Governance</div><div class="dist-bar"><span style="width:82%;background:#16a34a;"></span></div><div class="dist-val">Low</div></div>
+      <div class="alert warning" style="margin-top:4px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>Carbon footprint report pending — condition precedent before drawdown</div>
+    </div>
+    <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+  </div>
+</div>
+
+<!-- 24. Management Assessment -->
+<div class="modal-backdrop" id="mgmtModal">
+  <div class="modal">
+    <div class="modal-header"><div><h3 class="modal-title">Management Quality Assessment</h3><div class="modal-sub">Executive team evaluation</div></div><button class="modal-close" data-close>x</button></div>
+    <div class="modal-body">
+      <div class="kv-grid">
+        <div><div class="kv-label">CEO tenure</div><div class="kv-val">9 years</div></div>
+        <div><div class="kv-label">CFO tenure</div><div class="kv-val">6 years</div></div>
+        <div><div class="kv-label">Board composition</div><div class="kv-val">7 members, 5 independent</div></div>
+        <div><div class="kv-label">Avg exec experience</div><div class="kv-val">18 years</div></div>
+      </div>
+      <div class="alert success" style="margin-top:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Strong, experienced management team. No material concerns.</div>
+    </div>
+    <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+  </div>
+</div>
+
+<!-- 25. Peer Benchmarking -->
+<div class="modal-backdrop" id="peerBenchModal">
+  <div class="modal lg">
+    <div class="modal-header"><div><h3 class="modal-title">Peer Benchmarking</h3><div class="modal-sub">Industry comparable analysis</div></div><button class="modal-close" data-close>x</button></div>
+    <div class="modal-body">
+      <table class="table"><thead><tr><th>Peer</th><th>Leverage</th><th>DSCR</th><th>Net Margin</th><th>Rating</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Horizon Plc (subject)</strong></td><td>4.1x</td><td>1.42x</td><td>12.4%</td><td><span class="badge primary">BBB</span></td></tr>
+          <tr><td>Telecom East A</td><td>3.8x</td><td>1.55x</td><td>14.2%</td><td><span class="badge primary">BBB+</span></td></tr>
+          <tr><td>Telecom East B</td><td>4.6x</td><td>1.28x</td><td>10.8%</td><td><span class="badge warning">BB</span></td></tr>
+          <tr><td>Sector median</td><td>4.1x</td><td>1.40x</td><td>12.0%</td><td><span class="badge gray">BB+</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+  </div>
+</div>
+
+<!-- 26. Valuation -->
+<div class="modal-backdrop" id="valuationModal">
+  <div class="modal">
+    <div class="modal-header"><div><h3 class="modal-title">Property Valuation</h3><div class="modal-sub">Knight Frank — Independent appraiser report</div></div><button class="modal-close" data-close>x</button></div>
+    <div class="modal-body">
+      <div class="kv-grid">
+        <div><div class="kv-label">Market value</div><div class="kv-val">$13.2M</div></div>
+        <div><div class="kv-label">Forced sale value</div><div class="kv-val">$10.8M</div></div>
+        <div><div class="kv-label">Valuation date</div><div class="kv-val">10 Jan 2026</div></div>
+        <div><div class="kv-label">Valuer</div><div class="kv-val">Knight Frank Kenya</div></div>
+        <div><div class="kv-label">LTV (on market)</div><div class="kv-val">62%</div></div>
+        <div><div class="kv-label">LTV (forced sale)</div><div class="kv-val">76%</div></div>
+      </div>
+      <div class="alert info" style="margin-top:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>Next review scheduled 10 Jan 2027 per policy (annual for construction).</div>
+    </div>
+    <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+  </div>
+</div>
+
+<!-- 27. Legal & Title -->
+<div class="modal-backdrop" id="legalTitleModal">
+  <div class="modal">
+    <div class="modal-header"><div><h3 class="modal-title">Legal &amp; Title Review</h3><div class="modal-sub">Title deed, encumbrance search, legal sign-off</div></div><button class="modal-close" data-close>x</button></div>
+    <div class="modal-body">
+      <div class="check-row"><div class="check-icon" style="background:var(--success-soft);color:var(--success);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><div style="flex:1;"><span class="config-label">Title deed verified (Freehold)</span><div class="config-desc">LR No. 209/12841 — confirmed with Lands registry</div></div><span class="badge success">Clear</span></div>
+      <div class="check-row"><div class="check-icon" style="background:var(--success-soft);color:var(--success);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><div style="flex:1;"><span class="config-label">Encumbrance search</span><div class="config-desc">No prior charges or caveats registered</div></div><span class="badge success">Clean</span></div>
+      <div class="check-row"><div class="check-icon" style="background:var(--success-soft);color:var(--success);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><div style="flex:1;"><span class="config-label">Construction contract review</span><div class="config-desc">Fixed-price contract, performance bond 10%</div></div><span class="badge success">Satisfactory</span></div>
+      <div class="check-row"><div class="check-icon" style="background:var(--warning-soft);color:var(--warning);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="8" x2="12" y2="12"/></svg></div><div style="flex:1;"><span class="config-label">Legal opinion</span><div class="config-desc">Awaiting external counsel final opinion</div></div><button class="btn btn-light btn-sm" data-result="Reminder sent to legal team">Chase</button></div>
+    </div>
+    <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+  </div>
+</div>
+
+<!-- 28. Permits -->
+<div class="modal-backdrop" id="permitsModal">
+  <div class="modal">
+    <div class="modal-header"><div><h3 class="modal-title">Building Plans &amp; Permits</h3><div class="modal-sub">Regulatory approvals verification</div></div><button class="modal-close" data-close>x</button></div>
+    <div class="modal-body">
+      <div class="check-row"><div class="check-icon" style="background:var(--success-soft);color:var(--success);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><div><span class="config-label">NCA approval (National Construction Authority)</span></div></div>
+      <div class="check-row"><div class="check-icon" style="background:var(--success-soft);color:var(--success);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><div><span class="config-label">Nairobi County building permit</span></div></div>
+      <div class="check-row"><div class="check-icon" style="background:var(--success-soft);color:var(--success);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><div><span class="config-label">Structural engineer sign-off</span></div></div>
+      <div class="check-row"><div class="check-icon" style="background:var(--warning-soft);color:var(--warning);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="8" x2="12" y2="12"/></svg></div><div><span class="config-label">NEMA environmental licence</span><div class="config-desc">Phase I done — Phase II in progress</div></div></div>
+    </div>
+    <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+  </div>
+</div>
+
+<!-- 29. Insurance -->
+<div class="modal-backdrop" id="insuranceModal">
+  <div class="modal">
+    <div class="modal-header"><div><h3 class="modal-title">Insurance Requirements</h3><div class="modal-sub">Collateral and project insurance</div></div><button class="modal-close" data-close>x</button></div>
+    <div class="modal-body">
+      <div class="config-row"><div><div class="config-label">Contractor's all-risk (CAR)</div><div class="config-desc">AIG — $12M coverage — expires Dec 2027</div></div><span class="badge success">In place</span></div>
+      <div class="config-row"><div><div class="config-label">Property insurance</div><div class="config-desc">Jubilee Insurance — $13.2M</div></div><span class="badge success">In place</span></div>
+      <div class="config-row"><div><div class="config-label">Professional indemnity</div><div class="config-desc">Architect and engineer — $2M</div></div><span class="badge success">In place</span></div>
+      <div class="config-row"><div><div class="config-label">PayMo noted as loss payee</div><div class="config-desc">Required before drawdown</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+    </div>
+    <div class="modal-footer modal-footer-end">
+      <button class="btn btn-light" data-close>Cancel</button>
+      <button class="btn btn-primary" data-result="Insurance requirements confirmed">Confirm insurance</button>
+    </div>
+  </div>
+</div>
+
+<!-- 30. Environmental -->
+<div class="modal-backdrop" id="envModal">
+  <div class="modal">
+    <div class="modal-header"><div><h3 class="modal-title">Environmental Assessment</h3><div class="modal-sub">NEMA compliance and environmental risk</div></div><button class="modal-close" data-close>x</button></div>
+    <div class="modal-body">
+      <div class="kv-grid" style="margin-bottom:14px;">
+        <div><div class="kv-label">Phase I status</div><div class="kv-val"><span class="badge success">Complete</span></div></div>
+        <div><div class="kv-label">Phase II status</div><div class="kv-val"><span class="badge warning">In progress</span></div></div>
+        <div><div class="kv-label">Environmental consultant</div><div class="kv-val">GreenPath Africa</div></div>
+        <div><div class="kv-label">Expected completion</div><div class="kv-val">15 Mar 2026</div></div>
+      </div>
+      <div class="alert warning"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>Phase II environmental report is a condition precedent to first drawdown. No adverse findings in Phase I.</div>
+    </div>
+    <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+  </div>
+</div>
+
+<!-- 31. Construction Contract -->
+<div class="modal-backdrop" id="constructionModal">
+  <div class="modal">
+    <div class="modal-header"><div><h3 class="modal-title">Construction Contract Review</h3><div class="modal-sub">Fixed-price contract and performance bond</div></div><button class="modal-close" data-close>x</button></div>
+    <div class="modal-body">
+      <div class="kv-grid">
+        <div><div class="kv-label">Contract type</div><div class="kv-val">Fixed-price (FIDIC)</div></div>
+        <div><div class="kv-label">Contractor</div><div class="kv-val">Buildfast Ltd</div></div>
+        <div><div class="kv-label">Contract value</div><div class="kv-val">$7.8M</div></div>
+        <div><div class="kv-label">Completion date</div><div class="kv-val">Dec 2027</div></div>
+        <div><div class="kv-label">Performance bond</div><div class="kv-val">10% ($780K)</div></div>
+        <div><div class="kv-label">Retention</div><div class="kv-val">5% on each interim</div></div>
+      </div>
+      <div class="alert success" style="margin-top:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Contract reviewed and accepted by legal counsel.</div>
+    </div>
+    <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+  </div>
+</div>
+
+<!-- 32. Credit Memo -->
+<div class="modal-backdrop" id="creditMemoModal">
+  <div class="modal xl">
+    <div class="modal-header"><div><h3 class="modal-title">Credit Memorandum</h3><div class="modal-sub">Auto-generated — editable before submission</div></div><button class="modal-close" data-close>x</button></div>
+    <div class="modal-body">
+      <div class="two-col" style="margin-bottom:16px;">
+        <div>
+          <div class="kv-grid">
+            <div><div class="kv-label">Borrower</div><div class="kv-val">Apex Retail Group</div></div>
+            <div><div class="kv-label">Product</div><div class="kv-val">Term Loan</div></div>
+            <div><div class="kv-label">Amount</div><div class="kv-val">$5,000,000</div></div>
+            <div><div class="kv-label">Tenor</div><div class="kv-val">36 months</div></div>
+            <div><div class="kv-label">Rate</div><div class="kv-val">SOFR + 310bps</div></div>
+            <div><div class="kv-label">Risk grade</div><div class="kv-val">A-</div></div>
+          </div>
+        </div>
+        <div>
+          <div class="kv-grid">
+            <div><div class="kv-label">DSCR</div><div class="kv-val">1.68x</div></div>
+            <div><div class="kv-label">Leverage</div><div class="kv-val">2.4x</div></div>
+            <div><div class="kv-label">Collateral</div><div class="kv-val">Debenture</div></div>
+            <div><div class="kv-label">Authority</div><div class="kv-val">CRO</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="field"><label class="field-label">Executive summary (editable)</label><textarea class="textarea" style="min-height:80px;">Apex Retail Group is a well-established retail chain with 11 years of operations. The proposed $5M term loan is for working capital expansion. Financial profile is strong with DSCR of 1.68x and leverage of 2.4x. Recommend approval subject to standard covenants.</textarea></div>
+      <div class="field"><label class="field-label">Conditions precedent</label><textarea class="textarea">1. Satisfactory legal opinion from external counsel. 2. Execution of debenture. 3. First loss insurance in place.</textarea></div>
+      <div class="field"><label class="field-label">Recommendation</label><select class="select-field"><option>Approve as structured</option><option>Approve with modifications</option><option>Refer to credit committee</option><option>Decline</option></select></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-light" data-result="Credit memo saved as draft">Save draft</button>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-light" data-result="Credit memo sent for peer review">Peer review</button>
+        <button class="btn btn-primary" data-modal="ccVoteModal">Submit to committee</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 33. CC Vote -->
+<div class="modal-backdrop" id="ccVoteModal">
+  <div class="modal">
+    <div class="modal-header"><div><h3 class="modal-title">Cast Credit Committee Vote</h3><div class="modal-sub">CM-0481 — Apex Retail — $5M Term Loan</div></div><button class="modal-close" data-close>x</button></div>
+    <div class="modal-body">
+      <div style="background:var(--surface-2);border-radius:12px;padding:14px;margin-bottom:14px;">
+        <div class="kv-grid">
+          <div><div class="kv-label">Borrower</div><div class="kv-val">Apex Retail Group</div></div>
+          <div><div class="kv-label">Amount</div><div class="kv-val">$5M</div></div>
+          <div><div class="kv-label">Recommendation</div><div class="kv-val"><span class="badge success">Approve</span></div></div>
+          <div><div class="kv-label">Authority required</div><div class="kv-val">CRO</div></div>
+        </div>
+      </div>
+      <div style="font-weight:600;margin-bottom:8px;">Vote</div>
+      <label class="choice-row selected"><input type="radio" name="ccvote" checked><div><div class="choice-title">Approve</div><div class="choice-desc">Approve as recommended</div></div></label>
+      <label class="choice-row"><input type="radio" name="ccvote"><div><div class="choice-title">Approve with conditions</div><div class="choice-desc">Add further conditions</div></div></label>
+      <label class="choice-row"><input type="radio" name="ccvote"><div><div class="choice-title">Abstain</div><div class="choice-desc">Declare conflict of interest</div></div></label>
+      <label class="choice-row"><input type="radio" name="ccvote"><div><div class="choice-title">Decline</div><div class="choice-desc">Override recommendation</div></div></label>
+      <div class="field" style="margin-top:12px;"><label class="field-label">Comments (recorded in minutes)</label><textarea class="textarea" placeholder="Member comments for the record..."></textarea></div>
+    </div>
+    <div class="modal-footer modal-footer-end">
+      <button class="btn btn-light" data-close>Cancel</button>
+      <button class="btn btn-primary" data-result="Vote recorded — CM-0481 Approved by CRO">Submit vote</button>
+    </div>
+  </div>
+</div>
+
+<!-- 34. Committee Minutes -->
+<div class="modal-backdrop" id="minutesModal">
+  <div class="modal lg">
+    <div class="modal-header"><div><h3 class="modal-title">Credit Committee Minutes &amp; Records</h3><div class="modal-sub">Decision register — all committee decisions</div></div><button class="modal-close" data-close>x</button></div>
+    <div class="modal-body">
+      <table class="table"><thead><tr><th>Date</th><th>Memo</th><th>Borrower</th><th>Amount</th><th>Decision</th><th>Authority</th></tr></thead>
+        <tbody>
+          <tr data-modal="creditMemoModal"><td>Today</td><td class="mono">CM-0481</td><td>Apex Retail</td><td>$5M</td><td><span class="badge success">Approved</span></td><td>CRO</td></tr>
+          <tr data-modal="creditMemoModal"><td>Yesterday</td><td class="mono">CM-0478</td><td>Zenith Power</td><td>$24M</td><td><span class="badge warning">Referred</span></td><td>Board CC</td></tr>
+          <tr data-modal="creditMemoModal"><td>12 Feb</td><td class="mono">CM-0477</td><td>Bloom Pharmacy</td><td>$42K</td><td><span class="badge success">Approved</span></td><td>Senior UW</td></tr>
+          <tr data-modal="creditMemoModal"><td>10 Feb</td><td class="mono">CM-0476</td><td>Mara Lodge</td><td>$3.1M</td><td><span class="badge danger">Declined</span></td><td>CRO</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="modal-footer modal-footer-end">
+      <button class="btn btn-light" data-close>Close</button>
+      <button class="btn btn-primary" data-modal="exportModal">Export register</button>
+    </div>
+  </div>
+</div>
+
+<!-- 35. Approval Authority Matrix -->
+<div class="modal-backdrop" id="approvalMatrixModal">
+  <div class="modal lg">
+    <div class="modal-header"><div><h3 class="modal-title">Approval Authority Matrix</h3><div class="modal-sub">Editable — by amount, product and risk grade</div></div><button class="modal-close" data-close>x</button></div>
+    <div class="modal-body">
+      <table class="table"><thead><tr><th>Amount</th><th>Risk Grade</th><th>Retail</th><th>SME</th><th>Corporate</th><th>RE</th></tr></thead>
+        <tbody>
+          <tr><td>Up to $50K</td><td>A / B</td><td>Senior UW</td><td>Senior UW</td><td>—</td><td>—</td></tr>
+          <tr><td>$50K – $500K</td><td>A / B</td><td>Credit Manager</td><td>Credit Manager</td><td>Senior UW</td><td>Credit Manager</td></tr>
+          <tr><td>$500K – $5M</td><td>Any</td><td>CRO</td><td>CRO</td><td>CRO</td><td>CRO</td></tr>
+          <tr><td>$5M – $20M</td><td>Any</td><td>—</td><td>CEO + CRO</td><td>CEO + CRO</td><td>CEO + CRO</td></tr>
+          <tr><td>Above $20M</td><td>Any</td><td>—</td><td>Board CC</td><td>Board CC</td><td>Board CC</td></tr>
+        </tbody>
+      </table>
+      <div class="alert info" style="margin-top:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>C/D grade loans require one additional level of authority above standard matrix.</div>
+    </div>
+    <div class="modal-footer modal-footer-end">
+      <button class="btn btn-light" data-modal="editMatrixModal">Edit matrix</button>
+      <button class="btn btn-primary" data-close>Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- 36. Edit Matrix -->
+<div class="modal-backdrop" id="editMatrixModal">
+  <div class="modal">
+    <div class="modal-header"><div><h3 class="modal-title">Edit Authority Matrix</h3><div class="modal-sub">Admin permission required — changes logged</div></div><button class="modal-close" data-close>x</button></div>
+    <div class="modal-body">
+      <div class="alert warning" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>All changes are audit-logged and require Board Risk Committee approval to take effect.</div>
+      <div class="field"><label class="field-label">Tier</label><select class="select-field"><option>$50K – $500K</option><option>$500K – $5M</option><option>$5M – $20M</option></select></div>
+      <div class="field"><label class="field-label">New authority</label><select class="select-field"><option>Senior Underwriter</option><option>Credit Manager</option><option>CRO</option><option>CEO + CRO</option><option>Board CC</option></select></div>
+      <div class="field"><label class="field-label">Effective date</label><input class="input" type="date"></div>
+    </div>
+    <div class="modal-footer modal-footer-end">
+      <button class="btn btn-light" data-close>Cancel</button>
+      <button class="btn btn-primary" data-result="Authority matrix change submitted for Board Risk Committee approval">Submit for approval</button>
+    </div>
+  </div>
+</div>
+
+<!-- 37. Appeal Process -->
+<div class="modal-backdrop" id="appealModal">
+  <div class="modal">
+    <div class="modal-header"><div><h3 class="modal-title">Appeal Process</h3><div class="modal-sub">Declined or escalated application appeal</div></div><button class="modal-close" data-close>x</button></div>
+    <div class="modal-body">
+      <div class="field"><label class="field-label">Application reference</label><input class="input" value="CORP-1141"></div>
+      <div class="field"><label class="field-label">Appeal grounds</label><textarea class="textarea" placeholder="State grounds for appeal clearly..."></textarea></div>
+      <div class="field"><label class="field-label">Additional supporting evidence</label><select class="select-field"><option>Updated financial statements</option><option>New collateral offer</option><option>Revised terms proposal</option><option>Third-party guarantee</option></select></div>
+      <div class="field"><label class="field-label">Escalate to</label><select class="select-field"><option>Credit Manager</option><option>CRO</option><option>CEO</option><option>Board Credit Committee</option></select></div>
+    </div>
+    <div class="modal-footer modal-footer-end">
+      <button class="btn btn-light" data-close>Cancel</button>
+      <button class="btn btn-primary" data-result="Appeal submitted for review">Submit appeal</button>
+    </div>
+  </div>
+</div>
+
+<!-- 38. Schedule Committee -->
+<div class="modal-backdrop" id="committeeModal">
+  <div class="modal">
+    <div class="modal-header"><div><h3 class="modal-title">Schedule Credit Committee Meeting</h3><div class="modal-sub">Invite members and set agenda</div></div><button class="modal-close" data-close>x</button></div>
+    <div class="modal-body">
+      <div class="field"><label class="field-label">Meeting date &amp; time</label><input class="input" type="datetime-local"></div>
+      <div class="field"><label class="field-label">Format</label><select class="select-field"><option>In-person</option><option>Video call (Zoom)</option><option>Hybrid</option></select></div>
+      <div class="field"><label class="field-label">Agenda items</label><textarea class="textarea">1. CM-0481 — Apex Retail $5M Term Loan
+2. CM-0480 — Westlands Office $5.8M CRE
+3. CM-0479 — Horizon Plc $10M RCF (conditional)</textarea></div>
+      <div class="field"><label class="field-label">Members to invite</label><select class="select-field"><option>Full credit committee (7 members)</option><option>Quorum only (4 members)</option><option>Custom selection</option></select></div>
+    </div>
+    <div class="modal-footer modal-footer-end">
+      <button class="btn btn-light" data-close>Cancel</button>
+      <button class="btn btn-primary" data-result="Credit committee meeting scheduled and invitations sent">Schedule &amp; invite</button>
+    </div>
+  </div>
+</div>
+
+<!-- 39. Risk Flags -->
+<div class="modal-backdrop" id="riskFlagsModal">
+  <div class="modal">
+    <div class="modal-header"><div><h3 class="modal-title">Risk Flags — RE-2238</h3><div class="modal-sub">Mara Lodge Dev. — $3.1M Construction</div></div><button class="modal-close" data-close>x</button></div>
+    <div class="modal-body">
+      <div class="alert danger" style="margin-bottom:10px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>LTV 82% exceeds policy maximum of 80% for construction finance.</div>
+      <div class="alert warning" style="margin-bottom:10px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>Developer has only 1 completed project — limited track record.</div>
+      <div class="alert warning"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>Pre-sales commitment only 28% — below 50% policy requirement.</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger" data-modal="declineModal">Decline application</button>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-light" data-modal="counterOfferModal">Counter-offer</button>
+        <button class="btn btn-primary" data-close>Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 40. Notifications -->
+<div class="modal-backdrop" id="notificationsModal">
+  <div class="modal">
+    <div class="modal-header"><div><h3 class="modal-title">Notifications</h3><div class="modal-sub">Underwriting alerts</div></div><button class="modal-close" data-close>x</button></div>
+    <div class="modal-body" style="padding:0;">
+      <div class="list-item"><div class="list-left"><div class="list-icon" style="background:var(--success-soft);color:var(--success);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div><div><div class="list-title">CM-0481 approved by CRO</div><div class="list-sub">Apex Retail — $5M — 10 min ago</div></div></div><button class="btn btn-light btn-sm" data-modal="creditMemoModal">View</button></div>
+      <div class="list-item"><div class="list-left"><div class="list-icon" style="background:var(--warning-soft);color:var(--warning);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg></div><div><div class="list-title">APP-8820 — docs pending</div><div class="list-sub">Amina Osei — bank statement missing</div></div></div><button class="btn btn-light btn-sm" data-modal="docUploadModal">Chase</button></div>
+      <div class="list-item"><div class="list-left"><div class="list-icon" style="background:var(--danger-soft);color:var(--danger);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg></div><div><div class="list-title">RE-2238 risk flag — LTV 82%</div><div class="list-sub">Mara Lodge — exceeds policy</div></div></div><button class="btn btn-light btn-sm" data-modal="riskFlagsModal">Review</button></div>
+    </div>
+    <div class="modal-footer modal-footer-end">
+      <button class="btn btn-light" data-result="All notifications marked as read">Mark read</button>
+      <button class="btn btn-light" data-close>Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- 41. Queue Summary -->
+<div class="modal-backdrop" id="queueModal">
+  <div class="modal lg">
+    <div class="modal-header"><div><h3 class="modal-title">Underwriting Queue</h3><div class="modal-sub">84 applications across all segments</div></div><button class="modal-close" data-close>x</button></div>
+    <div class="modal-body">
+      <div class="dist-row"><div class="dist-label">Retail</div><div class="dist-bar"><span style="width:45%;background:#0284c7;"></span></div><div class="dist-val">38</div></div>
+      <div class="dist-row"><div class="dist-label">SME</div><div class="dist-bar"><span style="width:26%;background:#7c3aed;"></span></div><div class="dist-val">22</div></div>
+      <div class="dist-row"><div class="dist-label">Real Estate</div><div class="dist-bar"><span style="width:18%;background:#d97706;"></span></div><div class="dist-val">15</div></div>
+      <div class="dist-row"><div class="dist-label">Corporate</div><div class="dist-bar"><span style="width:11%;background:#16a34a;"></span></div><div class="dist-val">9</div></div>
+    </div>
+    <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+  </div>
+</div>
+
+<!-- 42. Decisioned Summary -->
+<div class="modal-backdrop" id="decisionedModal">
+  <div class="modal">
+    <div class="modal-header"><div><h3 class="modal-title">Decisioned Today</h3><div class="modal-sub">41 decisions — 28 approved, 13 declined</div></div><button class="modal-close" data-close>x</button></div>
+    <div class="modal-body">
+      <div class="dist-row"><div class="dist-label">Approved</div><div class="dist-bar"><span style="width:68%;background:#16a34a;"></span></div><div class="dist-val">28 (68.3%)</div></div>
+      <div class="dist-row"><div class="dist-label">Declined</div><div class="dist-bar"><span style="width:21%;background:#dc2626;"></span></div><div class="dist-val">9 (22%)</div></div>
+      <div class="dist-row"><div class="dist-label">Counter-offer</div><div class="dist-bar"><span style="width:7%;background:#d97706;"></span></div><div class="dist-val">3 (7.3%)</div></div>
+      <div class="dist-row"><div class="dist-label">Referred</div><div class="dist-bar"><span style="width:4%;background:#5b5bf5;"></span></div><div class="dist-val">1 (2.4%)</div></div>
+    </div>
+    <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+  </div>
+</div>
+
+<!-- 43. Approval Rate -->
+<div class="modal-backdrop" id="approvalRateModal">
+  <div class="modal">
+    <div class="modal-header"><div><h3 class="modal-title">Approval Rate Analysis</h3><div class="modal-sub">68.3% — week, month and segment view</div></div><button class="modal-close" data-close>x</button></div>
+    <div class="modal-body">
+      <div class="dist-row"><div class="dist-label">Retail</div><div class="dist-bar"><span style="width:74%;background:#0284c7;"></span></div><div class="dist-val">74%</div></div>
+      <div class="dist-row"><div class="dist-label">SME</div><div class="dist-bar"><span style="width:62%;background:#7c3aed;"></span></div><div class="dist-val">62%</div></div>
+      <div class="dist-row"><div class="dist-label">Corporate</div><div class="dist-bar"><span style="width:78%;background:#16a34a;"></span></div><div class="dist-val">78%</div></div>
+      <div class="dist-row"><div class="dist-label">Real Estate</div><div class="dist-bar"><span style="width:58%;background:#d97706;"></span></div><div class="dist-val">58%</div></div>
+    </div>
+    <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+  </div>
+</div>
+
+<!-- 44. SLA -->
+<div class="modal-backdrop" id="slaModal">
+  <div class="modal">
+    <div class="modal-header"><div><h3 class="modal-title">SLA Performance</h3><div class="modal-sub">Decision time by segment vs target</div></div><button class="modal-close" data-close>x</button></div>
+    <div class="modal-body">
+      <div class="config-row"><div><div class="config-label">Retail</div><div class="config-desc">Target: 4h</div></div><span class="badge success">Avg 2.1h</span></div>
+      <div class="config-row"><div><div class="config-label">SME</div><div class="config-desc">Target: 48h</div></div><span class="badge success">Avg 31h</span></div>
+      <div class="config-row"><div><div class="config-label">Corporate</div><div class="config-desc">Target: 10 days</div></div><span class="badge warning">Avg 8.4 days</span></div>
+      <div class="config-row"><div><div class="config-label">Real Estate</div><div class="config-desc">Target: 14 days</div></div><span class="badge warning">Avg 12.8 days</span></div>
+    </div>
+    <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+  </div>
+</div>
+
+<!-- 45. Filter -->
+<div class="modal-backdrop" id="filterModal">
+  <div class="modal">
+    <div class="modal-header"><div><h3 class="modal-title">Filter Underwriting Queue</h3><div class="modal-sub">Refine by segment, status, and officer</div></div><button class="modal-close" data-close>x</button></div>
+    <div class="modal-body">
+      <div class="field"><label class="field-label">Segment</label><select class="select-field"><option>All</option><option>Retail</option><option>SME</option><option>Corporate</option><option>Real Estate</option></select></div>
+      <div class="field"><label class="field-label">Status</label><select class="select-field"><option>All</option><option>In Progress</option><option>Docs Pending</option><option>Ready to Approve</option><option>Referred</option></select></div>
+      <div class="field"><label class="field-label">Assigned to</label><select class="select-field"><option>All officers</option><option>Sarah Karanja</option><option>Michael Otieno</option><option>Priya Nair</option></select></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" data-result="Filters reset">Reset</button><div style="display:flex;gap:8px;"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Filters applied">Apply</button></div></div>
+  </div>
+</div>
+
+<!-- 46. Export -->
+<div class="modal-backdrop" id="exportModal">
+  <div class="modal">
+    <div class="modal-header"><div><h3 class="modal-title">Export Report</h3><div class="modal-sub">Underwriting data export</div></div><button class="modal-close" data-close>x</button></div>
+    <div class="modal-body">
+      <div class="field"><label class="field-label">Report type</label><select class="select-field"><option>UW queue summary</option><option>Decisioned register</option><option>Credit committee minutes</option><option>SLA performance</option><option>Approval rate breakdown</option></select></div>
+      <div class="field"><label class="field-label">Format</label><select class="select-field"><option>PDF</option><option>CSV</option><option>XLSX</option></select></div>
+      <div class="field"><label class="field-label">Period</label><select class="select-field"><option>Today</option><option>This week</option><option>This month</option><option>Quarter to date</option></select></div>
+    </div>
+    <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Export generated">Generate</button></div>
+  </div>
+</div>
+
+<!-- Sidebar nav modals (compact) -->
+<div class="modal-backdrop" id="navLendingHomeModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Lending Command Center</h3><div class="modal-sub">Portfolio snapshot and live KPIs</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">Gross book</div><div class="kv-val">$482.4M</div></div><div><div class="kv-label">Active loans</div><div class="kv-val">12,841</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+<div class="modal-backdrop" id="navProductsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Products &amp; Pricing</h3><div class="modal-sub">Loan product catalog and pricing engine</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="alert info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>Retail, SME, Corporate and Real Estate product lines active.</div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+<div class="modal-backdrop" id="navApplicationsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Application Intake</h3><div class="modal-sub">Pipeline board and pre-screening</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">New today</div><div class="kv-val">18</div></div><div><div class="kv-label">In pipeline</div><div class="kv-val">142</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+<div class="modal-backdrop" id="navServicingModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Loan Servicing</h3><div class="modal-sub">Disbursement, schedule and amendments</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">Disbursed today</div><div class="kv-val">$2.1M</div></div><div><div class="kv-label">Active accounts</div><div class="kv-val">12,841</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+<div class="modal-backdrop" id="navCollectionsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Collections</div><div class="modal-sub">Repayments, PAR and recoveries</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">Repayments today</div><div class="kv-val">$840K</div></div><div><div class="kv-label">PAR 30+</div><div class="kv-val">4.8%</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+<div class="modal-backdrop" id="navRiskModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Risk &amp; Portfolio</h3><div class="modal-sub">NPL, provisions and risk analytics</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">NPL ratio</div><div class="kv-val">3.2%</div></div><div><div class="kv-label">PAR 90</div><div class="kv-val">1.8%</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+<div class="modal-backdrop" id="navAnalyticsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Analytics</h3><div class="modal-sub">Lending performance and profitability</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">NIM</div><div class="kv-val">8.4%</div></div><div><div class="kv-label">ROA (lending)</div><div class="kv-val">2.1%</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+<!-- Result modal -->
+<div class="modal-backdrop" id="resultModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Action Complete</h3><div class="modal-sub">PayMo Lending — operation completed</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="alert success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span id="resultMessage">Action completed.</span></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Done</button></div></div></div>
+
+<script>
+  /* ── Sidebar ── */
+  const sidebar = document.getElementById('sidebar');
+  document.getElementById('sidebarToggle').addEventListener('click', () => sidebar.classList.toggle('expanded'));
+  document.getElementById('mobileMenuBtn').addEventListener('click', () => sidebar.classList.toggle('mobile-open'));
+
+  /* ── Modal engine ── */
+  function openModal(id) { const m = document.getElementById(id); if (m) m.classList.add('show'); }
+  function closeAll() { document.querySelectorAll('.modal-backdrop.show').forEach(m => m.classList.remove('show')); }
+  function setResult(msg) { closeAll(); document.getElementById('resultMessage').textContent = msg; openModal('resultModal'); }
+
+  document.addEventListener('click', e => {
+    if (e.target.closest('.toggle')) return;
+    const close = e.target.closest('[data-close]');
+    if (close) { e.preventDefault(); e.stopPropagation(); closeAll(); return; }
+    const res = e.target.closest('[data-result]');
+    if (res) { e.preventDefault(); e.stopPropagation(); setResult(res.dataset.result); return; }
+    const open = e.target.closest('[data-modal]');
+    if (open) { e.preventDefault(); e.stopPropagation(); openModal(open.dataset.modal); }
+  });
+  document.querySelectorAll('.modal-backdrop').forEach(b => b.addEventListener('click', e => { if (e.target === b) closeAll(); }));
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAll(); });
+
+  /* ── Tabs ── */
+  function switchTab(name) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.dataset.panel === name));
+  }
+  document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => switchTab(t.dataset.tab)));
+
+  /* ── Choice rows ── */
+  document.querySelectorAll('.choice-row').forEach(row => {
+    row.addEventListener('click', () => {
+      const radio = row.querySelector('input[type="radio"]');
+      if (radio) {
+        document.querySelectorAll(`input[name="${radio.name}"]`).forEach(i => i.closest('.choice-row')?.classList.remove('selected'));
+        radio.checked = true; row.classList.add('selected');
+      }
+      const cb = row.querySelector('input[type="checkbox"]');
+      if (cb && !radio) row.classList.toggle('selected', cb.checked);
+    });
+  });
+
+  /* ── Multi-step wizard ── */
+  function setupStepper(rootId, stepperId, backId, nextId, total, doneMsg) {
+    const root = document.getElementById(rootId);
+    let cur = 1;
+    const render = () => {
+      document.querySelectorAll(`#${stepperId} .step`).forEach((s, i) => {
+        s.classList.toggle('active', i + 1 === cur);
+        s.classList.toggle('done', i + 1 < cur);
+      });
+      root.querySelectorAll('.step-panel').forEach(p => p.classList.toggle('active', Number(p.dataset.step) === cur));
+      document.getElementById(backId).disabled = cur === 1;
+      document.getElementById(nextId).textContent = cur === total ? 'Start assessment' : 'Next';
+    };
+    document.getElementById(backId).addEventListener('click', () => { if (cur > 1) { cur--; render(); } });
+    document.getElementById(nextId).addEventListener('click', () => {
+      if (cur < total) { cur++; render(); }
+      else { cur = 1; render(); setResult(doneMsg); }
+    });
+    render();
+  }
+  setupStepper('startUWModal', 'startUWStepper', 'uwBack', 'uwNext', 4, 'Underwriting assessment created and assigned');
+</script>
+</body>
+</html>

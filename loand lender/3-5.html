@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Loan Documentation & Agreement Management - PayMo Lending</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="stylesheet" href="master.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    .two-col { display: grid; grid-template-columns: 1.5fr 1fr; gap: 16px; }
+    .three-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .four-col { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .doc-paper { background: #fff; border: 1px solid var(--border-soft); border-radius: 12px; padding: 32px; box-shadow: var(--shadow-sm); min-height: 480px; position: relative; }
+    .doc-placeholder { color: var(--text-4); border-bottom: 1px dashed var(--border); }
+    .doc-variable { color: var(--primary); font-weight: 600; background: var(--primary-soft); padding: 0 4px; border-radius: 4px; cursor: pointer; }
+    .clause-item { border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin-bottom: 8px; cursor: move; background: var(--surface); transition: all .15s; }
+    .clause-item:hover { border-color: var(--primary); box-shadow: var(--shadow); }
+    .cp-row { display: grid; grid-template-columns: 1fr 100px 100px; gap: 10px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border-soft); }
+    .cp-row:last-child { border-bottom: 0; }
+    .repo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 14px; }
+    .folder-card { background: var(--surface); border: 1px solid var(--border-soft); border-radius: 12px; padding: 16px; text-align: center; cursor: pointer; transition: all .15s; }
+    .folder-card:hover { border-color: var(--primary); box-shadow: var(--shadow-lg); }
+    .folder-icon { color: #facc15; margin-bottom: 8px; }
+    .sig-block { border: 2px dashed var(--border); border-radius: 12px; height: 100px; display: flex; align-items: center; justify-content: center; color: var(--text-4); margin-top: 20px; }
+    .ver-tag { font-size: 10px; padding: 2px 6px; border-radius: 4px; background: var(--surface-3); color: var(--text-3); font-family: 'JetBrains Mono', monospace; }
+    .kv-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 18px; }
+    .kv-label { font-size: 10px; color: var(--text-4); text-transform: uppercase; letter-spacing: .07em; }
+    .kv-val { font-size: 13px; font-weight: 600; margin-top: 2px; }
+    .timeline { position: relative; padding-left: 24px; }
+    .timeline:before { content: ""; position: absolute; top: 6px; bottom: 6px; left: 8px; width: 2px; background: var(--border); }
+    .tl-item { position: relative; padding-bottom: 14px; }
+    .tl-item:before { content: ""; position: absolute; left: -20px; top: 4px; width: 10px; height: 10px; border-radius: 50%; background: var(--primary); border: 2px solid #fff; }
+    .tl-time { font-size: 10px; color: var(--text-4); }
+    .tl-text { font-size: 12px; margin-top: 2px; }
+    .config-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border-soft); }
+    .config-row:last-child { border-bottom: 0; }
+    .uw-editable { border: 1px dashed transparent; padding: 2px 4px; border-radius: 4px; transition: all .15s; }
+    .uw-editable:hover { border-color: var(--border); background: var(--surface-2); }
+    @media (max-width: 1100px) { .two-col { grid-template-columns: 1fr; } }
+    @media (max-width: 768px) { .three-col, .four-col { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">P</div>
+      <nav class="sidebar-nav">
+        <button class="sidebar-item" title="Dashboard" data-modal="navDashboardModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg><span class="sidebar-label">Dashboard</span></button>
+        <button class="sidebar-item" title="Products" data-modal="navProductsModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path></svg><span class="sidebar-label">Products</span></button>
+        <button class="sidebar-item" title="Applications" data-modal="navAppsModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg><span class="sidebar-label">Applications</span></button>
+        <button class="sidebar-item" title="Underwriting" data-modal="navUwModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg><span class="sidebar-label">Underwriting</span></button>
+        <button class="sidebar-item active" title="Documentation"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg><span class="sidebar-label">Documentation</span></button>
+        <button class="sidebar-item" title="Execution" data-modal="navExecModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg><span class="sidebar-label">Execution</span></button>
+        <button class="sidebar-item" title="Checklist" data-modal="navCpModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg><span class="sidebar-label">CP Checklist</span></button>
+        <button class="sidebar-item" title="Repository" data-modal="navRepoModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg><span class="sidebar-label">Repository</span></button>
+        <button class="sidebar-item" title="Analytics" data-modal="navAnalyticsModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="20" x2="12" y2="10"></line><line x1="18" y1="20" x2="18" y2="4"></line><line x1="6" y1="20" x2="6" y2="16"></line></svg><span class="sidebar-label">Analytics</span></button>
+      </nav>
+      <button class="sidebar-expand" id="sidebarToggle"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg><span class="sidebar-label">Collapse</span></button>
+    </aside>
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <div class="crumb">
+            <button class="mobile-menu-btn btn btn-light btn-sm" id="mobileMenuBtn" style="margin-right:8px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+            <span>Lending</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg><span>Loan Documentation & Agreement Management</span>
+          </div>
+          <h1 class="page-title">Loan Documentation</h1>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-light btn-icon" data-modal="notificationsModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg></button>
+          <button class="btn btn-light" data-modal="templateModal">Template Library</button>
+          <button class="btn btn-light" data-modal="auditModal">Audit Log</button>
+          <button class="btn btn-primary" data-modal="docWizardModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>Generate Document</button>
+        </div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card" data-modal="pendingExecutionModal"><div class="stat-icon amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div><div class="stat-label">Pending Execution</div><div class="stat-value">42</div><div class="stat-trend neutral"><span>12 waiting for witness</span></div></div>
+        <div class="stat-card" data-modal="cpTrackingModal"><div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg></div><div class="stat-label">CPs Outstanding</div><div class="stat-value">128</div><div class="stat-trend up"><span>85% satisfied YTD</span></div></div>
+        <div class="stat-card" data-modal="expiryModal"><div class="stat-icon red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div><div class="stat-label">Document Expiries</div><div class="stat-value">14</div><div class="stat-trend down"><span>Action required</span></div></div>
+        <div class="stat-card" data-modal="digitalExecModal"><div class="stat-icon purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg></div><div class="stat-label">E-Signature Rate</div><div class="stat-value">98.4%</div><div class="stat-trend up"><span>+2% vs last month</span></div></div>
+        <div class="stat-card" data-modal="storageModal"><div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></div><div class="stat-label">Storage Utilization</div><div class="stat-value">1.4TB</div><div class="stat-trend neutral"><span>99.9% compliant</span></div></div>
+      </div>
+
+      <div class="panel">
+        <div class="tabs" id="mainTabs">
+          <button class="tab active" data-tab="engine"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>Generation Engine</button>
+          <button class="tab" data-tab="library"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>Clause Library</button>
+          <button class="tab" data-tab="execution"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>E-Signature & Exec</button>
+          <button class="tab" data-tab="cp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>CP Management</button>
+          <button class="tab" data-tab="repo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>Document Repository</button>
+        </div>
+
+        <section class="tab-panel active" data-panel="engine">
+          <div class="panel-body">
+            <div class="two-col">
+              <div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+                  <h2 class="panel-title">Agreement Preview</h2>
+                  <div style="display:flex;gap:8px;">
+                    <button class="btn btn-light btn-sm" data-modal="clauseInsertModal">Insert Clause</button>
+                    <button class="btn btn-light btn-sm" data-modal="variableModal">Variables</button>
+                    <button class="btn btn-primary btn-sm" data-modal="generateConfirmModal">Regenerate</button>
+                  </div>
+                </div>
+                <div class="doc-paper">
+                  <div style="text-align:center;margin-bottom:20px;">
+                    <div style="font-weight:700;font-size:18px;">FACILITY AGREEMENT</div>
+                    <div class="list-sub">Agreement ID: <span class="doc-variable mono" data-modal="variableModal">FAC-2026-9901</span></div>
+                  </div>
+                  <div style="font-size:13px;line-height:1.6;color:var(--text);">
+                    <p>THIS AGREEMENT is made on <span class="doc-variable" data-modal="variableModal">[DATE]</span> between <strong>PayMo Lending Ltd</strong> ("the Lender") and <span class="doc-variable" data-modal="variableModal">[BORROWER_NAME]</span> ("the Borrower").</p>
+                    <p style="margin-top:12px;"><strong>1. FACILITY AMOUNT</strong><br>The Lender agrees to make available to the Borrower a term loan facility in the principal amount of <span class="doc-variable" data-modal="variableModal">[LOAN_AMOUNT]</span> <span class="doc-variable" data-modal="variableModal">[CURRENCY]</span>.</p>
+                    <p style="margin-top:12px;"><strong>2. INTEREST AND FEES</strong><br>The Interest Rate applicable to the Facility shall be <span class="doc-variable" data-modal="variableModal">[INTEREST_RATE]</span> per annum, calculated on a reducing balance basis.</p>
+                    <p style="margin-top:12px;"><strong>3. REPAYMENT</strong><br>The Borrower shall repay the Facility in <span class="doc-variable" data-modal="variableModal">[TENOR]</span> monthly installments...</p>
+                  </div>
+                  <div class="sig-block">Digital Signature Placeholder</div>
+                </div>
+              </div>
+              <div>
+                <h2 class="panel-title" style="margin-bottom:12px;">Document Details</h2>
+                <div class="uw-card" style="margin-bottom:16px;">
+                  <div class="kv-grid">
+                    <div><div class="kv-label">Borrower</div><div class="kv-val" contenteditable="true" class="uw-editable">Globex Manufacturing</div></div>
+                    <div><div class="kv-label">Product</div><div class="kv-val">Corporate Term Loan</div></div>
+                    <div><div class="kv-label">Amount</div><div class="kv-val" contenteditable="true" class="uw-editable">USD 2,800,000</div></div>
+                    <div><div class="kv-label">Rate</div><div class="kv-val" contenteditable="true" class="uw-editable">14.5% p.a.</div></div>
+                  </div>
+                </div>
+                <h3 class="uw-title" style="margin-top:14px;">Required Documents</h3>
+                <div class="config-row"><div><div class="config-label">Facility Agreement</div><div class="config-desc">Primary loan contract</div></div><span class="badge primary">Generated</span></div>
+                <div class="config-row"><div><div class="config-label">Security Trust Deed</div><div class="config-desc">Asset charge document</div></div><span class="badge warning">Drafting</span></div>
+                <div class="config-row"><div><div class="config-label">Personal Guarantee</div><div class="config-desc">Director Peter Mwangi</div></div><span class="badge gray">Pending</span></div>
+                <button class="btn btn-primary btn-sm" style="margin-top:14px;width:100%;" data-modal="docWizardModal">Generate Document Set</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="tab-panel" data-panel="library">
+          <div class="panel-body">
+            <div class="two-col">
+              <div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+                  <h2 class="panel-title">Dynamic Clause Library</h2>
+                  <div class="search-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle></svg><input placeholder="Search clauses..."></div>
+                </div>
+                <div class="clause-item">
+                  <div style="display:flex;justify-content:space-between;align-items:center;"><strong>Standard Default Clause</strong><span class="ver-tag">v2.4</span></div>
+                  <div class="list-sub" style="margin-top:4px;">Generic default provisions for SME/Retail products.</div>
+                </div>
+                <div class="clause-item">
+                  <div style="display:flex;justify-content:space-between;align-items:center;"><strong>Interest Rate (Floating)</strong><span class="ver-tag">v1.1</span></div>
+                  <div class="list-sub" style="margin-top:4px;">Base rate + Margin link clause.</div>
+                </div>
+                <div class="clause-item">
+                  <div style="display:flex;justify-content:space-between;align-items:center;"><strong>Negative Pledge</strong><span class="ver-tag">v3.0</span></div>
+                  <div class="list-sub" style="margin-top:4px;">Restriction on further encumbrance of assets.</div>
+                </div>
+                <button class="btn btn-light btn-sm" data-modal="newClauseModal">+ Add New Clause</button>
+              </div>
+              <div>
+                <h2 class="panel-title" style="margin-bottom:12px;">Jurisdiction Rules</h2>
+                <div class="config-row"><div><div class="config-label">Kenya</div><div class="config-desc">Consumer Protection Act 2012</div></div><span class="badge success">Compliant</span></div>
+                <div class="config-row"><div><div class="config-label">Uganda</div><div class="config-desc">Tier 4 Microfinance Act</div></div><span class="badge success">Compliant</span></div>
+                <div class="config-row"><div><div class="config-label">Tanzania</div><div class="config-desc">Mortgage Finance Act</div></div><span class="badge success">Compliant</span></div>
+                <button class="btn btn-light btn-sm" style="margin-top:12px;" data-modal="jurisdictionModal">Manage Jurisdictions</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="tab-panel" data-panel="execution">
+          <div class="panel-body">
+            <h2 class="panel-title" style="margin-bottom:14px;">E-Signature Workflow</h2>
+            <div class="table-wrap">
+              <table class="table">
+                <thead><tr><th>Agreement</th><th>Recipient</th><th>Method</th><th>Status</th><th>Last Action</th><th>Action</th></tr></thead>
+                <tbody>
+                  <tr data-modal="executionDetailModal"><td class="mono">FAC-2026-9901</td><td>Globex Mfg</td><td>Adobe Sign</td><td><span class="badge warning">Awaiting Sign</span></td><td>Sent 4h ago</td><td><button class="btn btn-light btn-sm" data-modal="remindModal">Remind</button></td></tr>
+                  <tr data-modal="executionDetailModal"><td class="mono">LOA-2026-0412</td><td>Jane Wanjiru</td><td>SMS OTP</td><td><span class="badge success">Executed</span></td><td>Signed today</td><td><button class="btn btn-light btn-sm" data-modal="certModal">Cert</button></td></tr>
+                  <tr data-modal="executionDetailModal"><td class="mono">MORT-2026-11</td><td>Skyline Dev</td><td>DocuSign</td><td><span class="badge warning">Witness Needed</span></td><td>Signed 2d ago</td><td><button class="btn btn-primary btn-sm" data-modal="witnessModal">Witness</button></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="tab-panel" data-panel="cp">
+          <div class="panel-body">
+            <div class="two-col">
+              <div>
+                <h2 class="panel-title" style="margin-bottom:14px;">Conditions Precedent (CP) Checklist</h2>
+                <div class="cp-row" style="font-weight:600;font-size:11px;text-transform:uppercase;color:var(--text-3);"><div>Item</div><div>Status</div><div>Action</div></div>
+                <div class="cp-row"><div>Certified Board Resolution</div><span class="badge success">Verified</span><button class="btn btn-light btn-sm" data-modal="viewCpModal">View</button></div>
+                <div class="cp-row"><div>Executed Guarantee (Peter Mwangi)</div><span class="badge warning">Pending</span><button class="btn btn-primary btn-sm" data-modal="uploadCpModal">Upload</button></div>
+                <div class="cp-row"><div>Valuation Report (Knight Frank)</div><span class="badge success">Verified</span><button class="btn btn-light btn-sm" data-modal="viewCpModal">View</button></div>
+                <div class="cp-row"><div>Insurance Premium Paid</div><span class="badge gray">Waived</span><button class="btn btn-light btn-sm" data-modal="waiveModal">History</button></div>
+              </div>
+              <div>
+                <div class="uw-card" style="text-align:center;">
+                  <div class="kv-label">CP Satisfaction</div>
+                  <div style="font-size:32px;font-weight:700;margin:10px 0;">75%</div>
+                  <div class="dist-bar" style="height:12px;"><span style="width:75%;background:var(--primary);"></span></div>
+                  <div class="list-sub" style="margin-top:12px;">3 of 4 CPs satisfied</div>
+                  <button class="btn btn-success" style="margin-top:16px;width:100%;" data-modal="satisfactionCertModal">Issue Satisfaction Cert</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="tab-panel" data-panel="repo">
+          <div class="panel-body">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+              <h2 class="panel-title">Borrower Repository</h2>
+              <div class="topbar-actions">
+                <button class="btn btn-light btn-sm" data-modal="newFolderModal">New Folder</button>
+                <button class="btn btn-light btn-sm" data-modal="retentionModal">Retention Policy</button>
+              </div>
+            </div>
+            <div class="repo-grid">
+              <div class="folder-card" data-modal="folderDetailModal"><svg class="folder-icon" width="40" height="40" viewBox="0 0 24 24" fill="currentColor"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg><div>Globex Mfg</div><div class="list-sub">12 docs</div></div>
+              <div class="folder-card" data-modal="folderDetailModal"><svg class="folder-icon" width="40" height="40" viewBox="0 0 24 24" fill="currentColor"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg><div>Skyline Dev</div><div class="list-sub">42 docs</div></div>
+              <div class="folder-card" data-modal="folderDetailModal"><svg class="folder-icon" width="40" height="40" viewBox="0 0 24 24" fill="currentColor"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg><div>Jane Wanjiru</div><div class="list-sub">8 docs</div></div>
+              <div class="folder-card" data-modal="folderDetailModal"><svg class="folder-icon" width="40" height="40" viewBox="0 0 24 24" fill="currentColor"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg><div>Savanna Traders</div><div class="list-sub">15 docs</div></div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- ============ MODALS (20+) ============ -->
+  <div class="modal-backdrop" id="docWizardModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Generate Document Set</h3><div class="modal-sub">Step-by-step document generation</div></div><button class="modal-close" data-close>x</button></div><div class="stepper" id="docStepper"><div class="step active"><div class="step-num">1</div>Product</div><div class="step-line"></div><div class="step"><div class="step-num">2</div>Borrower</div><div class="step-line"></div><div class="step"><div class="step-num">3</div>Clauses</div><div class="step-line"></div><div class="step"><div class="step-num">4</div>Review</div></div><div class="modal-body"><div class="step-panel active" data-step="1"><label class="choice-row selected"><input type="radio" name="prod" checked><div><div class="choice-title">Corporate Term Loan</div></div></label><label class="choice-row"><input type="radio" name="prod"><div><div class="choice-title">Personal Installment Loan</div></div></label><label class="choice-row"><input type="radio" name="prod"><div><div class="choice-title">Construction Finance</div></div></label></div><div class="step-panel" data-step="2"><div class="field"><label class="field-label">Search Borrower</label><select class="select-field"><option>Globex Manufacturing Ltd</option><option>Jane Wanjiru</option></select></div></div><div class="step-panel" data-step="3"><label class="choice-row selected"><input type="checkbox" checked><div><div class="choice-title">Standard Facility Agreement</div></div></label><label class="choice-row selected"><input type="checkbox" checked><div><div class="choice-title">Security Trust Deed</div></div></label></div><div class="step-panel" data-step="4"><div class="alert success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>Document set ready for generation.</div></div></div><div class="modal-footer"><button class="btn btn-light" id="docBack" disabled>Back</button><button class="btn btn-primary" id="docNext">Next</button></div></div></div>
+
+  <div class="modal-backdrop" id="variableModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Edit Variable</h3><div class="modal-sub">Inserted from underwriting data</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Variable name</label><input class="input" value="BORROWER_NAME" readonly></div><div class="field"><label class="field-label">Value</label><input class="input" value="Globex Manufacturing Ltd"></div><div class="alert info">This change will update all instances in the document set.</div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Variable updated">Save Value</button></div></div></div>
+
+  <div class="modal-backdrop" id="clauseInsertModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Insert Clause</h3><div class="modal-sub">Add from dynamic library</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Search</label><input class="input" placeholder="e.g. Default"></div><div class="clause-item"><strong>Standard Default Clause</strong></div><div class="clause-item"><strong>Extended Representations</strong></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Clause inserted into document">Insert</button></div></div></div>
+
+  <div class="modal-backdrop" id="newClauseModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Add New Clause</h3><div class="modal-sub">Create a reusable legal clause</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Clause Name</label><input class="input"></div><div class="field"><label class="field-label">Content</label><textarea class="textarea"></textarea></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="New clause added to library">Save Clause</button></div></div></div>
+
+  <div class="modal-backdrop" id="jurisdictionModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Jurisdiction Settings</h3><div class="modal-sub">Regional compliance settings</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="config-row"><div>Kenya</div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div><div class="config-row"><div>Uganda</div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Done</button></div></div></div>
+
+  <div class="modal-backdrop" id="remindModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Send Remainder</h3><div class="modal-sub">Chasing e-signature</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><p>Send signature reminder to <strong>Globex Manufacturing Ltd</strong>?</p></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Reminder sent to signer">Send Reminder</button></div></div></div>
+
+  <div class="modal-backdrop" id="certModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Execution Certificate</h3><div class="modal-sub">Audit trail for digital execution</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">Signer</div><div class="kv-val">Jane Wanjiru</div></div><div><div class="kv-label">IP Address</div><div class="kv-val">197.232.8.44</div></div><div><div class="kv-label">Method</div><div class="kv-val">SMS OTP + ID Scan</div></div><div><div class="kv-label">Time</div><div class="kv-val">Today 10:42 AM</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-result="Execution cert downloaded">Download</button><button class="btn btn-primary" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="witnessModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Witness Requirement</h3><div class="modal-sub">Notarize or witness signature</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Witness Name</label><input class="input"></div><div class="field"><label class="field-label">Witness Occupation</label><input class="input"></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Signature witnessed">Confirm Witness</button></div></div></div>
+
+  <div class="modal-backdrop" id="uploadCpModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Upload CP Document</h3><div class="modal-sub">Satisfy condition precedent</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="sig-block" style="height:150px;border-style:dashed;">Drop CP document here</div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="CP document uploaded">Upload</button></div></div></div>
+
+  <div class="modal-backdrop" id="viewCpModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Condition Precedent Detail</h3><div class="modal-sub">Verification audit</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="alert success">Condition verified by Sarah Karanja on 12 Feb 2026.</div></div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="waiveModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Waive Condition</h3><div class="modal-sub">Credit exception management</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Reason for waiver</label><textarea class="textarea"></textarea></div><div class="field"><label class="field-label">Approving Manager</label><select class="select-field"><option>John Mwangi · L3</option></select></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-danger" data-result="CP waived by manager">Confirm Waiver</button></div></div></div>
+
+  <div class="modal-backdrop" id="satisfactionCertModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">CP Satisfaction Certificate</h3><div class="modal-sub">Loan activation trigger</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><p>All conditions precedent for <strong>FAC-2026-9901</strong> have been satisfied or waived. Proceed to issue satisfaction certificate and activate loan?</p></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-success" data-result="Loan activated - Disbursement triggered">Issue & Activate</button></div></div></div>
+
+  <div class="modal-backdrop" id="newFolderModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">New Repository Folder</h3><div class="modal-sub">Organize borrower documents</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Folder Name</label><input class="input"></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Folder created">Create Folder</button></div></div></div>
+
+  <div class="modal-backdrop" id="retentionModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Retention Policy</h3><div class="modal-sub">Regulatory document storage</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="config-row"><div>Store executed agreements</div><select class="select"><option>7 years</option><option>10 years</option></select></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Done</button></div></div></div>
+
+  <div class="modal-backdrop" id="folderDetailModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Repository: Globex Mfg</h3><div class="modal-sub">Borrower ID: B-8841</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="repo-grid"><div class="folder-card"><strong>ID & KYC</strong></div><div class="folder-card"><strong>Financials</strong></div><div class="folder-card"><strong>Legal</strong></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="templateModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Template Library</h3><div class="modal-sub">Master legal templates</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><table class="table"><thead><tr><th>Template</th><th>Segment</th><th>Version</th></tr></thead><tbody><tr><td>Facility Agreement</td><td>Corporate</td><td>v3.1</td></tr><tr><td>Loan Contract</td><td>Retail</td><td>v4.2</td></tr></tbody></table></div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="auditModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Document Audit Log</h3><div class="modal-sub">Full access and edit history</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="timeline"><div class="tl-item"><div class="tl-time">Today 11:20</div><div class="tl-text">Sarah Karanja viewed FAC-2026-9901</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="notificationsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Notifications</h3><div class="modal-sub">Legal Ops activity</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body" style="padding:0;"><div class="list-item"><div class="list-left"><div><div class="list-title">Witness required</div><div class="list-sub">Skyline Dev - Mortgage Deed</div></div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="resultModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title" id="resultTitle">Success</h3><div class="modal-sub">Action recorded</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="alert success"><span id="resultMessage">Operation completed.</span></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Done</button></div></div></div>
+
+  <!-- Navigation Module Modals (Simple stubs) -->
+  <div class="modal-backdrop" id="navDashboardModal"><div class="modal"><div class="modal-header"><h3>Dashboard</h3><button class="modal-close" data-close>x</button></div><div class="modal-body">Navigate to platform dashboard?</div><div class="modal-footer modal-footer-end"><button class="btn btn-primary">Go</button></div></div></div>
+  <div class="modal-backdrop" id="navProductsModal"><div class="modal"><div class="modal-header"><h3>Products</h3><button class="modal-close" data-close>x</button></div><div class="modal-body">Product management?</div><div class="modal-footer modal-footer-end"><button class="btn btn-primary">Go</button></div></div></div>
+  <div class="modal-backdrop" id="navAppsModal"><div class="modal"><div class="modal-header"><h3>Applications</h3><button class="modal-close" data-close>x</button></div><div class="modal-body">Go to pipeline?</div><div class="modal-footer modal-footer-end"><button class="btn btn-primary">Go</button></div></div></div>
+  <div class="modal-backdrop" id="navUwModal"><div class="modal"><div class="modal-header"><h3>Underwriting</h3><button class="modal-close" data-close>x</button></div><div class="modal-body">Return to workbench?</div><div class="modal-footer modal-footer-end"><button class="btn btn-primary">Go</button></div></div></div>
+  <div class="modal-backdrop" id="navExecModal"><div class="modal"><div class="modal-header"><h3>Execution</h3><button class="modal-close" data-close>x</button></div><div class="modal-body">Execution dashboard?</div><div class="modal-footer modal-footer-end"><button class="btn btn-primary">Go</button></div></div></div>
+  <div class="modal-backdrop" id="navCpModal"><div class="modal"><div class="modal-header"><h3>CP Checklist</h3><button class="modal-close" data-close>x</button></div><div class="modal-body">Checklist management?</div><div class="modal-footer modal-footer-end"><button class="btn btn-primary">Go</button></div></div></div>
+  <div class="modal-backdrop" id="navRepoModal"><div class="modal"><div class="modal-header"><h3>Repository</h3><button class="modal-close" data-close>x</button></div><div class="modal-body">Open file browser?</div><div class="modal-footer modal-footer-end"><button class="btn btn-primary">Go</button></div></div></div>
+  <div class="modal-backdrop" id="navAnalyticsModal"><div class="modal"><div class="modal-header"><h3>Analytics</h3><button class="modal-close" data-close>x</button></div><div class="modal-body">Legal ops analytics?</div><div class="modal-footer modal-footer-end"><button class="btn btn-primary">Go</button></div></div></div>
+
+  <div class="modal-backdrop" id="pendingExecutionModal"><div class="modal lg"><div class="modal-header"><div><h3>Pending Execution Queue</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><table class="table"><thead><tr><th>Borrower</th><th>Method</th><th>SLA</th></tr></thead><tbody><tr><td>Globex</td><td>Adobe Sign</td><td><span class="badge warning">4h</span></td></tr></tbody></table></div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Done</button></div></div></div>
+  <div class="modal-backdrop" id="cpTrackingModal"><div class="modal lg"><div class="modal-header"><div><h3>CP Portfolio Tracking</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><p>Tracking across all active files.</p></div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Done</button></div></div></div>
+  <div class="modal-backdrop" id="expiryModal"><div class="modal lg"><div class="modal-header"><div><h3>Renewal Queue</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><table class="table"><thead><tr><th>Doc</th><th>Expiry</th><th>Borrower</th></tr></thead><tbody><tr><td>Insurance Cert</td><td><span class="badge danger">Expired</span></td><td>Skyline Dev</td></tr></tbody></table></div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Done</button></div></div></div>
+  <div class="modal-backdrop" id="digitalExecModal"><div class="modal lg"><div class="modal-header"><div><h3>Execution Performance</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><p>Stats on signing times and abandonment.</p></div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Done</button></div></div></div>
+  <div class="modal-backdrop" id="storageModal"><div class="modal lg"><div class="modal-header"><div><h3>Central Storage Health</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><p>System encryption and backup logs.</p></div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Done</button></div></div></div>
+  <div class="modal-backdrop" id="generateConfirmModal"><div class="modal"><div class="modal-header"><div><h3>Regenerate Document?</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><p>This will overwrite current draft changes.</p></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-danger" data-result="Document regenerated">Overwrite</button></div></div></div>
+
+  <script>
+    const sidebar = document.getElementById('sidebar');
+    document.getElementById('sidebarToggle').addEventListener('click', () => sidebar.classList.toggle('expanded'));
+    document.getElementById('mobileMenuBtn').addEventListener('click', () => sidebar.classList.toggle('mobile-open'));
+
+    function openModal(id) { const m = document.getElementById(id); if (m) m.classList.add('show'); }
+    function closeAll() { document.querySelectorAll('.modal-backdrop.show').forEach(m => m.classList.remove('show')); }
+    document.addEventListener('click', e => {
+      const close = e.target.closest('[data-close]');
+      if (close) { e.preventDefault(); e.stopPropagation(); closeAll(); return; }
+      const result = e.target.closest('[data-result]');
+      if (result) { e.preventDefault(); e.stopPropagation(); setResult(result.dataset.result); return; }
+      const opener = e.target.closest('[data-modal]');
+      if (opener) { e.preventDefault(); e.stopPropagation(); openModal(opener.dataset.modal); }
+    });
+    document.querySelectorAll('.modal-backdrop').forEach(b => b.addEventListener('click', e => { if (e.target === b) closeAll(); }));
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAll(); });
+
+    function setResult(message) {
+      closeAll();
+      document.getElementById('resultMessage').textContent = message;
+      openModal('resultModal');
+    }
+
+    function switchTab(name) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.dataset.panel === name));
+    }
+    document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => switchTab(tab.dataset.tab)));
+
+    function setupStepper(rootId, stepperId, backId, nextId, total, doneMessage) {
+      const root = document.getElementById(rootId);
+      if (!root) return;
+      let current = 1;
+      const render = () => {
+        document.querySelectorAll(`#${stepperId} .step`).forEach((s, i) => { s.classList.toggle('active', i + 1 === current); s.classList.toggle('done', i + 1 < current); });
+        root.querySelectorAll('.step-panel').forEach(p => p.classList.toggle('active', Number(p.dataset.step) === current));
+        document.getElementById(backId).disabled = current === 1;
+        document.getElementById(nextId).textContent = current === total ? 'Generate' : 'Next';
+      };
+      document.getElementById(backId).addEventListener('click', () => { if (current > 1) { current--; render(); } });
+      document.getElementById(nextId).addEventListener('click', () => { if (current < total) { current++; render(); } else { current = 1; render(); setResult(doneMessage); } });
+      render();
+    }
+    setupStepper('docWizardModal', 'docStepper', 'docBack', 'docNext', 4, 'Loan document set generated');
+  </script>
+</body>
+</html>

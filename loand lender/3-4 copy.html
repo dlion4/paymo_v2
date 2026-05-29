@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Credit Underwriting & Decisioning - PayMo Lending</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="stylesheet" href="master.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    .two-col { display: grid; grid-template-columns: 1.5fr 1fr; gap: 16px; }
+    .three-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .four-col { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .uw-grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: 16px; }
+    .uw-card { background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius); padding: 18px; }
+    .uw-title { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--text-3); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+    .uw-title svg { width: 14px; height: 14px; }
+    .uw-editable { border: 1px dashed transparent; padding: 3px 6px; border-radius: 6px; cursor: text; transition: all .15s; }
+    .uw-editable:hover { border-color: var(--border); background: var(--surface-2); }
+    .uw-editable:focus { outline: none; border-color: var(--primary); background: var(--primary-soft); }
+    .kv-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 18px; }
+    .kv-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .kv-label { font-size: 10px; color: var(--text-4); text-transform: uppercase; letter-spacing: .07em; }
+    .kv-val { font-size: 13px; font-weight: 600; margin-top: 2px; }
+    .kv-val-edit { font-size: 14px; font-weight: 600; }
+    .dist-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+    .dist-label { width: 130px; font-size: 12px; font-weight: 500; }
+    .dist-bar { flex: 1; height: 8px; border-radius: 999px; background: var(--surface-3); overflow: hidden; }
+    .dist-bar span { display: block; height: 100%; border-radius: 999px; }
+    .dist-val { width: 90px; text-align: right; font-size: 12px; font-weight: 600; }
+    .score-ring { width: 110px; height: 110px; position: relative; margin: 0 auto; }
+    .score-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .score-center .big { font-size: 22px; font-weight: 700; }
+    .score-center .lbl { font-size: 10px; color: var(--text-3); text-transform: uppercase; letter-spacing: .07em; }
+    .donut { transform: rotate(-90deg); }
+    .donut circle { fill: none; stroke-width: 12; }
+    .decision-bar { display: flex; gap: 8px; flex-wrap: wrap; padding: 14px; background: var(--surface-2); border-radius: 12px; margin-top: 12px; }
+    .verdict { padding: 10px 16px; border-radius: 10px; font-weight: 600; font-size: 13px; border: 1px solid var(--border); background: var(--surface); cursor: pointer; transition: all .15s; }
+    .verdict:hover { border-color: var(--primary); }
+    .verdict.selected { border-color: var(--primary); background: var(--primary); color: #fff; }
+    .verdict.approve { border-color: var(--success); background: var(--success); color: #fff; }
+    .verdict.decline { border-color: var(--danger); background: var(--danger); color: #fff; }
+    .verdict.counter { border-color: var(--warning); background: var(--warning); color: #fff; }
+    .verdict.refer { border-color: var(--info); background: var(--info); color: #fff; }
+    .ratio-card { border: 1px solid var(--border-soft); border-radius: 10px; padding: 10px 12px; }
+    .ratio-name { font-size: 10px; color: var(--text-4); text-transform: uppercase; letter-spacing: .06em; }
+    .ratio-val { font-size: 18px; font-weight: 700; margin-top: 2px; }
+    .ratio-bench { font-size: 10px; color: var(--text-3); margin-top: 2px; }
+    .stage-pill { display: inline-flex; align-items: center; gap: 4px; padding: 2px 9px; border-radius: 20px; font-size: 10px; font-weight: 600; }
+    .timeline { position: relative; padding-left: 24px; }
+    .timeline:before { content: ""; position: absolute; top: 6px; bottom: 6px; left: 8px; width: 2px; background: var(--border); }
+    .tl-item { position: relative; padding-bottom: 14px; }
+    .tl-item:before { content: ""; position: absolute; left: -20px; top: 4px; width: 10px; height: 10px; border-radius: 50%; background: var(--primary); border: 2px solid #fff; }
+    .tl-time { font-size: 10px; color: var(--text-4); }
+    .tl-text { font-size: 12px; margin-top: 2px; }
+    .app-row { cursor: pointer; }
+    .mini-chart { width: 100%; height: 130px; }
+    .legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 11px; color: var(--text-3); }
+    .legend-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; vertical-align: middle; }
+    .config-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border-soft); }
+    .config-row:last-child { border-bottom: 0; }
+    .config-label { font-size: 13px; font-weight: 600; }
+    .config-desc { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+    .matrix-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .matrix-table th, .matrix-table td { text-align: left; padding: 8px 10px; border: 1px solid var(--border-soft); }
+    .matrix-table th { background: var(--surface-2); font-size: 10px; text-transform: uppercase; letter-spacing: .05em; color: var(--text-3); }
+    .matrix-cell { text-align: center; font-weight: 600; padding: 6px; border-radius: 6px; cursor: pointer; }
+    .matrix-cell.green { background: var(--success-soft); color: #15803d; }
+    .matrix-cell.amber { background: var(--warning-soft); color: #b45309; }
+    .matrix-cell.red { background: var(--danger-soft); color: #b91c1c; }
+    .matrix-cell.grey { background: var(--surface-3); color: var(--text-3); }
+    @media (max-width: 1100px) {
+      .uw-grid, .two-col { grid-template-columns: 1fr; }
+      .three-col, .four-col { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 768px) {
+      .three-col, .four-col { grid-template-columns: 1fr; }
+      .kv-grid, .kv-grid-3 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">P</div>
+      <nav class="sidebar-nav">
+        <button class="sidebar-item" title="Command Center" data-modal="navCommandModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg><span class="sidebar-label">Command Center</span></button>
+        <button class="sidebar-item" title="Products" data-modal="navProductsModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg><span class="sidebar-label">Products</span></button>
+        <button class="sidebar-item" title="Applications" data-modal="navAppsModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg><span class="sidebar-label">Applications</span></button>
+        <button class="sidebar-item active" title="Underwriting"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg><span class="sidebar-label">Underwriting</span></button>
+        <button class="sidebar-item" title="Disbursement" data-modal="navDisbModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"></path></svg><span class="sidebar-label">Disbursement</span></button>
+        <button class="sidebar-item" title="Servicing" data-modal="navServicingModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg><span class="sidebar-label">Servicing</span></button>
+        <button class="sidebar-item" title="Collections" data-modal="navCollectionsModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path></svg><span class="sidebar-label">Collections</span></button>
+        <button class="sidebar-item" title="Risk" data-modal="navRiskModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg><span class="sidebar-label">Risk</span></button>
+        <button class="sidebar-item" title="Analytics" data-modal="navAnalyticsModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="20" x2="12" y2="10"></line><line x1="18" y1="20" x2="18" y2="4"></line><line x1="6" y1="20" x2="6" y2="16"></line></svg><span class="sidebar-label">Analytics</span></button>
+      </nav>
+      <button class="sidebar-expand" id="sidebarToggle"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg><span class="sidebar-label">Collapse</span></button>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <div class="crumb">
+            <button class="mobile-menu-btn btn btn-light btn-sm" id="mobileMenuBtn" style="margin-right:8px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+            <span>Lending</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg><span>Credit Underwriting & Decisioning</span>
+          </div>
+          <h1 class="page-title">Credit Underwriting & Decisioning</h1>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-light btn-icon" data-modal="notificationsModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg></button>
+          <span class="badge info" style="margin-right:6px;" id="roleBadge">Underwriter · L1</span>
+          <button class="btn btn-light" data-modal="permissionModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg><span class="btn-text">Permissions</span></button>
+          <button class="btn btn-light" data-modal="matrixModal">Approval Matrix</button>
+          <button class="btn btn-primary" data-modal="underwriteWizardModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>New Underwriting</button>
+        </div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card" data-modal="queueModal"><div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg></div><div class="stat-label">In Queue</div><div class="stat-value">148</div><div class="stat-trend down"><span>38 SLA at risk</span></div></div>
+        <div class="stat-card" data-modal="decisionModal"><div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"></path></svg></div><div class="stat-label">Decided Today</div><div class="stat-value">87</div><div class="stat-trend up"><span>62 approvals</span></div></div>
+        <div class="stat-card" data-modal="counterModal"><div class="stat-icon amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg></div><div class="stat-label">Counter-Offers</div><div class="stat-value">24</div><div class="stat-trend up"><span>78% accepted</span></div></div>
+        <div class="stat-card" data-modal="autoDecisionModal"><div class="stat-icon purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg></div><div class="stat-label">Auto-Decisioned</div><div class="stat-value">64%</div><div class="stat-trend up"><span>+4% this week</span></div></div>
+        <div class="stat-card" data-modal="turnaroundModal"><div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div><div class="stat-label">Avg Turnaround</div><div class="stat-value">1.8h</div><div class="stat-trend up"><span>-22min vs last week</span></div></div>
+      </div>
+
+      <div class="panel">
+        <div class="tabs" id="mainTabs">
+          <button class="tab active" data-tab="retail"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>Retail Underwriting</button>
+          <button class="tab" data-tab="sme"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"></path><path d="M5 6l7-3 7 3"></path><path d="M3 10h18"></path></svg>SME Underwriting</button>
+          <button class="tab" data-tab="corporate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path></svg>Corporate Underwriting</button>
+          <button class="tab" data-tab="realestate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"></path><path d="M5 21V7l7-4 7 4v14"></path><path d="M9 21v-6h6v6"></path></svg>Real Estate Underwriting</button>
+          <button class="tab" data-tab="committee"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path></svg>Credit Memo & Committee</button>
+        </div>
+
+        <!-- ===== RETAIL UNDERWRITING ===== -->
+        <section class="tab-panel active" data-panel="retail">
+          <div class="panel-body">
+            <div class="uw-grid">
+              <div>
+                <div class="uw-card" style="margin-bottom:16px;">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+                    <h2 class="panel-title" style="margin:0;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>Underwriting Workbench — Personal Loan</h2>
+                    <div style="display:flex;gap:6px;">
+                      <button class="btn btn-light btn-sm" data-modal="assignModal">Reassign</button>
+                      <button class="btn btn-light btn-sm" data-modal="escalateModal">Escalate</button>
+                    </div>
+                  </div>
+                  <div class="kv-grid" style="margin-bottom:14px;">
+                    <div><div class="kv-label">Application</div><div class="kv-val"><span class="mono" contenteditable="true" class="uw-editable">APP-2026-01847</span></div></div>
+                    <div><div class="kv-label">Product</div><div class="kv-val">Personal Loan</div></div>
+                    <div><div class="kv-label">Applicant</div><div class="kv-val" contenteditable="true" class="uw-editable">Jane Wanjiru</div></div>
+                    <div><div class="kv-label">Amount requested</div><div class="kv-val"><span contenteditable="true" class="uw-editable">KES 480,000</span></div></div>
+                    <div><div class="kv-label">Tenor</div><div class="kv-val"><span contenteditable="true" class="uw-editable">24 months</span></div></div>
+                    <div><div class="kv-label">Purpose</div><div class="kv-val">Education fees</div></div>
+                    <div><div class="kv-label">Stage</div><div class="kv-val"><span class="badge info">Underwriting</span></div></div>
+                    <div><div class="kv-label">SLA</div><div class="kv-val" style="color:var(--warning);">3h remaining</div></div>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                    <div class="kw-label" style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;">Auto-scored risk grade</div>
+                    <select class="select" style="padding:5px 28px 5px 10px;font-size:12px;" id="riskGradeSelect">
+                      <option>A1 · Prime</option>
+                      <option selected>A2 · Near prime</option>
+                      <option>B · Standard</option>
+                      <option>C · Subprime</option>
+                      <option>D · High risk</option>
+                    </select>
+                  </div>
+                  <div style="display:flex;gap:14px;margin-top:14px;flex-wrap:wrap;">
+                    <button class="btn btn-light btn-sm" data-modal="incomeModal">Income verification</button>
+                    <button class="btn btn-light btn-sm" data-modal="debtModal">Debt burden</button>
+                    <button class="btn btn-light btn-sm" data-modal="behavioralModal">Behavioral score</button>
+                    <button class="btn btn-light btn-sm" data-modal="bureauModal">Credit bureau</button>
+                    <button class="btn btn-primary btn-sm" data-modal="counterOfferModal">Counter-offer</button>
+                  </div>
+                </div>
+
+                <div class="uw-card">
+                  <h3 class="uw-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>Decision Panel</h3>
+                  <div class="decision-bar">
+                    <button class="verdict approve" onclick="setVerdict(this,'approve')">Approve</button>
+                    <button class="verdict decline" onclick="setVerdict(this,'decline')">Decline</button>
+                    <button class="verdict counter" onclick="setVerdict(this,'counter')">Counter-offer</button>
+                    <button class="verdict refer" onclick="setVerdict(this,'refer')">Refer to committee</button>
+                  </div>
+                  <div class="field" style="margin-top:14px;"><label class="field-label">Decision rationale</label><textarea class="textarea" placeholder="Document the reason for this decision..."></textarea></div>
+                  <div class="field"><label class="field-label">Conditions (if any)</label><textarea class="textarea" placeholder="Any conditions attached to this decision..."></textarea></div>
+                  <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px;">
+                    <button class="btn btn-light" data-modal="decisionReviewModal">Review</button>
+                    <button class="btn btn-primary" data-modal="submitDecisionModal">Submit decision</button>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <div class="uw-card" style="margin-bottom:16px;">
+                  <h3 class="uw-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>Underwriting Summary</h3>
+                  <div class="kv-grid" style="margin-bottom:12px;">
+                    <div><div class="kv-label">Income verified</div><div class="kv-val" style="color:var(--success);">KES 185,000</div></div>
+                    <div><div class="kv-label">Monthly DTI</div><div class="kv-val">32%</div></div>
+                    <div><div class="kv-label">Bureau score</div><div class="kv-val">742 / 900</div></div>
+                    <div><div class="kv-label">Behavioral</div><div class="kv-val">81 / 100</div></div>
+                    <div><div class="kv-label">Disposable</div><div class="kv-val">KES 92,400</div></div>
+                    <div><div class="kv-label">Repayment</div><div class="kv-val">KES 24,800</div></div>
+                  </div>
+                  <div class="dist-row"><div class="dist-label" style="width:100px;">Income</div><div class="dist-bar"><span style="width:78%;background:var(--success);"></span></div><div class="dist-val">Verified</div></div>
+                  <div class="dist-row"><div class="dist-label" style="width:100px;">DTI</div><div class="dist-bar"><span style="width:32%;background:var(--warning);"></span></div><div class="dist-val">32%</div></div>
+                  <div class="dist-row"><div class="dist-label" style="width:100px;">Bureau</div><div class="dist-bar"><span style="width:82%;background:var(--success);"></span></div><div class="dist-val">Good</div></div>
+                </div>
+
+                <div class="uw-card">
+                  <h3 class="uw-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg>Documents</h3>
+                  <div class="config-row"><div><div class="config-label">Payslips (3 months)</div><div class="config-desc">Uploaded 2 days ago</div></div><span class="badge success">Verified</span></div>
+                  <div class="config-row"><div><div class="config-label">Bank statements</div><div class="config-desc">Auto-parsed via OB</div></div><span class="badge success">Verified</span></div>
+                  <div class="config-row"><div><div class="config-label">Employment letter</div><div class="config-desc">Employer verified via API</div></div><span class="badge success">Verified</span></div>
+                  <div class="config-row"><div><div class="config-label">National ID</div><div class="config-desc">KYC cleared</div></div><span class="badge success">Verified</span></div>
+                  <div class="config-row"><div><div class="config-label">Utility bill</div><div class="config-desc">Pending</div></div><span class="badge warning">Pending</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== SME UNDERWRITING ===== -->
+        <section class="tab-panel" data-panel="sme">
+          <div class="panel-body">
+            <div class="uw-grid">
+              <div>
+                <div class="uw-card" style="margin-bottom:16px;">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+                    <h2 class="panel-title" style="margin:0;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"></path><path d="M5 6l7-3 7 3"></path></svg>SME Underwriting — Working Capital</h2>
+                    <div style="display:flex;gap:6px;">
+                      <button class="btn btn-light btn-sm" data-modal="assignModal">Reassign</button>
+                      <button class="btn btn-light btn-sm" data-modal="financialsModal">Upload financials</button>
+                    </div>
+                  </div>
+                  <div class="kv-grid" style="margin-bottom:14px;">
+                    <div><div class="kv-label">Application</div><div class="kv-val">APP-2026-01852</div></div>
+                    <div><div class="kv-label">Business</div><div class="kv-val" contenteditable="true" class="uw-editable">Savanna Traders Ltd</div></div>
+                    <div><div class="kv-label">Director</div><div class="kv-val" contenteditable="true" class="uw-editable">Peter Mwangi</div></div>
+                    <div><div class="kv-label">Amount</div><div class="kv-val"><span contenteditable="true" class="uw-editable">KES 4.2M</span></div></div>
+                    <div><div class="kv-label">Tenor</div><div class="kv-val"><span contenteditable="true" class="uw-editable">18 months</span></div></div>
+                    <div><div class="kv-label">Annual revenue</div><div class="kv-val">KES 28.4M</div></div>
+                    <div><div class="kv-label">Years operating</div><div class="kv-val">6 years</div></div>
+                    <div><div class="kv-label">Stage</div><div class="kv-val"><span class="badge info">Underwriting</span></div></div>
+                  </div>
+                  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;">
+                    <button class="btn btn-light btn-sm" data-modal="financialsDetailModal">Financial analysis</button>
+                    <button class="btn btn-light btn-sm" data-modal="tradeRefModal">Trade references</button>
+                    <button class="btn btn-light btn-sm" data-modal="ownerModal">Owner assessment</button>
+                    <button class="btn btn-light btn-sm" data-modal="bureauModal">Credit bureau</button>
+                    <button class="btn btn-primary btn-sm" data-modal="counterOfferModal">Counter-offer</button>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <div class="uw-card">
+                  <h3 class="uw-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="20" x2="12" y2="10"></line></svg>Business Health Signals</h3>
+                  <div class="kv-grid" style="margin-bottom:10px;">
+                    <div><div class="kv-label">Business credit score</div><div class="kv-val">68 / 100</div></div>
+                    <div><div class="kv-label">Director score</div><div class="kv-val">712 / 900</div></div>
+                    <div><div class="kv-label">Revenue trend (YoY)</div><div class="kv-val" style="color:var(--success);">+18%</div></div>
+                    <div><div class="kv-label">Seasonality</div><div class="kv-val">Moderate</div></div>
+                    <div><div class="kv-label">Customer concentration</div><div class="kv-val" style="color:var(--warning);">38% single buyer</div></div>
+                    <div><div class="kv-label">Personal guarantee</div><div class="kv-val">Full guarantee</div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== CORPORATE UNDERWRITING ===== -->
+        <section class="tab-panel" data-panel="corporate">
+          <div class="panel-body">
+            <div class="uw-grid">
+              <div>
+                <div class="uw-card" style="margin-bottom:16px;">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+                    <h2 class="panel-title" style="margin:0;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path></svg>Corporate Underwriting — Term Loan</h2>
+                    <div style="display:flex;gap:6px;">
+                      <button class="btn btn-light btn-sm" data-modal="assignModal">Reassign</button>
+                      <button class="btn btn-light btn-sm" data-modal="facilityModal">Structure facility</button>
+                    </div>
+                  </div>
+                  <div class="kv-grid" style="margin-bottom:14px;">
+                    <div><div class="kv-label">Application</div><div class="kv-val">APP-2026-01840</div></div>
+                    <div><div class="kv-label">Borrower</div><div class="kv-val" contenteditable="true" class="uw-editable">Globex Manufacturing</div></div>
+                    <div><div class="kv-label">Facility</div><div class="kv-val">Term loan · 5 yr</div></div>
+                    <div><div class="kv-label">Amount</div><div class="kv-val"><span contenteditable="true" class="uw-editable">USD 2.8M</span></div></div>
+                    <div><div class="kv-label">Purpose</div><div class="kv-val">Equipment expansion</div></div>
+                    <div><div class="kv-label">Industry</div><div class="kv-val">Manufacturing</div></div>
+                    <div><div class="kv-label">Auditor</div><div class="kv-val">PwC Kenya</div></div>
+                    <div><div class="kv-label">Stage</div><div class="kv-val"><span class="badge info">Committee review</span></div></div>
+                  </div>
+                  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;">
+                    <button class="btn btn-light btn-sm" data-modal="ratioModal">Ratio analysis</button>
+                    <button class="btn btn-light btn-sm" data-modal="projectionModal">Cash flow projection</button>
+                    <button class="btn btn-light btn-sm" data-modal="covenantModal">Covenants</button>
+                    <button class="btn btn-light btn-sm" data-modal="esgModal">ESG review</button>
+                    <button class="btn btn-light btn-sm" data-modal="facilityModal">Structure facility</button>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <div class="uw-card">
+                  <h3 class="uw-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="20" x2="12" y2="10"></line></svg>Key Financial Ratios</h3>
+                  <div class="kv-grid-3" style="margin-bottom:12px;">
+                    <div class="ratio-card"><div class="ratio-name">DSCR</div><div class="ratio-val">2.4</div><div class="ratio-bench">Min 1.5x</div></div>
+                    <div class="ratio-card"><div class="ratio-name">ICR</div><div class="ratio-val">3.1</div><div class="ratio-bench">Min 2.0x</div></div>
+                    <div class="ratio-card"><div class="ratio-name">Leverage</div><div class="ratio-val">1.8x</div><div class="ratio-bench">&lt;3.0x</div></div>
+                    <div class="ratio-card"><div class="ratio-name">Current ratio</div><div class="ratio-val">1.9</div><div class="ratio-bench">Min 1.2x</div></div>
+                    <div class="ratio-card"><div class="ratio-name">Quick ratio</div><div class="ratio-val">1.4</div><div class="ratio-bench">Min 0.9x</div></div>
+                    <div class="ratio-card"><div class="ratio-name">ROE</div><div class="ratio-val">18%</div><div class="ratio-bench">Peer 16%</div></div>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-3);margin-bottom:4px;"><span>Internal rating</span><span>BBB+ (Stable)</span></div>
+                  <div style="display:flex;gap:8px;justify-content:flex-end;">
+                    <button class="btn btn-light btn-sm" data-modal="ratioModal">Edit assumptions</button>
+                    <button class="btn btn-light btn-sm" data-modal="peerModal">Peer benchmark</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== REAL ESTATE ===== -->
+        <section class="tab-panel" data-panel="realestate">
+          <div class="panel-body">
+            <div class="uw-grid">
+              <div>
+                <div class="uw-card" style="margin-bottom:16px;">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+                    <h2 class="panel-title" style="margin:0;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"></path><path d="M5 21V7l7-4 7 4v14"></path></svg>Real Estate Underwriting — Construction Finance</h2>
+                    <div style="display:flex;gap:6px;">
+                      <button class="btn btn-light btn-sm" data-modal="assignModal">Reassign</button>
+                      <button class="btn btn-light btn-sm" data-modal="valuationModal">Valuation</button>
+                    </div>
+                  </div>
+                  <div class="kv-grid" style="margin-bottom:14px;">
+                    <div><div class="kv-label">Application</div><div class="kv-val">APP-2026-01831</div></div>
+                    <div><div class="kv-label">Developer</div><div class="kv-val" contenteditable="true" class="uw-editable">Skyline Developers Ltd</div></div>
+                    <div><div class="kv-label">Project</div><div class="kv-val">Riverside Heights</div></div>
+                    <div><div class="kv-label">Facility</div><div class="kv-val"><span contenteditable="true" class="uw-editable">KES 120M</span></div></div>
+                    <div><div class="kv-label">Tenor</div><div class="kv-val">36 months</div></div>
+                    <div><div class="kv-label">Pre-sales</div><div class="kv-val">62% committed</div></div>
+                    <div><div class="kv-label">Permits</div><div class="kv-val" style="color:var(--success);">Cleared</div></div>
+                    <div><div class="kv-label">Stage</div><div class="kv-val"><span class="badge info">Committee review</span></div></div>
+                  </div>
+                  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;">
+                    <button class="btn btn-light btn-sm" data-modal="valuationModal">Valuation</button>
+                    <button class="btn btn-light btn-sm" data-modal="titleModal">Title verification</button>
+                    <button class="btn btn-light btn-sm" data-modal="envModal">Environmental</button>
+                    <button class="btn btn-light btn-sm" data-modal="ltvModal">LTV / DSCR</button>
+                    <button class="btn btn-primary btn-sm" data-modal="counterOfferModal">Counter-offer</button>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <div class="uw-card">
+                  <h3 class="uw-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4-6.3-4.6L5.7 21.4 8 14 2 9.4h7.6z"></path></svg>Project Viability</h3>
+                  <div class="kv-grid" style="margin-bottom:12px;">
+                    <div><div class="kv-label">GDV (projected)</div><div class="kv-val">KES 240M</div></div>
+                    <div><div class="kv-label">Total cost</div><div class="kv-val">KES 180M</div></div>
+                    <div><div class="kv-label">LTV</div><div class="kv-val">50%</div></div>
+                    <div><div class="kv-label">DSCR</div><div class="kv-val">1.9x</div></div>
+                    <div><div class="kv-label">Developer track</div><div class="kv-val" style="color:var(--success);">4 projects delivered</div></div>
+                    <div><div class="kv-label">Location score</div><div class="kv-val">A / Westlands</div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== CREDIT MEMO ===== -->
+        <section class="tab-panel" data-panel="committee">
+          <div class="panel-body">
+            <div class="uw-grid">
+              <div>
+                <div class="uw-card" style="margin-bottom:16px;">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+                    <h2 class="panel-title" style="margin:0;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>Credit Memorandum</h2>
+                    <div style="display:flex;gap:6px;">
+                      <button class="btn btn-light btn-sm" data-modal="memoEditModal">Edit memo</button>
+                      <button class="btn btn-light btn-sm" data-modal="memoPreviewModal">Preview</button>
+                      <button class="btn btn-primary btn-sm" data-modal="submitToCommitteeModal">Submit to committee</button>
+                    </div>
+                  </div>
+                  <div class="kv-grid" style="margin-bottom:14px;">
+                    <div><div class="kv-label">Memo ID</div><div class="kv-val">CM-2026-00421</div></div>
+                    <div><div class="kv-label">Prepared by</div><div class="kv-val">Sarah Karanja (Underwriter L2)</div></div>
+                    <div><div class="kv-label">Facility</div><div class="kv-val">Term loan · USD 2.8M</div></div>
+                    <div><div class="kv-label">Borrower</div><div class="kv-val">Globex Manufacturing</div></div>
+                    <div><div class="kv-label">Risk rating</div><div class="kv-val"><span class="badge primary">BBB+ / Stable</span></div></div>
+                    <div><div class="kv-label">Recommendation</div><div class="kv-val"><span class="badge success">Approve with conditions</span></div></div>
+                  </div>
+                  <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                    <button class="btn btn-light btn-sm" data-modal="approvalWorkflowModal">Approval workflow</button>
+                    <button class="btn btn-light btn-sm" data-modal="minutesModal">Meeting minutes</button>
+                    <button class="btn btn-light btn-sm" data-modal="appealModal">Appeal process</button>
+                    <button class="btn btn-light btn-sm" data-modal="decisionRecordModal">Decision record</button>
+                  </div>
+                </div>
+
+                <div class="uw-card">
+                  <h3 class="uw-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg>Memo Sections</h3>
+                  <div class="config-row"><div><div class="config-label">Executive summary</div><div class="config-desc">1 page overview</div></div><span class="badge success">Complete</span></div>
+                  <div class="config-row"><div><div class="config-label">Borrower profile</div><div class="config-desc">Ownership, structure, management</div></div><span class="badge success">Complete</span></div>
+                  <div class="config-row"><div><div class="config-label">Financial analysis</div><div class="config-desc">3-year audited + ratios</div></div><span class="badge success">Complete</span></div>
+                  <div class="config-row"><div><div class="config-label">Facility structure</div><div class="config-desc">Amount, tenor, security, pricing</div></div><span class="badge success">Complete</span></div>
+                  <div class="config-row"><div><div class="config-label">Risk & mitigants</div><div class="config-desc">Key risks and mitigation</div></div><span class="badge success">Complete</span></div>
+                  <div class="config-row"><div><div class="config-label">Recommendation</div><div class="config-desc">With conditions</div></div><span class="badge primary">Ready</span></div>
+                </div>
+              </div>
+
+              <div>
+                <div class="uw-card">
+                  <h3 class="uw-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"></path></svg>Approval Workflow</h3>
+                  <div class="timeline">
+                    <div class="tl-item"><div class="tl-time">2 days ago</div><div class="tl-text">Underwriter L2 prepared memo</div></div>
+                    <div class="tl-item"><div class="tl-time">1 day ago</div><div class="tl-text">Credit manager reviewed · approved to escalate</div></div>
+                    <div class="tl-item"><div class="tl-time">Now</div><div class="tl-text">Awaiting committee vote (3 of 5 members)</div></div>
+                  </div>
+                </div>
+
+                <div class="uw-card" style="margin-top:16px;">
+                  <h3 class="uw-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path></svg>Committee Members</h3>
+                  <div class="config-row"><div style="display:flex;gap:10px;align-items:center;"><div class="avatar">SK</div><div><div class="config-label">Sarah Karanja</div><div class="config-desc">Credit Risk Lead</div></div></div><span class="badge success">Approved</span></div>
+                  <div class="config-row"><div style="display:flex;gap:10px;align-items:center;"><div class="avatar">JM</div><div><div class="config-label">John Mwangi</div><div class="config-desc">Head of Lending</div></div></div><span class="badge success">Approved</span></div>
+                  <div class="config-row"><div style="display:flex;gap:10px;align-items:center;"><div class="avatar">AL</div><div><div class="config-label">Anita Lopez</div><div class="config-desc">CRO</div></div></div><span class="badge warning">Pending</span></div>
+                  <div class="config-row"><div style="display:flex;gap:10px;align-items:center;"><div class="avatar">DR</div><div><div class="config-label">David Ruto</div><div class="config-desc">Legal Counsel</div></div></div><span class="badge warning">Pending</span></div>
+                  <div class="config-row"><div style="display:flex;gap:10px;align-items:center;"><div class="avatar">FN</div><div><div class="config-label">Faith Njeri</div><div class="config-desc">CFO</div></div></div><span class="badge warning">Pending</span></div>
+                  <button class="btn btn-light btn-sm" style="margin-top:12px;width:100%;" data-modal="minutesModal">View meeting</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- ============ MODALS ============ -->
+
+  <div class="modal-backdrop" id="underwriteWizardModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">New Underwriting Review</h3><div class="modal-sub">Select and process an application</div></div><button class="modal-close" data-close>x</button></div><div class="stepper" id="uwStepper"><div class="step active"><div class="step-num">1</div>Segment</div><div class="step-line"></div><div class="step"><div class="step-num">2</div>Application</div><div class="step-line"></div><div class="step"><div class="step-num">3</div>Analysis</div><div class="step-line"></div><div class="step"><div class="step-num">4</div>Decision</div></div><div class="modal-body"><div class="step-panel active" data-step="1"><label class="choice-row selected"><input type="radio" name="segment" checked><div><div class="choice-title">Retail</div><div class="choice-desc">Personal loans, BNPL, salary advance</div></div></label><label class="choice-row"><input type="radio" name="segment"><div><div class="choice-title">SME</div><div class="choice-desc">Working capital, invoice financing</div></div></label><label class="choice-row"><input type="radio" name="segment"><div><div class="choice-title">Corporate</div><div class="choice-desc">Term loans, credit facilities</div></div></label><label class="choice-row"><input type="radio" name="segment"><div><div class="choice-title">Real Estate</div><div class="choice-desc">Mortgage, construction finance</div></div></label></div><div class="step-panel" data-step="2"><div class="field"><label class="field-label">Application ID</label><select class="select-field"><option>APP-2026-01847 · Jane Wanjiru · KES 480K</option><option>APP-2026-01852 · Savanna Traders · KES 4.2M</option><option>APP-2026-01840 · Globex Manufacturing · USD 2.8M</option></select></div></div><div class="step-panel" data-step="3"><div class="alert info" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg>Run full analysis suite: income, debt, bureau, behavioral.</div><label class="choice-row selected"><input type="checkbox" checked><div><div class="choice-title">Bank statement auto-parse</div><div class="choice-desc">Open Banking integration</div></div></label><label class="choice-row selected"><input type="checkbox" checked><div><div class="choice-title">Credit bureau check</div><div class="choice-desc">CRB real-time</div></div></label><label class="choice-row selected"><input type="checkbox" checked><div><div class="choice-title">Fraud & watchlist screening</div><div class="choice-desc">Sanctions and PEP</div></div></label></div><div class="step-panel" data-step="4"><div class="alert success" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>Ready to render decision.</div><div class="kv-grid"><div><div class="kv-label">Applicant</div><div class="kv-val">Jane Wanjiru</div></div><div><div class="kv-label">Amount</div><div class="kv-val">KES 480,000</div></div><div><div class="kv-label">Risk grade</div><div class="kv-val">A2 · Near prime</div></div><div><div class="kv-label">DTI</div><div class="kv-val">32%</div></div></div></div></div><div class="modal-footer"><button class="btn btn-light" id="uwBack" disabled>Back</button><button class="btn btn-primary" id="uwNext">Next</button></div></div></div>
+
+  <div class="modal-backdrop" id="incomeModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Income Verification — Jane Wanjiru</h3><div class="modal-sub">Multi-source verification</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Primary income source</label><select class="select-field"><option>Employment (Payroll)</option><option>Business income</option><option>Rental income</option><option>Freelance / gig</option></select></div><div class="kv-grid" style="margin-bottom:14px;"><div><div class="kv-label">Payslip verified</div><div class="kv-val" style="color:var(--success);">KES 160,000</div></div><div><div class="kv-label">Bank statement</div><div class="kv-val" style="color:var(--success);">KES 168,400</div></div><div><div class="kv-label">Employer API</div><div class="kv-val" style="color:var(--success);">KES 160,000</div></div><div><div class="kv-label">Mobile money (M-Pesa)</div><div class="kv-val" style="color:var(--info);">+KES 24,600</div></div><div><div class="kv-label">Utility history</div><div class="kv-val" style="color:var(--info);">100% on-time</div></div><div><div class="kv-label">Rental history</div><div class="kv-val" style="color:var(--info);">24 months paid</div></div></div><div class="field"><label class="field-label">Verified monthly income</label><input class="input" value="185000"></div><div class="field"><label class="field-label">Verification method</label><select class="select-field"><option>Weighted average (recommended)</option><option>Lowest verified</option><option>Manual override</option></select></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Income verified at KES 185,000">Confirm income</button></div></div></div>
+
+  <div class="modal-backdrop" id="debtModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Debt Burden Analysis</h3><div class="modal-sub">Existing obligations + proposed</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid" style="margin-bottom:14px;"><div><div class="kv-label">Verified income</div><div class="kv-val">KES 185,000</div></div><div><div class="kv-label">Total monthly debt</div><div class="kv-val">KES 59,600</div></div><div><div class="kv-label">DTI (current)</div><div class="kv-val">32%</div></div><div><div class="kv-label">DTI (with this loan)</div><div class="kv-val">45%</div></div></div><table class="table"><thead><tr><th>Creditor</th><th>Monthly</th><th>Balance</th></tr></thead><tbody><tr><td>NCBA - Car loan</td><td>KES 22,000</td><td>KES 840K</td></tr><tr><td>M-Shwari - Micro</td><td>KES 4,800</td><td>KES 96K</td></tr><tr><td>Tala - Micro</td><td>KES 3,200</td><td>KES 48K</td></tr><tr><td>Proposed (PayMo)</td><td>KES 24,800</td><td>KES 480K</td></tr></tbody></table><div class="alert warning" style="margin-top:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg>DTI at 45% with new loan — policy threshold is 50%. Monitor.</div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="behavioralModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Behavioral Score Analysis</h3><div class="modal-sub">Transaction patterns & stability</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div style="text-align:center;margin-bottom:14px;"><div class="score-ring"><svg width="110" height="110" viewBox="0 0 110 110" class="donut"><circle cx="55" cy="55" r="44" stroke="#eef0ff"></circle><circle cx="55" cy="55" r="44" stroke="#5b5bf5" stroke-dasharray="276" stroke-dashoffset="52"></circle></svg><div class="score-center"><div class="big">81</div><div class="lbl">/ 100</div></div></div><div class="badge primary" style="margin-top:6px;">Strong behavior</div></div><div class="dist-row"><div class="dist-label" style="width:130px;">Account stability</div><div class="dist-bar"><span style="width:88%;background:var(--success);"></span></div><div class="dist-val">88%</div></div><div class="dist-row"><div class="dist-label" style="width:130px;">Savings pattern</div><div class="dist-bar"><span style="width:74%;background:var(--success);"></span></div><div class="dist-val">74%</div></div><div class="dist-row"><div class="dist-label" style="width:130px;">Overdraft usage</div><div class="dist-bar"><span style="width:18%;background:var(--danger);"></span></div><div class="dist-val">Low</div></div><div class="dist-row"><div class="dist-label" style="width:130px;">Gambling exposure</div><div class="dist-bar"><span style="width:6%;background:var(--success);"></span></div><div class="dist-val">Minimal</div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="bureauModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Credit Bureau Report</h3><div class="modal-sub">Real-time CRB check · CRB Kenya</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:16px;"><div style="background:var(--surface-2);border-radius:12px;padding:14px;text-align:center;"><div class="kv-label">Score</div><div style="font-size:22px;font-weight:700;">742</div></div><div style="background:var(--surface-2);border-radius:12px;padding:14px;text-align:center;"><div class="kv-label">Rating</div><div style="font-size:22px;font-weight:700;color:var(--success);">Good</div></div><div style="background:var(--surface-2);border-radius:12px;padding:14px;text-align:center;"><div class="kv-label">Active accounts</div><div style="font-size:22px;font-weight:700;">6</div></div><div style="background:var(--surface-2);border-radius:12px;padding:14px;text-align:center;"><div class="kv-label">Defaults</div><div style="font-size:22px;font-weight:700;color:var(--danger);">0</div></div></div><table class="table"><thead><tr><th>Creditor</th><th>Type</th><th>Balance</th><th>Status</th></tr></thead><tbody><tr><td>NCBA</td><td>Car loan</td><td>KES 840K</td><td><span class="badge success">Current</span></td></tr><tr><td>M-Shwari</td><td>Micro</td><td>KES 96K</td><td><span class="badge success">Current</span></td></tr><tr><td>Tala</td><td>Micro</td><td>KES 48K</td><td><span class="badge success">Current</span></td></tr></tbody></table></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button class="btn btn-primary" data-modal="exportModal">Download report</button></div></div></div>
+
+  <div class="modal-backdrop" id="financialsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Upload Business Financials</h3><div class="modal-sub">SME financial statement package</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div style="border:2px dashed var(--border);border-radius:12px;padding:22px;text-align:center;background:var(--surface-2);"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5" style="margin-bottom:8px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><div style="font-weight:600;margin-bottom:4px;">Drop financial statements here</div><div style="font-size:11px;color:var(--text-3);">PDF, XLSX, XLS · Up to 50MB</div></div><div class="field" style="margin-top:12px;"><label class="field-label">Statement type</label><select class="select-field"><option>Audited financials (3 years)</option><option>Management accounts</option><option>Tax returns</option></select></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Financials uploaded and queued for analysis">Upload</button></div></div></div>
+
+  <div class="modal-backdrop" id="financialsDetailModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Financial Analysis — Savanna Traders Ltd</h3><div class="modal-sub">3-year business financials</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid-3" style="margin-bottom:16px;"><div class="ratio-card"><div class="ratio-name">Revenue (FY25)</div><div class="ratio-val">28.4M</div><div class="ratio-bench">+18% YoY</div></div><div class="ratio-card"><div class="ratio-name">Net profit margin</div><div class="ratio-val">14.2%</div><div class="ratio-bench">Peer 12%</div></div><div class="ratio-card"><div class="ratio-name">Cash conversion</div><div class="ratio-val">42 days</div><div class="ratio-bench">Peer 55 days</div></div></div><table class="table"><thead><tr><th>Metric</th><th>FY23</th><th>FY24</th><th>FY25</th></tr></thead><tbody><tr><td>Revenue</td><td>KES 20.1M</td><td>KES 24.1M</td><td>KES 28.4M</td></tr><tr><td>Gross margin</td><td>38%</td><td>41%</td><td>43%</td></tr><tr><td>EBITDA</td><td>KES 3.2M</td><td>KES 4.4M</td><td>KES 5.6M</td></tr><tr><td>Net profit</td><td>KES 2.1M</td><td>KES 3.1M</td><td>KES 4.0M</td></tr></tbody></table></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="tradeRefModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Trade Reference Check</h3><div class="modal-sub">Supplier & customer reliability</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="config-row"><div><div class="config-label">Top supplier · Delta Wholesale</div><div class="config-desc">5-year relationship · avg KES 4.8M/yr</div></div><span class="badge success">Reliable</span></div><div class="config-row"><div><div class="config-label">Top customer · Retail Chain A</div><div class="config-desc">38% revenue concentration</div></div><span class="badge warning">Concentrated</span></div><div class="config-row"><div><div class="config-label">Customer 2 · Retail Chain B</div><div class="config-desc">22% revenue concentration</div></div><span class="badge success">Reliable</span></div><div class="config-row"><div><div class="config-label">Customer 3 · Retail Chain C</div><div class="config-desc">18% revenue concentration</div></div><span class="badge success">Reliable</span></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="ownerModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Owner / Director Assessment</h3><div class="modal-sub">Peter Mwangi — Director</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid" style="margin-bottom:14px;"><div><div class="kv-label">Personal credit score</div><div class="kv-val">712 / 900</div></div><div><div class="kv-label">Personal guarantee</div><div class="kv-val" style="color:var(--success);">Full</div></div><div><div class="kv-label">Industry experience</div><div class="kv-val">12 years</div></div><div><div class="kv-label">Background check</div><div class="kv-val" style="color:var(--success);">Clear</div></div></div><div class="config-row"><div><div class="config-label">Personal credit</div><div class="config-desc">No defaults in 10 years</div></div><span class="badge success">Clear</span></div><div class="config-row"><div><div class="config-label">PEP / sanctions</div><div class="config-desc">Watchlist screening</div></div><span class="badge success">Clear</span></div><div class="config-row"><div><div class="config-label">Previous businesses</div><div class="config-desc">2 active · no bankruptcies</div></div><span class="badge success">Good</span></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="ratioModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Ratio Analysis — Globex Manufacturing</h3><div class="modal-sub">Editable financial ratios · audited FY25</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid-3"><div class="ratio-card"><div class="ratio-name">DSCR</div><div class="ratio-val" contenteditable="true" class="uw-editable">2.4x</div><div class="ratio-bench">Min 1.5x</div></div><div class="ratio-card"><div class="ratio-name">ICR</div><div class="ratio-val" contenteditable="true" class="uw-editable">3.1x</div><div class="ratio-bench">Min 2.0x</div></div><div class="ratio-card"><div class="ratio-name">Leverage</div><div class="ratio-val" contenteditable="true" class="uw-editable">1.8x</div><div class="ratio-bench">&lt;3.0x</div></div><div class="ratio-card"><div class="ratio-name">Current</div><div class="ratio-val" contenteditable="true" class="uw-editable">1.9x</div><div class="ratio-bench">Min 1.2x</div></div><div class="ratio-card"><div class="ratio-name">Quick</div><div class="ratio-val" contenteditable="true" class="uw-editable">1.4x</div><div class="ratio-bench">Min 0.9x</div></div><div class="ratio-card"><div class="ratio-name">ROE</div><div class="ratio-val" contenteditable="true" class="uw-editable">18%</div><div class="ratio-bench">Peer 16%</div></div><div class="ratio-card"><div class="ratio-name">ROA</div><div class="ratio-val" contenteditable="true" class="uw-editable">8.4%</div><div class="ratio-bench">Peer 7.2%</div></div><div class="ratio-card"><div class="ratio-name">EBITDA margin</div><div class="ratio-val" contenteditable="true" class="uw-editable">22%</div><div class="ratio-bench">Peer 20%</div></div><div class="ratio-card"><div class="ratio-name">Working capital</div><div class="ratio-val" contenteditable="true" class="uw-editable">KES 18M</div><div class="ratio-bench">Positive</div></div></div></div><div class="modal-footer"><button class="btn btn-light" data-close>Close</button><button class="btn btn-primary" data-result="Ratios saved">Save ratios</button></div></div></div>
+
+  <div class="modal-backdrop" id="projectionModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Cash Flow Projection</h3><div class="modal-sub">3-year forward model</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Revenue growth assumption</label><input class="input" value="12%"></div><div class="field"><label class="field-label">Working capital as % of revenue</label><input class="input" value="18%"></div><div class="field"><label class="field-label">CapEx assumption</label><input class="input" value="KES 40M in Year 1"></div><table class="table"><thead><tr><th>Metric</th><th>Y1</th><th>Y2</th><th>Y3</th></tr></thead><tbody><tr><td>EBITDA</td><td>KES 56M</td><td>KES 63M</td><td>KES 71M</td></tr><tr><td>Debt service</td><td>KES 24M</td><td>KES 24M</td><td>KES 24M</td></tr><tr><td>FCF</td><td>KES 22M</td><td>KES 29M</td><td>KES 37M</td></tr></tbody></table></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Projection saved">Save projection</button></div></div></div>
+
+  <div class="modal-backdrop" id="covenantModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Covenant Package Design</h3><div class="modal-sub">Editable covenant terms · USD 2.8M term loan</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Financial covenants</label><div style="border:1px solid var(--border);border-radius:10px;padding:10px;"><div class="config-row"><div><div class="config-label">Minimum DSCR</div><div class="config-desc">Quarterly test</div></div><input class="input" style="width:100px;" value="1.5x"></div><div class="config-row"><div><div class="config-label">Maximum leverage</div><div class="config-desc">Annual test</div></div><input class="input" style="width:100px;" value="3.0x"></div><div class="config-row"><div><div class="config-label">Minimum current ratio</div><div class="config-desc">Semi-annual test</div></div><input class="input" style="width:100px;" value="1.2x"></div></div></div><div class="field"><label class="field-label">Information covenants</label><div style="border:1px solid var(--border);border-radius:10px;padding:10px;"><label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:6px;"><input type="checkbox" checked> Quarterly financial statements</label><label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:6px;"><input type="checkbox" checked> Annual audited accounts</label><label style="display:flex;align-items:center;gap:8px;font-size:13px;"><input type="checkbox" checked> Insurance certificate renewal</label></div></div><div class="field"><label class="field-label">Negative covenants</label><div style="border:1px solid var(--border);border-radius:10px;padding:10px;"><label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:6px;"><input type="checkbox" checked> No additional debt above $5M</label><label style="display:flex;align-items:center;gap:8px;font-size:13px;"><input type="checkbox" checked> No asset disposal above $1M</label></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Covenant package saved">Save covenants</button></div></div></div>
+
+  <div class="modal-backdrop" id="facilityModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Structure Facility</h3><div class="modal-sub">Amount, tenor, security, pricing</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field-row"><div class="field"><label class="field-label">Facility amount</label><input class="input" value="USD 2,800,000"></div><div class="field"><label class="field-label">Tenor</label><input class="input" value="60 months"></div></div><div class="field-row"><div class="field"><label class="field-label">Interest rate</label><input class="input" value="14.5% p.a."></div><div class="field"><label class="field-label">Rate type</label><select class="select-field"><option>Fixed</option><option>Floating (LIBOR + margin)</option></select></div></div><div class="field"><label class="field-label">Repayment structure</label><select class="select-field"><option>Equal monthly installments</option><option>Interest-only, bullet principal</option><option>Custom amortization</option></select></div><div class="field"><label class="field-label">Primary security</label><select class="select-field"><option>Equipment (chattel mortgage)</option><option>Real estate</option><option>Receivables assignment</option><option>Shares</option></div><div class="field"><label class="field-label">Commitment fee</label><input class="input" value="0.5% on undrawn"></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Facility structure saved">Save structure</button></div></div></div>
+
+  <div class="modal-backdrop" id="esgModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">ESG Risk Evaluation</h3><div class="modal-sub">Environmental, social, governance factors</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid" style="margin-bottom:14px;"><div><div class="kv-label">ESG score</div><div class="kv-val" style="color:var(--success);">72 / 100</div></div><div><div class="kv-label">Industry risk</div><div class="kv-val">Medium</div></div></div><div class="config-row"><div><div class="config-label">Environmental compliance</div><div class="config-desc">ISO 14001 certified</div></div><span class="badge success">Low risk</span></div><div class="config-row"><div><div class="config-label">Labor practices</div><div class="config-desc">No incidents in 5 years</div></div><span class="badge success">Low risk</span></div><div class="config-row"><div><div class="config-label">Governance</div><div class="config-desc">Independent board, audited</div></div><span class="badge success">Low risk</span></div><div class="config-row"><div><div class="config-label">Controversy exposure</div><div class="config-desc">Media scan clean</div></div><span class="badge success">None</span></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="peerModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Peer Benchmark</h3><div class="modal-sub">Manufacturing sector peers</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><table class="table"><thead><tr><th>Metric</th><th>Globex</th><th>Peer avg</th><th>Quartile</th></tr></thead><tbody><tr><td>ROE</td><td>18%</td><td>16%</td><td>Top quartile</td></tr><tr><td>EBITDA margin</td><td>22%</td><td>20%</td><td>Top quartile</td></tr><tr><td>Leverage</td><td>1.8x</td><td>2.4x</td><td>2nd quartile</td></tr><tr><td>Current ratio</td><td>1.9x</td><td>1.6x</td><td>2nd quartile</td></tr></tbody></table></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="valuationModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Property Valuation</h3><div class="modal-sub">Independent appraiser report</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid" style="margin-bottom:14px;"><div><div class="kv-label">Property</div><div class="kv-val">Riverside Heights · Westlands</div></div><div><div class="kv-label">Appraiser</div><div class="kv-val">Knight Frank Kenya</div></div><div><div class="kv-label">Market value</div><div class="kv-val">KES 240M</div></div><div><div class="kv-label">Forced sale value</div><div class="kv-val">KES 192M</div></div><div><div class="kv-label">Report date</div><div class="kv-val">02 Feb 2026</div></div><div><div class="kv-label">Method</div><div class="kv-val">Comparable + DCF</div></div></div><div class="alert info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg>Valuation valid for 12 months. Next review due 02 Feb 2027.</div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button class="btn btn-primary" data-modal="exportModal">Download report</button></div></div></div>
+
+  <div class="modal-backdrop" id="titleModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Title Deed Verification</h3><div class="modal-sub">Legal encumbrance check</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid" style="margin-bottom:14px;"><div><div class="kv-label">Title number</div><div class="kv-val">LR. No. 209/1182/3</div></div><div><div class="kv-label">Registered owner</div><div class="kv-val">Skyline Developers Ltd</div></div><div><div class="kv-label">Land use</div><div class="kv-val">Commercial · High rise</div></div><div><div class="kv-label">Area</div><div class="kv-val">0.82 hectares</div></div></div><div class="config-row"><div><div class="config-label">Title authenticity</div><div class="config-desc">Ministry of Lands verified</div></div><span class="badge success">Valid</span></div><div class="config-row"><div><div class="config-label">Encumbrances</div><div class="config-desc">Existing NCBA mortgage (KES 40M)</div></div><span class="badge warning">Second charge</span></div><div class="config-row"><div><div class="config-label">Litigation</div><div class="config-desc">Court search clean</div></div><span class="badge success">None</span></div><div class="config-row"><div><div class="config-label">Rates / land rent</div><div class="config-desc">Paid up to 2026</div></div><span class="badge success">Clear</span></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="envModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Environmental Assessment</h3><div class="modal-sub">EIA / ESIA compliance</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="config-row"><div><div class="config-label">EIA license</div><div class="config-desc">NEMA issued · valid 24 months</div></div><span class="badge success">Valid</span></div><div class="config-row"><div><div class="config-label">Environmental audit</div><div class="config-desc">Annual audit due 2027</div></div><span class="badge success">Current</span></div><div class="config-row"><div><div class="config-label">Hazardous materials</div><div class="config-desc">Standard construction</div></div><span class="badge success">Low risk</span></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="ltvModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">LTV & DSCR Analysis</h3><div class="modal-sub">Construction finance metrics</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid" style="margin-bottom:14px;"><div><div class="kv-label">Facility amount</div><div class="kv-val">KES 120M</div></div><div><div class="kv-label">Property value</div><div class="kv-val">KES 240M</div></div><div><div class="kv-label">Loan-to-Value</div><div class="kv-val" style="color:var(--success);">50%</div></div><div><div class="kv-label">Debt Service Coverage</div><div class="kv-val" style="color:var(--success);">1.9x</div></div></div><div class="alert success" style="margin-top:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>Both LTV and DSCR within policy thresholds.</div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="counterOfferModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Counter-Offer Builder</h3><div class="modal-sub">Adjust terms within risk appetite</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Adjusted amount</label><input class="input" value="KES 360,000"></div><div class="field"><label class="field-label">Adjusted tenor</label><select class="select-field"><option>18 months</option><option>24 months</option><option>36 months</option></select></div><div class="field"><label class="field-label">Interest rate</label><input class="input" value="18.5% p.a."></div><div class="field"><label class="field-label">Processing fee</label><input class="input" value="2.5%"></div><div class="field"><label class="field-label">Collateral requirement</label><select class="select-field"><option>Unsecured</option><option>Post-dated cheques</option><option>Logbook</option><option>Chattel mortgage</option></select></div><div class="field"><label class="field-label">Counter-offer validity</label><select class="select-field"><option>7 days</option><option>14 days</option><option>30 days</option></select></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Counter-offer generated and sent to applicant">Send counter-offer</button></div></div></div>
+
+  <div class="modal-backdrop" id="decisionReviewModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Decision Review</h3><div class="modal-sub">Pre-submission checklist</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><label class="choice-row selected"><input type="checkbox" checked><div><div class="choice-title">All documents verified</div><div class="choice-desc">4 of 5 verified, 1 pending</div></div></label><label class="choice-row selected"><input type="checkbox" checked><div><div class="choice-title">Income verified via 3 sources</div><div class="choice-desc">Payslip + OB + Employer</div></div></label><label class="choice-row selected"><input type="checkbox" checked><div><div class="choice-title">Credit bureau check complete</div><div class="choice-desc">Score 742 · No defaults</div></div></label><label class="choice-row"><input type="checkbox"><div><div class="choice-title">Utility bill verified</div><div class="choice-desc">Pending from applicant</div></div></label><label class="choice-row selected"><input type="checkbox" checked><div><div class="choice-title">Decision rationale documented</div><div class="choice-desc">See memo text</div></div></label></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-modal="submitDecisionModal">Proceed to submit</button></div></div></div>
+
+  <div class="modal-backdrop" id="submitDecisionModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Confirm Decision</h3><div class="modal-sub">This action is final and audited</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="alert warning" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg>Decision will be recorded and cannot be edited without an approval workflow.</div><div class="kv-grid"><div><div class="kv-label">Decision</div><div class="kv-val">Approve with conditions</div></div><div><div class="kv-label">Applicant</div><div class="kv-val">Jane Wanjiru</div></div><div><div class="kv-label">Amount</div><div class="kv-val">KES 480,000</div></div><div><div class="kv-label">Risk grade</div><div class="kv-val">A2 · Near prime</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Decision submitted and recorded">Confirm and submit</button></div></div></div>
+
+  <div class="modal-backdrop" id="memoEditModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Edit Credit Memorandum</h3><div class="modal-sub">CM-2026-00421</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Section</label><select class="select-field"><option>Executive summary</option><option>Borrower profile</option><option>Financial analysis</option><option>Facility structure</option><option>Risk & mitigants</option><option>Recommendation</option></select></div><div class="field"><label class="field-label">Content</label><textarea class="textarea" style="min-height:200px;">Globex Manufacturing has demonstrated consistent revenue growth over the past three fiscal years, with EBITDA margins expanding from 18% to 22%. The proposed USD 2.8M term loan for equipment expansion is well supported by strong DSCR of 2.4x and conservative leverage of 1.8x...</textarea></div><div class="field"><label class="field-label">Recommendation</label><select class="select-field"><option>Approve unconditionally</option><option>Approve with conditions</option><option>Refer for additional information</option><option>Decline</option></select></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Memo updated">Save changes</button></div></div></div>
+
+  <div class="modal-backdrop" id="memoPreviewModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Preview Credit Memorandum</h3><div class="modal-sub mono">CM-2026-00421.pdf</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="invoice-paper"><div class="invoice-head"><div><div style="font-weight:700;font-size:18px;">PayMo Lending</div><div class="list-sub">Credit Division</div></div><div style="text-align:right;"><div style="font-weight:700;">CREDIT MEMORANDUM</div><div class="list-sub mono">CM-2026-00421</div></div></div><div class="kv-grid" style="margin-bottom:12px;"><div><div class="kv-label">Borrower</div><div class="kv-val">Globex Manufacturing Ltd</div></div><div><div class="kv-label">Facility</div><div class="kv-val">Term loan · USD 2.8M · 60 months</div></div></div><div style="font-size:13px;line-height:1.7;margin-bottom:12px;"><strong>Recommendation: Approve with conditions</strong><br>Globex demonstrates strong fundamentals and the facility is well supported by audited financials. Subject to equipment chattel mortgage and quarterly covenant compliance.</div><div style="font-size:13px;line-height:1.7;"><strong>Key conditions:</strong><br>- Register chattel mortgage on equipment<br>- Maintain DSCR above 1.5x quarterly<br>- Provide audited accounts within 90 days of FYE</div></div></div><div class="modal-footer"><button class="btn btn-light" data-result="Memo downloaded">Download PDF</button><button class="btn btn-primary" data-modal="submitToCommitteeModal">Submit to committee</button></div></div></div>
+
+  <div class="modal-backdrop" id="submitToCommitteeModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Submit to Credit Committee</h3><div class="modal-sub">Escalate memo for vote</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Committee</label><select class="select-field"><option>Standard Credit Committee</option><option>High-Value Committee</option><option>Real Estate Committee</option></select></div><div class="field"><label class="field-label">Meeting date</label><input class="input" type="date" value="2026-02-20"></div><div class="field"><label class="field-label">Presenting underwriter</label><select class="select-field"><option>Sarah Karanja · L2</option><option>John Mwangi · L3</option></select></div><div class="field"><label class="field-label">Attachments</label><div class="tag-input"><span class="tag-chip">Financials<button>×</button></span><span class="tag-chip">Memo<button>×</button></span><span class="tag-chip">Valuation<button>×</button></span></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Memo submitted to committee">Submit</button></div></div></div>
+
+  <div class="modal-backdrop" id="approvalWorkflowModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Digital Approval Workflow</h3><div class="modal-sub">Configurable approval matrix</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Authority matrix (click to edit)</label></div><table class="matrix-table"><thead><tr><th></th><th>Up to $500K</th><th>$500K-$2M</th><th>$2M-$5M</th><th>Above $5M</th></tr></thead><tbody><tr><th>L2 Underwriter</th><td class="matrix-cell green" contenteditable="true">Approve</td><td class="matrix-cell amber">Recommend</td><td class="matrix-cell grey">-</td><td class="matrix-cell grey">-</td></tr><tr><th>L3 Manager</th><td class="matrix-cell green" contenteditable="true">Approve</td><td class="matrix-cell green">Approve</td><td class="matrix-cell amber">Recommend</td><td class="matrix-cell grey">-</td></tr><tr><th>Credit Committee</th><td class="matrix-cell grey">-</td><td class="matrix-cell green">Approve</td><td class="matrix-cell green">Approve</td><td class="matrix-cell amber">Board</td></tr></tbody></table><div class="alert info" style="margin-top:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg>Current application (USD 2.8M) requires Committee approval.</div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button class="btn btn-primary" data-result="Matrix updated">Save matrix</button></div></div></div>
+
+  <div class="modal-backdrop" id="minutesModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Meeting Minutes</h3><div class="modal-sub">Credit Committee · 18 Feb 2026</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Discussion notes</label><textarea class="textarea" style="min-height:100px;">Committee discussed the facility structure and agreed the DSCR of 2.4x provides adequate headroom. Two members raised questions on customer concentration (38% single buyer) — mitigant: long-term contract in place.</textarea></div><div class="field"><label class="field-label">Vote</label><div class="decision-bar" style="margin-top:6px;"><button class="verdict approve" onclick="setVerdict(this,'approve')">Approve (3)</button><button class="verdict counter" onclick="setVerdict(this,'counter')">Conditional (2)</button></div></div><div class="field"><label class="field-label">Final decision</label><select class="select-field"><option>Approve with conditions</option><option>Approve unconditionally</option><option>Request more info</option><option>Decline</option></select></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Minutes saved">Save minutes</button></div></div></div>
+
+  <div class="modal-backdrop" id="appealModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Appeal Process</h3><div class="modal-sub">Challenge a decision</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Application</label><select class="select-field"><option>APP-2026-01840 · Globex Manufacturing</option><option>APP-2026-01831 · Riverside Heights</option></select></div><div class="field"><label class="field-label">Original decision</label><select class="select-field"><option>Decline</option><option>Approve with conditions</option><option>Approve unconditionally</option></select></div><div class="field"><label class="field-label">Requested outcome</label><select class="select-field"><option>Reconsider and approve</option><option>Reduce conditions</option><option>Adjust terms</option></select></div><div class="field"><label class="field-label">Grounds for appeal</label><textarea class="textarea" placeholder="Describe why you believe the decision should be revised..."></textarea></div><div class="field"><label class="field-label">Escalate to</label><select class="select-field"><option>CRO</option><option>Credit Committee Chair</option><option>Independent reviewer</option></select></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Appeal filed">File appeal</button></div></div></div>
+
+  <div class="modal-backdrop" id="decisionRecordModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Decision Record</h3><div class="modal-sub">Audit trail of all decisions</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="timeline"><div class="tl-item"><div class="tl-time">Today · 10:42</div><div class="tl-text">Committee approved · 3/5 members approved</div></div><div class="tl-item"><div class="tl-time">Yesterday · 16:30</div><div class="tl-text">CRO review · recommended to committee</div></div><div class="tl-item"><div class="tl-time">2 days ago · 11:20</div><div class="tl-text">Underwriter L2 prepared memo · recommended approve</div></div><div class="tl-item"><div class="tl-time">5 days ago · 09:14</div><div class="tl-text">Application submitted via treasury portal</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button class="btn btn-primary" data-modal="exportModal">Export audit</button></div></div></div>
+
+  <div class="modal-backdrop" id="matrixModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Approval Authority Matrix</h3><div class="modal-sub">Configurable by amount, product, risk grade</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Filter by product</label><select class="select-field"><option>All products</option><option>Retail</option><option>SME</option><option>Corporate</option><option>Real Estate</option></select></div><table class="matrix-table"><thead><tr><th>Role</th><th>Retail</th><th>SME</th><th>Corporate</th><th>Real Estate</th></tr></thead><tbody><tr><th>L1 Underwriter</th><td class="matrix-cell green" contenteditable="true">&lt;$50K</td><td class="matrix-cell grey">-</td><td class="matrix-cell grey">-</td><td class="matrix-cell grey">-</td></tr><tr><th>L2 Underwriter</th><td class="matrix-cell green" contenteditable="true">&lt;$200K</td><td class="matrix-cell green" contenteditable="true">&lt;$500K</td><td class="matrix-cell grey">-</td><td class="matrix-cell grey">-</td></tr><tr><th>L3 Manager</th><td class="matrix-cell green" contenteditable="true">&lt;$500K</td><td class="matrix-cell green" contenteditable="true">&lt;$2M</td><td class="matrix-cell amber">&lt;$2M</td><td class="matrix-cell amber">&lt;$5M</td></tr><tr><th>Committee</th><td class="matrix-cell green">All</td><td class="matrix-cell green">All</td><td class="matrix-cell green">All</td><td class="matrix-cell green">All</td></tr></tbody></table></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button class="btn btn-primary" data-result="Matrix saved">Save matrix</button></div></div></div>
+
+  <div class="modal-backdrop" id="permissionModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Your Permissions</h3><div class="modal-sub">Underwriter L1 · Credit Division</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="config-row"><div><div class="config-label">View applications</div><div class="config-desc">All segments</div></div><span class="badge success">Yes</span></div><div class="config-row"><div><div class="config-label">Underwrite retail</div><div class="config-desc">Up to KES 500K</div></div><span class="badge success">Yes</span></div><div class="config-row"><div><div class="config-label">Underwrite SME</div><div class="config-desc">Up to KES 2M</div></div><span class="badge warning">Restricted</span></div><div class="config-row"><div><div class="config-label">Underwrite corporate</div><div class="config-desc">Read-only</div></div><span class="badge gray">No</span></div><div class="config-row"><div><div class="config-label">Submit to committee</div><div class="config-desc">Prepare memo</div></div><span class="badge success">Yes</span></div><div class="config-row"><div><div class="config-label">Edit risk grades</div><div class="config-desc">Override scoring</div></div><span class="badge warning">Requires approval</span></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button class="btn btn-primary" data-modal="requestAccessModal">Request access</button></div></div></div>
+
+  <div class="modal-backdrop" id="requestAccessModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Request Permission</h3><div class="modal-sub">Submit to your manager</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Permission</label><select class="select-field"><option>Underwrite SME up to KES 5M</option><option>Underwrite corporate</option><option>Edit risk grades</option><option>Approve committee submissions</option></select></div><div class="field"><label class="field-label">Business justification</label><textarea class="textarea" placeholder="Explain why this access is needed..."></textarea></div><div class="field"><label class="field-label">Duration</label><select class="select-field"><option>Permanent</option><option>30 days</option><option>90 days</option><option>One-time</option></select></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Access request submitted to manager">Submit request</button></div></div></div>
+
+  <div class="modal-backdrop" id="queueModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Underwriting Queue</h3><div class="modal-sub">148 pending reviews</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><table class="table"><thead><tr><th>Application</th><th>Segment</th><th>Amount</th><th>Score</th><th>SLA</th><th></th></tr></thead><tbody><tr data-modal="underwriteWizardModal"><td class="mono">APP-01847</td><td>Retail</td><td>KES 480K</td><td><span class="badge success">A2</span></td><td><span class="badge warning">3h</span></td><td class="right"><button class="btn btn-light btn-sm">Underwrite</button></td></tr><tr data-modal="underwriteWizardModal"><td class="mono">APP-01852</td><td>SME</td><td>KES 4.2M</td><td><span class="badge warning">B</span></td><td><span class="badge warning">6h</span></td><td class="right"><button class="btn btn-light btn-sm">Underwrite</button></td></tr><tr data-modal="underwriteWizardModal"><td class="mono">APP-01840</td><td>Corporate</td><td>USD 2.8M</td><td><span class="badge primary">BBB+</span></td><td><span class="badge info">2d</span></td><td class="right"><button class="btn btn-light btn-sm">Underwrite</button></td></tr></tbody></table></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button class="btn btn-primary" data-modal="assignModal">Bulk assign</button></div></div></div>
+
+  <div class="modal-backdrop" id="decisionModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Decisions Today</h3><div class="modal-sub">87 decisions across all segments</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="dist-row"><div class="dist-label">Approved</div><div class="dist-bar"><span style="width:62%;background:var(--success);"></span></div><div class="dist-val">54</div></div><div class="dist-row"><div class="dist-label">Counter-offer</div><div class="dist-bar"><span style="width:22%;background:var(--warning);"></span></div><div class="dist-val">19</div></div><div class="dist-row"><div class="dist-label">Declined</div><div class="dist-bar"><span style="width:12%;background:var(--danger);"></span></div><div class="dist-val">10</div></div><div class="dist-row"><div class="dist-label">Referred</div><div class="dist-bar"><span style="width:4%;background:var(--info);"></span></div><div class="dist-val">4</div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="counterModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Counter-Offers</h3><div class="modal-sub">24 active · 78% acceptance rate</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><table class="table"><thead><tr><th>Application</th><th>Original</th><th>Counter</th><th>Status</th></tr></thead><tbody><tr><td class="mono">APP-01847</td><td>KES 480K</td><td>KES 360K · 18.5%</td><td><span class="badge success">Accepted</span></td></tr><tr><td class="mono">APP-01845</td><td>KES 1.2M</td><td>KES 900K · 16.5%</td><td><span class="badge warning">Pending</span></td></tr></tbody></table></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="autoDecisionModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Auto-Decisioned</h3><div class="modal-sub">64% of volume auto-processed</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="config-row"><div><div class="config-label">Auto-approve threshold</div><div class="config-desc">A1-A2 · &lt;$500K retail</div></div><span class="badge success">42%</span></div><div class="config-row"><div><div class="config-label">Auto-decline threshold</div><div class="config-desc">D grade · policy breach</div></div><span class="badge danger">18%</span></div><div class="config-row"><div><div class="config-label">Manual review</div><div class="config-desc">B-C grade · $500K-$5M</div></div><span class="badge info">36%</span></div><div class="field" style="margin-top:14px;"><label class="field-label">Auto-approve score threshold</label><select class="select-field"><option>Score &gt; 720</option><option>Score &gt; 680</option><option>Score &gt; 650</option></select></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button class="btn btn-primary" data-result="Auto-decision rules saved">Update rules</button></div></div></div>
+
+  <div class="modal-backdrop" id="turnaroundModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Turnaround Times</h3><div class="modal-sub">Average time per segment</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="dist-row"><div class="dist-label">Retail</div><div class="dist-bar"><span style="width:25%;background:var(--success);"></span></div><div class="dist-val">45 min</div></div><div class="dist-row"><div class="dist-label">SME</div><div class="dist-bar"><span style="width:55%;background:var(--info);"></span></div><div class="dist-val">1.8 h</div></div><div class="dist-row"><div class="dist-label">Corporate</div><div class="dist-bar"><span style="width:85%;background:var(--warning);"></span></div><div class="dist-val">3.2 d</div></div><div class="dist-row"><div class="dist-label">Real Estate</div><div class="dist-bar"><span style="width:95%;background:var(--warning);"></span></div><div class="dist-val">4.8 d</div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="assignModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Assign Underwriter</h3><div class="modal-sub">Reassign application to team member</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Underwriter</label><select class="select-field"><option>Sarah Karanja · L2 · 8 open</option><option>John Mwangi · L3 · 6 open</option><option>Anita Lopez · L2 · 5 open</option><option>David Ruto · L1 · 3 open</option></select></div><div class="field"><label class="field-label">SLA</label><select class="select-field"><option>Standard (24h)</option><option>Priority (4h)</option><option>Urgent (1h)</option></select></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Application reassigned">Assign</button></div></div></div>
+
+  <div class="modal-backdrop" id="escalateModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Escalate Application</h3><div class="modal-sub">Escalate to senior underwriter or committee</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Escalate to</label><select class="select-field"><option>L3 Manager</option><option>Credit Risk Lead</option><option>Committee</option></select></div><div class="field"><label class="field-label">Reason</label><textarea class="textarea" placeholder="Describe why this needs escalation..."></textarea></div><div class="field"><label class="field-label">Priority</label><select class="select-field"><option>Normal</option><option>High</option><option>Critical</option></select></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Application escalated">Escalate</button></div></div></div>
+
+  <div class="modal-backdrop" id="filterModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Filters</h3><div class="modal-sub">Refine underwriting queue</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Segment</label><select class="select-field"><option>All segments</option><option>Retail</option><option>SME</option><option>Corporate</option><option>Real Estate</option></select></div><div class="field"><label class="field-label">Risk grade</label><select class="select-field"><option>All grades</option><option>A1-A2 (Prime)</option><option>B (Standard)</option><option>C-D (Subprime)</option></select></div><div class="field"><label class="field-label">SLA status</label><select class="select-field"><option>All</option><option>At risk</option><option>Breached</option></select></div></div><div class="modal-footer"><button class="btn btn-ghost" data-result="Filters reset">Reset</button><div style="display:flex;gap:8px;"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Filters applied">Apply</button></div></div></div></div>
+
+  <div class="modal-backdrop" id="exportModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Export Report</h3><div class="modal-sub">Underwriting data</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Report type</label><select class="select-field"><option>Underwriting decisions</option><option>Queue summary</option><option>SLA performance</option><option>Credit memo</option><option>Committee minutes</option></select></div><div class="field"><label class="field-label">Format</label><select class="select-field"><option>PDF</option><option>CSV</option><option>XLSX</option></select></div><div class="field"><label class="field-label">Period</label><select class="select-field"><option>Today</option><option>This week</option><option>This month</option><option>Custom</option></select></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Report queued for download">Generate</button></div></div></div>
+
+  <div class="modal-backdrop" id="notificationsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Notifications</h3><div class="modal-sub">Underwriting activity</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body" style="padding:0;"><div class="list-item"><div class="list-left"><div class="list-icon" style="background:var(--success-soft);color:var(--success);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg></div><div><div class="list-title">Committee approved APP-01840</div><div class="list-sub">Globex Manufacturing · USD 2.8M</div></div></div><button class="btn btn-light btn-sm" data-modal="minutesModal">View</button></div><div class="list-item"><div class="list-left"><div class="list-icon" style="background:var(--warning-soft);color:var(--warning);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg></div><div><div class="list-title">38 applications SLA at risk</div><div class="list-sub">Requires immediate attention</div></div></div><button class="btn btn-light btn-sm" data-modal="queueModal">Review</button></div><div class="list-item"><div class="list-left"><div class="list-icon" style="background:var(--primary-soft);color:var(--primary);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg></div><div><div class="list-title">Counter-offer accepted</div><div class="list-sub">APP-01847 · KES 360K</div></div></div><button class="btn btn-light btn-sm" data-modal="counterModal">View</button></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-result="Notifications marked as read">Mark read</button><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="resultModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Action Complete</h3><div class="modal-sub">PayMo operation completed</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="alert success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg><span id="resultMessage">Action completed.</span></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Done</button></div></div></div>
+
+  <div class="modal-backdrop" id="navCommandModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Command Center</h3><div class="modal-sub">Lending portfolio overview</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">Gross book</div><div class="kv-val">$184M</div></div><div><div class="kv-label">PAR 30</div><div class="kv-val">4.8%</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+  <div class="modal-backdrop" id="navProductsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Loan Products</h3><div class="modal-sub">Product catalog</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">Active products</div><div class="kv-val">24</div></div><div><div class="kv-label">Beta products</div><div class="kv-val">4</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+  <div class="modal-backdrop" id="navAppsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Applications</h3><div class="modal-sub">Intake & pre-screening</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">In queue</div><div class="kv-val">148</div></div><div><div class="kv-label">Decided today</div><div class="kv-val">87</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+  <div class="modal-backdrop" id="navDisbModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Disbursement</h3><div class="modal-sub">Loan disbursement</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">Today</div><div class="kv-val">$2.4M</div></div><div><div class="kv-label">MTD</div><div class="kv-val">$48M</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+  <div class="modal-backdrop" id="navServicingModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Servicing</h3><div class="modal-sub">Loan servicing & repayments</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">Active loans</div><div class="kv-val">42,180</div></div><div><div class="kv-label">Collection rate</div><div class="kv-val">96.4%</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+  <div class="modal-backdrop" id="navCollectionsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Collections</h3><div class="modal-sub">Recovery operations</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">PAR 90</div><div class="kv-val">2.1%</div></div><div><div class="kv-label">NPL ratio</div><div class="kv-val">3.4%</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+  <div class="modal-backdrop" id="navRiskModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Risk</h3><div class="modal-sub">Portfolio risk management</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">Cost of risk</div><div class="kv-val">1.8%</div></div><div><div class="kv-label">Provisions</div><div class="kv-val">$6.8M</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+  <div class="modal-backdrop" id="navAnalyticsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Analytics</h3><div class="modal-sub">Lending analytics</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">NIM</div><div class="kv-val">8.4%</div></div><div><div class="kv-label">ROA</div><div class="kv-val">2.2%</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <script>
+    const sidebar = document.getElementById('sidebar');
+    document.getElementById('sidebarToggle').addEventListener('click', () => sidebar.classList.toggle('expanded'));
+    document.getElementById('mobileMenuBtn').addEventListener('click', () => sidebar.classList.toggle('mobile-open'));
+
+    function openModal(id) { const m = document.getElementById(id); if (m) m.classList.add('show'); }
+    function closeAll() { document.querySelectorAll('.modal-backdrop.show').forEach(m => m.classList.remove('show')); }
+    document.addEventListener('click', e => {
+      if (e.target.closest('.toggle') || e.target.closest('.verdict') || e.target.closest('.uw-editable')) { return; }
+      const close = e.target.closest('[data-close]');
+      if (close) { e.preventDefault(); e.stopPropagation(); closeAll(); return; }
+      const result = e.target.closest('[data-result]');
+      if (result) { e.preventDefault(); e.stopPropagation(); setResult(result.dataset.result); return; }
+      const opener = e.target.closest('[data-modal]');
+      if (opener) { e.preventDefault(); e.stopPropagation(); openModal(opener.dataset.modal); }
+    });
+    document.querySelectorAll('.modal-backdrop').forEach(b => b.addEventListener('click', e => { if (e.target === b) closeAll(); }));
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAll(); });
+
+    function setResult(message) {
+      closeAll();
+      document.getElementById('resultMessage').textContent = message;
+      openModal('resultModal');
+    }
+
+    function switchTab(name) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.dataset.panel === name));
+    }
+    document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => switchTab(tab.dataset.tab)));
+
+    window.setVerdict = function(el, type) {
+      el.closest('.decision-bar').querySelectorAll('.verdict').forEach(v => { v.classList.remove('selected','approve','decline','counter','refer'); });
+      el.classList.add('selected');
+    };
+
+    document.querySelectorAll('.choice-row').forEach(row => {
+      row.addEventListener('click', () => {
+        const radio = row.querySelector('input[type="radio"]');
+        if (radio) {
+          document.querySelectorAll(`input[name="${radio.name}"]`).forEach(i => i.closest('.choice-row')?.classList.remove('selected'));
+          radio.checked = true;
+          row.classList.add('selected');
+        }
+        const checkbox = row.querySelector('input[type="checkbox"]');
+        if (checkbox && !radio) row.classList.toggle('selected', checkbox.checked);
+      });
+    });
+
+    function setupStepper(rootId, stepperId, backId, nextId, total, doneMessage) {
+      const root = document.getElementById(rootId);
+      if (!root) return;
+      let current = 1;
+      const render = () => {
+        document.querySelectorAll(`#${stepperId} .step`).forEach((s, i) => { s.classList.toggle('active', i + 1 === current); s.classList.toggle('done', i + 1 < current); });
+        root.querySelectorAll('.step-panel').forEach(p => p.classList.toggle('active', Number(p.dataset.step) === current));
+        document.getElementById(backId).disabled = current === 1;
+        document.getElementById(nextId).textContent = current === total ? 'Submit' : 'Next';
+      };
+      document.getElementById(backId).addEventListener('click', () => { if (current > 1) { current--; render(); } });
+      document.getElementById(nextId).addEventListener('click', () => { if (current < total) { current++; render(); } else { current = 1; render(); setResult(doneMessage); } });
+      render();
+    }
+    setupStepper('underwriteWizardModal', 'uwStepper', 'uwBack', 'uwNext', 4, 'Underwriting review started');
+
+    // Editable inline fields
+    document.querySelectorAll('.uw-editable').forEach(el => {
+      el.addEventListener('blur', () => {});
+    });
+  </script>
+</body>
+</html>
