@@ -1,0 +1,1356 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transfer Management — PayMo BaaS Admin</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="./master.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        /* Admin specific overrides */
+        .admin-editable {
+            border-bottom: 1px dashed var(--border);
+            cursor: text;
+            transition: all 0.2s;
+        }
+
+        .admin-editable:hover {
+            background: var(--surface-2);
+            border-color: var(--primary);
+        }
+
+        .admin-editable:focus {
+            outline: none;
+            background: var(--primary-soft);
+            border-bottom-style: solid;
+        }
+
+        .two-col {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 16px;
+        }
+
+        .three-col {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+        }
+
+        .status-dot.completed {
+            background: var(--success);
+        }
+
+        .status-dot.processing {
+            background: var(--info);
+        }
+
+        .status-dot.failed {
+            background: var(--danger);
+        }
+
+        .status-dot.pending {
+            background: var(--warning);
+        }
+
+        .filter-panel {
+            background: var(--surface);
+            border: 1px solid var(--border-soft);
+            border-radius: var(--radius);
+            padding: 18px;
+            margin-bottom: 22px;
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 14px;
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 32px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 11px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--border-soft);
+        }
+
+        .tl-item {
+            position: relative;
+            padding-bottom: 24px;
+        }
+
+        .tl-icon {
+            position: absolute;
+            left: -32px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--surface);
+            border: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+        }
+
+        .tl-icon.active {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .tl-icon.done {
+            border-color: var(--success);
+            background: var(--success);
+            color: #fff;
+        }
+
+        .tl-content {
+            background: var(--surface-2);
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid var(--border-soft);
+        }
+
+        .tl-time {
+            font-size: 11px;
+            color: var(--text-4);
+            margin-bottom: 4px;
+        }
+
+        .mini-modal {
+            max-width: 400px !important;
+        }
+
+        .loading-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            border-radius: inherit;
+        }
+
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid var(--primary-soft);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .risk-tag {
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .btn-loader {
+            position: relative;
+            color: transparent !important;
+        }
+
+        .btn-loader::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 16px;
+            height: 16px;
+            margin: -8px 0 0 -8px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        /* Internal scroll for table */
+        .table-container {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        @media (max-width: 768px) {
+
+            .two-col,
+            .three-col {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="app">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-logo">P</div>
+            <nav class="sidebar-nav">
+                <button class="sidebar-item" data-modal="navDashModal"><svg viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7" />
+                        <rect x="14" y="3" width="7" height="7" />
+                        <rect x="14" y="14" width="7" height="7" />
+                        <rect x="3" y="14" width="7" height="7" />
+                    </svg><span class="sidebar-label">Dashboard</span></button>
+                <button class="sidebar-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                    </svg><span class="sidebar-label">Transfers</span></button>
+                <button class="sidebar-item" data-modal="navRailsModal"><svg viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                    </svg><span class="sidebar-label">Rails</span></button>
+                <button class="sidebar-item" data-modal="navUsersModal"><svg viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                        <circle cx="9" cy="7" r="4" />
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                    </svg><span class="sidebar-label">Users</span></button>
+                <button class="sidebar-item" data-modal="navSettlementModal"><svg viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="8" x2="12" y2="12" />
+                        <line x1="12" y1="16" x2="12.01" y2="16" />
+                    </svg><span class="sidebar-label">Settlement</span></button>
+                <button class="sidebar-item" data-modal="navReconModal"><svg viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <path d="M20 7h-3a2 2 0 0 1-2-2V2" />
+                        <path d="M9 18a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h7l4 4v12a2 2 0 0 1-2 2H9z" />
+                    </svg><span class="sidebar-label">Reconciliation</span></button>
+            </nav>
+            <button class="sidebar-expand" id="sidebarToggle"><svg width="12" height="12" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="9 18 15 12 9 6" />
+                </svg><span class="sidebar-label">Collapse</span></button>
+        </aside>
+
+        <main class="main">
+            <div class="topbar">
+                <div>
+                    <div class="crumb">
+                        <button class="mobile-menu-btn btn btn-light btn-sm" id="mobileMenuBtn"
+                            style="margin-right:8px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2">
+                                <line x1="3" y1="12" x2="21" y2="12"></line>
+                                <line x1="3" y1="6" x2="21" y2="6"></line>
+                                <line x1="3" y1="18" x2="21" y2="18"></line>
+                            </svg></button>
+                        <span>BaaS Operations</span> <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polyline points="9 18 15 12 9 6" />
+                        </svg> <span>Transfer Management</span>
+                    </div>
+                    <h1 class="page-title">Transfer Lifecycle Management</h1>
+                </div>
+                <div class="topbar-actions">
+                    <button class="btn btn-light" data-modal="bulkOpsModal"><svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                            <polyline points="7 10 12 15 17 10" />
+                            <line x1="12" y1="15" x2="12" y2="3" />
+                        </svg>Bulk Operations</button>
+                    <button class="btn btn-primary" data-modal="newTransferModal"><svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19" />
+                            <line x1="5" y1="12" x2="19" y2="12" />
+                        </svg>Initiate Transfer</button>
+                </div>
+            </div>
+
+            <!-- Stats Row -->
+            <div class="stats-row">
+                <div class="stat-card" data-modal="statProcessingModal">
+                    <div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polyline points="23 4 23 10 17 10" />
+                            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+                        </svg></div>
+                    <div class="stat-label">In Flight</div>
+                    <div class="stat-value">1,402</div>
+                    <div class="stat-trend neutral">Processing on rails</div>
+                </div>
+                <div class="stat-card" data-modal="statExceptionsModal">
+                    <div class="stat-icon red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="12" y1="8" x2="12" y2="12" />
+                            <line x1="12" y1="16" x2="12.01" y2="16" />
+                        </svg></div>
+                    <div class="stat-label">Exceptions</div>
+                    <div class="stat-value">48</div>
+                    <div class="stat-trend down">Requires manual review</div>
+                </div>
+                <div class="stat-card" data-modal="statSuccessModal">
+                    <div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polyline points="20 6 9 17 4 12" />
+                        </svg></div>
+                    <div class="stat-label">Success Rate</div>
+                    <div class="stat-value">99.4%</div>
+                    <div class="stat-trend up">↑ 0.2% vs. baseline</div>
+                </div>
+                <div class="stat-card" data-modal="statReturnsModal">
+                    <div class="stat-icon amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polyline points="9 17 4 12 9 7" />
+                            <path d="M20 18v-2a4 4 0 0 0-4-4H4" />
+                        </svg></div>
+                    <div class="stat-label">Returned</div>
+                    <div class="stat-value">12</div>
+                    <div class="stat-trend neutral">R-code alerts</div>
+                </div>
+                <div class="stat-card" data-modal="statRiskModal">
+                    <div class="stat-icon purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                        </svg></div>
+                    <div class="stat-label">High Risk</div>
+                    <div class="stat-value">7</div>
+                    <div class="stat-trend neutral">Compliance holds</div>
+                </div>
+            </div>
+
+            <!-- Advanced Filter Panel -->
+            <div class="filter-panel">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                    <h3 class="panel-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+                        </svg>Advanced Filters</h3>
+                    <button class="btn btn-ghost btn-sm" id="resetFilters">Reset All</button>
+                </div>
+                <div class="filter-grid">
+                    <div class="field">
+                        <label class="field-label">Search Reference</label>
+                        <div class="search-box">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="8" />
+                                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                            </svg>
+                            <input type="text" placeholder="TXN-XXXX-XXXX">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="field-label">Status</label>
+                        <select class="select">
+                            <option>All Statuses</option>
+                            <option>Processing</option>
+                            <option>Completed</option>
+                            <option>Failed</option>
+                            <option>Returned</option>
+                            <option>Compliance Hold</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label class="field-label">Rail</label>
+                        <select class="select">
+                            <option>All Rails</option>
+                            <option>SWIFT</option>
+                            <option>SEPA Instant</option>
+                            <option>ACH</option>
+                            <option>PesaLink</option>
+                            <option>FedNow</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label class="field-label">Amount Range</label>
+                        <div style="display:flex; gap:8px; align-items:center;">
+                            <input type="text" class="input" placeholder="Min" style="width:50%;">
+                            <span style="color:var(--text-4)">-</span>
+                            <input type="text" class="input" placeholder="Max" style="width:50%;">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="field-label">Risk Tier</label>
+                        <select class="select">
+                            <option>All Risk</option>
+                            <option>Low (0-30)</option>
+                            <option>Medium (31-70)</option>
+                            <option>High (71-100)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Data Table Panel -->
+            <div class="panel">
+                <div class="tabs">
+                    <button class="tab active" data-tab="all">All Transfers</button>
+                    <button class="tab" data-tab="exceptions">Exceptions <span class="tab-badge">48</span></button>
+                    <button class="tab" data-tab="returns">Returns <span class="tab-badge">12</span></button>
+                    <button class="tab" data-tab="holds">Compliance Holds <span class="tab-badge">7</span></button>
+                    <button class="tab" data-tab="bulk">Bulk Uploads</button>
+                </div>
+
+                <div class="panel-body no-pad">
+                    <div class="table-wrap table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th style="width:40px"><input type="checkbox"></th>
+                                    <th>Transfer ID</th>
+                                    <th>Date / Time</th>
+                                    <th>Amount</th>
+                                    <th>Sender</th>
+                                    <th>Receiver</th>
+                                    <th>Rail</th>
+                                    <th>Risk</th>
+                                    <th>Status</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="transferTableBody">
+                                <!-- Rows will be injected by script or pre-filled -->
+                                <tr data-modal="transferDetailModal" class="app-row">
+                                    <td><input type="checkbox"></td>
+                                    <td><span class="mono">TXN-9428-A102</span></td>
+                                    <td>
+                                        <div style="font-size:13px">Feb 14, 2026</div>
+                                        <div class="tl-time">10:42:01 AM</div>
+                                    </td>
+                                    <td style="font-weight:600">$12,500.00 <span class="list-sub">USD</span></td>
+                                    <td>
+                                        <div>Chase Bank</div>
+                                        <div class="tl-time">A/C ending 4402</div>
+                                    </td>
+                                    <td>
+                                        <div>Equity Bank</div>
+                                        <div class="tl-time">A/C ending 0021</div>
+                                    </td>
+                                    <td><span class="pill">SWIFT</span></td>
+                                    <td><span class="risk-tag" style="color:var(--success)">12</span></td>
+                                    <td><span class="badge success"><span
+                                                class="status-dot completed"></span>Completed</span></td>
+                                    <td class="right"><button class="btn btn-ghost btn-icon" title="Quick Actions"><svg
+                                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <circle cx="12" cy="12" r="1" />
+                                                <circle cx="12" cy="5" r="1" />
+                                                <circle cx="12" cy="19" r="1" />
+                                            </svg></button></td>
+                                </tr>
+                                <tr data-modal="transferDetailModal" class="app-row">
+                                    <td><input type="checkbox"></td>
+                                    <td><span class="mono">TXN-9428-A103</span></td>
+                                    <td>
+                                        <div style="font-size:13px">Feb 14, 2026</div>
+                                        <div class="tl-time">11:15:22 AM</div>
+                                    </td>
+                                    <td style="font-weight:600">€2,400.00 <span class="list-sub">EUR</span></td>
+                                    <td>
+                                        <div>HSBC FR</div>
+                                        <div class="tl-time">A/C ending 9112</div>
+                                    </td>
+                                    <td>
+                                        <div>Barclays UK</div>
+                                        <div class="tl-time">A/C ending 5521</div>
+                                    </td>
+                                    <td><span class="pill">SEPA Inst</span></td>
+                                    <td><span class="risk-tag" style="color:var(--warning)">45</span></td>
+                                    <td><span class="badge info"><span
+                                                class="status-dot processing"></span>Processing</span></td>
+                                    <td class="right"><button class="btn btn-ghost btn-icon"><svg viewBox="0 0 24 24"
+                                                fill="none" stroke="currentColor" stroke-width="2">
+                                                <circle cx="12" cy="12" r="1" />
+                                                <circle cx="12" cy="5" r="1" />
+                                                <circle cx="12" cy="19" r="1" />
+                                            </svg></button></td>
+                                </tr>
+                                <tr data-modal="transferDetailModal" class="app-row">
+                                    <td><input type="checkbox"></td>
+                                    <td><span class="mono">TXN-9428-A104</span></td>
+                                    <td>
+                                        <div style="font-size:13px">Feb 14, 2026</div>
+                                        <div class="tl-time">11:30:10 AM</div>
+                                    </td>
+                                    <td style="font-weight:600">KES 850,000 <span class="list-sub">KES</span></td>
+                                    <td>
+                                        <div>KCB Bank</div>
+                                        <div class="tl-time">A/C ending 2210</div>
+                                    </td>
+                                    <td>
+                                        <div>Absa KE</div>
+                                        <div class="tl-time">A/C ending 7734</div>
+                                    </td>
+                                    <td><span class="pill">PesaLink</span></td>
+                                    <td><span class="risk-tag" style="color:var(--danger)">88</span></td>
+                                    <td><span class="badge warning"><span class="status-dot pending"></span>Hold</span>
+                                    </td>
+                                    <td class="right"><button class="btn btn-ghost btn-icon"><svg viewBox="0 0 24 24"
+                                                fill="none" stroke="currentColor" stroke-width="2">
+                                                <circle cx="12" cy="12" r="1" />
+                                                <circle cx="12" cy="5" r="1" />
+                                                <circle cx="12" cy="19" r="1" />
+                                            </svg></button></td>
+                                </tr>
+                                <tr data-modal="transferDetailModal" class="app-row">
+                                    <td><input type="checkbox"></td>
+                                    <td><span class="mono">TXN-9428-A105</span></td>
+                                    <td>
+                                        <div style="font-size:13px">Feb 14, 2026</div>
+                                        <div class="tl-time">11:45:00 AM</div>
+                                    </td>
+                                    <td style="font-weight:600">$4,200.00 <span class="list-sub">USD</span></td>
+                                    <td>
+                                        <div>Wells Fargo</div>
+                                        <div class="tl-time">A/C ending 6601</div>
+                                    </td>
+                                    <td>
+                                        <div>Citi US</div>
+                                        <div class="tl-time">A/C ending 8812</div>
+                                    </td>
+                                    <td><span class="pill">FedNow</span></td>
+                                    <td><span class="risk-tag" style="color:var(--success)">22</span></td>
+                                    <td><span class="badge danger"><span class="status-dot failed"></span>Failed</span>
+                                    </td>
+                                    <td class="right"><button class="btn btn-ghost btn-icon"><svg viewBox="0 0 24 24"
+                                                fill="none" stroke="currentColor" stroke-width="2">
+                                                <circle cx="12" cy="12" r="1" />
+                                                <circle cx="12" cy="5" r="1" />
+                                                <circle cx="12" cy="19" r="1" />
+                                            </svg></button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="panel-footer"
+                        style="padding:14px 22px; display:flex; justify-content:space-between; align-items:center; border-top: 1px solid var(--border-soft)">
+                        <div style="font-size:13px; color:var(--text-3)">Showing 4 of 12,482 transfers</div>
+                        <div style="display:flex; gap:8px">
+                            <button class="btn btn-light btn-sm" disabled>Previous</button>
+                            <button class="btn btn-light btn-sm">Next</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ================= MODALS ================= -->
+
+    <!-- 1. Transfer Detail Drawer (Large) -->
+    <div class="modal-backdrop" id="transferDetailModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Transfer Details <span class="mono"
+                            style="font-size:13px; margin-left:12px; opacity:0.6">TXN-9428-A102</span></h3>
+                    <div class="modal-sub">Initiated Feb 14, 2026 · 10:42 AM</div>
+                </div>
+                <button class="modal-close" data-close>×</button>
+            </div>
+            <div class="tabs" style="padding: 0 24px;">
+                <button class="tab active" data-modal-tab="journey">Journey</button>
+                <button class="tab" data-modal-tab="data">Structured Data</button>
+                <button class="tab" data-modal-tab="risk">Risk & Compliance</button>
+                <button class="tab" data-modal-tab="audit">Audit Log</button>
+            </div>
+            <div class="modal-body">
+                <!-- Journey Tab -->
+                <div class="tab-panel-modal active" id="journeyPanel">
+                    <div class="two-col">
+                        <div class="timeline">
+                            <div class="tl-item">
+                                <div class="tl-icon done"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="3" width="12" height="12">
+                                        <polyline points="20 6 9 17 4 12" />
+                                    </svg></div>
+                                <div class="tl-content">
+                                    <div class="tl-time">10:42:01 AM</div>
+                                    <div style="font-weight:600">Transfer Initiated</div>
+                                    <div class="list-sub">Received via API v2.1 from User U-8812</div>
+                                </div>
+                            </div>
+                            <div class="tl-item">
+                                <div class="tl-icon done"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="3" width="12" height="12">
+                                        <polyline points="20 6 9 17 4 12" />
+                                    </svg></div>
+                                <div class="tl-content">
+                                    <div class="tl-time">10:42:05 AM</div>
+                                    <div style="font-weight:600">Risk Assessment Complete</div>
+                                    <div class="list-sub">Score: 12 (Low) · Auto-approved</div>
+                                </div>
+                            </div>
+                            <div class="tl-item">
+                                <div class="tl-icon done"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="3" width="12" height="12">
+                                        <polyline points="20 6 9 17 4 12" />
+                                    </svg></div>
+                                <div class="tl-content">
+                                    <div class="tl-time">10:42:12 AM</div>
+                                    <div style="font-weight:600">Authorized on SWIFT Rail</div>
+                                    <div class="list-sub">Reference: SWFT-88192-ZZ</div>
+                                </div>
+                            </div>
+                            <div class="tl-item">
+                                <div class="tl-icon active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="3" width="12" height="12">
+                                        <polyline points="23 4 23 10 17 10" />
+                                        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+                                    </svg></div>
+                                <div class="tl-content">
+                                    <div class="tl-time">10:45:00 AM</div>
+                                    <div style="font-weight:600">Settlement in Progress</div>
+                                    <div class="list-sub">Waiting for intermediary bank confirmation</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="panel" style="margin-bottom:14px">
+                                <div class="panel-header">
+                                    <h4 class="panel-title" style="font-size:12px">Financial Summary</h4>
+                                </div>
+                                <div class="panel-body">
+                                    <div class="kv-grid">
+                                        <div>
+                                            <div class="kv-label">Principal</div>
+                                            <div class="kv-val">$12,500.00</div>
+                                        </div>
+                                        <div>
+                                            <div class="kv-label">Exchange Rate</div>
+                                            <div class="kv-val">1.00 USD/USD</div>
+                                        </div>
+                                        <div>
+                                            <div class="kv-label">Rail Fee</div>
+                                            <div class="kv-val">$15.00</div>
+                                        </div>
+                                        <div>
+                                            <div class="kv-label">PayMo Margin</div>
+                                            <div class="kv-val">$2.50</div>
+                                        </div>
+                                        <div
+                                            style="grid-column: span 2; border-top: 1px solid var(--border-soft); padding-top: 8px; margin-top: 4px">
+                                            <div class="kv-label">Total Deducted</div>
+                                            <div class="kv-val" style="font-size:16px">$12,517.50</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="alert info">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10" />
+                                    <line x1="12" y1="16" x2="12" y2="12" />
+                                    <line x1="12" y1="8" x2="12.01" y2="8" />
+                                </svg>
+                                <span>Intermediary bank: JPMorgan Chase, NY (Routing: 021000021)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-panel-modal" id="dataPanel" style="display:none">
+                    <div class="field"><label class="field-label">ISO 20022 Raw Message</label>
+                        <pre class="mono"
+                            style="background:var(--surface-2); padding:10px; border-radius:8px; font-size:11px; max-height:200px; overflow:auto;">
+&lt;Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.03"&gt;
+  &lt;CstmrCdtTrfInitn&gt;
+    &lt;GrpHdr&gt;
+      &lt;MsgId&gt;TXN-9428-A102&lt;/MsgId&gt;
+      &lt;CreDtTm&gt;2026-02-14T10:42:01&lt;/CreDtTm&gt;
+      &lt;NbOfTxs&gt;1&lt;/NbOfTxs&gt;
+    &lt;/GrpHdr&gt;
+    &lt;PmtInf&gt;
+      &lt;PmtInfId&gt;PI-88192&lt;/PmtInfId&gt;
+      &lt;PmtMtd&gt;TRF&lt;/PmtMtd&gt;
+    &lt;/PmtInf&gt;
+  &lt;/CstmrCdtTrfInitn&gt;
+&lt;/Document&gt;
+        </pre>
+                    </div>
+                </div>
+                <div class="tab-panel-modal" id="riskPanel" style="display:none">
+                    <div class="config-row">
+                        <div>
+                            <div class="config-label">AML Screening</div>
+                            <div class="config-desc">No hits on World-Check</div>
+                        </div><span class="badge success">Passed</span>
+                    </div>
+                    <div class="config-row">
+                        <div>
+                            <div class="config-label">Sanctions Check</div>
+                            <div class="config-desc">OFAC/EU list cleared</div>
+                        </div><span class="badge success">Passed</span>
+                    </div>
+                    <div class="config-row">
+                        <div>
+                            <div class="config-label">Velocity Check</div>
+                            <div class="config-desc">Within user daily limit ($50k)</div>
+                        </div><span class="badge success">Passed</span>
+                    </div>
+                </div>
+                <div class="tab-panel-modal" id="auditPanel" style="display:none">
+                    <div class="list-item">
+                        <div class="list-title">System: Initiated via API</div>
+                        <div class="list-sub">Feb 14, 10:42 AM</div>
+                    </div>
+                    <div class="list-item">
+                        <div class="list-title">System: Auto-approved risk</div>
+                        <div class="list-sub">Feb 14, 10:42 AM</div>
+                    </div>
+                    <div class="list-item">
+                        <div class="list-title">Admin (skaranja): Manual prioritized</div>
+                        <div class="list-sub">Feb 14, 10:45 AM</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div style="display:flex; gap:8px">
+                    <button class="btn btn-light" data-modal="cloneTransferModal">Clone</button>
+                    <button class="btn btn-light" data-result="Receipt downloaded">Receipt</button>
+                </div>
+                <div style="display:flex; gap:8px">
+                    <button class="btn btn-ghost" data-close>Close</button>
+                    <button class="btn btn-danger" data-modal="cancelConfirmModal">Cancel Transfer</button>
+                    <button class="btn btn-primary" data-result="Transfer prioritized">Prioritize</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. New Transfer Wizard (Multi-step) -->
+    <div class="modal-backdrop" id="newTransferModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Initiate New Transfer</h3>
+                    <div class="modal-sub">Manual override initiation</div>
+                </div>
+                <button class="modal-close" data-close>×</button>
+            </div>
+            <div class="stepper" id="transferStepper">
+                <div class="step active">
+                    <div class="step-num">1</div>Accounts
+                </div>
+                <div class="step-line"></div>
+                <div class="step">
+                    <div class="step-num">2</div>Amount
+                </div>
+                <div class="step-line"></div>
+                <div class="step">
+                    <div class="step-num">3</div>Review
+                </div>
+                <div class="step-line"></div>
+                <div class="step">
+                    <div class="step-num">4</div>Secure
+                </div>
+            </div>
+            <div class="modal-body" style="position:relative">
+                <div class="step-panel active" data-step="1">
+                    <div class="field"><label class="field-label">Sender Account</label><select class="select-field">
+                            <option>Nostro - Chase USD (Available: $4.2M)</option>
+                            <option>Nostro - Equity KES (Available: KES 85M)</option>
+                        </select></div>
+                    <div class="field"><label class="field-label">Beneficiary Account</label><input type="text"
+                            class="input" placeholder="Enter IBAN or Account Number"></div>
+                    <div class="field"><label class="field-label">Payment Rail</label>
+                        <div class="three-col" style="grid-template-columns: repeat(2,1fr)">
+                            <label class="choice-row selected"><input type="radio" name="rail" checked>
+                                <div>
+                                    <div class="choice-title">SWIFT</div>
+                                    <div class="choice-desc">T+1 Settlement</div>
+                                </div>
+                            </label>
+                            <label class="choice-row"><input type="radio" name="rail">
+                                <div>
+                                    <div class="choice-title">Instant</div>
+                                    <div class="choice-desc">Real-time (If available)</div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="step-panel" data-step="2">
+                    <div class="field-row">
+                        <div class="field"><label class="field-label">Currency</label><select class="select-field">
+                                <option>USD</option>
+                                <option>EUR</option>
+                                <option>KES</option>
+                            </select></div>
+                        <div class="field"><label class="field-label">Amount</label><input type="text" class="input"
+                                placeholder="0.00"></div>
+                    </div>
+                    <div class="field"><label class="field-label">Reference</label><input type="text" class="input"
+                            placeholder="Invoice Ref / Message"></div>
+                    <div class="field"><label class="field-label">Fee Handling</label><select class="select-field">
+                            <option>OUR (Sender pays all)</option>
+                            <option>SHA (Split)</option>
+                            <option>BEN (Beneficiary pays)</option>
+                        </select></div>
+                </div>
+                <div class="step-panel" data-step="3">
+                    <div class="kv-grid">
+                        <div>
+                            <div class="kv-label">From</div>
+                            <div class="kv-val">Chase Nostro (USD)</div>
+                        </div>
+                        <div>
+                            <div class="kv-label">To</div>
+                            <div class="kv-val">Equity Bank KE</div>
+                        </div>
+                        <div>
+                            <div class="kv-label">Amount</div>
+                            <div class="kv-val">$15,000.00</div>
+                        </div>
+                        <div>
+                            <div class="kv-label">Rail</div>
+                            <div class="kv-val">SWIFT</div>
+                        </div>
+                    </div>
+                    <div class="alert info" style="margin-top:14px">Estimated arrival: Feb 15, 2026</div>
+                </div>
+                <div class="step-panel" data-step="4">
+                    <div style="text-align:center">
+                        <div style="margin-bottom:14px; font-weight:600">Enter Admin Passkey</div>
+                        <div style="display:flex; gap:10px; justify-content:center">
+                            <input type="password" class="input" style="width:40px; text-align:center" maxlength="1">
+                            <input type="password" class="input" style="width:40px; text-align:center" maxlength="1">
+                            <input type="password" class="input" style="width:40px; text-align:center" maxlength="1">
+                            <input type="password" class="input" style="width:40px; text-align:center" maxlength="1">
+                        </div>
+                        <div class="list-sub" style="margin-top:14px">Verification required for transfers > $10k</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-light" id="wizardBack" disabled>Back</button>
+                <button class="btn btn-primary" id="wizardNext">Next Step</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Bulk Operations Modal -->
+    <div class="modal-backdrop" id="bulkOpsModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Bulk Transfer Center</h3>
+                    <div class="modal-sub">Process ISO 20022 and CSV batches</div>
+                </div>
+                <button class="modal-close" data-close>×</button>
+            </div>
+            <div class="tabs" style="padding: 0 24px;">
+                <button class="tab active" data-modal-tab="upload">Upload Batch</button>
+                <button class="tab" data-modal-tab="history">Upload History</button>
+                <button class="tab" data-modal-tab="templates">Templates</button>
+            </div>
+            <div class="modal-body">
+                <div class="tab-panel-modal active" id="uploadPanel">
+                    <div
+                        style="border: 2px dashed var(--border); padding: 40px; border-radius: 12px; text-align:center; background: var(--surface-2)">
+                        <svg width="40" height="40" style="margin: 0 auto 12px; color: var(--text-4)"
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                            <polyline points="17 8 12 3 7 8" />
+                            <line x1="12" y1="3" x2="12" y2="15" />
+                        </svg>
+                        <div style="font-weight:600">Drop your transfer file here</div>
+                        <div class="list-sub">Supports .csv, .xml (ISO 20022), .json</div>
+                        <button class="btn btn-primary btn-sm" style="margin-top:14px">Browse Files</button>
+                    </div>
+                </div>
+                <div class="tab-panel-modal" id="historyPanel" style="display:none">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Batch ID</th>
+                                <th>Date</th>
+                                <th>Size</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>B-9912</td>
+                                <td>Today</td>
+                                <td>142 items</td>
+                                <td><span class="badge success">Success</span></td>
+                            </tr>
+                            <tr>
+                                <td>B-9910</td>
+                                <td>Yesterday</td>
+                                <td>2,401 items</td>
+                                <td><span class="badge danger">Errors</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="tab-panel-modal" id="templatesPanel" style="display:none">
+                    <div class="list-item">
+                        <div class="list-title">ISO 20022 pain.001.001.03 (XML)</div><button
+                            class="btn btn-light btn-sm">Download</button>
+                    </div>
+                    <div class="list-item">
+                        <div class="list-title">Standard Bulk CSV Template</div><button
+                            class="btn btn-light btn-sm">Download</button>
+                    </div>
+                    <div class="list-item">
+                        <div class="list-title">MT103 Mapping Guide (PDF)</div><button
+                            class="btn btn-light btn-sm">Download</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end">
+                <button class="btn btn-ghost" data-close>Close</button>
+                <button class="btn btn-primary" id="validateBatchBtn"
+                    data-result="Batch validated. 142 items found.">Validate Batch</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. Nav Dashboard Modal (Example of Nav Popups) -->
+    <div class="modal-backdrop" id="navDashModal">
+        <div class="modal mini-modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Navigation</h3>
+                </div><button class="modal-close" data-close>×</button>
+            </div>
+            <div class="modal-body">
+                <div class="list-item">
+                    <div class="list-title">Go to Main Dashboard</div>
+                </div>
+                <div class="list-item">
+                    <div class="list-title">Liquidity Overview</div>
+                </div>
+                <div class="list-item">
+                    <div class="list-title">Revenue Analytics</div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light btn-sm" data-close>Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5-10. Stat Detail Modals -->
+    <div class="modal-backdrop" id="statProcessingModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Processing Queue</h3>
+                </div><button class="modal-close" data-close>×</button>
+            </div>
+            <div class="modal-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Progress</th>
+                            <th>ETA</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>TXN-101</td>
+                            <td><span class="badge info">Authorization</span></td>
+                            <td>2m</td>
+                        </tr>
+                        <tr>
+                            <td>TXN-102</td>
+                            <td><span class="badge info">Rail Routing</span></td>
+                            <td>5m</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="statExceptionsModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Manual Exceptions Queue</h3>
+                </div><button class="modal-close" data-close>×</button>
+            </div>
+            <div class="modal-body">
+                <div class="alert danger" style="margin-bottom:14px">48 items require underwriter review due to velocity
+                    limits or partial matches.</div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-danger">Bulk Resolve</button><button
+                    class="btn btn-light" data-close>Close</button></div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="statReturnsModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Returned Transfers (R-Codes)</h3>
+                </div><button class="modal-close" data-close>×</button>
+            </div>
+            <div class="modal-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>R-Code</th>
+                            <th>Reason</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>TXN-442</td>
+                            <td>R01</td>
+                            <td>Insufficient Funds</td>
+                            <td><button class="btn btn-light btn-sm">Retry</button></td>
+                        </tr>
+                        <tr>
+                            <td>TXN-445</td>
+                            <td>R03</td>
+                            <td>Account Closed</td>
+                            <td><button class="btn btn-danger btn-sm">Notify User</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="statSuccessModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Transfer Success Analytics</h3>
+                </div><button class="modal-close" data-close>×</button>
+            </div>
+            <div class="modal-body">Success rate is currently 99.4% (+0.2% vs prev week). No major rail downtime.</div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="statRiskModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Compliance Holds</h3>
+                </div><button class="modal-close" data-close>×</button>
+            </div>
+            <div class="modal-body">7 transfers held for AML/Sanctions screening. Review required for 3 items on the
+                "Critical" list.</div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-danger">Sanctions Review</button><button
+                    class="btn btn-light" data-close>Close</button></div>
+        </div>
+    </div>
+
+    <!-- 11. Clone Confirmation -->
+    <div class="modal-backdrop" id="cloneTransferModal">
+        <div class="modal mini-modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Clone Transfer</h3>
+                </div><button class="modal-close" data-close>×</button>
+            </div>
+            <div class="modal-body">Copy all parameters of TXN-9428-A102 to a new draft?</div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-ghost" data-close>Cancel</button><button
+                    class="btn btn-primary" data-result="Draft created from clone">Yes, Clone</button></div>
+        </div>
+    </div>
+
+    <!-- 12. Cancel Confirmation -->
+    <div class="modal-backdrop" id="cancelConfirmModal">
+        <div class="modal mini-modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Cancel Transfer</h3>
+                </div><button class="modal-close" data-close>×</button>
+            </div>
+            <div class="modal-body">Are you sure you want to stop this transfer? If it has reached the rail,
+                cancellation may fail.</div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-ghost" data-close>Keep</button><button
+                    class="btn btn-danger" data-result="Cancellation request broadcast to rails">Confirm Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 13-22. More Navigation & Utility Modals -->
+    <div class="modal-backdrop" id="navRailsModal">
+        <div class="modal mini-modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Rails Management</h3>
+                </div><button class="modal-close" data-close>×</button>
+            </div>
+            <div class="modal-body">Configure SWIFT, FedNow, SEPA gateways.</div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="navUsersModal">
+        <div class="modal mini-modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Users & Identity</h3>
+                </div><button class="modal-close" data-close>×</button>
+            </div>
+            <div class="modal-body">Client profiles and permission groups.</div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="navSettlementModal">
+        <div class="modal mini-modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Settlement Ops</h3>
+                </div><button class="modal-close" data-close>×</button>
+            </div>
+            <div class="modal-body">Central bank reporting and net positions.</div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="navReconModal">
+        <div class="modal mini-modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Reconciliation</h3>
+                </div><button class="modal-close" data-close>×</button>
+            </div>
+            <div class="modal-body">Statement matching and ledger entries.</div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="navAnalyticsModal">
+        <div class="modal mini-modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Lending Analytics</h3>
+                </div><button class="modal-close" data-close>×</button>
+            </div>
+            <div class="modal-body">Portfolio yield and risk trends.</div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="retryModal">
+        <div class="modal mini-modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Retry Transfer</h3>
+                </div><button class="modal-close" data-close>×</button>
+            </div>
+            <div class="modal-body">Attempt to re-broadcast TXN-9428-A105 to the FedNow rail?</div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-ghost" data-close>Cancel</button><button
+                    class="btn btn-primary" data-result="Retry attempt sequenced">Confirm Retry</button></div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="investigateModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Investigation Report</h3>
+                </div><button class="modal-close" data-close>×</button>
+            </div>
+            <div class="modal-body">
+                <div class="field"><label class="field-label">Notes</label><textarea class="textarea"
+                        placeholder="Enter findings..."></textarea></div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-primary"
+                    data-result="Investigation report saved">Save Report</button></div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="complianceHoldModal">
+        <div class="modal mini-modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Compliance Action</h3>
+                </div><button class="modal-close" data-close>×</button>
+            </div>
+            <div class="modal-body">Choose action for sanction hit SH-221.</div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-danger"
+                    data-result="Transfer blocked permanently">Block</button><button class="btn btn-success"
+                    data-result="Transfer cleared for settlement">Whitelst</button></div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="exportDetailModal">
+        <div class="modal mini-modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Export Settings</h3>
+                </div><button class="modal-close" data-close>×</button>
+            </div>
+            <div class="modal-body">
+                <div class="field"><label class="field-label">Format</label><select class="select">
+                        <option>CSV</option>
+                        <option>Excel</option>
+                        <option>PDF</option>
+                    </select></div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-primary"
+                    data-result="Export initiated">Download</button></div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="bulkApprovalModal">
+        <div class="modal mini-modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Bulk Approval</h3>
+                </div><button class="modal-close" data-close>×</button>
+            </div>
+            <div class="modal-body">Approve 14 selected transfers?</div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-primary"
+                    data-result="Bulk approval processed">Confirm</button></div>
+        </div>
+    </div>
+
+    <!-- Global Result Modal -->
+    <div class="modal-backdrop" id="resultModal">
+        <div class="modal mini-modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Operation Result</h3>
+                </div><button class="modal-close" data-close>×</button>
+            </div>
+            <div class="modal-body" id="resultMessage" style="font-weight:500; color:var(--success)">Success! Action
+                completed.</div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Done</button></div>
+        </div>
+    </div>
+
+    <script>
+        // Sidebar Logic
+        const sidebar = document.getElementById('sidebar');
+        document.getElementById('sidebarToggle').addEventListener('click', () => sidebar.classList.toggle('expanded'));
+        document.getElementById('mobileMenuBtn').addEventListener('click', () => sidebar.classList.toggle('mobile-open'));
+
+        // Global Modal & Result Logic
+        function openModal(id) {
+            const m = document.getElementById(id);
+            if (m) m.classList.add('show');
+        }
+        function closeAll() {
+            document.querySelectorAll('.modal-backdrop.show').forEach(m => m.classList.remove('show'));
+        }
+        function setResult(msg) {
+            closeAll();
+            const resEl = document.getElementById('resultMessage');
+            resEl.textContent = msg;
+            openModal('resultModal');
+        }
+
+        document.addEventListener('click', e => {
+            const opener = e.target.closest('[data-modal]');
+            if (opener && !e.target.closest('.btn-loader')) {
+                e.preventDefault();
+                // Simulate small loading delay for better UX
+                if (opener.classList.contains('btn')) {
+                    const originalText = opener.innerHTML;
+                    opener.classList.add('btn-loader');
+                    setTimeout(() => {
+                        opener.classList.remove('btn-loader');
+                        openModal(opener.dataset.modal);
+                    }, 300);
+                } else {
+                    openModal(opener.dataset.modal);
+                }
+            }
+
+            const closer = e.target.closest('[data-close]');
+            if (closer) { e.preventDefault(); closeAll(); }
+
+            const resultTrigger = e.target.closest('[data-result]');
+            if (resultTrigger) { e.preventDefault(); setResult(resultTrigger.dataset.result); }
+        });
+
+        // Multistep Stepper (New Transfer)
+        const setupStepper = () => {
+            let currentStep = 1;
+            const totalSteps = 4;
+            const nextBtn = document.getElementById('wizardNext');
+            const backBtn = document.getElementById('wizardBack');
+            const panels = document.querySelectorAll('#newTransferModal .step-panel');
+            const steps = document.querySelectorAll('#newTransferModal .step');
+
+            const update = () => {
+                panels.forEach(p => p.classList.toggle('active', parseInt(p.dataset.step) === currentStep));
+                steps.forEach((s, i) => {
+                    s.classList.toggle('active', i + 1 === currentStep);
+                    s.classList.toggle('done', i + 1 < currentStep);
+                });
+                backBtn.disabled = currentStep === 1;
+                nextBtn.textContent = currentStep === totalSteps ? 'Finalize & Submit' : 'Next Step';
+            };
+
+            nextBtn.addEventListener('click', () => {
+                if (currentStep < totalSteps) {
+                    currentStep++;
+                    update();
+                } else {
+                    setResult("Transfer broadcast successfully. Ref: TXN-B-991");
+                    currentStep = 1; // reset
+                    update();
+                }
+            });
+
+            backBtn.addEventListener('click', () => {
+                if (currentStep > 1) {
+                    currentStep--;
+                    update();
+                }
+            });
+        };
+        setupStepper();
+
+        // Modal Tab Logic
+        document.addEventListener('click', e => {
+            const tab = e.target.closest('[data-modal-tab]');
+            if (tab) {
+                const parent = tab.closest('.modal');
+                const targetId = tab.dataset.modalTab + 'Panel';
+
+                // Update Tab UI
+                parent.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+
+                // Update Panel visibility
+                parent.querySelectorAll('.tab-panel-modal').forEach(p => p.style.display = 'none');
+                const targetPanel = parent.querySelector(`#${targetId}`);
+                if (targetPanel) targetPanel.style.display = 'block';
+            }
+        });
+
+        // Handle Backdrop click
+        document.querySelectorAll('.modal-backdrop').forEach(bd => {
+            bd.addEventListener('click', e => { if (e.target === bd) closeAll(); });
+        });
+
+        // Tab Filtering (Main Dashboard)
+        document.querySelectorAll('.tab[data-tab]').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                // Mock filtering: just show/hide rows
+                const rows = document.querySelectorAll('#transferTableBody tr');
+                rows.forEach(r => r.style.display = ''); // reset
+            });
+        });
+
+    </script>
+</body>
+
+</html>

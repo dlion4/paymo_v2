@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compliance & AML — PayMo BaaS</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="./master.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        /* Admin Editable & Compliance UI specific styles */
+        .compliance-grid {
+            display: grid;
+            grid-template-columns: 1.6fr 1fr;
+            gap: 20px;
+        }
+
+        .stat-card {
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .hit-strip {
+            width: 4px;
+            border-radius: 4px;
+            height: 100%;
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+
+        .hit-strip.sanction {
+            background: var(--danger);
+        }
+
+        .hit-strip.pep {
+            background: var(--warning);
+        }
+
+        .hit-strip.media {
+            background: var(--info);
+        }
+
+        .hit-card {
+            position: relative;
+            padding: 16px 16px 16px 24px;
+            background: var(--surface);
+            border: 1px solid var(--border-soft);
+            border-radius: 12px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .hit-card:hover {
+            border-color: var(--primary);
+            box-shadow: var(--shadow);
+        }
+
+        .editable-field {
+            border: 1px dashed transparent;
+            padding: 2px 5px;
+            border-radius: 4px;
+            transition: all 0.2s;
+            cursor: text;
+        }
+
+        .editable-field:hover {
+            border-color: var(--border);
+            background: var(--surface-2);
+        }
+
+        .editable-field:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: #fff;
+            box-shadow: 0 0 0 3px var(--primary-soft);
+        }
+
+        .loader-ring {
+            border: 2px solid var(--border);
+            border-top: 2px solid var(--primary);
+            border-radius: 50%;
+            width: 14px;
+            height: 14px;
+            animation: spin 0.8s linear infinite;
+            display: inline-block;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .timeline-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--primary);
+            position: absolute;
+            left: -21px;
+            top: 5px;
+            border: 2px solid #fff;
+        }
+
+        .sar-badge {
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .sar-badge.pending {
+            background: var(--warning-soft);
+            color: var(--warning);
+        }
+
+        .sar-badge.filed {
+            background: var(--success-soft);
+            color: var(--success);
+        }
+
+        .risk-meter {
+            height: 6px;
+            border-radius: 10px;
+            background: var(--surface-3);
+            overflow: hidden;
+            margin-top: 4px;
+        }
+
+        .risk-meter span {
+            display: block;
+            height: 100%;
+            transition: width 0.5s;
+        }
+
+        .mini-tab-btn {
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: 8px;
+            color: var(--text-3);
+            transition: all 0.2s;
+        }
+
+        .mini-tab-btn.active {
+            background: var(--primary);
+            color: #fff;
+        }
+
+        .log-row {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            border-bottom: 1px solid var(--border-soft);
+            padding: 8px 0;
+        }
+
+        @media (max-width: 1024px) {
+            .compliance-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="app">
+        <!-- SIDEBAR -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-logo">P</div>
+            <nav class="sidebar-nav">
+                <button class="sidebar-item" data-modal="navDashboardModal"><svg viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7" />
+                        <rect x="14" y="3" width="7" height="7" />
+                        <rect x="14" y="14" width="7" height="7" />
+                        <rect x="3" y="14" width="7" height="7" />
+                    </svg></button>
+                <button class="sidebar-item" data-modal="navTxnModal"><svg viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                    </svg></button>
+                <button class="sidebar-item" data-modal="navKycModal"><svg viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                        <circle cx="8.5" cy="7" r="4" />
+                        <polyline points="17 11 19 13 23 9" />
+                    </svg></button>
+                <button class="sidebar-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                        <path d="M9 12l2 2 4-4" />
+                    </svg></button>
+                <button class="sidebar-item" data-modal="navReportModal"><svg viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                        <polyline points="14 2 14 8 20 8" />
+                        <line x1="16" y1="13" x2="8" y2="13" />
+                        <line x1="16" y1="17" x2="8" y2="17" />
+                    </svg></button>
+                <button class="sidebar-item" data-modal="navAuditModal"><svg viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <polyline points="12 6 12 12 16 14" />
+                    </svg></button>
+            </nav>
+            <button class="sidebar-expand" id="sidebarToggle"><svg width="12" height="12" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="9 18 15 12 9 6" />
+                </svg></button>
+        </aside>
+
+        <main class="main">
+            <!-- TOPBAR -->
+            <div class="topbar">
+                <div>
+                    <div class="crumb">
+                        <button class="mobile-menu-btn btn btn-light btn-sm" id="mobileMenuBtn">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <line x1="3" y1="12" x2="21" y2="12" />
+                                <line x1="3" y1="6" x2="21" y2="6" />
+                                <line x1="3" y1="18" x2="21" y2="18" />
+                            </svg>
+                        </button>
+                        <span>Transactions</span> <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <polyline points="9 18 15 12 9 6" />
+                        </svg> <span>Compliance & AML</span>
+                    </div>
+                    <h1 class="page-title">Compliance Command Center</h1>
+                </div>
+                <div class="topbar-actions">
+                    <button class="btn btn-light" data-modal="searchListsModal"><svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8" />
+                            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                        </svg> List Search</button>
+                    <button class="btn btn-light" data-modal="exportAuditModal"><svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                            <polyline points="7 10 12 15 17 10" />
+                            <line x1="12" y1="15" x2="12" y2="3" />
+                        </svg> Export logs</button>
+                    <button class="btn btn-primary" data-modal="createSarWizard"><svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19" />
+                            <line x1="5" y1="12" x2="19" y2="12" />
+                        </svg> File New SAR</button>
+                </div>
+            </div>
+
+            <!-- STATS -->
+            <div class="stats-row">
+                <div class="stat-card" data-modal="screeningQueueModal">
+                    <div class="stat-icon red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path
+                                d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                            <line x1="12" y1="9" x2="12" y2="13" />
+                            <line x1="12" y1="17" x2="12.01" y2="17" />
+                        </svg></div>
+                    <div class="stat-label">Pending Hits</div>
+                    <div class="stat-value">24</div>
+                    <div class="stat-trend down"><span>-12% vs avg</span></div>
+                </div>
+                <div class="stat-card" data-modal="amlAlertsModal">
+                    <div class="stat-icon amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="12" y1="16" x2="12" y2="12" />
+                            <line x1="12" y1="8" x2="12.01" y2="8" />
+                        </svg></div>
+                    <div class="stat-label">AML Alerts</div>
+                    <div class="stat-value">158</div>
+                    <div class="stat-trend neutral"><span>Stable today</span></div>
+                </div>
+                <div class="stat-card" data-modal="sarStatusModal">
+                    <div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                            <polyline points="14 2 14 8 20 8" />
+                        </svg></div>
+                    <div class="stat-label">SARs Filed (MTD)</div>
+                    <div class="stat-value">42</div>
+                    <div class="stat-trend up"><span>+8 this month</span></div>
+                </div>
+                <div class="stat-card" data-modal="uptimeModal">
+                    <div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                            <polyline points="22 4 12 14.01 9 11.01" />
+                        </svg></div>
+                    <div class="stat-label">System Health</div>
+                    <div class="stat-value">99.9%</div>
+                    <div class="stat-trend up"><span>Lists up-to-date</span></div>
+                </div>
+                <div class="stat-card" data-modal="auditStatsModal">
+                    <div class="stat-icon gray"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" />
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                        </svg></div>
+                    <div class="stat-label">Audited Actions</div>
+                    <div class="stat-value">12k</div>
+                    <div class="stat-trend neutral"><span>30d rolling</span></div>
+                </div>
+            </div>
+
+            <!-- TABS -->
+            <div class="panel">
+                <div class="tabs">
+                    <button class="tab active" data-tab="screening">Transaction Screening</button>
+                    <button class="tab" data-tab="aml">AML Monitoring</button>
+                    <button class="tab" data-tab="reporting">Regulatory Reporting</button>
+                    <button class="tab" data-tab="audit">Immutable Audit Trail</button>
+                </div>
+
+                <!-- SECTION 1: SCREENING -->
+                <section class="tab-panel active" id="screening">
+                    <div class="panel-body">
+                        <div class="compliance-grid">
+                            <div>
+                                <div class="flex justify-between items-center mb-4">
+                                    <h3 class="font-bold">Real-time Screening Queue</h3>
+                                    <div class="flex gap-2">
+                                        <button class="mini-tab-btn active">All Hits</button>
+                                        <button class="mini-tab-btn">Sanctions</button>
+                                        <button class="mini-tab-btn">PEP</button>
+                                    </div>
+                                </div>
+
+                                <div class="hit-card" data-modal="hitDetailModal">
+                                    <div class="hit-strip sanction"></div>
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <div class="flex items-center gap-2 mb-1">
+                                                <span class="badge danger">Sanction Match</span>
+                                                <span class="text-xs text-gray-500 mono">TXN_9921_AF</span>
+                                            </div>
+                                            <h4 class="font-bold">Vladimir Petrovich</h4>
+                                            <p class="text-xs text-gray-600 mt-1">Matched: EU Consolidated List ·
+                                                Confidence: 94%</p>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="font-bold">$12,450.00</div>
+                                            <div class="text-[10px] text-gray-400">2 mins ago</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="hit-card" data-modal="hitDetailModal">
+                                    <div class="hit-strip pep"></div>
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <div class="flex items-center gap-2 mb-1">
+                                                <span class="badge warning">PEP Alert</span>
+                                                <span class="text-xs text-gray-500 mono">TXN_8841_OB</span>
+                                            </div>
+                                            <h4 class="font-bold">Chinua Achebe Jr.</h4>
+                                            <p class="text-xs text-gray-600 mt-1">Relative of High Ranking Official
+                                                (Nigeria) · Confidence: 88%</p>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="font-bold">$5,000.00</div>
+                                            <div class="text-[10px] text-gray-400">14 mins ago</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="hit-card" data-modal="hitDetailModal">
+                                    <div class="hit-strip media"></div>
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <div class="flex items-center gap-2 mb-1">
+                                                <span class="badge info">Adverse Media</span>
+                                                <span class="text-xs text-gray-500 mono">TXN_7712_WA</span>
+                                            </div>
+                                            <h4 class="font-bold">Syndicate Logisics LLC</h4>
+                                            <p class="text-xs text-gray-600 mt-1">Mention in: Global Money Laundering
+                                                Probe (2025)</p>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="font-bold">$105,200.00</div>
+                                            <div class="text-[10px] text-gray-400">1h ago</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button class="btn btn-light w-full" data-modal="screeningArchiveModal">View Resolved
+                                    Hits</button>
+                            </div>
+
+                            <div class="bg-gray-50 p-5 rounded-xl border border-gray-100">
+                                <h3 class="font-bold mb-4">List Health & Sync</h3>
+                                <div class="config-row">
+                                    <div class="config-label">OFAC (US)</div>
+                                    <span class="badge success">Synced 5m ago</span>
+                                </div>
+                                <div class="config-row">
+                                    <div class="config-label">UN Security Council</div>
+                                    <span class="badge success">Synced 12m ago</span>
+                                </div>
+                                <div class="config-row">
+                                    <div class="config-label">EU Sanctions List</div>
+                                    <span class="badge success">Synced 8m ago</span>
+                                </div>
+                                <div class="config-row">
+                                    <div class="config-label">PEP Global Directory</div>
+                                    <span class="badge warning">Syncing...</span>
+                                </div>
+                                <div class="mt-5 p-4 bg-white rounded-lg border border-gray-200">
+                                    <div class="text-xs font-bold text-gray-400 mb-2 uppercase">AI Screening Accuracy
+                                    </div>
+                                    <div class="flex justify-between items-end mb-1">
+                                        <span class="text-xl font-bold">96.8%</span>
+                                        <span class="text-[10px] text-green-600">+1.2% this week</span>
+                                    </div>
+                                    <div class="risk-meter"><span class="bg-green-500" style="width: 96.8%"></span>
+                                    </div>
+                                </div>
+                                <button class="btn btn-primary w-full mt-4" data-modal="manualSyncModal">Force List
+                                    Update</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SECTION 2: AML MONITORING -->
+                <section class="tab-panel" id="aml">
+                    <div class="panel-body">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="font-bold text-lg">Suspicious Activity Rules</h3>
+                            <div class="flex gap-2">
+                                <button class="btn btn-light" data-modal="ruleBuilderModal">Custom Rule Builder</button>
+                                <button class="btn btn-primary" data-modal="thresholdConfigModal">Global
+                                    Thresholds</button>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div class="uw-card border-l-4 border-l-red-500" data-modal="ruleDetailModal">
+                                <div class="flex justify-between items-start mb-3">
+                                    <span class="text-xs font-bold text-gray-400">SMURF-01</span>
+                                    <label class="toggle"><input type="checkbox" checked><span
+                                            class="toggle-slider"></span></label>
+                                </div>
+                                <h4 class="font-bold">Structuring Detection</h4>
+                                <p class="text-xs text-gray-500 mt-2">Identifies multiple sub-$10k deposits within 24h
+                                    cycle.</p>
+                                <div class="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
+                                    <span class="text-[10px] text-gray-400">Alerts (24h): <strong
+                                            class="text-gray-700">42</strong></span>
+                                    <button class="btn btn-ghost btn-sm text-primary">Edit</button>
+                                </div>
+                            </div>
+
+                            <div class="uw-card border-l-4 border-l-amber-500" data-modal="ruleDetailModal">
+                                <div class="flex justify-between items-start mb-3">
+                                    <span class="text-xs font-bold text-gray-400">VEL-05</span>
+                                    <label class="toggle"><input type="checkbox" checked><span
+                                            class="toggle-slider"></span></label>
+                                </div>
+                                <h4 class="font-bold">Velocity Threshold</h4>
+                                <p class="text-xs text-gray-500 mt-2">More than 50 outbound payments to unique nodes in
+                                    1h.</p>
+                                <div class="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
+                                    <span class="text-[10px] text-gray-400">Alerts (24h): <strong
+                                            class="text-gray-700">12</strong></span>
+                                    <button class="btn btn-ghost btn-sm text-primary">Edit</button>
+                                </div>
+                            </div>
+
+                            <div class="uw-card border-l-4 border-l-blue-500" data-modal="ruleDetailModal">
+                                <div class="flex justify-between items-start mb-3">
+                                    <span class="text-xs font-bold text-gray-400">GEO-X</span>
+                                    <label class="toggle"><input type="checkbox" checked><span
+                                            class="toggle-slider"></span></label>
+                                </div>
+                                <h4 class="font-bold">High-Risk Jurisdiction</h4>
+                                <p class="text-xs text-gray-500 mt-2">Any transaction involving a node in FATF 'Grey
+                                    List' zones.</p>
+                                <div class="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
+                                    <span class="text-[10px] text-gray-400">Alerts (24h): <strong
+                                            class="text-gray-700">8</strong></span>
+                                    <button class="btn btn-ghost btn-sm text-primary">Edit</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-8">
+                            <h3 class="font-bold mb-4">Detection Pattern Analysis</h3>
+                            <div class="bg-white p-5 rounded-xl border border-gray-200">
+                                <svg class="mini-chart" viewBox="0 0 800 130" preserveAspectRatio="none">
+                                    <path
+                                        d="M0,100 L50,80 L100,90 L150,40 L200,60 L250,50 L300,70 L350,20 L400,30 L450,10 L500,40 L550,60 L600,80 L650,40 L700,50 L750,20 L800,10"
+                                        fill="none" stroke="var(--primary)" stroke-width="2" />
+                                    <path
+                                        d="M0,130 L50,110 L100,120 L150,100 L200,110 L250,105 L300,115 L350,90 L400,95 L450,85 L500,105 L550,110 L600,120 L650,100 L700,105 L750,90 L800,85"
+                                        fill="none" stroke="var(--warning)" stroke-width="2" />
+                                </svg>
+                                <div class="legend mt-3 justify-center">
+                                    <span><span class="legend-dot" style="background: var(--primary)"></span> Legitimate
+                                        Transactions</span>
+                                    <span><span class="legend-dot" style="background: var(--warning)"></span> Suspicious
+                                        Flags</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SECTION 3: REPORTING -->
+                <section class="tab-panel" id="reporting">
+                    <div class="panel-body">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="font-bold">Regulatory Filings Queue</h3>
+                            <div class="flex gap-2">
+                                <button class="btn btn-light" data-modal="reportSettingsModal">Filing Settings</button>
+                                <button class="btn btn-primary" data-modal="generateCtrModal">Auto-Gen CTRs</button>
+                            </div>
+                        </div>
+
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Report ID</th>
+                                    <th>Type</th>
+                                    <th>Subject</th>
+                                    <th>Created</th>
+                                    <th>Status</th>
+                                    <th class="right">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="mono">SAR-2026-X81</td>
+                                    <td><span class="badge info">SAR</span></td>
+                                    <td>Vladimir Petrovich</td>
+                                    <td>12 Feb 2026</td>
+                                    <td><span class="sar-badge pending">Drafting</span></td>
+                                    <td class="right"><button class="btn btn-light btn-sm"
+                                            data-modal="sarEditorModal">Continue</button></td>
+                                </tr>
+                                <tr>
+                                    <td class="mono">CTR-2026-004</td>
+                                    <td><span class="badge purple">CTR</span></td>
+                                    <td>Batch #9921</td>
+                                    <td>10 Feb 2026</td>
+                                    <td><span class="sar-badge filed">Filed</span></td>
+                                    <td class="right"><button class="btn btn-light btn-sm"
+                                            data-modal="viewReportModal">View</button></td>
+                                </tr>
+                                <tr>
+                                    <td class="mono">SAR-2026-X79</td>
+                                    <td><span class="badge info">SAR</span></td>
+                                    <td>CryptoNexus Swap</td>
+                                    <td>08 Feb 2026</td>
+                                    <td><span class="sar-badge filed">Filed</span></td>
+                                    <td class="right"><button class="btn btn-light btn-sm"
+                                            data-modal="viewReportModal">View</button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- SECTION 4: AUDIT TRAIL -->
+                <section class="tab-panel" id="audit">
+                    <div class="panel-body">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="font-bold">Immutable System Logs</h3>
+                            <div class="flex gap-2">
+                                <div class="search-box"><input type="text" placeholder="Search actor or action..."
+                                        id="auditSearch"></div>
+                                <button class="btn btn-light" data-modal="verifyIntegrityModal">Verify Chain
+                                    Integrity</button>
+                            </div>
+                        </div>
+
+                        <div
+                            class="bg-gray-900 text-green-400 p-5 rounded-xl border border-gray-800 h-[400px] overflow-y-auto scroll-thin">
+                            <div class="log-row flex justify-between border-gray-800">
+                                <span>[2026-02-12 10:45:12] ACTION: SAR_DRAFT_START | USER: j.doe_compliance | TARGET:
+                                    SAR-2026-X81</span>
+                                <span class="text-xs text-gray-500">HASH: 0x88f2...1a9e</span>
+                            </div>
+                            <div class="log-row flex justify-between border-gray-800">
+                                <span>[2026-02-12 10:42:01] ACTION: HIT_DISPOSITION | USER: j.doe_compliance | TARGET:
+                                    Vladimir P. (False Positive)</span>
+                                <span class="text-xs text-gray-500">HASH: 0x77c1...2b8d</span>
+                            </div>
+                            <div class="log-row flex justify-between border-gray-800">
+                                <span>[2026-02-12 10:40:55] ACTION: RULE_UPDATE | USER: system_admin | TARGET: SMURF-01
+                                    Threshold -> $9,500</span>
+                                <span class="text-xs text-gray-500">HASH: 0x99a3...4f21</span>
+                            </div>
+                            <div class="log-row flex justify-between border-gray-800">
+                                <span>[2026-02-12 10:35:12] ACTION: LIST_SYNC_EU | USER: system_cron | TARGET:
+                                    eu_sanctions_v281</span>
+                                <span class="text-xs text-gray-500">HASH: 0x11b9...5e32</span>
+                            </div>
+                            <div class="log-row flex justify-between border-gray-800">
+                                <span>[2026-02-12 10:45:12] ACTION: SAR_DRAFT_START | USER: j.doe_compliance | TARGET:
+                                    SAR-2026-X81</span>
+                                <span class="text-xs text-gray-500">HASH: 0x88f2...1a9e</span>
+                            </div>
+                            <div class="log-row flex justify-between border-gray-800">
+                                <span>[2026-02-12 10:42:01] ACTION: HIT_DISPOSITION | USER: j.doe_compliance | TARGET:
+                                    Vladimir P. (False Positive)</span>
+                                <span class="text-xs text-gray-500">HASH: 0x77c1...2b8d</span>
+                            </div>
+                            <div class="log-row flex justify-between border-gray-800">
+                                <span>[2026-02-12 10:40:55] ACTION: RULE_UPDATE | USER: system_admin | TARGET: SMURF-01
+                                    Threshold -> $9,500</span>
+                                <span class="text-xs text-gray-500">HASH: 0x99a3...4f21</span>
+                            </div>
+                            <div class="log-row flex justify-between border-gray-800">
+                                <span>[2026-02-12 10:42:01] ACTION: HIT_DISPOSITION | USER: j.doe_compliance | TARGET:
+                                    Vladimir P. (False Positive)</span>
+                                <span class="text-xs text-gray-500">HASH: 0x77c1...2b8d</span>
+                            </div>
+                            <div class="log-row flex justify-between border-gray-800">
+                                <span>[2026-02-12 10:40:55] ACTION: RULE_UPDATE | USER: system_admin | TARGET: SMURF-01
+                                    Threshold -> $9,500</span>
+                                <span class="text-xs text-gray-500">HASH: 0x99a3...4f21</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- ============================================
+     MODALS (20+)
+     ============================================ -->
+
+    <!-- 1. Hit Detail Modal (Screening) -->
+    <div class="modal-backdrop" id="hitDetailModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Screening Hit Review</h3>
+                    <div class="modal-sub">Matched Entity: <strong>Vladimir Petrovich</strong></div>
+                </div>
+                <button class="modal-close" data-close>×</button>
+            </div>
+            <div class="modal-body">
+                <div class="flex gap-6">
+                    <div class="flex-1">
+                        <h4 class="text-xs font-bold text-gray-400 uppercase mb-3">Transaction Info</h4>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <div class="kv-grid">
+                                <div>
+                                    <div class="kv-label">Amount</div>
+                                    <div class="kv-val">$12,450.00</div>
+                                </div>
+                                <div>
+                                    <div class="kv-label">Direction</div>
+                                    <div class="kv-val">Inbound</div>
+                                </div>
+                                <div>
+                                    <div class="kv-label">Origin</div>
+                                    <div class="kv-val">SberBank (RU)</div>
+                                </div>
+                                <div>
+                                    <div class="kv-label">Destination</div>
+                                    <div class="kv-val">PayMo Wallet #442</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h4 class="text-xs font-bold text-gray-400 uppercase mb-3 mt-5">Match Evidence</h4>
+                        <div class="border border-red-100 bg-red-50 p-4 rounded-lg">
+                            <p class="text-sm">Matched against <strong>EU-CONS-2025</strong>. Reason: Sanctioned
+                                Individual (Financial Sector Restrictions).</p>
+                            <div class="mt-2 text-xs font-mono">ID: EU-88219-X | DOB: 12-05-1972 | Alias: V. Petro</div>
+                        </div>
+                    </div>
+                    <div class="w-1/3">
+                        <h4 class="text-xs font-bold text-gray-400 uppercase mb-3">Disposition</h4>
+                        <div class="field">
+                            <label class="field-label">Verdict</label>
+                            <select class="select-field">
+                                <option>Select action...</option>
+                                <option>False Positive (Clear Txn)</option>
+                                <option>True Positive (Block Txn)</option>
+                                <option>Escalate for Enhanced Due Diligence</option>
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label class="field-label">Reviewer Notes</label>
+                            <textarea class="textarea" placeholder="Explain your decision..."></textarea>
+                        </div>
+                        <button class="btn btn-primary w-full"
+                            onclick="simulateLoading(this, 'Resolving Hit...')">Confirm Disposition</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Create SAR Wizard (Multi-step) -->
+    <div class="modal-backdrop" id="createSarWizard">
+        <div class="modal lg">
+            <div class="modal-header">
+                <h3 class="modal-title">File Suspicious Activity Report (SAR)</h3>
+                <button class="modal-close" data-close>×</button>
+            </div>
+            <div class="stepper">
+                <div class="step active">
+                    <div class="step-num">1</div> Subject
+                </div>
+                <div class="step">
+                    <div class="step-num">2</div> Activity
+                </div>
+                <div class="step">
+                    <div class="step-num">3</div> Rationale
+                </div>
+                <div class="step">
+                    <div class="step-num">4</div> Submit
+                </div>
+            </div>
+            <div class="modal-body">
+                <div class="step-panel active" data-step="1">
+                    <div class="field">
+                        <label class="field-label">Subject Legal Name</label>
+                        <input type="text" class="input" value="Vladimir Petrovich">
+                    </div>
+                    <div class="field-row">
+                        <div class="field"><label class="field-label">DOB</label><input type="date" class="input"
+                                value="1972-05-12"></div>
+                        <div class="field"><label class="field-label">SSN / ID</label><input type="text" class="input"
+                                value="RU-992811-X"></div>
+                    </div>
+                </div>
+                <div class="step-panel" data-step="2">
+                    <div class="field">
+                        <label class="field-label">Suspicious Amount (Aggregate)</label>
+                        <input type="text" class="input" value="$12,450.00">
+                    </div>
+                    <div class="field"><label class="field-label">Activity Type</label>
+                        <select class="select-field">
+                            <option>Structing / Smurfing</option>
+                            <option>Sanction Evasion</option>
+                            <option>Unexplained Wealth</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="step-panel" data-step="3">
+                    <div class="field">
+                        <label class="field-label">Narrative / Rationale</label>
+                        <textarea
+                            class="textarea h-40">User attempted to receive funds from a sanctioned Russian entity via a shell intermediary...</textarea>
+                    </div>
+                </div>
+                <div class="step-panel" data-step="4">
+                    <div class="alert info">Final Review: Review all sections before filing. SARs are legal documents.
+                    </div>
+                    <div class="p-5 bg-gray-50 rounded-xl mt-4">
+                        <p class="text-sm font-bold">I certify that the information provided is true and accurate to the
+                            best of my knowledge.</p>
+                        <div class="mt-4 flex gap-4">
+                            <div class="field"><label class="field-label">Digital Signature</label><input type="text"
+                                    class="input" placeholder="Type full name"></div>
+                            <div class="field"><label class="field-label">Compliance PIN</label><input type="password"
+                                    class="input" placeholder="****"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-light" id="wizardPrev" onclick="moveStep(-1)">Back</button>
+                <button class="btn btn-primary" id="wizardNext" onclick="moveStep(1)">Next Step</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Rule Builder Modal -->
+    <div class="modal-backdrop" id="ruleBuilderModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Suspicious Activity Rule Builder</h3>
+                <button class="modal-close" data-close>×</button>
+            </div>
+            <div class="modal-body">
+                <div class="field"><label class="field-label">Rule Name</label><input type="text" class="input"
+                        placeholder="e.g. High-freq Cross Border"></div>
+                <div class="p-4 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+                    <div class="text-[10px] uppercase font-bold text-gray-400 mb-2">Trigger Logic</div>
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="text-xs bg-white px-2 py-1 border rounded">IF</span>
+                        <select class="select-field text-xs h-8">
+                            <option>Txn Amount</option>
+                        </select>
+                        <span class="text-xs bg-white px-2 py-1 border rounded">></span>
+                        <input type="text" class="input text-xs h-8 w-20" value="10000">
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs bg-white px-2 py-1 border rounded">AND</span>
+                        <select class="select-field text-xs h-8">
+                            <option>Geo Location</option>
+                        </select>
+                        <span class="text-xs bg-white px-2 py-1 border rounded">IN</span>
+                        <span class="badge gray">Balkans</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end">
+                <button class="btn btn-light" data-close>Cancel</button>
+                <button class="btn btn-primary" onclick="simulateLoading(this, 'Saving Rule...')">Create Rule</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Simple Nav Modals -->
+    <div class="modal-backdrop" id="navDashboardModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Dashboard</h3><button class="modal-close" data-close>×</button>
+            </div>
+            <div class="modal-body">Returning to Main Overview...</div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="navTxnModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Transactions</h3><button class="modal-close" data-close>×</button>
+            </div>
+            <div class="modal-body">Opening Ledger...</div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="navKycModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>KYC Center</h3><button class="modal-close" data-close>×</button>
+            </div>
+            <div class="modal-body">Loading Verification Queue...</div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="navReportModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Reporting</h3><button class="modal-close" data-close>×</button>
+            </div>
+            <div class="modal-body">Opening Regulatory Portal...</div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="navAuditModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Audit Logs</h3><button class="modal-close" data-close>×</button>
+            </div>
+            <div class="modal-body">Fetching Immutable Chain...</div>
+        </div>
+    </div>
+
+    <!-- Queue Modals -->
+    <div class="modal-backdrop" id="screeningQueueModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Screening Queue</h3><button class="modal-close" data-close>×</button>
+            </div>
+            <div class="modal-body">24 Hits require manual review.</div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="amlAlertsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>AML Alerts</h3><button class="modal-close" data-close>×</button>
+            </div>
+            <div class="modal-body">158 potential violations detected by engine.</div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="sarStatusModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>SAR Status</h3><button class="modal-close" data-close>×</button>
+            </div>
+            <div class="modal-body">42 Successful filings in February.</div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="uptimeModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>System Uptime</h3><button class="modal-close" data-close>×</button>
+            </div>
+            <div class="modal-body">Lists: OFAC(99.9%), EU(100%), UN(99.9%).</div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="auditStatsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Audit Statistics</h3><button class="modal-close" data-close>×</button>
+            </div>
+            <div class="modal-body">12,481 events logged this month.</div>
+        </div>
+    </div>
+
+    <!-- Actions Modals -->
+    <div class="modal-backdrop" id="searchListsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Manual List Search</h3><button class="modal-close" data-close>×</button>
+            </div>
+            <div class="modal-body"><input type="text" class="input" placeholder="Enter name or ID to screen..."></div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="exportAuditModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Export Logs</h3><button class="modal-close" data-close>×</button>
+            </div>
+            <div class="modal-body">Choose format: PDF, CSV, JSON.</div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="screeningArchiveModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <h3>Screening Archive</h3><button class="modal-close" data-close>×</button>
+            </div>
+            <div class="modal-body">History of resolved screening hits.</div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="manualSyncModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Force Update</h3><button class="modal-close" data-close>×</button>
+            </div>
+            <div class="modal-body">Contacting global regulatory providers...</div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="thresholdConfigModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Global Thresholds</h3><button class="modal-close" data-close>×</button>
+            </div>
+            <div class="modal-body">Edit mandatory reporting limits.</div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="ruleDetailModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Rule Definition</h3><button class="modal-close" data-close>×</button>
+            </div>
+            <div class="modal-body">Parameters for structuring detection Smurf-01.</div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="generateCtrModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>CTR Auto-Gen</h3><button class="modal-close" data-close>×</button>
+            </div>
+            <div class="modal-body">Batch generating CTRs for transactions over 10k.</div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="viewReportModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Regulatory File</h3><button class="modal-close" data-close>×</button>
+            </div>
+            <div class="modal-body">Viewing filed SAR-2026-X79.</div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="sarEditorModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <h3>SAR Drafting</h3><button class="modal-close" data-close>×</button>
+            </div>
+            <div class="modal-body">Resume drafting SAR-2026-X81.</div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="reportSettingsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Filing Settings</h3><button class="modal-close" data-close>×</button>
+            </div>
+            <div class="modal-body">Configure agency endpoints and keys.</div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="verifyIntegrityModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Chain Integrity</h3><button class="modal-close" data-close>×</button>
+            </div>
+            <div class="modal-body">Running SHA-256 verification on ledger...</div>
+        </div>
+    </div>
+
+    <script>
+        /* Core Logic */
+        const sidebar = document.getElementById('sidebar');
+        document.getElementById('sidebarToggle').addEventListener('click', () => sidebar.classList.toggle('expanded'));
+        document.getElementById('mobileMenuBtn').addEventListener('click', () => sidebar.classList.toggle('mobile-open'));
+
+        function openModal(id) {
+            const m = document.getElementById(id);
+            if (m) m.classList.add('show');
+        }
+        function closeAll() {
+            document.querySelectorAll('.modal-backdrop.show').forEach(m => m.classList.remove('show'));
+        }
+        document.addEventListener('click', e => {
+            const opener = e.target.closest('[data-modal]');
+            if (opener) openModal(opener.dataset.modal);
+            if (e.target.closest('[data-close]')) closeAll();
+            if (e.target.classList.contains('modal-backdrop')) closeAll();
+        });
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAll(); });
+
+        /* Tabs */
+        document.querySelectorAll('.tab').forEach(t => {
+            t.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+                document.querySelectorAll('.tab-panel').forEach(x => x.classList.remove('active'));
+                t.classList.add('active');
+                document.getElementById(t.dataset.tab).classList.add('active');
+            });
+        });
+
+        /* SAR Wizard Step Logic */
+        let currentStep = 1;
+        function moveStep(dir) {
+            const steps = document.querySelectorAll('#createSarWizard .step');
+            const panels = document.querySelectorAll('#createSarWizard .step-panel');
+
+            currentStep += dir;
+            if (currentStep < 1) currentStep = 1;
+            if (currentStep > 4) {
+                simulateLoading(document.getElementById('wizardNext'), 'Filing Report...');
+                setTimeout(() => { closeAll(); currentStep = 1; }, 2000);
+                return;
+            }
+
+            steps.forEach((s, i) => s.classList.toggle('active', i + 1 === currentStep));
+            panels.forEach((p, i) => p.classList.toggle('active', i + 1 === currentStep));
+
+            document.getElementById('wizardPrev').style.visibility = currentStep === 1 ? 'hidden' : 'visible';
+            document.getElementById('wizardNext').innerText = currentStep === 4 ? 'File SAR Now' : 'Next Step';
+        }
+
+        /* Utility */
+        function simulateLoading(btn, msg) {
+            const oldText = btn.innerHTML;
+            btn.innerHTML = `<span class="loader-ring"></span> ${msg}`;
+            btn.disabled = true;
+            setTimeout(() => {
+                btn.innerHTML = oldText;
+                btn.disabled = false;
+                if (!btn.id.includes('wizard')) closeAll();
+            }, 1500);
+        }
+    </script>
+
+</body>
+
+</html>

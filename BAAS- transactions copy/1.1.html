@@ -1,0 +1,1654 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transfer Overview Command Center - PayMo BaaS</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="./master.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        .ticker-row {
+            border-left: 3px solid transparent;
+            transition: all .2s;
+        }
+
+        .ticker-row.incoming {
+            border-left-color: var(--success);
+        }
+
+        .ticker-row.outgoing {
+            border-left-color: var(--primary);
+        }
+
+        .rail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 12px;
+        }
+
+        .rail-card {
+            background: var(--surface);
+            border: 1px solid var(--border-soft);
+            border-radius: var(--radius);
+            padding: 16px;
+            transition: transform .15s;
+            cursor: pointer;
+        }
+
+        .rail-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--primary);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .nostro-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        .mini-tab-nav {
+            display: flex;
+            gap: 4px;
+            background: var(--surface-3);
+            padding: 4px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            width: fit-content;
+        }
+
+        .mini-tab {
+            padding: 4px 12px;
+            font-size: 11px;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            color: var(--text-3);
+        }
+
+        .mini-tab.active {
+            background: var(--surface);
+            color: var(--text);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .loading-shimmer {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: 200% 0;
+            }
+
+            100% {
+                background-position: -200% 0;
+            }
+        }
+
+        .dot-pulse {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+            position: relative;
+        }
+
+        .dot-pulse::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background: var(--success);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                opacity: 0.8;
+            }
+
+            100% {
+                transform: scale(3);
+                opacity: 0;
+            }
+        }
+
+        .pin-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            max-width: 180px;
+            margin: 15px auto;
+        }
+
+        .pin-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pin-btn:active {
+            background: var(--surface-3);
+        }
+
+        @media (max-width: 1024px) {
+            .nostro-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nostro-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+        <!-- SIDEBAR -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-logo">P</div>
+            <nav class="sidebar-nav">
+                <button class="sidebar-item active" title="Command Center"><svg viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                    </svg><span class="sidebar-label">Command Center</span></button>
+                <button class="sidebar-item" title="Transfer Rails" data-modal="railsSummaryModal"><svg
+                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                    </svg><span class="sidebar-label">Rails</span></button>
+                <button class="sidebar-item" title="Liquidity" data-modal="liquidityModal"><svg viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"></path>
+                    </svg><span class="sidebar-label">Liquidity</span></button>
+                <button class="sidebar-item" title="Compliance" data-modal="complianceModal"><svg viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                    </svg><span class="sidebar-label">Compliance</span></button>
+                <button class="sidebar-item" title="Nostro" data-modal="nostroModal"><svg viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3"></path>
+                    </svg><span class="sidebar-label">Nostro</span></button>
+                <button class="sidebar-item" title="Reporting" data-modal="reportModal"><svg viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="20" x2="18" y2="10"></line>
+                        <line x1="12" y1="20" x2="12" y2="4"></line>
+                        <line x1="6" y1="20" x2="6" y2="14"></line>
+                    </svg><span class="sidebar-label">Reporting</span></button>
+            </nav>
+            <button class="sidebar-expand" id="sidebarToggle"><svg width="12" height="12" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg><span class="sidebar-label">Collapse</span></button>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="main">
+            <div class="topbar">
+                <div>
+                    <div class="crumb">
+                        <button class="mobile-menu-btn btn btn-light btn-sm" id="mobileMenuBtn"
+                            style="margin-right:8px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2">
+                                <line x1="3" y1="12" x2="21" y2="12"></line>
+                                <line x1="3" y1="6" x2="21" y2="6"></line>
+                                <line x1="3" y1="18" x2="21" y2="18"></line>
+                            </svg></button>
+                        <span>BaaS Operations</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg><span>Transfer Overview</span>
+                    </div>
+                    <h1 class="page-title">Transfer Command Center</h1>
+                </div>
+                <div class="topbar-actions">
+                    <div class="flex items-center gap-2 mr-4">
+                        <div class="dot-pulse"></div>
+                        <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Live System</span>
+                    </div>
+                    <button class="btn btn-light btn-icon" data-modal="notificationsModal"><svg viewBox="0 0 24 24"
+                            fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                        </svg></button>
+                    <button class="btn btn-light" data-modal="bulkUploadModal"><svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="17 8 12 3 7 8"></polyline>
+                            <line x1="12" y1="3" x2="12" y2="15"></line>
+                        </svg>Bulk Upload</button>
+                    <button class="btn btn-primary" data-modal="initiateTransferWizard"><svg viewBox="0 0 24 24"
+                            fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>New Transfer</button>
+                </div>
+            </div>
+
+            <!-- KPI ROW -->
+            <div class="stats-row">
+                <div class="stat-card" data-modal="volumeModal">
+                    <div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M12 20V10M18 20V4M6 20V16"></path>
+                        </svg></div>
+                    <div class="stat-label">Total Volume (Today)</div>
+                    <div class="stat-value">$12.48M</div>
+                    <div class="stat-trend up"><span>+8.4% vs avg</span></div>
+                </div>
+                <div class="stat-card" data-modal="successRateModal">
+                    <div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg></div>
+                    <div class="stat-label">Success Rate</div>
+                    <div class="stat-value">99.2%</div>
+                    <div class="stat-trend up"><span>Target 98.0%</span></div>
+                </div>
+                <div class="stat-card" data-modal="settlementTimeModal">
+                    <div class="stat-icon amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg></div>
+                    <div class="stat-label">Avg Settlement</div>
+                    <div class="stat-value">2.4s</div>
+                    <div class="stat-trend down"><span>-0.8s faster</span></div>
+                </div>
+                <div class="stat-card" data-modal="failedTxnModal">
+                    <div class="stat-icon red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="15" y1="9" x2="9" y2="15"></line>
+                            <line x1="9" y1="9" x2="15" y2="15"></line>
+                        </svg></div>
+                    <div class="stat-label">Action Required</div>
+                    <div class="stat-value">14</div>
+                    <div class="stat-trend down"><span>Critical failures</span></div>
+                </div>
+                <div class="stat-card" data-modal="activeRailsModal">
+                    <div class="stat-icon purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                        </svg></div>
+                    <div class="stat-label">Active Rails</div>
+                    <div class="stat-value">8 / 8</div>
+                    <div class="stat-trend up"><span>All operational</span></div>
+                </div>
+            </div>
+
+            <div class="two-col">
+                <!-- LIVE TICKER SECTION -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                            </svg>Live Transaction Ticker</h2>
+                        <div class="panel-actions">
+                            <div class="mini-tab-nav">
+                                <div class="mini-tab active">All</div>
+                                <div class="mini-tab">Incoming</div>
+                                <div class="mini-tab">Outgoing</div>
+                            </div>
+                            <button class="btn btn-light btn-sm" id="pauseTicker">Pause Feed</button>
+                        </div>
+                    </div>
+                    <div class="panel-body no-pad">
+                        <div class="table-wrap">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Txn ID</th>
+                                        <th>Flow</th>
+                                        <th>Banks</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                        <th>Time</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="liveTickerBody">
+                                    <tr class="ticker-row outgoing app-row" data-modal="txnDetailModal">
+                                        <td>
+                                            <div class="mono text-xs">TXN-48921</div>
+                                        </td>
+                                        <td><span class="badge primary">Outgoing</span></td>
+                                        <td>
+                                            <div class="text-xs">Chase <svg class="inline w-3 h-3" viewBox="0 0 24 24"
+                                                    fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path d="M5 12h14M12 5l7 7-7 7"></path>
+                                                </svg> Equity</div>
+                                        </td>
+                                        <td>
+                                            <div class="font-bold">$4,250.00</div>
+                                        </td>
+                                        <td><span class="badge success">Settled</span></td>
+                                        <td>
+                                            <div class="text-gray-400 text-xs">Just now</div>
+                                        </td>
+                                    </tr>
+                                    <tr class="ticker-row incoming app-row" data-modal="txnDetailModal">
+                                        <td>
+                                            <div class="mono text-xs">TXN-48920</div>
+                                        </td>
+                                        <td><span class="badge success">Incoming</span></td>
+                                        <td>
+                                            <div class="text-xs">HSBC <svg class="inline w-3 h-3" viewBox="0 0 24 24"
+                                                    fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path d="M5 12h14M12 5l7 7-7 7"></path>
+                                                </svg> KCB</div>
+                                        </td>
+                                        <td>
+                                            <div class="font-bold">$12,900.00</div>
+                                        </td>
+                                        <td><span class="badge info">Processing</span></td>
+                                        <td>
+                                            <div class="text-gray-400 text-xs">2s ago</div>
+                                        </td>
+                                    </tr>
+                                    <tr class="ticker-row outgoing app-row" data-modal="txnDetailModal">
+                                        <td>
+                                            <div class="mono text-xs">TXN-48919</div>
+                                        </td>
+                                        <td><span class="badge primary">Outgoing</span></td>
+                                        <td>
+                                            <div class="text-xs">Absa <svg class="inline w-3 h-3" viewBox="0 0 24 24"
+                                                    fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path d="M5 12h14M12 5l7 7-7 7"></path>
+                                                </svg> Barclays</div>
+                                        </td>
+                                        <td>
+                                            <div class="font-bold">$890.15</div>
+                                        </td>
+                                        <td><span class="badge warning">Pending Auth</span></td>
+                                        <td>
+                                            <div class="text-gray-400 text-xs">8s ago</div>
+                                        </td>
+                                    </tr>
+                                    <tr class="ticker-row incoming app-row" data-modal="txnDetailModal">
+                                        <td>
+                                            <div class="mono text-xs">TXN-48918</div>
+                                        </td>
+                                        <td><span class="badge success">Incoming</span></td>
+                                        <td>
+                                            <div class="text-xs">DTB <svg class="inline w-3 h-3" viewBox="0 0 24 24"
+                                                    fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path d="M5 12h14M12 5l7 7-7 7"></path>
+                                                </svg> Standard</div>
+                                        </td>
+                                        <td>
+                                            <div class="font-bold">$55,000.00</div>
+                                        </td>
+                                        <td><span class="badge success">Settled</span></td>
+                                        <td>
+                                            <div class="text-gray-400 text-xs">15s ago</div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SIDE PANELS -->
+                <div class="flex flex-col gap-4">
+                    <!-- RAIL STATUS -->
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2 class="panel-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path
+                                        d="M2 20h20M5 20V8a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v12M9 20v-4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4">
+                                    </path>
+                                </svg>Payment Rail Status</h2>
+                            <button class="btn btn-light btn-sm" data-modal="railsSummaryModal">View All</button>
+                        </div>
+                        <div class="panel-body">
+                            <div class="rail-grid">
+                                <div class="rail-card" data-modal="railMetricModal" data-rail="ACH">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <span class="font-bold">ACH</span>
+                                        <span class="badge success">Live</span>
+                                    </div>
+                                    <div class="text-xs text-gray-400">Latency: 120ms</div>
+                                    <div class="w-full bg-gray-100 h-1 rounded-full mt-2">
+                                        <div class="bg-green-500 h-1 rounded-full" style="width: 100%"></div>
+                                    </div>
+                                </div>
+                                <div class="rail-card" data-modal="railMetricModal" data-rail="SWIFT">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <span class="font-bold">SWIFT</span>
+                                        <span class="badge success">Live</span>
+                                    </div>
+                                    <div class="text-xs text-gray-400">Latency: 450ms</div>
+                                    <div class="w-full bg-gray-100 h-1 rounded-full mt-2">
+                                        <div class="bg-green-500 h-1 rounded-full" style="width: 98%"></div>
+                                    </div>
+                                </div>
+                                <div class="rail-card" data-modal="railMetricModal" data-rail="PesaLink">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <span class="font-bold">PesaLink</span>
+                                        <span class="badge warning">Slow</span>
+                                    </div>
+                                    <div class="text-xs text-gray-400">Latency: 2.1s</div>
+                                    <div class="w-full bg-gray-100 h-1 rounded-full mt-2">
+                                        <div class="bg-amber-500 h-1 rounded-full" style="width: 85%"></div>
+                                    </div>
+                                </div>
+                                <div class="rail-card" data-modal="railMetricModal" data-rail="FPS">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <span class="font-bold">FPS</span>
+                                        <span class="badge success">Live</span>
+                                    </div>
+                                    <div class="text-xs text-gray-400">Latency: 80ms</div>
+                                    <div class="w-full bg-gray-100 h-1 rounded-full mt-2">
+                                        <div class="bg-green-500 h-1 rounded-full" style="width: 100%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- LIQUIDITY -->
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2 class="panel-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"></path>
+                                </svg>Liquidity Summary</h2>
+                            <button class="btn btn-light btn-sm" data-modal="liquidityModal">Details</button>
+                        </div>
+                        <div class="panel-body">
+                            <div class="nostro-grid">
+                                <div class="p-3 bg-gray-50 rounded-xl border border-gray-100 cursor-pointer"
+                                    data-modal="nostroDetailModal">
+                                    <div class="text-[10px] text-gray-400 uppercase tracking-wider font-bold mb-1">USD
+                                        Nostro</div>
+                                    <div class="text-lg font-bold">$4.2M</div>
+                                    <div class="text-[10px] text-green-600 mt-1">Healthy</div>
+                                </div>
+                                <div class="p-3 bg-gray-50 rounded-xl border border-gray-100 cursor-pointer"
+                                    data-modal="nostroDetailModal">
+                                    <div class="text-[10px] text-gray-400 uppercase tracking-wider font-bold mb-1">EUR
+                                        Nostro</div>
+                                    <div class="text-lg font-bold">€2.8M</div>
+                                    <div class="text-[10px] text-green-600 mt-1">Healthy</div>
+                                </div>
+                                <div class="p-3 bg-red-50 rounded-xl border border-red-100 cursor-pointer"
+                                    data-modal="nostroDetailModal">
+                                    <div class="text-[10px] text-red-400 uppercase tracking-wider font-bold mb-1">KES
+                                        Nostro</div>
+                                    <div class="text-lg font-bold text-red-700">42M</div>
+                                    <div class="text-[10px] text-red-600 mt-1">Low Balance</div>
+                                </div>
+                                <div class="p-3 bg-gray-50 rounded-xl border border-gray-100 cursor-pointer"
+                                    data-modal="nostroDetailModal">
+                                    <div class="text-[10px] text-gray-400 uppercase tracking-wider font-bold mb-1">GBP
+                                        Nostro</div>
+                                    <div class="text-lg font-bold">£1.4M</div>
+                                    <div class="text-[10px] text-green-600 mt-1">Healthy</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PENDING ACTIONS -->
+            <div class="panel mt-4">
+                <div class="panel-header">
+                    <h2 class="panel-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+                        </svg>Pending Actions Queue</h2>
+                    <div class="panel-actions">
+                        <span class="badge warning">8 items require review</span>
+                        <button class="btn btn-light btn-sm" data-modal="bulkApproveModal">Bulk Approve</button>
+                    </div>
+                </div>
+                <div class="panel-body no-pad">
+                    <div class="list-item">
+                        <div class="list-left">
+                            <div class="list-icon bg-amber-100 text-amber-600"><svg viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="2">
+                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                                </svg></div>
+                            <div>
+                                <div class="list-title font-bold">Compliance Hold: TXN-48902</div>
+                                <div class="list-sub text-xs">High-value transfer ($250,000) · Flagged for PEP review
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button class="btn btn-light btn-sm" data-modal="complianceDetailModal">Details</button>
+                            <button class="btn btn-primary btn-sm" data-modal="authModal">Approve</button>
+                        </div>
+                    </div>
+                    <div class="list-item">
+                        <div class="list-left">
+                            <div class="list-icon bg-red-100 text-red-600"><svg viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="2">
+                                    <path
+                                        d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z">
+                                    </path>
+                                </svg></div>
+                            <div>
+                                <div class="list-title font-bold">SLA Breach Warning: TXN-48881</div>
+                                <div class="list-sub text-xs">SWIFT transfer pending for 4 hours · RTGS rail timeout
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button class="btn btn-light btn-sm" data-modal="errorRetryModal">Reroute</button>
+                            <button class="btn btn-primary btn-sm" data-modal="txnDetailModal">Investigate</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODALS -->
+
+    <!-- 1. Initiate Transfer Wizard (Multi-step) -->
+    <div class="modal-backdrop" id="initiateTransferWizard">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Initiate New Transfer</h3>
+                    <div class="modal-sub">Secure Bank-to-Bank Wire</div>
+                </div>
+                <button class="modal-close" data-close>x</button>
+            </div>
+            <div class="stepper" id="transferStepper">
+                <div class="step active">
+                    <div class="step-num">1</div>Details
+                </div>
+                <div class="step-line"></div>
+                <div class="step">
+                    <div class="step-num">2</div>Routing
+                </div>
+                <div class="step-line"></div>
+                <div class="step">
+                    <div class="step-num">3</div>Security
+                </div>
+                <div class="step-line"></div>
+                <div class="step">
+                    <div class="step-num">4</div>Status
+                </div>
+            </div>
+            <div class="modal-body">
+                <div class="step-panel active" data-step="1">
+                    <div class="field-row">
+                        <div class="field"><label class="field-label">Sender Bank</label><select class="select-field">
+                                <option>Chase Bank (USD)</option>
+                                <option>HSBC (EUR)</option>
+                                <option>KCB (KES)</option>
+                            </select></div>
+                        <div class="field"><label class="field-label">Receiver Bank</label><input class="input"
+                                placeholder="SWIFT/BIC Code"></div>
+                    </div>
+                    <div class="field-row">
+                        <div class="field"><label class="field-label">Amount</label><input class="input" type="number"
+                                placeholder="0.00"></div>
+                        <div class="field"><label class="field-label">Currency</label><select class="select-field">
+                                <option>USD</option>
+                                <option>EUR</option>
+                                <option>KES</option>
+                                <option>GBP</option>
+                            </select></div>
+                    </div>
+                    <div class="field"><label class="field-label">Payment Reference</label><input class="input"
+                            placeholder="e.g. Invoice #2026-04"></div>
+                </div>
+                <div class="step-panel" data-step="2">
+                    <h4 class="text-sm font-bold mb-3">Suggested Smart Routing</h4>
+                    <label class="choice-row selected"><input type="radio" name="rail" checked>
+                        <div>
+                            <div class="choice-title">ACH (Optimal)</div>
+                            <div class="choice-desc">Est: 2s · Fee: $0.15</div>
+                        </div>
+                    </label>
+                    <label class="choice-row"><input type="radio" name="rail">
+                        <div>
+                            <div class="choice-title">SWIFT</div>
+                            <div class="choice-desc">Est: 1h · Fee: $15.00</div>
+                        </div>
+                    </label>
+                    <label class="choice-row"><input type="radio" name="rail">
+                        <div>
+                            <div class="choice-title">FedNow</div>
+                            <div class="choice-desc">Est: Instant · Fee: $0.50</div>
+                        </div>
+                    </label>
+                </div>
+                <div class="step-panel" data-step="3">
+                    <div class="text-center">
+                        <h4 class="font-bold mb-2">Authorize Transfer</h4>
+                        <p class="text-xs text-gray-500 mb-4">Enter your 4-digit admin security PIN</p>
+                        <div class="flex justify-center gap-2 mb-4">
+                            <div
+                                class="w-10 h-12 border border-gray-300 rounded-lg flex items-center justify-center font-bold text-xl pin-dot">
+                            </div>
+                            <div
+                                class="w-10 h-12 border border-gray-300 rounded-lg flex items-center justify-center font-bold text-xl pin-dot">
+                            </div>
+                            <div
+                                class="w-10 h-12 border border-gray-300 rounded-lg flex items-center justify-center font-bold text-xl pin-dot">
+                            </div>
+                            <div
+                                class="w-10 h-12 border border-gray-300 rounded-lg flex items-center justify-center font-bold text-xl pin-dot">
+                            </div>
+                        </div>
+                        <div class="pin-grid">
+                            <button class="pin-btn">1</button><button class="pin-btn">2</button><button
+                                class="pin-btn">3</button>
+                            <button class="pin-btn">4</button><button class="pin-btn">5</button><button
+                                class="pin-btn">6</button>
+                            <button class="pin-btn">7</button><button class="pin-btn">8</button><button
+                                class="pin-btn">9</button>
+                            <button class="pin-btn">C</button><button class="pin-btn">0</button><button
+                                class="pin-btn">✓</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="step-panel" data-step="4">
+                    <div id="transferLoader" class="hidden text-center py-10">
+                        <div
+                            class="inline-block w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mb-4">
+                        </div>
+                        <p class="font-bold">Communicating with Rail...</p>
+                    </div>
+                    <div id="transferSuccess" class="text-center py-10">
+                        <div
+                            class="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg></div>
+                        <h4 class="text-lg font-bold">Transfer Settled</h4>
+                        <p class="text-sm text-gray-500 mb-6">Ref: TXN-48922</p>
+                        <button class="btn btn-light" data-modal="txnDetailModal">View Receipt</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-light" id="wizardBack" disabled>Back</button>
+                <button class="btn btn-primary" id="wizardNext">Continue</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Transaction Detail (Tabs within Modal) -->
+    <div class="modal-backdrop" id="txnDetailModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Transaction: TXN-48921</h3>
+                    <div class="modal-sub">Settled · USD 4,250.00</div>
+                </div>
+                <button class="modal-close" data-close>x</button>
+            </div>
+            <div class="tabs px-4 border-b border-gray-100">
+                <button class="tab active" data-tab="txn-overview">General</button>
+                <button class="tab" data-tab="txn-routing">Network Path</button>
+                <button class="tab" data-tab="txn-compliance">AML/KYC</button>
+            </div>
+            <div class="modal-body">
+                <div class="tab-panel active" data-panel="txn-overview">
+                    <div class="kv-grid">
+                        <div>
+                            <div class="kv-label">Sender</div>
+                            <div class="kv-val">Acme Logistics Ltd</div>
+                        </div>
+                        <div>
+                            <div class="kv-label">Beneficiary</div>
+                            <div class="kv-val">Global Suppliers Inc</div>
+                        </div>
+                        <div>
+                            <div class="kv-label">Sender Bank</div>
+                            <div class="kv-val">Chase Bank (US)</div>
+                        </div>
+                        <div>
+                            <div class="kv-label">Receiver Bank</div>
+                            <div class="kv-val">Equity Bank (KE)</div>
+                        </div>
+                        <div>
+                            <div class="kv-label">Payment Rail</div>
+                            <div class="kv-val">ACH/PesaLink</div>
+                        </div>
+                        <div>
+                            <div class="kv-label">Fee Incurred</div>
+                            <div class="kv-val">$0.15</div>
+                        </div>
+                    </div>
+                    <div class="alert success mt-4"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>Settlement confirmed by receiving bank in 2.1s</div>
+                </div>
+                <div class="tab-panel" data-panel="txn-routing">
+                    <div class="timeline">
+                        <div class="tl-item">
+                            <div class="tl-time">10:02:01</div>
+                            <div class="tl-text font-bold">Initiated</div>
+                            <div class="text-[10px]">Payment instruction received from API</div>
+                        </div>
+                        <div class="tl-item">
+                            <div class="tl-time">10:02:02</div>
+                            <div class="tl-text">Screening Passed</div>
+                            <div class="text-[10px]">AML & Fraud checks completed</div>
+                        </div>
+                        <div class="tl-item">
+                            <div class="tl-time">10:02:02</div>
+                            <div class="tl-text">Nostro Reserved</div>
+                            <div class="text-[10px]">Funds locked in USD Float</div>
+                        </div>
+                        <div class="tl-item">
+                            <div class="tl-time">10:02:03</div>
+                            <div class="tl-text">Dispatched</div>
+                            <div class="text-[10px]">Sent to PesaLink Rail</div>
+                        </div>
+                        <div class="tl-item">
+                            <div class="tl-time">10:02:04</div>
+                            <div class="tl-text font-bold">Settled</div>
+                            <div class="text-[10px]">Beneficiary bank ACK received</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-panel" data-panel="txn-compliance">
+                    <div class="config-row">
+                        <div>
+                            <div class="config-label">Sanctions Screening</div>
+                        </div><span class="badge success">Clear</span>
+                    </div>
+                    <div class="config-row">
+                        <div>
+                            <div class="config-label">PEP Match</div>
+                        </div><span class="badge success">Negative</span>
+                    </div>
+                    <div class="config-row">
+                        <div>
+                            <div class="config-label">Risk Scoring</div>
+                        </div><span class="badge primary">Low (12/100)</span>
+                    </div>
+                    <div class="alert info mt-4">Risk score calculated based on sender history and beneficiary
+                        reputation.</div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end">
+                <button class="btn btn-light" data-modal="reportModal">Export PDF</button>
+                <button class="btn btn-primary" data-close>Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Rail Detail Pop-up -->
+    <div class="modal-backdrop" id="railMetricModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title"><span id="railName">Rail</span> Health Detail</h3>
+                    <div class="modal-sub">Real-time Telemetry</div>
+                </div>
+                <button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="stats-row mb-4" style="grid-template-columns: 1fr 1fr">
+                    <div class="stat-card" style="margin:0">
+                        <div class="stat-label">Uptime</div>
+                        <div class="stat-value text-lg">99.98%</div>
+                    </div>
+                    <div class="stat-card" style="margin:0">
+                        <div class="stat-label">Load</div>
+                        <div class="stat-value text-lg">12%</div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 rounded-xl p-4">
+                    <div class="flex justify-between mb-2"><span class="text-xs font-bold">Average Latency</span><span
+                            class="text-xs text-indigo-600">82ms</span></div>
+                    <svg class="w-full h-16" viewBox="0 0 200 40" preserveAspectRatio="none">
+                        <path d="M0,30 L20,25 L40,32 L60,20 L80,28 L100,10 L120,35 L140,25 L160,30 L180,15 L200,28"
+                            fill="none" stroke="var(--primary)" stroke-width="2"></path>
+                    </svg>
+                </div>
+                <div class="mt-4">
+                    <h4 class="text-xs font-bold uppercase mb-2">Maintenance Window</h4>
+                    <div class="text-sm">Sunday, 02:00 AM - 04:00 AM UTC</div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end">
+                <button class="btn btn-light" data-close>Close</button>
+                <button class="btn btn-primary" data-modal="errorRetryModal">View Logs</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. Liquidity & Replenishment (Multi-tab) -->
+    <div class="modal-backdrop" id="liquidityModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Liquidity Position</h3>
+                    <div class="modal-sub">All Nostro Accounts</div>
+                </div>
+                <button class="modal-close" data-close>x</button>
+            </div>
+            <div class="tabs px-4 border-b border-gray-100">
+                <button class="tab active" data-tab="liq-overview">Float Status</button>
+                <button class="tab" data-tab="liq-auto">Replenishment Rules</button>
+                <button class="tab" data-tab="liq-history">Movement Log</button>
+            </div>
+            <div class="modal-body">
+                <div class="tab-panel active" data-panel="liq-overview">
+                    <div class="table-wrap">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Account</th>
+                                    <th>Currency</th>
+                                    <th>Available</th>
+                                    <th>Reserved</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>PayMo-Chase-01</td>
+                                    <td>USD</td>
+                                    <td>$4,210,000</td>
+                                    <td>$140,000</td>
+                                    <td><span class="badge success">Healthy</span></td>
+                                </tr>
+                                <tr>
+                                    <td>PayMo-HSBC-02</td>
+                                    <td>EUR</td>
+                                    <td>€2,800,000</td>
+                                    <td>$82,000</td>
+                                    <td><span class="badge success">Healthy</span></td>
+                                </tr>
+                                <tr>
+                                    <td>PayMo-KCB-01</td>
+                                    <td>KES</td>
+                                    <td>42,100,000</td>
+                                    <td>$2M</td>
+                                    <td><span class="badge danger">Low</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="tab-panel" data-panel="liq-auto">
+                    <div class="config-row">
+                        <div>
+                            <div class="config-label">Auto-Sweep (USD)</div>
+                            <div class="config-desc">Replenish if below $500k</div>
+                        </div>
+                        <label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+                    </div>
+                    <div class="config-row">
+                        <div>
+                            <div class="config-label">Auto-Sweep (EUR)</div>
+                            <div class="config-desc">Replenish if below €200k</div>
+                        </div>
+                        <label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label>
+                    </div>
+                    <button class="btn btn-primary btn-sm mt-4" data-modal="nostroDetailModal">New Rule</button>
+                </div>
+                <div class="tab-panel" data-panel="liq-history">
+                    <div class="p-10 text-center text-gray-400">Loading historical liquidity movements...</div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end">
+                <button class="btn btn-light" data-close>Cancel</button>
+                <button class="btn btn-primary" data-modal="initiateTransferWizard">Fund Account</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. Notifications Pop-up -->
+    <div class="modal-backdrop" id="notificationsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Ops Alerts</h3>
+                    <div class="modal-sub">8 unread system alerts</div>
+                </div>
+                <button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="list-item border-b">
+                    <div class="list-left">
+                        <div class="w-2 h-2 rounded-full bg-red-500 mr-2"></div>
+                        <div>
+                            <div class="list-title font-bold text-xs">KES Liquidity Critical</div>
+                            <div class="list-sub text-[10px]">Nostro balance below 5% threshold</div>
+                        </div>
+                    </div>
+                    <button class="btn btn-light btn-sm text-[10px]" data-modal="liquidityModal">Fix</button>
+                </div>
+                <div class="list-item border-b">
+                    <div class="list-left">
+                        <div class="w-2 h-2 rounded-full bg-amber-500 mr-2"></div>
+                        <div>
+                            <div class="list-title font-bold text-xs">PesaLink Delay</div>
+                            <div class="list-sub text-[10px]">Processing time exceeding 2s</div>
+                        </div>
+                    </div>
+                    <button class="btn btn-light btn-sm text-[10px]" data-modal="railMetricModal">Logs</button>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end">
+                <button class="btn btn-light text-xs" data-close>Mark All Read</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. Bulk Upload (Simple Modal) -->
+    <div class="modal-backdrop" id="bulkUploadModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Bulk Transfer</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="border-2 border-dashed border-gray-200 rounded-xl p-8 text-center bg-gray-50">
+                    <svg class="w-10 h-10 text-gray-400 mx-auto mb-2" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    <div class="text-sm font-bold">Drop CSV/XLSX here</div>
+                    <div class="text-xs text-gray-400 mt-1">Maximum 5,000 records per file</div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end">
+                <button class="btn btn-light" data-close>Cancel</button>
+                <button class="btn btn-primary" data-result="File uploaded and validating">Process File</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 7. Result Modal (Confirmation) -->
+    <div class="modal-backdrop" id="resultModal">
+        <div class="modal">
+            <div class="modal-body text-center py-8">
+                <div
+                    class="w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg></div>
+                <h3 class="font-bold text-lg mb-1" id="resultTitle">Success</h3>
+                <p class="text-sm text-gray-500" id="resultMessage">Operation completed.</p>
+            </div>
+            <div class="modal-footer modal-footer-end">
+                <button class="btn btn-primary px-10" data-close>OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 8. Auth Modal (Security PIN for Approval) -->
+    <div class="modal-backdrop" id="authModal">
+        <div class="modal sm">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Admin PIN</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body text-center">
+                <p class="text-sm mb-4">Confirm approval for TXN-48902</p>
+                <div class="flex justify-center gap-2 mb-4">
+                    <div class="w-8 h-10 border border-gray-200 rounded-md"></div>
+                    <div class="w-8 h-10 border border-gray-200 rounded-md"></div>
+                    <div class="w-8 h-10 border border-gray-200 rounded-md"></div>
+                    <div class="w-8 h-10 border border-gray-200 rounded-md"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-light" data-close>Cancel</button>
+                <button class="btn btn-primary" data-result="Transaction Approved">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 9. Compliance Detail -->
+    <div class="modal-backdrop" id="complianceDetailModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Compliance Review</h3>
+                    <div class="modal-sub">TXN-48902</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="alert danger mb-4">Potentially Exposed Person (PEP) detected in beneficiary registry.</div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="uw-card">
+                        <div class="uw-title">Risk Match</div>
+                        <div class="text-xs">Match: 94.2% on name "John Doe"<br>Database: UN Sanctions, World-Check
+                        </div>
+                    </div>
+                    <div class="uw-card">
+                        <div class="uw-title">Action</div>
+                        <div class="text-xs">Enhanced Due Diligence (EDD) required before settlement.</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" data-result="Transaction Rejected">Block</button>
+                <button class="btn btn-primary" data-modal="authModal">Override</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 10. Error/Retry Reroute -->
+    <div class="modal-backdrop" id="errorRetryModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Retry/Reroute</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <p class="text-sm mb-4">Original rail (RTGS) is timing out. Select fallback rail:</p>
+                <label class="choice-row selected"><input type="radio" checked>
+                    <div>
+                        <div class="choice-title">SWIFT (Available)</div>
+                        <div class="choice-desc">+ $20.00 extra fee</div>
+                    </div>
+                </label>
+                <label class="choice-row"><input type="radio">
+                    <div>
+                        <div class="choice-title">Wait for RTGS Recovery</div>
+                        <div class="choice-desc">Est. wait: 12min</div>
+                    </div>
+                </label>
+            </div>
+            <div class="modal-footer modal-footer-end">
+                <button class="btn btn-primary" data-result="Reroute scheduled via SWIFT">Reroute</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 11. Reporting (Wizard/Tabs) -->
+    <div class="modal-backdrop" id="reportModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Analytics & Reports</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="tabs px-4">
+                <button class="tab active" data-tab="rep-gen">Generate</button>
+                <button class="tab" data-tab="rep-hist">Scheduled</button>
+            </div>
+            <div class="modal-body">
+                <div class="tab-panel active" data-panel="rep-gen">
+                    <div class="field"><label class="field-label">Report Type</label><select class="select-field">
+                            <option>Transfer Reconciliation</option>
+                            <option>Rail Uptime SLA</option>
+                            <option>Liquidity Gap Analysis</option>
+                        </select></div>
+                    <div class="field-row">
+                        <div class="field"><label class="field-label">Period</label><select class="select-field">
+                                <option>Last 24h</option>
+                                <option>MTD</option>
+                                <option>Quarterly</option>
+                            </select></div>
+                        <div class="field"><label class="field-label">Format</label><select class="select-field">
+                                <option>PDF</option>
+                                <option>XLSX</option>
+                            </select></div>
+                    </div>
+                    <button class="btn btn-primary w-full mt-4"
+                        data-result="Report generated and emailed to your admin address">Generate Instant
+                        Report</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 12-25. Nav/KPI Background Modals (Content Rich) -->
+    <div class="modal-backdrop" id="volumeModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Volume Analytics</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body"><svg class="w-full h-32 mb-4" viewBox="0 0 200 60">
+                    <path d="M0,50 L20,40 L40,45 L60,30 L80,35 L100,20 L120,25 L140,15 L160,10 L180,5 L200,8"
+                        fill="none" stroke="var(--primary)" stroke-width="2"></path>
+                </svg>
+                <div class="kv-grid">
+                    <div>
+                        <div class="kv-label">MTD Volume</div>
+                        <div class="kv-val">$184.2M</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Avg Daily</div>
+                        <div class="kv-val">$11.2M</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Close</button></div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="successRateModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Success Metrics</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="dist-row">
+                    <div class="dist-label">Settled</div>
+                    <div class="dist-bar"><span style="width:99%;background:var(--success);"></span></div>
+                    <div class="dist-val">99.2%</div>
+                </div>
+                <div class="dist-row">
+                    <div class="dist-label">Failed</div>
+                    <div class="dist-bar"><span style="width:1%;background:var(--danger);"></span></div>
+                    <div class="dist-val">0.8%</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="settlementTimeModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Settlement Performance</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="table-wrap">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Rail</th>
+                                <th>Avg</th>
+                                <th>Max</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>PesaLink</td>
+                                <td>1.2s</td>
+                                <td>2.4s</td>
+                            </tr>
+                            <tr>
+                                <td>FPS</td>
+                                <td>0.8s</td>
+                                <td>1.5s</td>
+                            </tr>
+                            <tr>
+                                <td>SWIFT</td>
+                                <td>45m</td>
+                                <td>4h</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="failedTxnModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Failure Queue</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="list-item">
+                    <div>
+                        <div class="font-bold">TXN-48810</div>
+                        <div class="text-xs text-red-500">Invalid BIC code</div>
+                    </div><button class="btn btn-light btn-sm" data-modal="initiateTransferWizard">Edit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="activeRailsModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Rail Connectivity</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="p-4 border rounded-xl">
+                        <div class="font-bold">Main Hub</div>
+                        <div class="text-xs text-green-500">Connected</div>
+                    </div>
+                    <div class="p-4 border rounded-xl">
+                        <div class="font-bold">Backup Node</div>
+                        <div class="text-xs text-green-500">Standby</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="nostroModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Nostro Inventory</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="p-10 text-center">Nostro account inventory details...</div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="nostroDetailModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">USD Nostro #01</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="kv-grid">
+                    <div>
+                        <div class="kv-label">Bank</div>
+                        <div class="kv-val">Chase Manhattan</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Acc Num</div>
+                        <div class="kv-val">****8810</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="complianceModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Compliance Dashboard</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="p-10 text-center">AML/KYC aggregate data...</div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="bulkApproveModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Bulk Approval</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <p class="text-sm">Approve 8 pending items?</p>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-primary"
+                    data-result="8 Transfers Approved">Approve All</button></div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="railsSummaryModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Payment Network Infrastructure</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="p-10 text-center">Full network diagram...</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="slaSettingsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">SLA Warning Thresholds</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="field"><label class="field-label">Warning Threshold (Minutes)</label><input class="input"
+                        value="15"></div>
+                <div class="field"><label class="field-label">Critical Threshold (Minutes)</label><input class="input"
+                        value="60"></div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-primary"
+                    data-result="SLA thresholds updated">Update</button></div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="replenishmentWizard">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Liquidity Replenishment</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="field"><label class="field-label">Target Account</label><select class="select-field">
+                        <option>KES Nostro</option>
+                        <option>NGN Nostro</option>
+                    </select></div>
+                <div class="field"><label class="field-label">Funding Source</label><select class="select-field">
+                        <option>USD Main Float</option>
+                        <option>EUR Liquidity Line</option>
+                    </select></div>
+                <div class="field"><label class="field-label">Amount</label><input class="input" value="1000000"></div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-primary"
+                    data-result="Replenishment request submitted">Submit</button></div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="auditLogModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">System Audit Log</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="timeline">
+                    <div class="tl-item">
+                        <div class="tl-time">1 min ago</div>
+                        <div class="tl-text">Admin approved TXN-48902</div>
+                    </div>
+                    <div class="tl-item">
+                        <div class="tl-time">5 mins ago</div>
+                        <div class="tl-text">Rail PesaLink changed status to SLOW</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="userPermissionsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Admin Access Control</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">Initiate Transfers</div>
+                    </div><label class="toggle"><input type="checkbox" checked><span
+                            class="toggle-slider"></span></label>
+                </div>
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">Override Compliance</div>
+                    </div><label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label>
+                </div>
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">Manage Liquidity</div>
+                    </div><label class="toggle"><input type="checkbox" checked><span
+                            class="toggle-slider"></span></label>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="maintenanceScheduleModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Maintenance Windows</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="field"><label class="field-label">Rail</label><select class="select-field">
+                        <option>SWIFT</option>
+                        <option>ACH</option>
+                    </select></div>
+                <div class="field"><label class="field-label">Start Time</label><input class="input"
+                        type="datetime-local"></div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-primary"
+                    data-result="Maintenance window scheduled">Schedule</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="currencyPairModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">FX Pair Management</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">USD/KES</div>
+                    </div><span class="badge success">Live</span>
+                </div>
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">EUR/NGN</div>
+                    </div><span class="badge warning">Limited</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="feeStructureModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Transfer Fees</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="field"><label class="field-label">Flat Fee (USD)</label><input class="input" value="0.15">
+                </div>
+                <div class="field"><label class="field-label">Percentage Fee (%)</label><input class="input"
+                        value="0.01"></div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="beneficiaryRegistryModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Global Beneficiary Registry</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="search-box mb-4"><input placeholder="Search beneficiaries..."></div>
+                <div class="p-10 text-center">Registry data...</div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="reconciliationWizard">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Daily Reconciliation</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="p-10 text-center">Matching internal ledger to Nostro statements...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPT -->
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        document.getElementById('sidebarToggle').addEventListener('click', () => sidebar.classList.toggle('expanded'));
+        document.getElementById('mobileMenuBtn').addEventListener('click', () => sidebar.classList.toggle('mobile-open'));
+
+        // Modal Control
+        function openModal(id) {
+            const m = document.getElementById(id);
+            if (m) {
+                // Handle loading simulation for specific modals
+                if (id === 'initiateTransferWizard') { resetWizard(); }
+                m.classList.add('show');
+            }
+        }
+        function closeAll() {
+            document.querySelectorAll('.modal-backdrop.show').forEach(m => m.classList.remove('show'));
+        }
+
+        document.addEventListener('click', e => {
+            const close = e.target.closest('[data-close]');
+            if (close) { closeAll(); return; }
+
+            const result = e.target.closest('[data-result]');
+            if (result) {
+                e.preventDefault();
+                const msg = result.dataset.result;
+                closeAll();
+                document.getElementById('resultMessage').textContent = msg;
+                openModal('resultModal');
+                return;
+            }
+
+            const opener = e.target.closest('[data-modal]');
+            if (opener) {
+                const targetId = opener.dataset.modal;
+                // Specific logic for dynamic modals
+                if (targetId === 'railMetricModal' && opener.dataset.rail) {
+                    document.getElementById('railName').textContent = opener.dataset.rail;
+                }
+                openModal(targetId);
+            }
+        });
+
+        document.querySelectorAll('.modal-backdrop').forEach(b => b.addEventListener('click', e => { if (e.target === b) closeAll(); }));
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAll(); });
+
+        // Tab Logic
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const container = tab.closest('.modal');
+                container.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                container.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+                tab.classList.add('active');
+                container.querySelector(`[data-panel="${tab.dataset.tab}"]`).classList.add('active');
+            });
+        });
+
+        // Wizard Logic
+        function resetWizard() {
+            const wiz = document.getElementById('initiateTransferWizard');
+            wiz.querySelectorAll('.step').forEach((s, i) => s.classList.toggle('active', i === 0));
+            wiz.querySelectorAll('.step-panel').forEach((p, i) => p.classList.toggle('active', i === 0));
+            document.getElementById('wizardBack').disabled = true;
+            document.getElementById('wizardNext').textContent = 'Continue';
+            document.getElementById('transferLoader').classList.add('hidden');
+            document.getElementById('transferSuccess').classList.add('hidden');
+        }
+
+        document.getElementById('wizardNext').addEventListener('click', function () {
+            const wiz = document.getElementById('initiateTransferWizard');
+            const activeStep = wiz.querySelector('.step.active');
+            const stepIndex = Array.from(wiz.querySelectorAll('.step')).indexOf(activeStep);
+            const totalSteps = wiz.querySelectorAll('.step').length;
+
+            if (stepIndex < totalSteps - 1) {
+                const nextIdx = stepIndex + 1;
+
+                // Handle "Security" to "Status" simulation
+                if (nextIdx === 3) {
+                    this.classList.add('hidden');
+                    document.getElementById('wizardBack').classList.add('hidden');
+                    wiz.querySelector(`[data-step="${stepIndex + 1}"]`).classList.remove('active');
+                    wiz.querySelector(`[data-step="${nextIdx + 1}"]`).classList.add('active');
+                    wiz.querySelectorAll('.step')[nextIdx].classList.add('active');
+
+                    document.getElementById('transferLoader').classList.remove('hidden');
+                    setTimeout(() => {
+                        document.getElementById('transferLoader').classList.add('hidden');
+                        document.getElementById('transferSuccess').classList.remove('hidden');
+                        this.classList.remove('hidden');
+                        this.textContent = 'Done';
+                    }, 2000);
+                } else {
+                    activeStep.classList.remove('active');
+                    activeStep.classList.add('done');
+                    wiz.querySelectorAll('.step')[nextIdx].classList.add('active');
+                    wiz.querySelector(`[data-step="${stepIndex + 1}"]`).classList.remove('active');
+                    wiz.querySelector(`[data-step="${nextIdx + 1}"]`).classList.add('active');
+                    document.getElementById('wizardBack').disabled = false;
+                }
+            } else {
+                closeAll();
+            }
+        });
+
+        document.getElementById('wizardBack').addEventListener('click', function () {
+            const wiz = document.getElementById('initiateTransferWizard');
+            const activeStep = wiz.querySelector('.step.active');
+            const stepIndex = Array.from(wiz.querySelectorAll('.step')).indexOf(activeStep);
+
+            if (stepIndex > 0) {
+                const prevIdx = stepIndex - 1;
+                activeStep.classList.remove('active');
+                wiz.querySelectorAll('.step')[prevIdx].classList.add('active');
+                wiz.querySelectorAll('.step')[prevIdx].classList.remove('done');
+                wiz.querySelector(`[data-step="${stepIndex + 1}"]`).classList.remove('active');
+                wiz.querySelector(`[data-step="${prevIdx + 1}"]`).classList.add('active');
+                if (prevIdx === 0) this.disabled = true;
+            }
+        });
+
+        // PIN Pad simulation
+        document.querySelectorAll('.pin-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const dots = document.querySelectorAll('.pin-dot');
+                for (let dot of dots) {
+                    if (!dot.textContent) {
+                        dot.textContent = '•';
+                        break;
+                    }
+                }
+            });
+        });
+
+        // Mock ticker update
+        setInterval(() => {
+            if (document.getElementById('pauseTicker').textContent === 'Pause Feed') {
+                const row = document.querySelector('.ticker-row').cloneNode(true);
+                document.getElementById('liveTickerBody').prepend(row);
+                if (document.getElementById('liveTickerBody').children.length > 8) {
+                    document.getElementById('liveTickerBody').lastElementChild.remove();
+                }
+            }
+        }, 3000);
+
+        document.getElementById('pauseTicker').addEventListener('click', function () {
+            this.textContent = this.textContent === 'Pause Feed' ? 'Resume Feed' : 'Pause Feed';
+            this.classList.toggle('btn-primary');
+        });
+
+    </script>
+</body>
+
+</html>

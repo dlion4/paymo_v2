@@ -1,0 +1,1289 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Initiate Transfer - PayMo BaaS</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="./master.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        .transfer-form-grid {
+            display: grid;
+            grid-template-columns: 1.6fr 1fr;
+            gap: 24px;
+        }
+
+        .rail-card {
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 14px;
+            cursor: pointer;
+            transition: all .15s;
+            background: var(--surface);
+            position: relative;
+        }
+
+        .rail-card:hover,
+        .rail-card.selected {
+            border-color: var(--primary);
+            background: var(--primary-soft);
+        }
+
+        .rail-card.recommended::after {
+            content: "Recommended";
+            position: absolute;
+            top: -10px;
+            right: 10px;
+            background: var(--primary);
+            color: #fff;
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .amount-input-group {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .amount-input-group input {
+            font-size: 32px;
+            font-weight: 700;
+            padding: 12px 100px 12px 16px;
+            width: 100%;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+        }
+
+        .amount-input-group .currency-select {
+            position: absolute;
+            right: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            background: var(--surface-3);
+            padding: 6px 12px;
+            border-radius: 10px;
+        }
+
+        .nostro-card {
+            border: 1px solid var(--border-soft);
+            border-radius: 14px;
+            padding: 16px;
+            background: var(--surface-2);
+            margin-bottom: 12px;
+        }
+
+        .fx-rate-box {
+            background: var(--info-soft);
+            color: var(--info);
+            padding: 12px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .pin-input {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .pin-box {
+            width: 48px;
+            height: 56px;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: 700;
+            background: var(--surface);
+        }
+
+        .pin-box:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 4px var(--primary-soft);
+        }
+
+        .approver-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--surface-3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 600;
+            border: 2px solid #fff;
+            margin-left: -8px;
+        }
+
+        .approver-avatar:first-child {
+            margin-left: 0;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-soft);
+            font-size: 13px;
+        }
+
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+
+        .summary-label {
+            color: var(--text-3);
+        }
+
+        .summary-value {
+            font-weight: 600;
+        }
+
+        .bank-item {
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid var(--border-soft);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all .15s;
+        }
+
+        .bank-item:hover {
+            border-color: var(--primary);
+            background: var(--surface-2);
+        }
+
+        .kv-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .step-content {
+            display: none;
+        }
+
+        .step-content.active {
+            display: block;
+            animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 900px) {
+            .transfer-form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-logo">P</div>
+            <nav class="sidebar-nav">
+                <button class="sidebar-item" title="Dashboard" data-modal="navDashModal"><svg viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                    </svg><span class="sidebar-label">Dashboard</span></button>
+                <button class="sidebar-item active" title="Initiate Transfer"><svg viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg><span class="sidebar-label">Transfer</span></button>
+                <button class="sidebar-item" title="Activity" data-modal="navActivityModal"><svg viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="20" x2="12" y2="10"></line>
+                        <line x1="18" y1="20" x2="18" y2="4"></line>
+                        <line x1="6" y1="20" x2="6" y2="16"></line>
+                    </svg><span class="sidebar-label">Activity</span></button>
+                <button class="sidebar-item" title="Beneficiaries" data-modal="navBenModal"><svg viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    </svg><span class="sidebar-label">Address Book</span></button>
+                <button class="sidebar-item" title="Institutions" data-modal="navInstModal"><svg viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 21h18"></path>
+                        <path d="M3 10h18"></path>
+                        <path d="M5 6l7-3 7 3"></path>
+                        <path d="M4 10v11"></path>
+                        <path d="M20 10v11"></path>
+                    </svg><span class="sidebar-label">Banks</span></button>
+                <button class="sidebar-item" title="Wallets" data-modal="navWalletModal"><svg viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path>
+                        <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path>
+                    </svg><span class="sidebar-label">Wallets</span></button>
+            </nav>
+            <button class="sidebar-expand" id="sidebarToggle"><svg width="12" height="12" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg><span class="sidebar-label">Collapse</span></button>
+        </aside>
+
+        <main class="main">
+            <div class="topbar">
+                <div>
+                    <div class="crumb">
+                        <button class="mobile-menu-btn btn btn-light btn-sm" id="mobileMenuBtn"
+                            style="margin-right:8px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2">
+                                <line x1="3" y1="12" x2="21" y2="12"></line>
+                                <line x1="3" y1="6" x2="21" y2="6"></line>
+                                <line x1="3" y1="18" x2="21" y2="18"></line>
+                            </svg></button>
+                        <span>Payments</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg><span>Initiate Transfer</span>
+                    </div>
+                    <h1 class="page-title">Initiate Transfer</h1>
+                </div>
+                <div class="topbar-actions">
+                    <button class="btn btn-light" data-modal="approvalMatrixModal">Approval Matrix</button>
+                    <button class="btn btn-light" data-modal="bulkTemplateModal"><svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>Bulk Template</button>
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="stats-row">
+                <div class="stat-card" data-modal="nostroBalanceModal">
+                    <div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg></div>
+                    <div class="stat-label">Available Float</div>
+                    <div class="stat-value">$14.2M</div>
+                    <div class="stat-trend up"><span>All accounts verified</span></div>
+                </div>
+                <div class="stat-card" data-modal="dailyLimitModal">
+                    <div class="stat-icon amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                        </svg></div>
+                    <div class="stat-label">Daily Limit Used</div>
+                    <div class="stat-value">62%</div>
+                    <div class="stat-trend neutral"><span>$8.4M / $13.5M</span></div>
+                </div>
+                <div class="stat-card" data-modal="pendingApprovalModal">
+                    <div class="stat-icon purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                        </svg></div>
+                    <div class="stat-label">Pending Approval</div>
+                    <div class="stat-value">12</div>
+                    <div class="stat-trend up"><span>High priority: 4</span></div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="tabs" id="transferTabs">
+                    <button class="tab active" data-tab="single"><svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <line x1="22" y1="2" x2="11" y2="13"></line>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                        </svg>Single Transfer</button>
+                    <button class="tab" data-tab="bulk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="3" y1="9" x2="21" y2="9"></line>
+                            <line x1="9" y1="21" x2="9" y2="9"></line>
+                        </svg>Bulk / Batch</button>
+                    <button class="tab" data-tab="recurring"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polyline points="23 4 23 10 17 10"></polyline>
+                            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                        </svg>Recurring / Scheduled</button>
+                </div>
+
+                <div class="panel-body">
+                    <div class="tab-panel active" data-panel="single">
+                        <div class="transfer-form-grid">
+                            <!-- Left Column: Form -->
+                            <div class="space-y-6">
+                                <!-- 1. Source Account -->
+                                <div class="uw-card">
+                                    <div class="uw-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                            stroke-width="2">
+                                            <path d="M3 21h18"></path>
+                                            <path d="M3 10h18"></path>
+                                            <path d="M5 6l7-3 7 3"></path>
+                                        </svg>Source Account</div>
+                                    <div class="field">
+                                        <label class="field-label">Select Source</label>
+                                        <select class="select-field" id="sourceAccount">
+                                            <option value="nostro_usd">Main Nostro - USD ($8,420,110.42)</option>
+                                            <option value="float_kes">Local Float - KES (KES 452,000,000)</option>
+                                            <option value="client_reserve">Client Safeguarding Account ($2,100,000)
+                                            </option>
+                                        </select>
+                                    </div>
+                                    <div class="nostro-card">
+                                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                                            <div>
+                                                <div class="kv-label">Verification Status</div>
+                                                <div class="badge success" style="margin-top:4px;"><span
+                                                        class="badge-dot"></span>Active & Validated</div>
+                                            </div>
+                                            <div class="text-right">
+                                                <div class="kv-label">Last Recon</div>
+                                                <div class="kv-val">2 mins ago</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 2. Beneficiary Details -->
+                                <div class="uw-card">
+                                    <div class="uw-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                            stroke-width="2">
+                                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                            <circle cx="9" cy="7" r="4"></circle>
+                                        </svg>Receiver Details</div>
+                                    <div class="field">
+                                        <label class="field-label">Search Beneficiary or Bank</label>
+                                        <div class="flex gap-2">
+                                            <div class="search-box flex-1">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                    stroke-width="2">
+                                                    <circle cx="11" cy="11" r="8"></circle>
+                                                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                                </svg>
+                                                <input placeholder="Search name, account, IBAN, or bank..."
+                                                    id="benSearch">
+                                            </div>
+                                            <button class="btn btn-light" data-modal="bankDirModal">Browse
+                                                Banks</button>
+                                        </div>
+                                    </div>
+                                    <div class="field-row">
+                                        <div class="field">
+                                            <label class="field-label">Account Name</label>
+                                            <div class="flex gap-2">
+                                                <input class="input" id="receiverName" value="Globex Manufacturing Ltd">
+                                                <button class="btn btn-light btn-sm"
+                                                    data-modal="nameMatchModal">Verify</button>
+                                            </div>
+                                        </div>
+                                        <div class="field">
+                                            <label class="field-label">Account Number / IBAN</label>
+                                            <input class="input" id="receiverAccount" value="CHASUS33-992108842">
+                                        </div>
+                                    </div>
+                                    <label class="choice-row">
+                                        <input type="checkbox" checked>
+                                        <div>
+                                            <div class="choice-title">Save to Address Book</div>
+                                            <div class="choice-desc">Add this beneficiary for future transfers</div>
+                                        </div>
+                                    </label>
+                                </div>
+
+                                <!-- 3. Amount & FX -->
+                                <div class="uw-card">
+                                    <div class="uw-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                            stroke-width="2">
+                                            <line x1="12" y1="1" x2="12" y2="23"></line>
+                                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"></path>
+                                        </svg>Transfer Amount</div>
+                                    <div class="amount-input-group">
+                                        <input type="number" value="12500.00" id="transferAmount">
+                                        <select class="currency-select" id="transferCurrency">
+                                            <option>USD</option>
+                                            <option>KES</option>
+                                            <option>GBP</option>
+                                            <option>EUR</option>
+                                        </select>
+                                    </div>
+                                    <div class="fx-rate-box mt-3" id="fxRateBox">
+                                        <span>FX Rate: 1 USD = 129.45 KES</span>
+                                        <button class="btn btn-light btn-sm"
+                                            style="background:rgba(255,255,255,0.4);border:none;">Refresh</button>
+                                    </div>
+                                    <div class="space-y-2 mt-4">
+                                        <div class="summary-item"><span class="summary-label">Platform Fee</span><span
+                                                class="summary-value">$1.50</span></div>
+                                        <div class="summary-item"><span class="summary-label">Network Fee
+                                                (Bank)</span><span class="summary-value">$12.00</span></div>
+                                        <div class="summary-item" style="border:none; padding-top:12px;"><span
+                                                style="font-weight:700;">Total to Debit</span><span
+                                                style="font-weight:700; color:var(--primary); font-size:18px;">$12,513.50</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Right Column: Routing & Summary -->
+                            <div class="space-y-6">
+                                <!-- 4. Smart Routing -->
+                                <div class="uw-card">
+                                    <div class="uw-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                            stroke-width="2">
+                                            <polyline points="13 2 13 9 20 9"></polyline>
+                                            <path d="M13 2L5 14h7v8l8-12h-7V2z"></path>
+                                        </svg>Smart Routing</div>
+                                    <div class="space-y-3">
+                                        <div class="rail-card selected recommended">
+                                            <div class="flex justify-between font-bold"><span>Real-time /
+                                                    Instant</span><span>$13.50</span></div>
+                                            <div class="flex justify-between text-xs mt-1 text-gray-500"><span>Est. 2-5
+                                                    seconds</span><span>Fastest</span></div>
+                                        </div>
+                                        <div class="rail-card">
+                                            <div class="flex justify-between font-bold"><span>ACH /
+                                                    Standard</span><span>$0.50</span></div>
+                                            <div class="flex justify-between text-xs mt-1 text-gray-500"><span>Est. 1-2
+                                                    business days</span><span>Cheapest</span></div>
+                                        </div>
+                                        <div class="rail-card" data-modal="railCompareModal">
+                                            <div class="flex justify-between font-bold"><span>Wire /
+                                                    SWIFT</span><span>$45.00</span></div>
+                                            <div class="flex justify-between text-xs mt-1 text-gray-500">
+                                                <span>International routing</span><span>Legacy</span></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 5. Purpose & Compliance -->
+                                <div class="uw-card">
+                                    <div class="uw-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                            stroke-width="2">
+                                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                                        </svg>Compliance & Purpose</div>
+                                    <div class="field">
+                                        <label class="field-label">Purpose Code</label>
+                                        <select class="select-field">
+                                            <option>Invoice Settlement (INV)</option>
+                                            <option>Salary Disbursement (PAY)</option>
+                                            <option>Inter-account Transfer (INT)</option>
+                                            <option>Dividend Payment (DIV)</option>
+                                        </select>
+                                    </div>
+                                    <div class="field">
+                                        <label class="field-label">Narration / Reference</label>
+                                        <input class="input" placeholder="e.g. Payment for Invoice #781">
+                                    </div>
+                                    <button class="btn btn-light w-full" data-modal="uploadDocModal">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                            <polyline points="17 8 12 3 7 8"></polyline>
+                                            <line x1="12" y1="3" x2="12" y2="15"></line>
+                                        </svg>
+                                        Attach Supporting Document
+                                    </button>
+                                </div>
+
+                                <!-- 6. Submit Button -->
+                                <button class="btn btn-primary w-full py-4 text-lg"
+                                    style="height:auto; font-weight:700; border-radius:18px; box-shadow: 0 10px 15px -3px rgba(91, 91, 245, 0.3);"
+                                    data-modal="authWizardModal">
+                                    Initiate Approval Workflow
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bulk Tab Placeholder -->
+                    <div class="tab-panel" data-panel="bulk">
+                        <div class="panel-body text-center py-20">
+                            <div class="stat-icon purple mx-auto mb-6" style="width:64px; height:64px;"><svg
+                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="7 10 12 15 17 10"></polyline>
+                                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                                </svg></div>
+                            <h2 class="text-xl font-bold">Bulk Transfer Upload</h2>
+                            <p class="text-gray-500 mt-2 mb-8">Upload a CSV or Excel file to process multiple payments
+                                at once.</p>
+                            <div style="display:flex; justify-content:center; gap:12px;">
+                                <button class="btn btn-primary" data-modal="bulkUploadModal">Select File</button>
+                                <button class="btn btn-light" data-modal="bulkTemplateModal">Download Template</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recurring Tab Placeholder -->
+                    <div class="tab-panel" data-panel="recurring">
+                        <div class="panel-body">
+                            <div class="flex justify-between items-center mb-6">
+                                <h2 class="panel-title">Scheduled Payment Instructions</h2>
+                                <button class="btn btn-primary" data-modal="newRecurringModal">+ New Schedule</button>
+                            </div>
+                            <div class="table-wrap">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Beneficiary</th>
+                                            <th>Frequency</th>
+                                            <th>Last Run</th>
+                                            <th>Next Run</th>
+                                            <th>Amount</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr data-modal="recurringDetailModal">
+                                            <td>Nexus Payroll</td>
+                                            <td>Monthly (1st)</td>
+                                            <td>01 Feb 2026</td>
+                                            <td>01 Mar 2026</td>
+                                            <td>$92,000</td>
+                                            <td><span class="badge success">Active</span></td>
+                                        </tr>
+                                        <tr data-modal="recurringDetailModal">
+                                            <td>Safcom Corp</td>
+                                            <td>Weekly (Mon)</td>
+                                            <td>09 Feb 2026</td>
+                                            <td>16 Feb 2026</td>
+                                            <td>$1,400</td>
+                                            <td><span class="badge success">Active</span></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODALS (20+) -->
+
+    <!-- 1. Approval Wizard (Multistep) -->
+    <div class="modal-backdrop" id="authWizardModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Authorize Transfer</h3>
+                    <div class="modal-sub">APP-TXN-884219</div>
+                </div>
+                <button class="modal-close" data-close>x</button>
+            </div>
+            <div class="stepper" id="authStepper">
+                <div class="step active">
+                    <div class="step-num">1</div>Review
+                </div>
+                <div class="step-line"></div>
+                <div class="step">
+                    <div class="step-num">2</div>Security
+                </div>
+                <div class="step-line"></div>
+                <div class="step">
+                    <div class="step-num">3</div>Chain
+                </div>
+            </div>
+            <div class="modal-body" style="min-height:360px;">
+                <div class="step-content active" data-step="1">
+                    <div class="alert info mb-4">Please review carefully. This is a real-time transfer.</div>
+                    <div class="kv-grid mb-6">
+                        <div class="bg-gray-50 p-3 rounded-lg">
+                            <div class="kv-label">From</div>
+                            <div class="kv-val">Main Nostro USD</div>
+                        </div>
+                        <div class="bg-gray-50 p-3 rounded-lg">
+                            <div class="kv-label">To</div>
+                            <div class="kv-val">Globex Manufacturing</div>
+                        </div>
+                        <div class="bg-gray-50 p-3 rounded-lg">
+                            <div class="kv-label">Account</div>
+                            <div class="kv-val mono">CHASUS33-992108842</div>
+                        </div>
+                        <div class="bg-gray-50 p-3 rounded-lg">
+                            <div class="kv-label">Bank</div>
+                            <div class="kv-val">Chase Bank NY</div>
+                        </div>
+                    </div>
+                    <div class="text-center p-6 border-2 border-dashed border-gray-100 rounded-xl">
+                        <div class="kv-label">Total Amount to be Debited</div>
+                        <div class="money-large text-primary">$12,513.50</div>
+                        <div class="text-xs text-gray-400">Includes $13.50 platform & network fees</div>
+                    </div>
+                </div>
+                <div class="step-content" data-step="2">
+                    <div class="text-center py-6">
+                        <div class="stat-icon purple mx-auto mb-4" style="width:48px; height:48px;"><svg
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                            </svg></div>
+                        <h4 class="font-bold">Security Verification</h4>
+                        <p class="text-gray-500 text-sm">Enter your administrative 6-digit PIN</p>
+                        <div class="pin-input">
+                            <input type="password" maxlength="1" class="pin-box" value="•">
+                            <input type="password" maxlength="1" class="pin-box" value="•">
+                            <input type="password" maxlength="1" class="pin-box" value="•">
+                            <input type="password" maxlength="1" class="pin-box">
+                            <input type="password" maxlength="1" class="pin-box">
+                            <input type="password" maxlength="1" class="pin-box">
+                        </div>
+                        <button class="btn btn-light btn-sm" data-modal="passkeyModal">Or use Biometric /
+                            Passkey</button>
+                    </div>
+                </div>
+                <div class="step-content" data-step="3">
+                    <div style="font-weight:600; margin-bottom:12px;">Approval Workflow Chain</div>
+                    <div class="timeline">
+                        <div class="tl-item">
+                            <div class="tl-time">Step 1: Maker (You)</div>
+                            <div class="tl-text">Sarah Karanja · Pending PIN</div>
+                        </div>
+                        <div class="tl-item">
+                            <div class="tl-time">Step 2: Checker</div>
+                            <div class="tl-text">John Mwangi (Head of Ops) · Awaiting</div>
+                        </div>
+                        <div class="tl-item">
+                            <div class="tl-time">Step 3: Executive</div>
+                            <div class="tl-text">Anita Lopez (CFO) · Awaiting (Limit > $10K)</div>
+                        </div>
+                    </div>
+                    <div class="alert warning mt-4">Note: Transaction will be held until full chain approves.</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-light" id="authBack" disabled>Back</button>
+                <button class="btn btn-primary px-8" id="authNext">Next Step</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Passkey / Biometric Modal -->
+    <div class="modal-backdrop" id="passkeyModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Biometric Authentication</h3>
+                    <div class="modal-sub">WebAuthn / Passkey</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body text-center py-10">
+                <div class="svc-icon blue mx-auto mb-4" style="width:64px;height:64px;"><svg viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                    </svg></div>
+                <h4>Waiting for Passkey...</h4>
+                <p class="text-gray-500 text-sm mt-2">Please use your hardware key or fingerprint sensor.</p>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button></div>
+        </div>
+    </div>
+
+    <!-- 3. Nostro Balance Detail -->
+    <div class="modal-backdrop" id="nostroBalanceModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Liquid Float Status</h3>
+                    <div class="modal-sub">Consolidated balance across all funding nodes</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Node</th>
+                            <th>Currency</th>
+                            <th>Available</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Main Nostro (Chase)</td>
+                            <td>USD</td>
+                            <td>$8,420,110.42</td>
+                            <td><span class="badge success">Active</span></td>
+                        </tr>
+                        <tr>
+                            <td>Local Float (Equity)</td>
+                            <td>KES</td>
+                            <td>452,000,000</td>
+                            <td><span class="badge success">Active</span></td>
+                        </tr>
+                        <tr>
+                            <td>EU Liquidity (HSBC)</td>
+                            <td>EUR</td>
+                            <td>€1,280,000</td>
+                            <td><span class="badge info">Syncing</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-modal="fundAccountModal">Top
+                    Up Float</button><button class="btn btn-light" data-close>Close</button></div>
+        </div>
+    </div>
+
+    <!-- 4. Daily Limit Info -->
+    <div class="modal-backdrop" id="dailyLimitModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Administrative Limits</h3>
+                    <div class="modal-sub">Current user: Sarah Karanja (L2)</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="dist-row">
+                    <div class="dist-label">Single Trans</div>
+                    <div class="dist-bar"><span style="width:40%;background:var(--primary);"></span></div>
+                    <div class="dist-val">$50k Cap</div>
+                </div>
+                <div class="dist-row">
+                    <div class="dist-label">Daily Agg</div>
+                    <div class="dist-bar"><span style="width:62%;background:var(--warning);"></span></div>
+                    <div class="dist-val">62% Used</div>
+                </div>
+                <p class="text-xs text-gray-500 mt-4">Limits are reset daily at 00:00 UTC. To increase, contact Risk
+                    Compliance.</p>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+        </div>
+    </div>
+
+    <!-- 5. Pending Approvals Queue -->
+    <div class="modal-backdrop" id="pendingApprovalModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Approval Queue</h3>
+                    <div class="modal-sub">12 transactions awaiting your action</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body" style="padding:0;">
+                <div class="list-item">
+                    <div class="list-left">
+                        <div class="list-icon" style="background:var(--danger-soft);color:var(--danger);"><svg
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                            </svg></div>
+                        <div>
+                            <div class="list-title">Globex Mfg - $450,000</div>
+                            <div class="list-sub">Urgent · Inter-account</div>
+                        </div>
+                    </div><button class="btn btn-primary btn-sm" data-modal="authWizardModal">Approve</button>
+                </div>
+                <div class="list-item">
+                    <div class="list-left">
+                        <div class="list-icon" style="background:var(--warning-soft);color:var(--warning);"><svg
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                            </svg></div>
+                        <div>
+                            <div class="list-title">Acme Ltd - $12,400</div>
+                            <div class="list-sub">Normal · Invoice #991</div>
+                        </div>
+                    </div><button class="btn btn-primary btn-sm" data-modal="authWizardModal">Approve</button>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+        </div>
+    </div>
+
+    <!-- 6. Bank Directory Modal -->
+    <div class="modal-backdrop" id="bankDirModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Connected Institutions</h3>
+                    <div class="modal-sub">14 supported bank rails</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="search-box mb-4"><input placeholder="Filter by bank or country..."></div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bank-item"><strong>Chase Bank</strong><span class="badge info">US</span></div>
+                    <div class="bank-item"><strong>Barclays UK</strong><span class="badge info">UK</span></div>
+                    <div class="bank-item"><strong>Equity Bank</strong><span class="badge info">KE</span></div>
+                    <div class="bank-item"><strong>Citibank</strong><span class="badge info">US</span></div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+        </div>
+    </div>
+
+    <!-- 7. Name Match Verification -->
+    <div class="modal-backdrop" id="nameMatchModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Beneficiary Verification</h3>
+                    <div class="modal-sub">Account Name Matching API</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="bg-green-50 p-4 rounded-xl border border-green-100 flex items-center gap-4">
+                    <div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg></div>
+                    <div>
+                        <div class="font-bold text-green-800">98% Match Confidence</div>
+                        <div class="text-xs text-green-700">Bank records match "Globex Manufacturing Ltd"</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Confirmed</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 8. Rail Comparison Modal -->
+    <div class="modal-backdrop" id="railCompareModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Payment Rail Comparison</h3>
+                    <div class="modal-sub">Routing Intelligence</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Rail</th>
+                            <th>Type</th>
+                            <th>Settlement</th>
+                            <th>Fee</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Real-time</td>
+                            <td>Instant</td>
+                            <td>&lt; 10s</td>
+                            <td>$13.50</td>
+                        </tr>
+                        <tr>
+                            <td>ACH</td>
+                            <td>Batch</td>
+                            <td>1-2 Days</td>
+                            <td>$0.50</td>
+                        </tr>
+                        <tr>
+                            <td>Wire</td>
+                            <td>Legacy</td>
+                            <td>4-6 Hours</td>
+                            <td>$25.00</td>
+                        </tr>
+                        <tr>
+                            <td>SWIFT</td>
+                            <td>Global</td>
+                            <td>3-5 Days</td>
+                            <td>$45.00</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+        </div>
+    </div>
+
+    <!-- 9. Upload Document Modal -->
+    <div class="modal-backdrop" id="uploadDocModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Attach Document</h3>
+                    <div class="modal-sub">Invoices, contracts, or AML forms</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body py-10 text-center border-2 border-dashed border-gray-200 rounded-xl"><svg
+                    class="mx-auto text-gray-300 mb-2" width="48" height="48" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="17 8 12 3 7 8"></polyline>
+                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+                <p>Drag and drop or <strong>click to upload</strong></p>
+                <p class="text-xs text-gray-400 mt-1">PDF, PNG, JPG (Max 10MB)</p>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button></div>
+        </div>
+    </div>
+
+    <!-- 10. Bulk Upload Modal -->
+    <div class="modal-backdrop" id="bulkUploadModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Bulk Transfer</h3>
+                    <div class="modal-sub">Upload CSV/Excel</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body py-10 text-center border-2 border-dashed border-gray-200 rounded-xl"><svg
+                    class="mx-auto text-gray-300 mb-2" width="48" height="48" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                </svg>
+                <p>Select your batch payment file</p>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button
+                    class="btn btn-primary" data-result="Bulk file processing... 284 payments found.">Start
+                    Analysis</button></div>
+        </div>
+    </div>
+
+    <!-- 11. Bulk Template Modal -->
+    <div class="modal-backdrop" id="bulkTemplateModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Download Templates</h3>
+                    <div class="modal-sub">Correct format for batch transfers</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body space-y-4">
+                <div class="bank-item" data-result="CSV template downloaded"><strong>Standard CSV</strong><span
+                        class="text-xs text-gray-500">Universal format</span></div>
+                <div class="bank-item" data-result="XLSX template downloaded"><strong>Microsoft Excel</strong><span
+                        class="text-xs text-gray-500">Includes validation macros</span></div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+        </div>
+    </div>
+
+    <!-- 12. New Recurring Modal -->
+    <div class="modal-backdrop" id="newRecurringModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Schedule Payment</h3>
+                    <div class="modal-sub">Create standing instruction</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="field"><label class="field-label">Frequency</label><select class="select-field">
+                        <option>Weekly</option>
+                        <option>Monthly</option>
+                        <option>Quarterly</option>
+                    </select></div>
+                <div class="field"><label class="field-label">Execution Day</label><input type="number" class="input"
+                        value="1" min="1" max="31"></div>
+                <div class="field"><label class="field-label">End Date (Optional)</label><input type="date"
+                        class="input"></div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button
+                    class="btn btn-primary" data-result="Schedule created successfully">Save Schedule</button></div>
+        </div>
+    </div>
+
+    <!-- 13. Recurring Detail -->
+    <div class="modal-backdrop" id="recurringDetailModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Nexus Payroll</h3>
+                    <div class="modal-sub">Monthly Schedule</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="kv-grid mb-4">
+                    <div>
+                        <div class="kv-label">Amount</div>
+                        <div class="kv-val">$92,000</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Next Run</div>
+                        <div class="kv-val">01 Mar 2026</div>
+                    </div>
+                </div><button class="btn btn-danger w-full" data-result="Schedule paused">Pause Instruction</button>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+        </div>
+    </div>
+
+    <!-- 14. Approval Matrix Modal -->
+    <div class="modal-backdrop" id="approvalMatrixModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Transfer Approval Authority</h3>
+                    <div class="modal-sub">Matrix defined by Board Risk</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Amount Tier</th>
+                            <th>Authority Required</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Up to $10,000</td>
+                            <td>Maker (L1) only</td>
+                        </tr>
+                        <tr>
+                            <td>$10,001 - $100,000</td>
+                            <td>Maker + Checker (L2)</td>
+                        </tr>
+                        <tr>
+                            <td>Above $100,000</td>
+                            <td>Maker + Checker + Executive (CFO)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+        </div>
+    </div>
+
+    <!-- 15. Result Modal (Confirmation) -->
+    <div class="modal-backdrop" id="resultModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title" id="resTitle">Successful</h3>
+                    <div class="modal-sub">System Event Logged</div>
+                </div>
+                <button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body text-center py-6">
+                <div class="stat-icon green mx-auto mb-4" style="width:56px; height:56px;"><svg viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg></div>
+                <h4 id="resMsg" class="font-bold text-lg">Action completed successfully</h4>
+                <p class="text-sm text-gray-500 mt-2">Audit ID: TXN-LOG-882201</p>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Done</button></div>
+        </div>
+    </div>
+
+    <!-- 16-20. Sidebar Navigation Modals (Simple) -->
+    <div class="modal-backdrop" id="navDashModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Dashboard</h3><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">Navigate to platform overview?</div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Go</button></div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="navActivityModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Transfer Activity</h3><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">View historical transaction logs.</div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Go</button></div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="navBenModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Address Book</h3><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">Manage saved beneficiaries.</div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Go</button></div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="navInstModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Banks</h3><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">Bank directory and connectivity status.</div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Go</button></div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="navWalletModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Wallets</h3><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">Virtual account balances and ledger.</div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Go</button></div>
+        </div>
+    </div>
+
+    <!-- 21. Notifications -->
+    <div class="modal-backdrop" id="notificationsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Notifications</h3><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="list-item">Float low on Equity Nostro</div>
+                <div class="list-item">3 bulk files processed</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 22. Filter Modal -->
+    <div class="modal-backdrop" id="filterModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Filters</h3><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="field"><label class="field-label">Date Range</label><select class="select-field">
+                        <option>Last 24h</option>
+                        <option>Last 7d</option>
+                    </select></div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Apply</button></div>
+        </div>
+    </div>
+
+    <!-- 23. Export Modal -->
+    <div class="modal-backdrop" id="exportModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Export Report</h3><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">Select format: CSV / PDF</div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-primary"
+                    data-result="Exporting data...">Export</button></div>
+        </div>
+    </div>
+
+    <script>
+        // Navigation & Sidebar
+        const sidebar = document.getElementById('sidebar');
+        document.getElementById('sidebarToggle').addEventListener('click', () => sidebar.classList.toggle('expanded'));
+        document.getElementById('mobileMenuBtn').addEventListener('click', () => sidebar.classList.toggle('mobile-open'));
+
+        // Modal Control
+        function openModal(id) {
+            const m = document.getElementById(id);
+            if (m) m.classList.add('show');
+        }
+        function closeAll() {
+            document.querySelectorAll('.modal-backdrop.show').forEach(m => m.classList.remove('show'));
+        }
+        document.addEventListener('click', e => {
+            const opener = e.target.closest('[data-modal]');
+            if (opener) { e.preventDefault(); openModal(opener.dataset.modal); return; }
+
+            const closer = e.target.closest('[data-close]');
+            if (closer) { e.preventDefault(); closeAll(); return; }
+
+            const resultBtn = e.target.closest('[data-result]');
+            if (resultBtn) {
+                e.preventDefault();
+                setResult(resultBtn.dataset.result);
+            }
+        });
+
+        document.querySelectorAll('.modal-backdrop').forEach(b => {
+            b.addEventListener('click', e => { if (e.target === b) closeAll(); });
+        });
+
+        // Confirmation Results
+        function setResult(msg) {
+            closeAll();
+            document.getElementById('resMsg').textContent = msg;
+            openModal('resultModal');
+        }
+
+        // Tabs Control
+        document.querySelectorAll('.tab').forEach(t => {
+            t.addEventListener('click', () => {
+                const parent = t.closest('.panel');
+                parent.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+                parent.querySelectorAll('.tab-panel').forEach(x => x.classList.remove('active'));
+                t.classList.add('active');
+                parent.querySelector(`[data-panel="${t.dataset.tab}"]`).classList.add('active');
+            });
+        });
+
+        // Rail Selection
+        document.querySelectorAll('.rail-card').forEach(rc => {
+            rc.addEventListener('click', () => {
+                if (rc.dataset.modal) return;
+                document.querySelectorAll('.rail-card').forEach(x => x.classList.remove('selected'));
+                rc.classList.add('selected');
+            });
+        });
+
+        // Multistep Stepper Setup
+        function setupStepper(rootId, stepperId, backId, nextId, totalSteps, doneCallback) {
+            const root = document.getElementById(rootId);
+            let current = 1;
+            const updateUI = () => {
+                root.querySelectorAll('.step-content').forEach(s => s.classList.remove('active'));
+                root.querySelector(`.step-content[data-step="${current}"]`).classList.add('active');
+
+                document.querySelectorAll(`#${stepperId} .step`).forEach((s, i) => {
+                    s.classList.toggle('active', i + 1 === current);
+                    s.classList.toggle('done', i + 1 < current);
+                });
+
+                document.getElementById(backId).disabled = current === 1;
+                document.getElementById(nextId).textContent = current === totalSteps ? 'Finish & Submit' : 'Next Step';
+            };
+
+            document.getElementById(nextId).addEventListener('click', () => {
+                if (current < totalSteps) {
+                    current++;
+                    updateUI();
+                } else {
+                    current = 1; // reset for next time
+                    updateUI();
+                    doneCallback();
+                }
+            });
+
+            document.getElementById(backId).addEventListener('click', () => {
+                if (current > 1) {
+                    current--;
+                    updateUI();
+                }
+            });
+        }
+
+        setupStepper('authWizardModal', 'authStepper', 'authBack', 'authNext', 3, () => {
+            setResult("Transfer Initiated and sent to approval chain.");
+        });
+
+    </script>
+</body>
+
+</html>

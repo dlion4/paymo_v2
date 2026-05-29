@@ -1,0 +1,1385 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>API & Integration Management - PayMo BaaS</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="stylesheet" href="./master.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+  <style>
+    .two-col {
+      display: grid;
+      grid-template-columns: 1.6fr 1fr;
+      gap: 16px;
+    }
+
+    .three-col {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+
+    .api-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .code-block {
+      background: #1e1e2e;
+      color: #d1d1e0;
+      padding: 16px;
+      border-radius: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      overflow-x: auto;
+      position: relative;
+      border: 1px solid #313244;
+    }
+
+    .code-block::before {
+      content: attr(data-lang);
+      position: absolute;
+      top: 0;
+      right: 12px;
+      font-size: 10px;
+      color: #585b70;
+      text-transform: uppercase;
+      padding: 4px 0;
+    }
+
+    .health-bar {
+      height: 6px;
+      border-radius: 10px;
+      background: var(--surface-3);
+      overflow: hidden;
+      margin-top: 8px;
+    }
+
+    .health-bar span {
+      display: block;
+      height: 100%;
+      border-radius: 10px;
+      transition: width 0.5s ease;
+    }
+
+    .method-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      margin-right: 8px;
+    }
+
+    .method-get {
+      background: #dcfce7;
+      color: #16a34a;
+    }
+
+    .method-post {
+      background: #e0f2fe;
+      color: #0284c7;
+    }
+
+    .method-put {
+      background: #fef3c7;
+      color: #d97706;
+    }
+
+    .method-delete {
+      background: #fee2e2;
+      color: #dc2626;
+    }
+
+    .endpoint-row {
+      display: flex;
+      align-items: center;
+      padding: 12px;
+      border-bottom: 1px solid var(--border-soft);
+      cursor: pointer;
+      transition: background 0.1s;
+    }
+
+    .endpoint-row:hover {
+      background: var(--surface-2);
+    }
+
+    .endpoint-path {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--text-2);
+    }
+
+    .mini-tab-nav {
+      display: flex;
+      gap: 4px;
+      background: var(--surface-3);
+      padding: 4px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      width: fit-content;
+    }
+
+    .mini-tab {
+      padding: 4px 12px;
+      font-size: 11px;
+      font-weight: 600;
+      border-radius: 6px;
+      color: var(--text-3);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .mini-tab.active {
+      background: var(--surface);
+      color: var(--primary);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .kv-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px 18px;
+    }
+
+    .kv-label {
+      font-size: 10px;
+      color: var(--text-4);
+      text-transform: uppercase;
+      letter-spacing: .07em;
+    }
+
+    .kv-val {
+      font-size: 13px;
+      font-weight: 600;
+      margin-top: 2px;
+    }
+
+    .usage-card {
+      border: 1px solid var(--border-soft);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--surface);
+    }
+
+    .loading-shimmer {
+      background: linear-gradient(90deg, #f0f0f0 25%, #f8f8f8 50%, #f0f0f0 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+    }
+
+    @keyframes shimmer {
+      0% {
+        background-position: 200% 0;
+      }
+
+      100% {
+        background-position: -200% 0;
+      }
+    }
+
+    @media (max-width: 1024px) {
+
+      .two-col,
+      .api-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">P</div>
+      <nav class="sidebar-nav">
+        <button class="sidebar-item" title="Dashboard" data-modal="navDashboardModal"><svg viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+          </svg><span class="sidebar-label">Dashboard</span></button>
+        <button class="sidebar-item" title="Transfers" data-modal="navTransfersModal"><svg viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+          </svg><span class="sidebar-label">Transfers</span></button>
+        <button class="sidebar-item" title="Customers" data-modal="navCustomersModal"><svg viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+          </svg><span class="sidebar-label">Customers</span></button>
+        <button class="sidebar-item active" title="API Management"><svg viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2">
+            <polyline points="16 18 22 12 16 6"></polyline>
+            <polyline points="8 6 2 12 8 18"></polyline>
+          </svg><span class="sidebar-label">API Console</span></button>
+        <button class="sidebar-item" title="Webhooks" data-modal="navWebhooksModal"><svg viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2">
+            <path d="M4 11a9 9 0 0 1 9 9"></path>
+            <path d="M4 4a16 16 0 0 1 16 16"></path>
+            <circle cx="5" cy="19" r="1"></circle>
+          </svg><span class="sidebar-label">Webhooks</span></button>
+        <button class="sidebar-item" title="Health" data-modal="navHealthModal"><svg viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2">
+            <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+          </svg><span class="sidebar-label">Health</span></button>
+        <button class="sidebar-item" title="Sandbox" data-modal="navSandboxModal"><svg viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2">
+            <path
+              d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z">
+            </path>
+          </svg><span class="sidebar-label">Sandbox</span></button>
+        <button class="sidebar-item" title="Settings" data-modal="navSettingsModal"><svg viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path
+              d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06-.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z">
+            </path>
+          </svg><span class="sidebar-label">Settings</span></button>
+      </nav>
+      <button class="sidebar-expand" id="sidebarToggle"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg><span class="sidebar-label">Collapse</span></button>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <div class="crumb">
+            <button class="mobile-menu-btn btn btn-light btn-sm" id="mobileMenuBtn" style="margin-right:8px;"><svg
+                width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+              </svg></button>
+            <span>Developers</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg><span>API & Integration Console</span>
+          </div>
+          <h1 class="page-title">API & Integration Management</h1>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-light btn-icon" data-modal="notificationsModal"><svg viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+            </svg></button>
+          <button class="btn btn-light" data-modal="integrationLogsModal"><svg viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>Logs</button>
+          <button class="btn btn-primary" data-modal="generateKeyWizardModal"><svg viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>Generate API Key</button>
+        </div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card" data-modal="usageQuotaModal">
+          <div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg></div>
+          <div class="stat-label">API Calls (24h)</div>
+          <div class="stat-value">1.42M</div>
+          <div class="stat-trend up"><span>82% of quota</span></div>
+        </div>
+        <div class="stat-card" data-modal="latencyModal">
+          <div class="stat-icon purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+            </svg></div>
+          <div class="stat-label">Avg Latency</div>
+          <div class="stat-value">142ms</div>
+          <div class="stat-trend down"><span>-12ms vs avg</span></div>
+        </div>
+        <div class="stat-card" data-modal="errorRateModal">
+          <div class="stat-icon red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg></div>
+          <div class="stat-label">Error Rate</div>
+          <div class="stat-value">0.04%</div>
+          <div class="stat-trend up"><span>within SLA</span></div>
+        </div>
+        <div class="stat-card" data-modal="webhookStatusModal">
+          <div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg></div>
+          <div class="stat-label">Webhook Success</div>
+          <div class="stat-value">99.9%</div>
+          <div class="stat-trend up"><span>28.4k delivered</span></div>
+        </div>
+        <div class="stat-card" data-modal="connectedClientsModal">
+          <div class="stat-icon amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+            </svg></div>
+          <div class="stat-label">Connected Apps</div>
+          <div class="stat-value">42</div>
+          <div class="stat-trend up"><span>+3 this week</span></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="tabs" id="mainTabs">
+          <button class="tab active" data-tab="credentials"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>Credentials & Scopes</button>
+          <button class="tab" data-tab="webhooks"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2">
+              <path d="M4 11a9 9 0 0 1 9 9"></path>
+              <path d="M4 4a16 16 0 0 1 16 16"></path>
+            </svg>Webhook Management</button>
+          <button class="tab" data-tab="documentation"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+            </svg>API Documentation</button>
+          <button class="tab" data-tab="health"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2">
+              <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+            </svg>Integration Health</button>
+          <button class="tab" data-tab="sandbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2">
+              <path
+                d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z">
+              </path>
+            </svg>Sandbox Environment</button>
+        </div>
+
+        <section class="tab-panel active" data-panel="credentials">
+          <div class="panel-body">
+            <div class="two-col">
+              <div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+                  <h2 class="panel-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <key></key>
+                    </svg>API Credentials</h2>
+                  <button class="btn btn-light btn-sm" data-modal="generateKeyWizardModal">+ Create new key</button>
+                </div>
+                <div class="table-wrap">
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th>Key Name</th>
+                        <th>Preview</th>
+                        <th>Environment</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr data-modal="keyDetailModal">
+                        <td>Production Primary</td>
+                        <td class="mono">pk_live_...9f2a</td>
+                        <td><span class="badge primary">Production</span></td>
+                        <td><span class="badge success">Active</span></td>
+                        <td><button class="btn btn-light btn-sm" data-modal="rotateKeyModal">Rotate</button></td>
+                      </tr>
+                      <tr data-modal="keyDetailModal">
+                        <td>Mobile App Client</td>
+                        <td class="mono">pk_live_...44b1</td>
+                        <td><span class="badge primary">Production</span></td>
+                        <td><span class="badge success">Active</span></td>
+                        <td><button class="btn btn-light btn-sm" data-modal="rotateKeyModal">Rotate</button></td>
+                      </tr>
+                      <tr data-modal="keyDetailModal">
+                        <td>Legacy Integration</td>
+                        <td class="mono">pk_live_...e010</td>
+                        <td><span class="badge primary">Production</span></td>
+                        <td><span class="badge danger">Deprecated</span></td>
+                        <td><button class="btn btn-light btn-sm" data-modal="deleteKeyModal">Delete</button></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div style="margin-top:22px;">
+                  <h3 class="uw-title">IP Whitelisting</h3>
+                  <div style="background:var(--surface-2);border-radius:12px;padding:14px;">
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                      <span class="pill">52.14.88.201 <button data-modal="editIpModal">×</button></span>
+                      <span class="pill">18.221.4.11 <button data-modal="editIpModal">×</button></span>
+                      <span class="pill">203.0.113.42 <button data-modal="editIpModal">×</button></span>
+                      <button class="btn btn-light btn-sm" data-modal="addIpModal" style="border-style:dashed;">+ Add
+                        IP</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <h3 class="uw-title">Usage & Throttling</h3>
+                <div class="usage-card" style="margin-bottom:14px;" data-modal="usageQuotaModal">
+                  <div class="kv-label">Current Plan</div>
+                  <div style="font-size:18px;font-weight:700;">Enterprise Tier</div>
+                  <div class="health-bar"><span style="width:82%;background:var(--primary);"></span></div>
+                  <div
+                    style="display:flex;justify-content:space-between;margin-top:6px;font-size:11px;color:var(--text-3);">
+                    <span>1.42M calls</span>
+                    <span>2.0M limit</span>
+                  </div>
+                </div>
+                <div class="uw-card">
+                  <h4 class="uw-title" style="font-size:11px;">Throttling Rules</h4>
+                  <div class="config-row">
+                    <div>
+                      <div class="config-label">Rate limit</div>
+                      <div class="config-desc">Global burst limit</div>
+                    </div><span>1,000 req/s</span>
+                  </div>
+                  <div class="config-row">
+                    <div>
+                      <div class="config-label">Concurrency</div>
+                      <div class="config-desc">Max parallel requests</div>
+                    </div><span>50</span>
+                  </div>
+                  <button class="btn btn-light btn-sm" style="margin-top:10px;width:100%;"
+                    data-modal="throttleConfigModal">Edit thresholds</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="tab-panel" data-panel="webhooks">
+          <div class="panel-body">
+            <div class="two-col">
+              <div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+                  <h2 class="panel-title">Webhook Endpoints</h2>
+                  <button class="btn btn-primary btn-sm" data-modal="addWebhookModal">+ Add endpoint</button>
+                </div>
+                <div class="dir-grid">
+                  <div class="dir-card" data-modal="webhookDetailModal">
+                    <div class="dir-card-head"><span class="badge primary">PROD</span><span
+                        class="badge success">Active</span></div>
+                    <div class="mono" style="font-size:12px;margin:10px 0;word-break:break-all;">
+                      https://api.client.com/webhooks/paymo</div>
+                    <div class="list-sub">8 events · 28.4k successful deliveries</div>
+                    <div class="health-bar"><span style="width:99%;background:var(--success);"></span></div>
+                  </div>
+                  <div class="dir-card" data-modal="webhookDetailModal">
+                    <div class="dir-card-head"><span class="badge primary">PROD</span><span
+                        class="badge warning">Retrying</span></div>
+                    <div class="mono" style="font-size:12px;margin:10px 0;word-break:break-all;">
+                      https://backup.client.com/paymo/events</div>
+                    <div class="list-sub">2 events · 412 failed deliveries</div>
+                    <div class="health-bar"><span style="width:14%;background:var(--danger);"></span></div>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <h3 class="uw-title">Webhook Testing Tool</h3>
+                <div class="uw-card">
+                  <div class="field"><label class="field-label">Select event type</label><select class="select-field">
+                      <option>transfer.completed</option>
+                      <option>transfer.failed</option>
+                      <option>customer.created</option>
+                    </select></div>
+                  <div class="field"><label class="field-label">Target endpoint</label><select class="select-field">
+                      <option>https://api.client.com/webhooks/paymo</option>
+                    </select></div>
+                  <button class="btn btn-primary btn-sm" style="width:100%;" data-modal="webhookTestRunModal">Send test
+                    event</button>
+                  <div style="margin-top:14px;">
+                    <div class="kv-label">Recent test result</div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;">
+                      <span class="badge success">200 OK</span>
+                      <span class="mono" style="font-size:11px;">124ms</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="tab-panel" data-panel="documentation">
+          <div class="panel-body">
+            <div class="two-col">
+              <div>
+                <h2 class="panel-title" style="margin-bottom:14px;">Interactive API Explorer</h2>
+                <div style="border:1px solid var(--border-soft);border-radius:12px;overflow:hidden;">
+                  <div class="endpoint-row" data-modal="apiExplorerModal"><span
+                      class="method-tag method-post">POST</span><span class="endpoint-path">/v1/transfers</span><span
+                      class="list-sub" style="margin-left:auto;">Create transfer</span></div>
+                  <div class="endpoint-row" data-modal="apiExplorerModal"><span
+                      class="method-tag method-get">GET</span><span class="endpoint-path">/v1/transfers/{id}</span><span
+                      class="list-sub" style="margin-left:auto;">Get transfer</span></div>
+                  <div class="endpoint-row" data-modal="apiExplorerModal"><span
+                      class="method-tag method-post">POST</span><span class="endpoint-path">/v1/customers</span><span
+                      class="list-sub" style="margin-left:auto;">Create customer</span></div>
+                  <div class="endpoint-row" data-modal="apiExplorerModal"><span
+                      class="method-tag method-get">GET</span><span class="endpoint-path">/v1/accounts</span><span
+                      class="list-sub" style="margin-left:auto;">List accounts</span></div>
+                </div>
+              </div>
+              <div>
+                <h3 class="uw-title">SDK & Resources</h3>
+                <div class="dir-grid" style="grid-template-columns:1fr;gap:10px;">
+                  <div class="list-item"
+                    style="padding:12px;background:var(--surface);border:1px solid var(--border-soft);border-radius:12px;"
+                    data-modal="downloadSdkModal">
+                    <div class="list-left">
+                      <div class="list-icon" style="background:#fef3c7;color:#d97706;">JS</div>
+                      <div>
+                        <div class="list-title">Node.js SDK</div>
+                        <div class="list-sub">v2.4.1 · Latest</div>
+                      </div>
+                    </div><button class="btn btn-light btn-sm">Download</button>
+                  </div>
+                  <div class="list-item"
+                    style="padding:12px;background:var(--surface);border:1px solid var(--border-soft);border-radius:12px;"
+                    data-modal="downloadSdkModal">
+                    <div class="list-left">
+                      <div class="list-icon" style="background:#e0f2fe;color:#0284c7;">PY</div>
+                      <div>
+                        <div class="list-title">Python SDK</div>
+                        <div class="list-sub">v2.3.0</div>
+                      </div>
+                    </div><button class="btn btn-light btn-sm">Download</button>
+                  </div>
+                </div>
+                <div class="uw-card" style="margin-top:14px;">
+                  <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <h4 class="uw-title" style="margin:0;">Changelog</h4><button class="btn btn-ghost btn-sm"
+                      data-modal="changelogModal">View all</button>
+                  </div>
+                  <div class="timeline" style="margin-top:14px;">
+                    <div class="tl-item">
+                      <div class="tl-time">Feb 10, 2026</div>
+                      <div class="tl-text">Added idempotency headers to /transfers</div>
+                    </div>
+                    <div class="tl-item">
+                      <div class="tl-time">Jan 28, 2026</div>
+                      <div class="tl-text">New webhook event: settlement.delayed</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="tab-panel" data-panel="health">
+          <div class="panel-body">
+            <div class="two-col">
+              <div>
+                <h2 class="panel-title" style="margin-bottom:14px;">Integration Performance Scorecard</h2>
+                <div class="table-wrap">
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th>Client System</th>
+                        <th>Volume</th>
+                        <th>P95 Latency</th>
+                        <th>Error %</th>
+                        <th>Score</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr data-modal="clientHealthModal">
+                        <td>Main ERP Mobile</td>
+                        <td>842k</td>
+                        <td>184ms</td>
+                        <td>0.01%</td>
+                        <td><span class="badge success">98/100</span></td>
+                      </tr>
+                      <tr data-modal="clientHealthModal">
+                        <td>Web Portal Checkout</td>
+                        <td>412k</td>
+                        <td>110ms</td>
+                        <td>0.02%</td>
+                        <td><span class="badge success">96/100</span></td>
+                      </tr>
+                      <tr data-modal="clientHealthModal">
+                        <td>Partner API Bridge</td>
+                        <td>120k</td>
+                        <td>420ms</td>
+                        <td>1.4%</td>
+                        <td><span class="badge warning">74/100</span></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div>
+                <h3 class="uw-title">Real-time Service Status</h3>
+                <div class="uw-card">
+                  <div class="config-row">
+                    <div>
+                      <div class="config-label">Core API Gateway</div>
+                      <div class="config-desc">Operational</div>
+                    </div><span class="badge success">Healthy</span>
+                  </div>
+                  <div class="config-row">
+                    <div>
+                      <div class="config-label">Webhook Dispatcher</div>
+                      <div class="config-desc">Operational</div>
+                    </div><span class="badge success">Healthy</span>
+                  </div>
+                  <div class="config-row">
+                    <div>
+                      <div class="config-label">Identity Service</div>
+                      <div class="config-desc">High latency detected</div>
+                    </div><span class="badge warning">Degraded</span>
+                  </div>
+                  <button class="btn btn-light btn-sm" style="margin-top:10px;width:100%;"
+                    data-modal="serviceStatusDetailModal">Full status page</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="tab-panel" data-panel="sandbox">
+          <div class="panel-body">
+            <div class="three-col" style="margin-bottom:18px;">
+              <div class="uw-card" data-modal="testAccountsModal">
+                <div class="kv-label">Sandbox Accounts</div>
+                <div style="font-size:20px;font-weight:700;">14 active</div>
+                <div class="list-sub">Across 4 currencies</div>
+              </div>
+              <div class="uw-card" data-modal="scenarioModal">
+                <div class="kv-label">Simulations</div>
+                <div style="font-size:20px;font-weight:700;">Active</div>
+                <div class="list-sub">Scenario: "Delayed Settlement"</div>
+              </div>
+              <div class="uw-card" style="border:1px dashed var(--primary);">
+                <div class="kv-label">Migration</div>
+                <div style="font-size:20px;font-weight:700;color:var(--primary);">Ready</div><button
+                  class="btn btn-primary btn-sm" style="margin-top:6px;" data-modal="migrationWizardModal">Migrate to
+                  Live</button>
+              </div>
+            </div>
+            <div class="two-col">
+              <div>
+                <h2 class="panel-title" style="margin-bottom:14px;">Mock Transaction Generator</h2>
+                <div class="uw-card">
+                  <div class="field-row">
+                    <div class="field"><label class="field-label">Account</label><select class="select-field">
+                        <option>TEST_ACC_001</option>
+                        <option>TEST_ACC_002</option>
+                      </select></div>
+                    <div class="field"><label class="field-label">Amount</label><input class="input" value="100.00">
+                    </div>
+                  </div>
+                  <div class="field"><label class="field-label">Simulation Case</label><select class="select-field">
+                      <option>Success (Immediate)</option>
+                      <option>Success (Pending 10s)</option>
+                      <option>Failed (Insuff. Funds)</option>
+                      <option>Failed (Invalid Route)</option>
+                    </select></div>
+                  <button class="btn btn-primary" style="width:100%;" data-modal="generateMockTxnModal">Generate Sandbox
+                    Transaction</button>
+                </div>
+              </div>
+              <div>
+                <h3 class="uw-title">Recent Sandbox Events</h3>
+                <div class="timeline">
+                  <div class="tl-item">
+                    <div class="tl-time">2 min ago</div>
+                    <div class="tl-text">POST /v1/transfers · 201 Created</div>
+                  </div>
+                  <div class="tl-item">
+                    <div class="tl-time">10 min ago</div>
+                    <div class="tl-text">Webhook simulation: transfer.failed sent</div>
+                  </div>
+                </div>
+                <button class="btn btn-light btn-sm" data-modal="sandboxLogsModal">View all sandbox logs</button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- ============ MODALS (20+) ============ -->
+
+  <div class="modal-backdrop" id="generateKeyWizardModal">
+    <div class="modal lg">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title">Generate API Key</h3>
+          <div class="modal-sub">Create credentials for a new application</div>
+        </div><button class="modal-close" data-close>x</button>
+      </div>
+      <div class="stepper" id="keyStepper">
+        <div class="step active">
+          <div class="step-num">1</div>Basic
+        </div>
+        <div class="step-line"></div>
+        <div class="step">
+          <div class="step-num">2</div>Permissions
+        </div>
+        <div class="step-line"></div>
+        <div class="step">
+          <div class="step-num">3</div>IP Security
+        </div>
+        <div class="step-line"></div>
+        <div class="step">
+          <div class="step-num">4</div>Review
+        </div>
+      </div>
+      <div class="modal-body">
+        <div class="step-panel active" data-step="1">
+          <div class="field"><label class="field-label">Key Name</label><input class="input"
+              placeholder="e.g. Mobile App Frontend"></div>
+          <div class="field"><label class="field-label">Environment</label><select class="select-field">
+              <option>Production</option>
+              <option>Sandbox</option>
+            </select></div>
+        </div>
+        <div class="step-panel" data-step="2">
+          <div class="grid grid-cols-2 gap-3"><label class="choice-row selected"><input type="checkbox" checked>
+              <div><strong>Read:Accounts</strong></div>
+            </label><label class="choice-row selected"><input type="checkbox" checked>
+              <div><strong>Read:Transfers</strong></div>
+            </label><label class="choice-row"><input type="checkbox">
+              <div><strong>Write:Transfers</strong></div>
+            </label><label class="choice-row"><input type="checkbox">
+              <div><strong>Write:Customers</strong></div>
+            </label></div>
+        </div>
+        <div class="step-panel" data-step="3">
+          <div class="alert info mb-4">Leave blank to allow requests from any IP.</div>
+          <div class="field"><label class="field-label">IP Whitelist (comma separated)</label><textarea class="textarea"
+              placeholder="192.168.1.1, 10.0.0.1"></textarea></div>
+        </div>
+        <div class="step-panel" data-step="4">
+          <div class="alert success mb-4">Key is ready for generation.</div>
+          <div class="kv-grid">
+            <div>
+              <div class="kv-label">Environment</div>
+              <div class="kv-val">Production</div>
+            </div>
+            <div>
+              <div class="kv-label">Scopes</div>
+              <div class="kv-val">Accounts.Read, Transfers.Read</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer"><button class="btn btn-light" id="keyBack" disabled>Back</button><button
+          class="btn btn-primary" id="keyNext">Next</button></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="keyDetailModal">
+    <div class="modal lg">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title">API Key: Production Primary</h3>
+          <div class="modal-sub">Credentials and usage details</div>
+        </div><button class="modal-close" data-close>x</button>
+      </div>
+      <div class="modal-body">
+        <div class="kv-grid mb-6">
+          <div>
+            <div class="kv-label">API Key</div>
+            <div class="mono text-xs bg-gray-100 p-2 rounded mt-1">pk_live_51M087X41H...9f2a</div>
+          </div>
+          <div>
+            <div class="kv-label">Secret Key</div>
+            <div class="mono text-xs bg-gray-100 p-2 rounded mt-1">••••••••••••••••••••••••••••</div>
+          </div>
+          <div>
+            <div class="kv-label">Created</div>
+            <div class="kv-val">Oct 12, 2025</div>
+          </div>
+          <div>
+            <div class="kv-label">Last Used</div>
+            <div class="kv-val">2 minutes ago</div>
+          </div>
+        </div>
+        <h4 class="uw-title">Scopes</h4>
+        <div class="flex gap-2 flex-wrap mb-4"><span class="badge info">accounts.read</span><span
+            class="badge info">transfers.read</span><span class="badge info">transfers.write</span></div>
+        <div class="alert warning"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+          </svg>Key was last rotated 124 days ago. Recommendation: every 90 days.</div>
+      </div>
+      <div class="modal-footer"><button class="btn btn-danger" data-modal="deleteKeyModal">Delete Key</button>
+        <div class="flex gap-2"><button class="btn btn-light" data-modal="rotateKeyModal">Rotate Key</button><button
+            class="btn btn-primary" data-close>Close</button></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="rotateKeyModal">
+    <div class="modal">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title">Rotate API Key</h3>
+          <div class="modal-sub">Generate new secret, revoke old one</div>
+        </div><button class="modal-close" data-close>x</button>
+      </div>
+      <div class="modal-body">
+        <div class="alert warning mb-4">Old key will remain active for 24 hours to allow for migration.</div><label
+          class="choice-row selected"><input type="radio" name="rot" checked>
+          <div><strong>Standard Rotation</strong>
+            <div class="list-sub">24-hour overlap period</div>
+          </div>
+        </label><label class="choice-row"><input type="radio" name="rot">
+          <div><strong>Immediate Revocation</strong>
+            <div class="list-sub">Old key stops working now</div>
+          </div>
+        </label>
+      </div>
+      <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button
+          class="btn btn-primary" data-result="API key rotation scheduled">Confirm Rotation</button></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="usageQuotaModal">
+    <div class="modal lg">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title">API Usage & Quotas</h3>
+          <div class="modal-sub">Detailed call volume breakdown</div>
+        </div><button class="modal-close" data-close>x</button>
+      </div>
+      <div class="modal-body"><svg class="mini-chart mb-4" viewBox="0 0 600 150" preserveAspectRatio="none">
+          <path d="M0,130 L100,110 L200,120 L300,90 L400,95 L500,70 L600,60" fill="none" stroke="var(--primary)"
+            stroke-width="3"></path>
+        </svg>
+        <div class="dist-row">
+          <div class="dist-label">Transfers API</div>
+          <div class="dist-bar"><span style="width:92%;background:var(--danger);"></span></div>
+          <div class="dist-val">92%</div>
+        </div>
+        <div class="dist-row">
+          <div class="dist-label">Accounts API</div>
+          <div class="dist-bar"><span style="width:45%;background:var(--success);"></span></div>
+          <div class="dist-val">45%</div>
+        </div>
+        <div class="dist-row">
+          <div class="dist-label">Customers API</div>
+          <div class="dist-bar"><span style="width:28%;background:var(--success);"></span></div>
+          <div class="dist-val">28%</div>
+        </div>
+      </div>
+      <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button
+          class="btn btn-primary" data-modal="throttleConfigModal">Upgrade Quota</button></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="addWebhookModal">
+    <div class="modal">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title">Add Webhook Endpoint</h3>
+          <div class="modal-sub">Configure new delivery target</div>
+        </div><button class="modal-close" data-close>x</button>
+      </div>
+      <div class="modal-body">
+        <div class="field"><label class="field-label">Endpoint URL</label><input class="input"
+            placeholder="https://your-api.com/webhooks"></div>
+        <div class="field"><label class="field-label">Description</label><input class="input"
+            placeholder="e.g. Production events"></div>
+        <div class="field"><label class="field-label">Events to listen to</label>
+          <div class="grid grid-cols-2 gap-2 mt-2"><label class="flex items-center gap-2"><input type="checkbox"
+                checked> All events</label><label class="flex items-center gap-2"><input type="checkbox">
+              transfers</label><label class="flex items-center gap-2"><input type="checkbox"> settlements</label></div>
+        </div>
+      </div>
+      <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button
+          class="btn btn-primary" data-result="Webhook endpoint added">Create endpoint</button></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="webhookDetailModal">
+    <div class="modal lg">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title">Webhook: https://api.client.com/...</h3>
+          <div class="modal-sub">Endpoint configuration and delivery logs</div>
+        </div><button class="modal-close" data-close>x</button>
+      </div>
+      <div class="modal-body">
+        <div class="tabs mb-4"><button class="tab active">Configuration</button><button class="tab">Delivery
+            Logs</button></div>
+        <div class="kv-grid mb-6">
+          <div>
+            <div class="kv-label">Signing Secret</div>
+            <div class="mono text-xs bg-gray-100 p-2 rounded mt-1">whsec_...8f2b</div>
+          </div>
+          <div>
+            <div class="kv-label">Created</div>
+            <div class="kv-val">Nov 14, 2025</div>
+          </div>
+        </div>
+        <h4 class="uw-title">Recent Deliveries</h4>
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Event</th>
+                <th>Status</th>
+                <th>Time</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="mono">evt_912</td>
+                <td>transfer.paid</td>
+                <td><span class="badge success">200</span></td>
+                <td>2m ago</td>
+              </tr>
+              <tr>
+                <td class="mono">evt_911</td>
+                <td>transfer.created</td>
+                <td><span class="badge success">200</span></td>
+                <td>5m ago</td>
+              </tr>
+              <tr>
+                <td class="mono">evt_910</td>
+                <td>settlement.done</td>
+                <td><span class="badge danger">503</span></td>
+                <td>12m ago</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer"><button class="btn btn-danger">Delete Endpoint</button>
+        <div class="flex gap-2"><button class="btn btn-light" data-modal="webhookTestRunModal">Test</button><button
+            class="btn btn-primary" data-close>Close</button></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="apiExplorerModal">
+    <div class="modal lg">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title">POST /v1/transfers</h3>
+          <div class="modal-sub">Create a new transfer request</div>
+        </div><button class="modal-close" data-close>x</button>
+      </div>
+      <div class="modal-body">
+        <div class="api-grid">
+          <div>
+            <h4 class="uw-title">Parameters</h4>
+            <div class="field"><label class="field-label">amount <span class="text-red-500">*</span></label><input
+                class="input" placeholder="integer"></div>
+            <div class="field"><label class="field-label">currency <span class="text-red-500">*</span></label><input
+                class="input" placeholder="string (ISO)"></div><button class="btn btn-primary w-full"
+              data-result="API request executed successfully">Execute Request</button>
+          </div>
+          <div>
+            <h4 class="uw-title">Response</h4>
+            <div class="code-block" data-lang="json">{
+              "id": "tr_9f2a8k",
+              "status": "pending",
+              "amount": 1000,
+              "currency": "USD"
+              }</div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="migrationWizardModal">
+    <div class="modal lg">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title">Sandbox to Production Migration</h3>
+          <div class="modal-sub">Promote your integration to live environment</div>
+        </div><button class="modal-close" data-close>x</button>
+      </div>
+      <div class="modal-body">
+        <div class="stepper mb-6" id="migStepper">
+          <div class="step active">
+            <div class="step-num">1</div>Checks
+          </div>
+          <div class="step-line"></div>
+          <div class="step">
+            <div class="step-num">2</div>Compliance
+          </div>
+          <div class="step-line"></div>
+          <div class="step">
+            <div class="step-num">3</div>Promote
+          </div>
+        </div>
+        <div class="step-panel active" data-step="1">
+          <div class="alert success mb-4">98% of sandbox scenarios completed.</div>
+          <div class="config-row">
+            <div>
+              <div class="config-label">Error handling test</div>
+            </div><span class="badge success">Passed</span>
+          </div>
+          <div class="config-row">
+            <div>
+              <div class="config-label">Webhook delivery test</div>
+            </div><span class="badge success">Passed</span>
+          </div>
+        </div>
+        <div class="step-panel" data-step="2">
+          <div class="field"><label class="field-label">Data Storage Region</label><select class="select-field">
+              <option>European Union (GDPR)</option>
+              <option>United States</option>
+              <option>East Africa</option>
+            </select></div>
+        </div>
+        <div class="step-panel" data-step="3">
+          <div class="alert info">Promotion will generate new live credentials and endpoints.</div>
+        </div>
+      </div>
+      <div class="modal-footer"><button class="btn btn-light" id="migBack" disabled>Back</button><button
+          class="btn btn-primary" id="migNext">Next</button></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="resultModal">
+    <div class="modal">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title" id="resultTitle">Operation Complete</h3>
+          <div class="modal-sub" id="resultSub">Success</div>
+        </div><button class="modal-close" data-close>x</button>
+      </div>
+      <div class="modal-body">
+        <div class="alert success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg><span id="resultMessage">Action completed.</span></div>
+      </div>
+      <div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Done</button></div>
+    </div>
+  </div>
+
+  <!-- Additional Modals for Navigation -->
+  <div class="modal-backdrop" id="navDashboardModal">
+    <div class="modal">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title">Dashboard</h3>
+        </div><button class="modal-close" data-close>x</button>
+      </div>
+      <div class="modal-body">Redirecting to system overview...</div>
+    </div>
+  </div>
+  <div class="modal-backdrop" id="navTransfersModal">
+    <div class="modal">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title">Transfers</h3>
+        </div><button class="modal-close" data-close>x</button>
+      </div>
+      <div class="modal-body">Redirecting to transfer management...</div>
+    </div>
+  </div>
+  <div class="modal-backdrop" id="navCustomersModal">
+    <div class="modal">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title">Customers</h3>
+        </div><button class="modal-close" data-close>x</button>
+      </div>
+      <div class="modal-body">Redirecting to customer directory...</div>
+    </div>
+  </div>
+  <div class="modal-backdrop" id="navWebhooksModal">
+    <div class="modal">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title">Webhooks</h3>
+        </div><button class="modal-close" data-close>x</button>
+      </div>
+      <div class="modal-body">Focusing Webhook tab...</div>
+    </div>
+  </div>
+  <div class="modal-backdrop" id="navHealthModal">
+    <div class="modal">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title">System Health</h3>
+        </div><button class="modal-close" data-close>x</button>
+      </div>
+      <div class="modal-body">Focusing Integration Health tab...</div>
+    </div>
+  </div>
+  <div class="modal-backdrop" id="navSandboxModal">
+    <div class="modal">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title">Sandbox</h3>
+        </div><button class="modal-close" data-close>x</button>
+      </div>
+      <div class="modal-body">Focusing Sandbox tab...</div>
+    </div>
+  </div>
+  <div class="modal-backdrop" id="navSettingsModal">
+    <div class="modal">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title">Developer Settings</h3>
+        </div><button class="modal-close" data-close>x</button>
+      </div>
+      <div class="modal-body">Opening API settings...</div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="editIpModal">
+    <div class="modal">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title">Edit IP</h3>
+        </div><button class="modal-close" data-close>x</button>
+      </div>
+      <div class="modal-body"><input class="input" value="52.14.88.201"></div>
+      <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button
+          class="btn btn-primary" data-result="IP whitelist updated">Save</button></div>
+    </div>
+  </div>
+  <div class="modal-backdrop" id="addIpModal">
+    <div class="modal">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title">Add Whitelist IP</h3>
+        </div><button class="modal-close" data-close>x</button>
+      </div>
+      <div class="modal-body"><input class="input" placeholder="0.0.0.0"></div>
+      <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button
+          class="btn btn-primary" data-result="IP added to whitelist">Add</button></div>
+    </div>
+  </div>
+  <div class="modal-backdrop" id="deleteKeyModal">
+    <div class="modal">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title">Delete API Key</h3>
+        </div><button class="modal-close" data-close>x</button>
+      </div>
+      <div class="modal-body">
+        <div class="alert danger">Are you sure? This key will stop working immediately.</div>
+      </div>
+      <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button
+          class="btn btn-danger" data-result="API key deleted">Delete</button></div>
+    </div>
+  </div>
+  <div class="modal-backdrop" id="throttleConfigModal">
+    <div class="modal">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title">Throttle Configuration</h3>
+        </div><button class="modal-close" data-close>x</button>
+      </div>
+      <div class="modal-body">
+        <div class="field"><label class="field-label">Burst Limit (req/s)</label><input class="input" type="number"
+            value="1000"></div>
+      </div>
+      <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button
+          class="btn btn-primary" data-result="Throttling rules updated">Save</button></div>
+    </div>
+  </div>
+  <div class="modal-backdrop" id="latencyModal">
+    <div class="modal lg">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title">Latency Analytics</h3>
+        </div><button class="modal-close" data-close>x</button>
+      </div>
+      <div class="modal-body"><svg class="mini-chart" viewBox="0 0 600 150" preserveAspectRatio="none">
+          <path d="M0,100 L100,105 L200,98 L300,110 L400,102 L500,108 L600,100" fill="none" stroke="var(--primary)"
+            stroke-width="2"></path>
+        </svg></div>
+      <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+    </div>
+  </div>
+  <div class="modal-backdrop" id="webhookTestRunModal">
+    <div class="modal">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title">Running Webhook Test</h3>
+        </div><button class="modal-close" data-close>x</button>
+      </div>
+      <div class="modal-body">
+        <div class="flex flex-col items-center justify-center py-10">
+          <div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <div class="mt-4 font-medium">Sending payload...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-backdrop" id="downloadSdkModal">
+    <div class="modal">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title">Download SDK</h3>
+        </div><button class="modal-close" data-close>x</button>
+      </div>
+      <div class="modal-body">Preparing SDK bundle...</div>
+      <div class="modal-footer modal-footer-end"><button class="btn btn-primary"
+          data-result="SDK download started">Confirm Download</button></div>
+    </div>
+  </div>
+  <div class="modal-backdrop" id="changelogModal">
+    <div class="modal lg">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title">API Changelog</h3>
+        </div><button class="modal-close" data-close>x</button>
+      </div>
+      <div class="modal-body overflow-y-auto max-h-96">
+        <div class="timeline">
+          <div class="tl-item">...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-backdrop" id="clientHealthModal">
+    <div class="modal lg">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title">Client Performance</h3>
+        </div><button class="modal-close" data-close>x</button>
+      </div>
+      <div class="modal-body">
+        <div class="kv-grid">...</div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-backdrop" id="serviceStatusDetailModal">
+    <div class="modal lg">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title">System Status</h3>
+        </div><button class="modal-close" data-close>x</button>
+      </div>
+      <div class="modal-body">All regions operational except US-EAST.</div>
+    </div>
+  </div>
+  <div class="modal-backdrop" id="testAccountsModal">
+    <div class="modal lg">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title">Sandbox Accounts</h3>
+        </div><button class="modal-close" data-close>x</button>
+      </div>
+      <div class="modal-body">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Balance</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="mono">TEST_ACC_001</td>
+              <td>$10,000.00</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="modal-footer modal-footer-end"><button class="btn btn-primary"
+          data-result="New sandbox account created">Create Test Account</button></div>
+    </div>
+  </div>
+  <div class="modal-backdrop" id="scenarioModal">
+    <div class="modal">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title">Sandbox Scenarios</h3>
+        </div><button class="modal-close" data-close>x</button>
+      </div>
+      <div class="modal-body"><label class="choice-row"><input type="radio" name="sc" checked>
+          <div><strong>Normal</strong></div>
+        </label><label class="choice-row"><input type="radio" name="sc">
+          <div><strong>Delayed Settlement</strong></div>
+        </label></div>
+      <div class="modal-footer modal-footer-end"><button class="btn btn-primary"
+          data-result="Sandbox scenario updated">Apply</button></div>
+    </div>
+  </div>
+
+  <script>
+    const sidebar = document.getElementById('sidebar');
+    document.getElementById('sidebarToggle').addEventListener('click', () => sidebar.classList.toggle('expanded'));
+    document.getElementById('mobileMenuBtn').addEventListener('click', () => sidebar.classList.toggle('mobile-open'));
+
+    function openModal(id) { const m = document.getElementById(id); if (m) m.classList.add('show'); }
+    function closeAll() { document.querySelectorAll('.modal-backdrop.show').forEach(m => m.classList.remove('show')); }
+
+    document.addEventListener('click', e => {
+      const close = e.target.closest('[data-close]');
+      if (close) { e.preventDefault(); closeAll(); return; }
+      const result = e.target.closest('[data-result]');
+      if (result) {
+        e.preventDefault();
+        const msg = result.dataset.result;
+        if (result.closest('#webhookTestRunModal') || result.id === 'webhookTestRunModal') return; // handles differently
+        setResult(msg);
+        return;
+      }
+      const opener = e.target.closest('[data-modal]');
+      if (opener) {
+        e.preventDefault();
+        if (opener.dataset.modal === 'webhookTestRunModal') {
+          openModal('webhookTestRunModal');
+          setTimeout(() => {
+            closeAll();
+            setResult('Webhook test successful · Status 200');
+          }, 1500);
+          return;
+        }
+        openModal(opener.dataset.modal);
+      }
+    });
+
+    document.querySelectorAll('.modal-backdrop').forEach(b => b.addEventListener('click', e => { if (e.target === b) closeAll(); }));
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAll(); });
+
+    function setResult(message) {
+      closeAll();
+      document.getElementById('resultMessage').textContent = message;
+      openModal('resultModal');
+    }
+
+    function switchTab(name) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.dataset.panel === name));
+    }
+    document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => switchTab(tab.dataset.tab)));
+
+    function setupStepper(rootId, stepperId, backId, nextId, total, doneMessage) {
+      const root = document.getElementById(rootId);
+      if (!root) return;
+      let current = 1;
+      const render = () => {
+        document.querySelectorAll(`#${stepperId} .step`).forEach((s, i) => { s.classList.toggle('active', i + 1 === current); s.classList.toggle('done', i + 1 < current); });
+        root.querySelectorAll('.step-panel').forEach(p => p.classList.toggle('active', Number(p.dataset.step) === current));
+        document.getElementById(backId).disabled = current === 1;
+        document.getElementById(nextId).textContent = current === total ? 'Complete' : 'Next';
+      };
+      document.getElementById(backId).addEventListener('click', () => { if (current > 1) { current--; render(); } });
+      document.getElementById(nextId).addEventListener('click', () => { if (current < total) { current++; render(); } else { current = 1; render(); setResult(doneMessage); } });
+      render();
+    }
+    setupStepper('generateKeyWizardModal', 'keyStepper', 'keyBack', 'keyNext', 4, 'API key successfully generated and scopes applied');
+    setupStepper('migrationWizardModal', 'migStepper', 'migBack', 'migNext', 3, 'Integration successfully promoted to Production');
+  </script>
+</body>
+
+</html>

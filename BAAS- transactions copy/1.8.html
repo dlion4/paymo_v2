@@ -1,0 +1,1395 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transaction Analytics & Reporting - PayMo BaaS</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="./master.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        /* Analytics Specific Styling */
+        .chart-container {
+            position: relative;
+            height: 320px;
+            width: 100%;
+            background: var(--surface-2);
+            border-radius: 12px;
+            padding: 16px;
+            border: 1px solid var(--border-soft);
+        }
+
+        .heat-map {
+            display: grid;
+            grid-template-columns: repeat(24, 1fr);
+            gap: 4px;
+            margin-top: 12px;
+        }
+
+        .heat-cell {
+            aspect-ratio: 1;
+            border-radius: 3px;
+            background: var(--surface-3);
+            transition: transform 0.1s;
+            cursor: pointer;
+        }
+
+        .heat-cell:hover {
+            transform: scale(1.3);
+            z-index: 10;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .lvl-0 {
+            background: #f3f4f6;
+        }
+
+        .lvl-1 {
+            background: #dbeafe;
+        }
+
+        .lvl-2 {
+            background: #93c5fd;
+        }
+
+        .lvl-3 {
+            background: #3b82f6;
+        }
+
+        .lvl-4 {
+            background: #1d4ed8;
+        }
+
+        .builder-area {
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            gap: 20px;
+            min-height: 450px;
+        }
+
+        .drop-zone {
+            border: 2px dashed var(--border);
+            border-radius: 14px;
+            background: var(--surface-2);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .drag-item {
+            padding: 10px 14px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: grab;
+        }
+
+        .drag-item:active {
+            cursor: grabbing;
+            opacity: 0.6;
+        }
+
+        .mini-tab-nav {
+            display: flex;
+            gap: 4px;
+            background: var(--surface-3);
+            padding: 4px;
+            border-radius: 10px;
+            width: fit-content;
+            margin-bottom: 16px;
+        }
+
+        .mini-tab {
+            padding: 6px 14px;
+            border-radius: 7px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-3);
+            cursor: pointer;
+        }
+
+        .mini-tab.active {
+            background: var(--surface);
+            color: var(--primary);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .stat-ring {
+            position: relative;
+            width: 60px;
+            height: 60px;
+        }
+
+        .stat-ring svg {
+            transform: rotate(-90deg);
+        }
+
+        .corridor-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 14px;
+        }
+
+        .pulse {
+            animation: pulse-red 2s infinite;
+        }
+
+        @keyframes pulse-red {
+            0% {
+                box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(220, 38, 38, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(220, 38, 38, 0);
+            }
+        }
+
+        .geo-line {
+            stroke: var(--primary);
+            stroke-width: 1.5;
+            stroke-dasharray: 4;
+            animation: dash 20s linear infinite;
+        }
+
+        @keyframes dash {
+            to {
+                stroke-dashoffset: -100;
+            }
+        }
+
+        .matrix-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .matrix-table td,
+        .matrix-table th {
+            border: 1px solid var(--border-soft);
+            padding: 10px;
+            font-size: 12px;
+        }
+
+        .matrix-table th {
+            background: var(--surface-2);
+            font-weight: 600;
+            color: var(--text-3);
+            text-align: left;
+        }
+
+        /* Admin Permissions overlay mock */
+        .admin-edit-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .uw-card:hover .admin-edit-badge {
+            opacity: 1;
+        }
+    </style>
+</head>
+
+<body class="bg-[#ece9e2]">
+    <div class="app">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-logo">P</div>
+            <nav class="sidebar-nav">
+                <button class="sidebar-item" data-modal="navDashboardModal"><svg viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                    </svg><span class="sidebar-label">Overview</span></button>
+                <button class="sidebar-item" data-modal="navTransfersModal"><svg viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                    </svg><span class="sidebar-label">Transfers</span></button>
+                <button class="sidebar-item" data-modal="navVaultModal"><svg viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
+                        <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
+                        <line x1="6" y1="6" x2="6.01" y2="6"></line>
+                        <line x1="6" y1="18" x2="6.01" y2="18"></line>
+                    </svg><span class="sidebar-label">Vaults</span></button>
+                <button class="sidebar-item active" data-modal="navAnalyticsModal"><svg viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="20" x2="18" y2="10"></line>
+                        <line x1="12" y1="20" x2="12" y2="4"></line>
+                        <line x1="6" y1="20" x2="6" y2="14"></line>
+                    </svg><span class="sidebar-label">Analytics</span></button>
+                <button class="sidebar-item" data-modal="navSettlementModal"><svg viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="8.5" cy="7" r="4"></circle>
+                        <polyline points="17 11 19 13 23 9"></polyline>
+                    </svg><span class="sidebar-label">Settlement</span></button>
+                <button class="sidebar-item" data-modal="navPermissionsModal"><svg viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg><span class="sidebar-label">Admin</span></button>
+            </nav>
+            <button class="sidebar-expand" id="sidebarToggle"><svg width="12" height="12" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg><span class="sidebar-label">Collapse</span></button>
+        </aside>
+
+        <main class="main">
+            <!-- Topbar -->
+            <div class="topbar">
+                <div>
+                    <div class="crumb">
+                        <button class="mobile-menu-btn btn btn-light btn-sm" id="mobileMenuBtn"
+                            style="margin-right:8px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2">
+                                <line x1="3" y1="12" x2="21" y2="12"></line>
+                                <line x1="3" y1="6" x2="21" y2="6"></line>
+                                <line x1="3" y1="18" x2="21" y2="18"></line>
+                            </svg></button>
+                        <span>BAAS Transactions</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" class="w-3 h-3 mx-1">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg><span>Analytics & Reporting</span>
+                    </div>
+                    <h1 class="page-title">Transaction Analytics</h1>
+                </div>
+                <div class="topbar-actions">
+                    <div class="search-box mr-2">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                        <input type="text" placeholder="Search insights...">
+                    </div>
+                    <button class="btn btn-light" data-modal="filterModal"><svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                        </svg>Filters</button>
+                    <button class="btn btn-primary" data-modal="reportWizardModal"><svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>Create Report</button>
+                </div>
+            </div>
+
+            <!-- Stat Cards -->
+            <div class="stats-row">
+                <div class="stat-card" data-modal="volumeDetailModal">
+                    <div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <line x1="12" y1="20" x2="12" y2="10"></line>
+                            <line x1="18" y1="20" x2="18" y2="4"></line>
+                            <line x1="6" y1="20" x2="6" y2="16"></line>
+                        </svg></div>
+                    <div class="stat-label">Total Volume (MTD)</div>
+                    <div class="stat-value">$42.8M</div>
+                    <div class="stat-trend up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" class="w-3 h-3">
+                            <polyline points="18 15 12 9 6 15"></polyline>
+                        </svg>12.4% vs last month</div>
+                </div>
+                <div class="stat-card" data-modal="performanceDetailModal">
+                    <div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                        </svg></div>
+                    <div class="stat-label">Success Rate</div>
+                    <div class="stat-value">99.92%</div>
+                    <div class="stat-trend up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" class="w-3 h-3">
+                            <polyline points="18 15 12 9 6 15"></polyline>
+                        </svg>0.04% improved</div>
+                </div>
+                <div class="stat-card" data-modal="revenueDetailModal">
+                    <div class="stat-icon purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <line x1="12" y1="1" x2="12" y2="23"></line>
+                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"></path>
+                        </svg></div>
+                    <div class="stat-label">Net Fee Revenue</div>
+                    <div class="stat-value">$842.5K</div>
+                    <div class="stat-trend up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" class="w-3 h-3">
+                            <polyline points="18 15 12 9 6 15"></polyline>
+                        </svg>8.1% vs last month</div>
+                </div>
+                <div class="stat-card" data-modal="anomaliesModal">
+                    <div class="stat-icon red pulse"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path
+                                d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z">
+                            </path>
+                            <line x1="12" y1="9" x2="12" y2="13"></line>
+                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                        </svg></div>
+                    <div class="stat-label">Active Anomalies</div>
+                    <div class="stat-value">3</div>
+                    <div class="stat-trend neutral">Requires Review</div>
+                </div>
+                <div class="stat-card" data-modal="slaModal">
+                    <div class="stat-icon amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg></div>
+                    <div class="stat-label">Avg. Settlement</div>
+                    <div class="stat-value">2.4s</div>
+                    <div class="stat-trend up">SLA Compliant</div>
+                </div>
+            </div>
+
+            <!-- Main Panels -->
+            <div class="panel">
+                <div class="tabs" id="mainTabs">
+                    <button class="tab active" data-tab="volume"><svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" class="w-4 h-4 mr-2">
+                            <path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path>
+                            <path d="M22 12A10 10 0 0 0 12 2v10z"></path>
+                        </svg>Volume & Value</button>
+                    <button class="tab" data-tab="performance"><svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" class="w-4 h-4 mr-2">
+                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                        </svg>Performance</button>
+                    <button class="tab" data-tab="revenue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" class="w-4 h-4 mr-2">
+                            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                        </svg>Revenue & Costs</button>
+                    <button class="tab" data-tab="builder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" class="w-4 h-4 mr-2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>Report Builder</button>
+                    <button class="tab" data-tab="monitoring"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" class="w-4 h-4 mr-2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="2" y1="12" x2="22" y2="12"></line>
+                            <path
+                                d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+                            </path>
+                        </svg>Live Monitoring</button>
+                </div>
+
+                <section class="tab-panel active" data-panel="volume">
+                    <div class="panel-body">
+                        <div class="two-col">
+                            <div>
+                                <div class="flex justify-between items-center mb-4">
+                                    <h3 class="font-semibold">Transaction Trends</h3>
+                                    <div class="mini-tab-nav">
+                                        <div class="mini-tab active" data-range="24h">24h</div>
+                                        <div class="mini-tab" data-range="7d">7d</div>
+                                        <div class="mini-tab" data-range="30d">30d</div>
+                                    </div>
+                                </div>
+                                <div class="chart-container" data-modal="fullChartModal">
+                                    <!-- Simple SVG Line Chart -->
+                                    <svg viewBox="0 0 500 200" class="w-full h-full overflow-visible">
+                                        <path d="M0,150 Q50,120 100,140 T200,100 T300,110 T400,60 T500,80" fill="none"
+                                            stroke="var(--primary)" stroke-width="3"></path>
+                                        <path d="M0,180 Q50,160 100,170 T200,150 T300,160 T400,140 T500,155" fill="none"
+                                            stroke="var(--success)" stroke-width="2" stroke-dasharray="4"></path>
+                                        <circle cx="400" cy="60" r="5" fill="var(--primary)"></circle>
+                                    </svg>
+                                    <div class="legend mt-4">
+                                        <span><span class="legend-dot bg-[#5b5bf5]"></span>Transaction Value</span>
+                                        <span><span class="legend-dot bg-[#16a34a]"></span>Baseline (WoW)</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold mb-4">Peak Activity Identification</h3>
+                                <div class="uw-card relative overflow-hidden">
+                                    <div class="admin-edit-badge"><button class="btn btn-light btn-sm"
+                                            data-modal="editPeakRulesModal">Edit</button></div>
+                                    <div class="kv-grid mb-6">
+                                        <div>
+                                            <div class="kv-label">Highest Peak Hour</div>
+                                            <div class="kv-val text-primary">14:00 - 15:00 UTC</div>
+                                        </div>
+                                        <div>
+                                            <div class="kv-label">Avg. Value at Peak</div>
+                                            <div class="kv-val">$1.24M / hr</div>
+                                        </div>
+                                    </div>
+                                    <div class="heat-map" id="peakHeatMap">
+                                        <!-- JS will populate 24 cells -->
+                                    </div>
+                                    <p class="text-[11px] text-gray-500 mt-3 text-center uppercase tracking-widest">
+                                        Hourly volume distribution (24h)</p>
+                                </div>
+                                <div class="uw-card mt-4">
+                                    <h3 class="font-semibold text-sm mb-3">Growth Rate Tracking</h3>
+                                    <div class="flex items-center gap-4">
+                                        <div class="stat-ring">
+                                            <svg viewBox="0 0 36 36" class="w-full h-full">
+                                                <path class="stroke-gray-100"
+                                                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                                    fill="none" stroke-width="3"></path>
+                                                <path class="stroke-primary" stroke-dasharray="75, 100"
+                                                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                                    fill="none" stroke-width="3"></path>
+                                            </svg>
+                                            <div
+                                                class="absolute inset-0 flex items-center justify-center text-[10px] font-bold">
+                                                18%</div>
+                                        </div>
+                                        <div class="flex-1">
+                                            <div class="text-xs font-semibold">MoM Volume Growth</div>
+                                            <div class="text-[11px] text-green-600 font-medium">On target for Q1</div>
+                                        </div>
+                                        <button class="btn btn-light btn-sm" data-modal="growthProjectionModal">View
+                                            Projection</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="tab-panel" data-panel="performance">
+                    <div class="panel-body">
+                        <div class="two-col">
+                            <div>
+                                <h3 class="font-semibold mb-4">Settlement Time Distribution</h3>
+                                <div class="chart-container" data-modal="settlementDeepDiveModal">
+                                    <div class="flex items-end gap-2 h-40">
+                                        <div class="bg-primary-soft w-full" style="height: 20%"></div>
+                                        <div class="bg-primary-soft w-full" style="height: 45%"></div>
+                                        <div class="bg-primary w-full" style="height: 90%"></div>
+                                        <div class="bg-primary-soft w-full" style="height: 65%"></div>
+                                        <div class="bg-primary-soft w-full" style="height: 30%"></div>
+                                        <div class="bg-primary-soft w-full" style="height: 15%"></div>
+                                    </div>
+                                    <div
+                                        class="flex justify-between mt-4 text-[10px] font-medium uppercase text-gray-500">
+                                        <span>&lt;
+                                            500ms</span><span>1s</span><span>2s</span><span>5s</span><span>10s</span><span>&gt;
+                                            30s</span>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4 mt-4">
+                                    <div class="uw-card">
+                                        <div class="kv-label">P95 Latency</div>
+                                        <div class="kv-val">4.82s</div>
+                                    </div>
+                                    <div class="uw-card">
+                                        <div class="kv-label">Retry Success Rate</div>
+                                        <div class="kv-val text-green-600">92.4%</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold mb-4">Failure Reason Breakdown</h3>
+                                <div class="uw-card">
+                                    <div class="dist-row">
+                                        <div class="dist-label">Insufficient Funds</div>
+                                        <div class="dist-bar"><span style="width:55%;background:var(--danger);"
+                                                class="rounded-full"></span></div>
+                                        <div class="dist-val">55.2%</div>
+                                    </div>
+                                    <div class="dist-row">
+                                        <div class="dist-label">AML Hold</div>
+                                        <div class="dist-bar"><span style="width:22%;background:var(--warning);"
+                                                class="rounded-full"></span></div>
+                                        <div class="dist-val">22.1%</div>
+                                    </div>
+                                    <div class="dist-row">
+                                        <div class="dist-label">Network Timeout</div>
+                                        <div class="dist-bar"><span style="width:12%;background:var(--info);"
+                                                class="rounded-full"></span></div>
+                                        <div class="dist-val">12.4%</div>
+                                    </div>
+                                    <div class="dist-row">
+                                        <div class="dist-label">Invalid Details</div>
+                                        <div class="dist-bar"><span style="width:10%;background:var(--text-4);"
+                                                class="rounded-full"></span></div>
+                                        <div class="dist-val">10.3%</div>
+                                    </div>
+                                    <button class="btn btn-light w-full mt-4"
+                                        data-modal="failureOptimizationModal">Analyze Root Causes</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="tab-panel" data-panel="revenue">
+                    <div class="panel-body">
+                        <div class="corridor-grid">
+                            <div class="uw-card" data-modal="corridorProfitabilityModal">
+                                <div class="flex justify-between">
+                                    <div>
+                                        <div class="kv-label">Top Corridor</div>
+                                        <div class="font-bold text-lg">USD → KES</div>
+                                    </div>
+                                    <span class="badge success">Highly Profitable</span>
+                                </div>
+                                <div class="kv-grid mt-4">
+                                    <div>
+                                        <div class="kv-label">Avg Margin</div>
+                                        <div class="kv-val">1.24%</div>
+                                    </div>
+                                    <div>
+                                        <div class="kv-label">Total Fee Rev</div>
+                                        <div class="kv-val">$241K</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="uw-card" data-modal="railCostModal">
+                                <div class="flex justify-between">
+                                    <div>
+                                        <div class="kv-label">Most Used Rail</div>
+                                        <div class="font-bold text-lg">SWIFT GPI</div>
+                                    </div>
+                                    <span class="badge info">Optimized</span>
+                                </div>
+                                <div class="kv-grid mt-4">
+                                    <div>
+                                        <div class="kv-label">Cost / Txn</div>
+                                        <div class="kv-val">$18.50</div>
+                                    </div>
+                                    <div>
+                                        <div class="kv-label">Throughput</div>
+                                        <div class="kv-val">12k / mo</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="uw-card mt-6">
+                            <h3 class="font-semibold mb-4">Fee Revenue Distribution</h3>
+                            <div class="table-wrap">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Client Segment</th>
+                                            <th>Volume Contribution</th>
+                                            <th>Revenue Contribution</th>
+                                            <th>Avg. Cost</th>
+                                            <th>Profit Margin</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Enterprise Banks</td>
+                                            <td>62%</td>
+                                            <td>41%</td>
+                                            <td>$2.10</td>
+                                            <td><span class="text-green-600 font-semibold">18.4%</span></td>
+                                            <td class="right"><button class="btn btn-light btn-sm"
+                                                    data-modal="clientPricingReviewModal">Pricing</button></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Fintech Startups</td>
+                                            <td>28%</td>
+                                            <td>44%</td>
+                                            <td>$0.85</td>
+                                            <td><span class="text-green-600 font-semibold">32.1%</span></td>
+                                            <td class="right"><button class="btn btn-light btn-sm"
+                                                    data-modal="clientPricingReviewModal">Pricing</button></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Aggregators</td>
+                                            <td>10%</td>
+                                            <td>15%</td>
+                                            <td>$1.45</td>
+                                            <td><span class="text-amber-600 font-semibold">12.2%</span></td>
+                                            <td class="right"><button class="btn btn-light btn-sm"
+                                                    data-modal="clientPricingReviewModal">Pricing</button></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="tab-panel" data-panel="builder">
+                    <div class="panel-body">
+                        <div class="builder-area">
+                            <div class="flex flex-col gap-6">
+                                <div class="uw-card">
+                                    <h4 class="text-xs font-bold uppercase mb-4 text-gray-500">Available Data</h4>
+                                    <div class="flex flex-col gap-2">
+                                        <div class="drag-item" draggable="true"><svg class="w-4 h-4 text-primary"
+                                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <circle cx="12" cy="12" r="10"></circle>
+                                                <path d="M12 8v4l3 3"></path>
+                                            </svg>Timestamp</div>
+                                        <div class="drag-item" draggable="true"><svg class="w-4 h-4 text-green-500"
+                                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                                                <line x1="1" y1="10" x2="23" y2="10"></line>
+                                            </svg>Amount (USD)</div>
+                                        <div class="drag-item" draggable="true"><svg class="w-4 h-4 text-amber-500"
+                                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                                <circle cx="12" cy="10" r="3"></circle>
+                                            </svg>Geo Corridor</div>
+                                        <div class="drag-item" draggable="true"><svg class="w-4 h-4 text-purple-500"
+                                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                            </svg>Status Code</div>
+                                        <div class="drag-item" draggable="true"><svg class="w-4 h-4 text-blue-500"
+                                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <circle cx="12" cy="12" r="10"></circle>
+                                                <line x1="2" y1="12" x2="22" y2="12"></line>
+                                                <path
+                                                    d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+                                                </path>
+                                            </svg>Rail Type</div>
+                                    </div>
+                                </div>
+                                <div class="uw-card">
+                                    <h4 class="text-xs font-bold uppercase mb-4 text-gray-500">Templates</h4>
+                                    <div class="flex flex-col gap-2">
+                                        <button class="btn btn-light btn-sm justify-start"
+                                            data-modal="regulatoryTemplateModal">Regulatory Compliance</button>
+                                        <button class="btn btn-light btn-sm justify-start"
+                                            data-modal="boardReportTemplateModal">Monthly Board deck</button>
+                                        <button class="btn btn-light btn-sm justify-start"
+                                            data-modal="opsAuditTemplateModal">Daily Ops Audit</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="drop-zone relative">
+                                <div
+                                    class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-40">
+                                    <div class="text-center">
+                                        <svg class="w-12 h-12 mx-auto mb-2" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="1.5">
+                                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                            <line x1="3" y1="9" x2="21" y2="9"></line>
+                                            <line x1="9" y1="21" x2="9" y2="9"></line>
+                                        </svg>
+                                        <p class="font-semibold">Drag data fields here to design report</p>
+                                    </div>
+                                </div>
+                                <div id="builderCanvas" class="flex flex-wrap gap-3"></div>
+                                <div class="mt-auto flex justify-between items-center border-t border-dashed pt-4">
+                                    <div class="flex gap-4">
+                                        <select class="select">
+                                            <option>Export: PDF</option>
+                                            <option>Export: CSV</option>
+                                            <option>Export: Excel</option>
+                                        </select>
+                                        <button class="btn btn-light" data-modal="scheduleReportModal"><svg
+                                                class="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2">
+                                                <circle cx="12" cy="12" r="10"></circle>
+                                                <polyline points="12 6 12 12 16 14"></polyline>
+                                            </svg>Schedule</button>
+                                    </div>
+                                    <button class="btn btn-primary" data-modal="generatingReportModal"
+                                        id="generateReportBtn">Generate & Download</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="tab-panel" data-panel="monitoring">
+                    <div class="panel-body">
+                        <div class="uw-card overflow-hidden relative" style="height: 480px; background: #0f172a;">
+                            <div class="absolute top-4 left-4 z-10">
+                                <span class="badge info bg-blue-500/20 text-blue-400 border-blue-500/30">Live: 42 txns /
+                                    sec</span>
+                            </div>
+                            <!-- World Map Background Mock -->
+                            <svg class="absolute inset-0 w-full h-full opacity-30" viewBox="0 0 800 400">
+                                <path fill="#334155" d="M150,100 Q180,80 250,110 T400,100 T600,120 T700,90"
+                                    stroke="none"></path>
+                                <path fill="#334155" d="M100,250 Q200,220 300,280 T500,240 T750,260" stroke="none">
+                                </path>
+                                <!-- Flow Lines -->
+                                <path class="geo-line" d="M200,150 L600,250" fill="none"></path>
+                                <path class="geo-line" d="M300,100 L500,300" fill="none" style="animation-delay: -5s;">
+                                </path>
+                                <path class="geo-line" d="M550,120 L150,280" fill="none" style="animation-delay: -12s;">
+                                </path>
+                            </svg>
+                            <!-- Hot Spots -->
+                            <div class="absolute top-[150px] left-[200px] w-3 h-3 bg-primary rounded-full animate-ping">
+                            </div>
+                            <div
+                                class="absolute top-[250px] left-[600px] w-3 h-3 bg-green-500 rounded-full animate-ping">
+                            </div>
+                            <div
+                                class="absolute top-[100px] left-[300px] w-3 h-3 bg-amber-500 rounded-full animate-ping">
+                            </div>
+
+                            <div
+                                class="absolute bottom-4 right-4 bg-slate-900/80 backdrop-blur border border-slate-700 p-4 rounded-xl w-64">
+                                <h4 class="text-white text-xs font-bold mb-3 uppercase tracking-widest">Real-time
+                                    Anomalies</h4>
+                                <div class="flex flex-col gap-2">
+                                    <div class="flex items-center gap-3 p-2 bg-red-500/10 border border-red-500/20 rounded-lg cursor-pointer hover:bg-red-500/20"
+                                        data-modal="anomalyDetailModal">
+                                        <div class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                                        <div class="text-[11px] text-red-200">Spike in EUR → NGN failures</div>
+                                    </div>
+                                    <div class="flex items-center gap-3 p-2 bg-amber-500/10 border border-amber-500/20 rounded-lg cursor-pointer hover:bg-amber-500/20"
+                                        data-modal="anomalyDetailModal">
+                                        <div class="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></div>
+                                        <div class="text-[11px] text-amber-200">High latency on PesaLink rail</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals (20+) -->
+
+    <!-- 1. Volume Detail -->
+    <div class="modal-backdrop" id="volumeDetailModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Volume & Value Analytics</h3>
+                    <div class="modal-sub">Comprehensive volume breakdown by segment</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="kv-grid mb-6">
+                    <div>
+                        <div class="kv-label">Retail Volume</div>
+                        <div class="kv-val">$18.2M</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Corporate Volume</div>
+                        <div class="kv-val">$24.6M</div>
+                    </div>
+                </div>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Corridor</th>
+                            <th>Count</th>
+                            <th>Total Value</th>
+                            <th>Avg. Size</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>USD → KES</td>
+                            <td>12,482</td>
+                            <td>$4.82M</td>
+                            <td>$386</td>
+                        </tr>
+                        <tr>
+                            <td>GBP → EUR</td>
+                            <td>8,912</td>
+                            <td>$12.1M</td>
+                            <td>$1,357</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+        </div>
+    </div>
+
+    <!-- 2. Performance Detail -->
+    <div class="modal-backdrop" id="performanceDetailModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Success Rate Deep Dive</h3>
+                    <div class="modal-sub">Global performance across all rails</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="chart-container h-48 mb-6">
+                    <div class="flex items-center justify-center h-full text-gray-400">Success Rate Trend Line Chart
+                    </div>
+                </div>
+                <div class="grid grid-cols-3 gap-4">
+                    <div class="uw-card">
+                        <div class="kv-label">SWIFT Success</div>
+                        <div class="kv-val">99.8%</div>
+                    </div>
+                    <div class="uw-card">
+                        <div class="kv-label">ACH Success</div>
+                        <div class="kv-val">99.9%</div>
+                    </div>
+                    <div class="uw-card">
+                        <div class="kv-label">PesaLink Success</div>
+                        <div class="kv-val">98.2%</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+        </div>
+    </div>
+
+    <!-- 3. Revenue Detail -->
+    <div class="modal-backdrop" id="revenueDetailModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Revenue & Margin Analysis</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="dist-row">
+                    <div class="dist-label">Corridor Fees</div>
+                    <div class="dist-bar"><span style="width:70%;background:var(--primary);"></span></div>
+                    <div class="dist-val">$589K</div>
+                </div>
+                <div class="dist-row">
+                    <div class="dist-label">FX Spreads</div>
+                    <div class="dist-bar"><span style="width:25%;background:var(--purple);"></span></div>
+                    <div class="dist-val">$210K</div>
+                </div>
+                <div class="dist-row">
+                    <div class="dist-label">SaaS Subs</div>
+                    <div class="dist-bar"><span style="width:5%;background:var(--success);"></span></div>
+                    <div class="dist-val">$43K</div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+        </div>
+    </div>
+
+    <!-- 4. Anomalies -->
+    <div class="modal-backdrop" id="anomaliesModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Active Anomalies</h3>
+                    <div class="modal-sub">Real-time alerts from monitoring</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="flex flex-col gap-3">
+                    <div class="alert danger"><svg class="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <path
+                                d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z">
+                            </path>
+                        </svg>300% volume spike on corridor NGN → USD</div>
+                    <div class="alert warning"><svg class="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                        </svg>Slow settlement response from Standard Chartered</div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Acknowledge All</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. SLA Compliance -->
+    <div class="modal-backdrop" id="slaModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">SLA Compliance</h3>
+                    <div class="modal-sub">Performance vs Client Agreements</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">Instant Rail SLA</div>
+                        <div class="config-desc">Target < 2s</div>
+                        </div><span class="badge success">99.4%</span>
+                    </div>
+                    <div class="config-row">
+                        <div>
+                            <div class="config-label">Standard Rail SLA</div>
+                            <div class="config-desc">Target < 24h</div>
+                            </div><span class="badge success">100%</span>
+                        </div>
+                    </div>
+                    <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6. Filter Modal -->
+            <div class="modal-backdrop" id="filterModal">
+                <div class="modal">
+                    <div class="modal-header">
+                        <div>
+                            <h3 class="modal-title">Filter Analytics</h3>
+                        </div><button class="modal-close" data-close>x</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="field"><label class="field-label">Date Range</label><select class="select-field">
+                                <option>Last 24 Hours</option>
+                                <option>Last 7 Days</option>
+                                <option>Custom Range</option>
+                            </select></div>
+                        <div class="field"><label class="field-label">Client Segment</label>
+                            <div class="flex gap-4 mt-2"><label class="flex items-center gap-2 text-xs"><input
+                                        type="checkbox" checked> Retail</label><label
+                                    class="flex items-center gap-2 text-xs"><input type="checkbox" checked>
+                                    Corporate</label></div>
+                        </div>
+                    </div>
+                    <div class="modal-footer modal-footer-end"><button class="btn btn-light"
+                            data-close>Reset</button><button class="btn btn-primary"
+                            onclick="setLoading(this); setTimeout(() => { closeAll(); }, 800);">Apply Filters</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 7. Report Wizard (Multistep) -->
+            <div class="modal-backdrop" id="reportWizardModal">
+                <div class="modal lg">
+                    <div class="modal-header">
+                        <div>
+                            <h3 class="modal-title">New Custom Report</h3>
+                        </div><button class="modal-close" data-close>x</button>
+                    </div>
+                    <div class="stepper" id="reportStepper">
+                        <div class="step active">
+                            <div class="step-num">1</div>Template
+                        </div>
+                        <div class="step-line"></div>
+                        <div class="step">
+                            <div class="step-num">2</div>Data
+                        </div>
+                        <div class="step-line"></div>
+                        <div class="step">
+                            <div class="step-num">3</div>Schedule
+                        </div>
+                    </div>
+                    <div class="modal-body">
+                        <div class="step-panel active" data-step="1">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="uw-card border-primary bg-primary-soft cursor-pointer">
+                                    <div class="font-bold">Standard Operations</div>
+                                    <div class="text-[10px] text-gray-500">Volume, success, errors</div>
+                                </div>
+                                <div class="uw-card cursor-pointer hover:border-primary">
+                                    <div class="font-bold">Financial Audit</div>
+                                    <div class="text-[10px] text-gray-500">Revenue, margins, costs</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="step-panel" data-step="2">
+                            <p class="text-sm mb-4 text-gray-500">Configure parameters for report generation...</p>
+                            <div class="field"><label class="field-label">Primary Metric</label><select
+                                    class="select-field">
+                                    <option>Total Value</option>
+                                    <option>Success Rate</option>
+                                </select></div>
+                        </div>
+                        <div class="step-panel" data-step="3">
+                            <div class="alert info mb-4">You can set this report to auto-email to stakeholders.</div>
+                            <div class="field"><label class="field-label">Frequency</label><select class="select-field">
+                                    <option>Daily</option>
+                                    <option>Weekly</option>
+                                </select></div>
+                        </div>
+                    </div>
+                    <div class="modal-footer"><button class="btn btn-light" id="wizardBack"
+                            disabled>Back</button><button class="btn btn-primary" id="wizardNext">Next</button></div>
+                </div>
+            </div>
+
+            <!-- 8. Anomaly Detail -->
+            <div class="modal-backdrop" id="anomalyDetailModal">
+                <div class="modal">
+                    <div class="modal-header">
+                        <div>
+                            <h3 class="modal-title text-red-600">Anomaly Detected</h3>
+                            <div class="modal-sub">System ID: ALRT-8812</div>
+                        </div><button class="modal-close" data-close>x</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="p-4 bg-red-50 rounded-lg border border-red-100 mb-4">
+                            <div class="font-bold text-red-700">Abnormal Failure Rate (22%)</div>
+                            <div class="text-xs text-red-600 mt-1">Affected corridor: EUR → NGN via SWIFT rail. Baseline
+                                is 1.2%.</div>
+                        </div>
+                        <div class="kv-grid">
+                            <div>
+                                <div class="kv-label">Start Time</div>
+                                <div class="kv-val">10:42 UTC</div>
+                            </div>
+                            <div>
+                                <div class="kv-label">Affected Count</div>
+                                <div class="kv-val">482 txns</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer modal-footer-end"><button class="btn btn-danger" data-close>Route to
+                            Ops</button><button class="btn btn-light" data-close>Dismiss</button></div>
+                </div>
+            </div>
+
+            <!-- 9-20. Mini Modals for various interactions -->
+            <div class="modal-backdrop" id="editPeakRulesModal">
+                <div class="modal">
+                    <div class="modal-header">
+                        <div>
+                            <h3 class="modal-title">Edit Peak Identification Rules</h3>
+                        </div><button class="modal-close" data-close>x</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="field"><label class="field-label">Sensitivity</label><input type="range"
+                                class="w-full"></div>
+                    </div>
+                    <div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Save</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-backdrop" id="growthProjectionModal">
+                <div class="modal">
+                    <div class="modal-header">
+                        <div>
+                            <h3 class="modal-title">Q1 Volume Projection</h3>
+                        </div><button class="modal-close" data-close>x</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="p-4 text-center">SVG Projection Chart Placeholder</div>
+                    </div>
+                    <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-backdrop" id="settlementDeepDiveModal">
+                <div class="modal lg">
+                    <div class="modal-header">
+                        <div>
+                            <h3 class="modal-title">Settlement Performance Matrix</h3>
+                        </div><button class="modal-close" data-close>x</button>
+                    </div>
+                    <div class="modal-body">
+                        <table class="matrix-table">
+                            <thead>
+                                <tr>
+                                    <th>Rail</th>
+                                    <th>Avg</th>
+                                    <th>P95</th>
+                                    <th>P99</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>PesaLink</td>
+                                    <td>1.2s</td>
+                                    <td>2.4s</td>
+                                    <td>5.1s</td>
+                                </tr>
+                                <tr>
+                                    <td>SEPA Inst</td>
+                                    <td>0.8s</td>
+                                    <td>1.2s</td>
+                                    <td>2.4s</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-backdrop" id="failureOptimizationModal">
+                <div class="modal">
+                    <div class="modal-header">
+                        <div>
+                            <h3 class="modal-title">Failure Reason Optimization</h3>
+                        </div><button class="modal-close" data-close>x</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="alert info">System recommends 3 rule changes to reduce 'Invalid Detail' errors by
+                            18%.</div>
+                    </div>
+                    <div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Apply
+                            Fixes</button></div>
+                </div>
+            </div>
+            <div class="modal-backdrop" id="corridorProfitabilityModal">
+                <div class="modal">
+                    <div class="modal-header">
+                        <div>
+                            <h3 class="modal-title">USD → KES Profitability</h3>
+                        </div><button class="modal-close" data-close>x</button>
+                    </div>
+                    <div class="modal-body">Profitability Detail List</div>
+                    <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-backdrop" id="railCostModal">
+                <div class="modal">
+                    <div class="modal-header">
+                        <div>
+                            <h3 class="modal-title">SWIFT Cost Breakdown</h3>
+                        </div><button class="modal-close" data-close>x</button>
+                    </div>
+                    <div class="modal-body">Network fee vs Internal processing cost</div>
+                    <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-backdrop" id="clientPricingReviewModal">
+                <div class="modal">
+                    <div class="modal-header">
+                        <div>
+                            <h3 class="modal-title">Pricing Review</h3>
+                        </div><button class="modal-close" data-close>x</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="field"><label class="field-label">Current Tier</label><select class="select-field">
+                                <option>Enterprise Plus</option>
+                            </select></div>
+                    </div>
+                    <div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Update
+                            Tier</button></div>
+                </div>
+            </div>
+            <div class="modal-backdrop" id="regulatoryTemplateModal">
+                <div class="modal">
+                    <div class="modal-header">
+                        <div>
+                            <h3 class="modal-title">Regulatory Reporting Template</h3>
+                        </div><button class="modal-close" data-close>x</button>
+                    </div>
+                    <div class="modal-body">Pre-configured fields for AML/CTF reporting.</div>
+                    <div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Load</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-backdrop" id="boardReportTemplateModal">
+                <div class="modal">
+                    <div class="modal-header">
+                        <div>
+                            <h3 class="modal-title">Monthly Board Deck</h3>
+                        </div><button class="modal-close" data-close>x</button>
+                    </div>
+                    <div class="modal-body">Summary of revenue, growth, and margins.</div>
+                    <div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Load</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-backdrop" id="opsAuditTemplateModal">
+                <div class="modal">
+                    <div class="modal-header">
+                        <div>
+                            <h3 class="modal-title">Daily Ops Audit</h3>
+                        </div><button class="modal-close" data-close>x</button>
+                    </div>
+                    <div class="modal-body">Volume vs baseline audit template.</div>
+                    <div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Load</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-backdrop" id="generatingReportModal">
+                <div class="modal">
+                    <div class="modal-body text-center py-10">
+                        <div
+                            class="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4">
+                        </div>
+                        <div class="font-bold">Generating Report</div>
+                        <div class="text-xs text-gray-500 mt-2">Compiling data from 18,290 records...</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-backdrop" id="scheduleReportModal">
+                <div class="modal">
+                    <div class="modal-header">
+                        <div>
+                            <h3 class="modal-title">Schedule Report Delivery</h3>
+                        </div><button class="modal-close" data-close>x</button>
+                    </div>
+                    <div class="modal-body">Delivery Settings Form</div>
+                    <div class="modal-footer modal-footer-end"><button class="btn btn-primary"
+                            data-close>Schedule</button></div>
+                </div>
+            </div>
+
+            <!-- Nav Modals -->
+            <div class="modal-backdrop" id="navDashboardModal">
+                <div class="modal">
+                    <div class="modal-body">Navigating to Dashboard...</div>
+                </div>
+            </div>
+            <div class="modal-backdrop" id="navTransfersModal">
+                <div class="modal">
+                    <div class="modal-body">Navigating to Transfers...</div>
+                </div>
+            </div>
+            <div class="modal-backdrop" id="navVaultModal">
+                <div class="modal">
+                    <div class="modal-body">Navigating to Vaults...</div>
+                </div>
+            </div>
+            <div class="modal-backdrop" id="navAnalyticsModal">
+                <div class="modal">
+                    <div class="modal-body">Navigating to Analytics...</div>
+                </div>
+            </div>
+            <div class="modal-backdrop" id="navSettlementModal">
+                <div class="modal">
+                    <div class="modal-body">Navigating to Settlement...</div>
+                </div>
+            </div>
+            <div class="modal-backdrop" id="navPermissionsModal">
+                <div class="modal">
+                    <div class="modal-header">
+                        <div>
+                            <h3 class="modal-title">Admin Permissions</h3>
+                        </div><button class="modal-close" data-close>x</button>
+                    </div>
+                    <div class="modal-body">Manage underwriter roles and data access limits.</div>
+                </div>
+            </div>
+
+            <!-- Result Modal -->
+            <div class="modal-backdrop" id="resultModal">
+                <div class="modal">
+                    <div class="modal-header">
+                        <div>
+                            <h3 class="modal-title" id="resultTitle">Success</h3>
+                        </div><button class="modal-close" data-close>x</button>
+                    </div>
+                    <div class="modal-body" id="resultMessage">Operation completed.</div>
+                    <div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Done</button>
+                    </div>
+                </div>
+            </div>
+
+            <script>
+                // Sidebar logic
+                const sidebar = document.getElementById('sidebar');
+                document.getElementById('sidebarToggle').addEventListener('click', () => sidebar.classList.toggle('expanded'));
+                document.getElementById('mobileMenuBtn').addEventListener('click', () => sidebar.classList.toggle('mobile-open'));
+
+                // Modal logic
+                function openModal(id) {
+                    const m = document.getElementById(id);
+                    if (m) m.classList.add('show');
+                }
+                function closeAll() {
+                    document.querySelectorAll('.modal-backdrop.show').forEach(m => m.classList.remove('show'));
+                }
+                document.addEventListener('click', e => {
+                    const opener = e.target.closest('[data-modal]');
+                    if (opener) openModal(opener.dataset.modal);
+                    const closer = e.target.closest('[data-close]');
+                    if (closer) closeAll();
+                });
+                document.querySelectorAll('.modal-backdrop').forEach(b => b.addEventListener('click', e => { if (e.target === b) closeAll(); }));
+
+                // Tabs logic
+                document.querySelectorAll('.tab').forEach(tab => {
+                    tab.addEventListener('click', () => {
+                        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+                        tab.classList.add('active');
+                        document.querySelector(`[data-panel="${tab.dataset.tab}"]`).classList.add('active');
+                    });
+                });
+
+                // Mini Tabs logic
+                document.querySelectorAll('.mini-tab').forEach(mt => {
+                    mt.addEventListener('click', () => {
+                        mt.parentElement.querySelectorAll('.mini-tab').forEach(t => t.classList.remove('active'));
+                        mt.classList.add('active');
+                    });
+                });
+
+                // Populate Heatmap
+                const heatMap = document.getElementById('peakHeatMap');
+                if (heatMap) {
+                    for (let i = 0; i < 24; i++) {
+                        const cell = document.createElement('div');
+                        const lvl = Math.floor(Math.random() * 5);
+                        cell.className = `heat-cell lvl-${lvl}`;
+                        cell.title = `Hour ${i}:00 - ${lvl * 20}% volume`;
+                        heatMap.appendChild(cell);
+                    }
+                }
+
+                // Report Wizard logic
+                let currentStep = 1;
+                const updateWizard = () => {
+                    document.querySelectorAll('#reportStepper .step').forEach((s, i) => {
+                        s.classList.toggle('active', i + 1 === currentStep);
+                        s.classList.toggle('done', i + 1 < currentStep);
+                    });
+                    document.querySelectorAll('#reportWizardModal .step-panel').forEach(p => p.classList.toggle('active', parseInt(p.dataset.step) === currentStep));
+                    document.getElementById('wizardBack').disabled = currentStep === 1;
+                    document.getElementById('wizardNext').textContent = currentStep === 3 ? 'Generate' : 'Next';
+                };
+                document.getElementById('wizardNext').addEventListener('click', () => {
+                    if (currentStep < 3) { currentStep++; updateWizard(); }
+                    else {
+                        closeAll();
+                        openModal('generatingReportModal');
+                        setTimeout(() => { closeAll(); showResult("Report Generated", "Custom report 'Ops Summary' is ready for download."); }, 2000);
+                        currentStep = 1; updateWizard();
+                    }
+                });
+                document.getElementById('wizardBack').addEventListener('click', () => { if (currentStep > 1) { currentStep--; updateWizard(); } });
+
+                function showResult(title, msg) {
+                    document.getElementById('resultTitle').textContent = title;
+                    document.getElementById('resultMessage').textContent = msg;
+                    openModal('resultModal');
+                }
+
+                // Drag and Drop simulation
+                document.querySelectorAll('.drag-item').forEach(item => {
+                    item.ondragstart = (e) => e.dataTransfer.setData("text", item.innerText);
+                });
+                const canvas = document.getElementById('builderCanvas');
+                if (canvas) {
+                    const dropZone = canvas.parentElement;
+                    dropZone.ondragover = (e) => e.preventDefault();
+                    dropZone.ondrop = (e) => {
+                        e.preventDefault();
+                        const data = e.dataTransfer.getData("text");
+                        const chip = document.createElement('div');
+                        chip.className = 'badge primary p-2 rounded-lg flex items-center gap-2';
+                        chip.innerHTML = `<span>${data}</span><button class="text-xs opacity-60 hover:opacity-100" onclick="this.parentElement.remove()">×</button>`;
+                        canvas.appendChild(chip);
+                    };
+                }
+
+                function setLoading(btn) {
+                    btn.classList.add('opacity-50', 'pointer-events-none');
+                    const original = btn.innerHTML;
+                    btn.innerHTML = '<div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>';
+                    setTimeout(() => {
+                        btn.classList.remove('opacity-50', 'pointer-events-none');
+                        btn.innerHTML = original;
+                    }, 1000);
+                }
+            </script>
+</body>
+
+</html>

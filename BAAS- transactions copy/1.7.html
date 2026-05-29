@@ -1,0 +1,1650 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settlement & Clearing - PayMo BaaS</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="./master.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        .two-col {
+            display: grid;
+            grid-template-columns: 1.6fr 1fr;
+            gap: 16px;
+        }
+
+        .three-col {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+        }
+
+        .four-col {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        .rail-card {
+            background: var(--surface);
+            border: 1px solid var(--border-soft);
+            border-radius: var(--radius);
+            padding: 18px;
+            transition: all .15s;
+            cursor: pointer;
+        }
+
+        .rail-card:hover {
+            border-color: var(--primary);
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-1px);
+        }
+
+        .countdown {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--danger);
+            letter-spacing: -0.02em;
+        }
+
+        .money-large {
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: -.04em;
+        }
+
+        .kv-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px 18px;
+        }
+
+        .kv-label {
+            font-size: 10px;
+            color: var(--text-4);
+            text-transform: uppercase;
+            letter-spacing: .06em;
+        }
+
+        .kv-val {
+            font-size: 13px;
+            font-weight: 600;
+            margin-top: 2px;
+        }
+
+        .net-box {
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px;
+            background: var(--surface-2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .net-box:before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--primary);
+        }
+
+        .step-modal-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border-soft);
+            margin: -22px -24px 22px -24px;
+            padding: 0 24px;
+            background: var(--surface-2);
+        }
+
+        .step-modal-tab {
+            padding: 12px 16px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-3);
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+        }
+
+        .step-modal-tab.active {
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .loading-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            border-radius: inherit;
+        }
+
+        .loading-overlay.active {
+            display: flex;
+        }
+
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .pin-input {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .pin-input input {
+            width: 45px;
+            height: 50px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: 700;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            outline: none;
+        }
+
+        .pin-input input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-soft);
+        }
+
+        @media (max-width: 1100px) {
+            .two-col {
+                grid-template-columns: 1fr;
+            }
+
+            .three-col {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+
+            .three-col,
+            .four-col {
+                grid-template-columns: 1fr;
+            }
+
+            .money-large {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-logo">P</div>
+            <nav class="sidebar-nav">
+                <button class="sidebar-item" title="Transactions" data-modal="navTransModal"><svg viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                    </svg><span class="sidebar-label">Transactions</span></button>
+                <button class="sidebar-item" title="Liquidity" data-modal="navLiqModal"><svg viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"></path>
+                    </svg><span class="sidebar-label">Liquidity</span></button>
+                <button class="sidebar-item active" title="Settlement"><svg viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="8.5" cy="7" r="4"></circle>
+                        <polyline points="17 11 19 13 23 9"></polyline>
+                    </svg><span class="sidebar-label">Settlement</span></button>
+                <button class="sidebar-item" title="Clearing" data-modal="navClearModal"><svg viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg><span class="sidebar-label">Clearing</span></button>
+                <button class="sidebar-item" title="Calendar" data-modal="navCalModal"><svg viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg><span class="sidebar-label">Calendar</span></button>
+                <button class="sidebar-item" title="Reporting" data-modal="navReportsModal"><svg viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                    </svg><span class="sidebar-label">Reporting</span></button>
+                <button class="sidebar-item" title="Reconciliation" data-modal="navReconModal"><svg viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="17 1 21 5 17 9"></polyline>
+                        <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
+                        <polyline points="7 23 3 19 7 15"></polyline>
+                        <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
+                    </svg><span class="sidebar-label">Reconciliation</span></button>
+                <button class="sidebar-item" title="Admin" data-modal="navAdminModal"><svg viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path
+                            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z">
+                        </path>
+                    </svg><span class="sidebar-label">Admin</span></button>
+            </nav>
+            <button class="sidebar-expand" id="sidebarToggle"><svg width="12" height="12" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg><span class="sidebar-label">Collapse</span></button>
+        </aside>
+
+        <main class="main">
+            <div class="topbar">
+                <div>
+                    <div class="crumb">
+                        <button class="mobile-menu-btn btn btn-light btn-sm" id="mobileMenuBtn"
+                            style="margin-right:8px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2">
+                                <line x1="3" y1="12" x2="21" y2="12"></line>
+                                <line x1="3" y1="6" x2="21" y2="6"></line>
+                                <line x1="3" y1="18" x2="21" y2="18"></line>
+                            </svg></button>
+                        <span>Operations</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg><span>Settlement & Clearing</span>
+                    </div>
+                    <h1 class="page-title">Settlement & Clearing</h1>
+                </div>
+                <div class="topbar-actions">
+                    <button class="btn btn-light btn-icon" title="Notifications" data-modal="notificationsModal"><svg
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                        </svg></button>
+                    <button class="btn btn-light" data-modal="filterModal"><svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                        </svg><span class="btn-text">Filters</span></button>
+                    <button class="btn btn-light" data-modal="exportModal"><svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg><span class="btn-text">Export</span></button>
+                    <button class="btn btn-primary" data-modal="batchWizardModal"><svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>Create Batch</button>
+                </div>
+            </div>
+
+            <div class="stats-row">
+                <div class="stat-card" data-modal="totalSettledModal">
+                    <div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"></path>
+                        </svg></div>
+                    <div class="stat-label">Settled (Today)</div>
+                    <div class="stat-value">$248.4M</div>
+                    <div class="stat-trend up"><span>+4.2% vs yesterday</span></div>
+                </div>
+                <div class="stat-card" data-modal="pendingClearingModal">
+                    <div class="stat-icon amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg></div>
+                    <div class="stat-label">Pending Clearing</div>
+                    <div class="stat-value">1,402</div>
+                    <div class="stat-trend neutral"><span>$12.8M notional</span></div>
+                </div>
+                <div class="stat-card" data-modal="failureAnalysisModal">
+                    <div class="stat-icon red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path
+                                d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z">
+                            </path>
+                        </svg></div>
+                    <div class="stat-label">Failures</div>
+                    <div class="stat-value">3</div>
+                    <div class="stat-trend down"><span>Resolution in progress</span></div>
+                </div>
+                <div class="stat-card" data-modal="eodStatusModal">
+                    <div class="stat-icon purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                        </svg></div>
+                    <div class="stat-label">EOD Readiness</div>
+                    <div class="stat-value">82%</div>
+                    <div class="stat-trend up"><span>9/11 tasks complete</span></div>
+                </div>
+                <div class="stat-card" data-modal="cutOffCountdownModal">
+                    <div class="stat-icon red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg></div>
+                    <div class="stat-label">Next Cut-off</div>
+                    <div class="stat-value countdown">00:42:18</div>
+                    <div class="stat-trend down"><span>SWIFT MT103</span></div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="tabs" id="mainTabs">
+                    <button class="tab active" data-tab="calendar"><svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                        </svg>Settlement Calendar</button>
+                    <button class="tab" data-tab="netting"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polyline points="17 1 21 5 17 9"></polyline>
+                            <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
+                            <polyline points="7 23 3 19 7 15"></polyline>
+                        </svg>Netting & Batching</button>
+                    <button class="tab" data-tab="reports"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                        </svg>Settlement Reports</button>
+                    <button class="tab" data-tab="eod"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="2" y1="12" x2="22" y2="12"></line>
+                        </svg>End-of-Day Process</button>
+                </div>
+
+                <section class="tab-panel active" data-panel="calendar">
+                    <div class="panel-body">
+                        <div class="two-col">
+                            <div>
+                                <h2 class="panel-title" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <polyline points="12 6 12 12 16 14"></polyline>
+                                    </svg>Daily Settlement Rails</h2>
+                                <div class="three-col">
+                                    <div class="rail-card" data-modal="railDetailModal">
+                                        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                                            <div>
+                                                <div style="font-weight:700;font-size:16px;">SWIFT</div>
+                                                <div class="list-sub">RTGS · Cross-border</div>
+                                            </div>
+                                            <span class="badge success">Open</span>
+                                        </div>
+                                        <div style="margin-top:14px;">
+                                            <div class="kv-label">Next Cut-off</div>
+                                            <div class="countdown">14:00 GMT</div>
+                                        </div>
+                                        <div class="dist-bar" style="margin-top:8px;"><span
+                                                style="width:75%;background:var(--primary);"></span></div>
+                                    </div>
+                                    <div class="rail-card" data-modal="railDetailModal">
+                                        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                                            <div>
+                                                <div style="font-weight:700;font-size:16px;">ACH</div>
+                                                <div class="list-sub">Net · Batch</div>
+                                            </div>
+                                            <span class="badge warning">Cut-off Soon</span>
+                                        </div>
+                                        <div style="margin-top:14px;">
+                                            <div class="kv-label">Next Cut-off</div>
+                                            <div class="countdown">00:42:18</div>
+                                        </div>
+                                        <div class="dist-bar" style="margin-top:8px;"><span
+                                                style="width:95%;background:var(--danger);"></span></div>
+                                    </div>
+                                    <div class="rail-card" data-modal="railDetailModal">
+                                        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                                            <div>
+                                                <div style="font-weight:700;font-size:16px;">SEPA</div>
+                                                <div class="list-sub">Instant · EU</div>
+                                            </div>
+                                            <span class="badge success">Open</span>
+                                        </div>
+                                        <div style="margin-top:14px;">
+                                            <div class="kv-label">Status</div>
+                                            <div style="font-size:14px;font-weight:600;">24/7 Real-time</div>
+                                        </div>
+                                        <div class="dist-bar" style="margin-top:8px;"><span
+                                                style="width:100%;background:var(--success);"></span></div>
+                                    </div>
+                                </div>
+                                <div style="margin-top:18px;"><button class="btn btn-light"
+                                        data-modal="holidayCalendarModal"><svg viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2">
+                                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                        </svg>View Global Holiday Calendar</button></div>
+                            </div>
+                            <div>
+                                <h2 class="panel-title" style="margin-bottom:12px;"><svg viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" stroke-width="2">
+                                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                                    </svg>Settlement Forecast</h2>
+                                <div style="background:var(--surface-2);padding:18px;border-radius:14px;">
+                                    <div class="dist-row">
+                                        <div class="dist-label">T+0 (Today)</div>
+                                        <div class="dist-bar"><span
+                                                style="width:100%;background:var(--success);"></span></div>
+                                        <div class="dist-val">$248.4M</div>
+                                    </div>
+                                    <div class="dist-row">
+                                        <div class="dist-label">T+1 (Tomorrow)</div>
+                                        <div class="dist-bar"><span style="width:65%;background:var(--primary);"></span>
+                                        </div>
+                                        <div class="dist-val">$162.1M</div>
+                                    </div>
+                                    <div class="dist-row">
+                                        <div class="dist-label">T+2</div>
+                                        <div class="dist-bar"><span style="width:40%;background:var(--primary);"></span>
+                                        </div>
+                                        <div class="dist-val">$98.5M</div>
+                                    </div>
+                                    <button class="btn btn-light btn-sm" style="width:100%;margin-top:8px;"
+                                        data-modal="forecastDetailModal">Detailed Forecast</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="tab-panel" data-panel="netting">
+                    <div class="panel-body">
+                        <div class="two-col">
+                            <div>
+                                <div
+                                    style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+                                    <h2 class="panel-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                            stroke-width="2">
+                                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                                        </svg>Active Batches & Netting</h2>
+                                    <button class="btn btn-primary btn-sm" data-modal="nettingCalcModal">Run Netting
+                                        Calc</button>
+                                </div>
+                                <div class="table-wrap">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>Batch ID</th>
+                                                <th>Rail</th>
+                                                <th>Type</th>
+                                                <th>Entries</th>
+                                                <th>Net Amount</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr data-modal="batchDetailModal">
+                                                <td class="mono">BATCH-9942</td>
+                                                <td>ACH</td>
+                                                <td>Net</td>
+                                                <td>428</td>
+                                                <td>$4,120,400</td>
+                                                <td><span class="badge warning">Pending</span></td>
+                                            </tr>
+                                            <tr data-modal="batchDetailModal">
+                                                <td class="mono">BATCH-9941</td>
+                                                <td>SEPA</td>
+                                                <td>Gross</td>
+                                                <td>12</td>
+                                                <td>$842,000</td>
+                                                <td><span class="badge info">Clearing</span></td>
+                                            </tr>
+                                            <tr data-modal="batchDetailModal">
+                                                <td class="mono">BATCH-9940</td>
+                                                <td>FPS</td>
+                                                <td>Net</td>
+                                                <td>1,024</td>
+                                                <td>£2,450,000</td>
+                                                <td><span class="badge success">Settled</span></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="net-box">
+                                <h3 class="uw-title">Multi-lateral Netting Summary</h3>
+                                <div class="kv-grid" style="margin-bottom:14px;">
+                                    <div>
+                                        <div class="kv-label">Total Inbound</div>
+                                        <div class="kv-val">$184.2M</div>
+                                    </div>
+                                    <div>
+                                        <div class="kv-label">Total Outbound</div>
+                                        <div class="kv-val">$162.8M</div>
+                                    </div>
+                                    <div>
+                                        <div class="kv-label">Gross Volume</div>
+                                        <div class="kv-val">$347.0M</div>
+                                    </div>
+                                    <div>
+                                        <div class="kv-label" style="color:var(--primary);">Net Settlement</div>
+                                        <div class="kv-val" style="font-size:18px;">$21.4M</div>
+                                    </div>
+                                </div>
+                                <div class="alert info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                    </svg>Netting has reduced settlement liquidity requirements by 88.4%.</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="tab-panel" data-panel="reports">
+                    <div class="panel-body">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                            <h2 class="panel-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                </svg>Settlement Audit & Compliance</h2>
+                            <div style="display:flex;gap:8px;">
+                                <button class="btn btn-light" data-modal="failureAnalysisModal">Failure
+                                    Analysis</button>
+                                <button class="btn btn-primary" data-modal="generateReportModal">Generate New
+                                    Report</button>
+                            </div>
+                        </div>
+                        <div class="table-wrap">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Report Name</th>
+                                        <th>Type</th>
+                                        <th>Coverage</th>
+                                        <th>Generated</th>
+                                        <th>Status</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr data-modal="reportPreviewModal">
+                                        <td>Daily Settlement Conf</td>
+                                        <td>Post-Settlement</td>
+                                        <td>Today</td>
+                                        <td>10 mins ago</td>
+                                        <td><span class="badge success">Verified</span></td>
+                                        <td class="right"><button class="btn btn-light btn-sm">View</button></td>
+                                    </tr>
+                                    <tr data-modal="reportPreviewModal">
+                                        <td>Pre-Settlement Validation</td>
+                                        <td>Validation</td>
+                                        <td>Cut-off 14:00</td>
+                                        <td>1h ago</td>
+                                        <td><span class="badge warning">Exceptions</span></td>
+                                        <td class="right"><button class="btn btn-light btn-sm">Fix</button></td>
+                                    </tr>
+                                    <tr data-modal="reportPreviewModal">
+                                        <td>Central Bank Regulatory</td>
+                                        <td>Regulatory</td>
+                                        <td>MTD</td>
+                                        <td>Yesterday</td>
+                                        <td><span class="badge info">Filed</span></td>
+                                        <td class="right"><button class="btn btn-light btn-sm">Receipt</button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="tab-panel" data-panel="eod">
+                    <div class="panel-body">
+                        <div class="two-col">
+                            <div>
+                                <h2 class="panel-title" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" stroke-width="2">
+                                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                                    </svg>End-of-Day Checklist</h2>
+                                <div class="config-row">
+                                    <div>
+                                        <div class="config-label">All batches submitted</div>
+                                        <div class="config-desc">Verify batch status is 'Settled' or 'Pending'</div>
+                                    </div><span class="badge success">Complete</span>
+                                </div>
+                                <div class="config-row">
+                                    <div>
+                                        <div class="config-label">Nostro reconciliation</div>
+                                        <div class="config-desc">Match internal ledger to bank statements</div>
+                                    </div><span class="badge success">Complete</span>
+                                </div>
+                                <div class="config-row">
+                                    <div>
+                                        <div class="config-label">Pending clearing sweep</div>
+                                        <div class="config-desc">Address 1,402 items in pending status</div>
+                                    </div><span class="badge warning">Action Required</span>
+                                </div>
+                                <div class="config-row">
+                                    <div>
+                                        <div class="config-label">Central bank reporting</div>
+                                        <div class="config-desc">Submit end-of-day position report</div>
+                                    </div><span class="badge gray">Pending</span>
+                                </div>
+                                <div style="margin-top:18px;"><button class="btn btn-primary"
+                                        data-modal="eodActionModal">Run EOD Job Sequence</button></div>
+                            </div>
+                            <div style="background:var(--surface-2);border-radius:14px;padding:18px;">
+                                <h3 class="uw-title">Automated Job Monitoring</h3>
+                                <div class="timeline">
+                                    <div class="tl-item">
+                                        <div class="tl-time">18:00</div>
+                                        <div class="tl-text">Job [EOD-RECON] finished · 100% matched</div>
+                                    </div>
+                                    <div class="tl-item">
+                                        <div class="tl-time">18:15</div>
+                                        <div class="tl-text">Job [BATCH-SWEEP] finished · 4,812 records</div>
+                                    </div>
+                                    <div class="tl-item">
+                                        <div class="tl-time">Running</div>
+                                        <div class="tl-text">Job [PROVISIONING-UPDATE] · 82%...</div>
+                                    </div>
+                                </div>
+                                <button class="btn btn-light btn-sm" style="width:100%;margin-top:14px;"
+                                    data-modal="exceptionHandlingModal">View 3 Exceptions</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- ============ MODALS (Over 20) ============ -->
+
+    <!-- Multi-step PIN protected Payment/Settlement Modal -->
+    <div class="modal-backdrop" id="batchWizardModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Create Settlement Batch</h3>
+                    <div class="modal-sub">Step-by-step batch creation and authorization</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="stepper" id="batchStepper">
+                <div class="step active">
+                    <div class="step-num">1</div>Rail
+                </div>
+                <div class="step-line"></div>
+                <div class="step">
+                    <div class="step-num">2</div>Entries
+                </div>
+                <div class="step-line"></div>
+                <div class="step">
+                    <div class="step-num">3</div>Secure
+                </div>
+                <div class="step-line"></div>
+                <div class="step">
+                    <div class="step-num">4</div>Confirm
+                </div>
+            </div>
+            <div class="modal-body" style="position:relative;">
+                <div class="loading-overlay" id="batchLoading">
+                    <div class="spinner"></div>
+                </div>
+                <div class="step-panel active" data-step="1">
+                    <div class="field"><label class="field-label">Settlement Rail</label><select class="select-field">
+                            <option>ACH - Net Settlement</option>
+                            <option>SWIFT - Gross Settlement</option>
+                            <option>SEPA - Instant</option>
+                        </select></div>
+                    <div class="field"><label class="field-label">Priority</label><select class="select-field">
+                            <option>Standard</option>
+                            <option>Urgent (Next Cycle)</option>
+                        </select></div>
+                </div>
+                <div class="step-panel" data-step="2">
+                    <div class="alert info" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                        </svg>Found 428 unbatched transactions for this rail.</div>
+                    <div class="kv-grid">
+                        <div>
+                            <div class="kv-label">Count</div>
+                            <div class="kv-val">428 transactions</div>
+                        </div>
+                        <div>
+                            <div class="kv-label">Notional</div>
+                            <div class="kv-val">$4,120,400</div>
+                        </div>
+                    </div><label class="choice-row selected" style="margin-top:14px;"><input type="checkbox" checked>
+                        <div>
+                            <div class="choice-title">Automated Netting</div>
+                            <div class="choice-desc">Calculate multi-lateral net position</div>
+                        </div>
+                    </label>
+                </div>
+                <div class="step-panel" data-step="3">
+                    <div style="text-align:center;">
+                        <div class="kv-label">Authorization Required</div>
+                        <div style="font-size:13px;margin:8px 0;">Enter your 6-digit administrative passkey to sign this
+                            batch.</div>
+                        <div class="pin-input"><input type="password" maxlength="1"><input type="password"
+                                maxlength="1"><input type="password" maxlength="1"><input type="password"
+                                maxlength="1"><input type="password" maxlength="1"><input type="password" maxlength="1">
+                        </div><span class="badge warning">Biometric Backup Available</span>
+                    </div>
+                </div>
+                <div class="step-panel" data-step="4">
+                    <div class="alert success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>Batch BATCH-9943 authorized and signed successfully.</div>
+                    <div class="kv-grid" style="margin-top:14px;">
+                        <div>
+                            <div class="kv-label">Batch ID</div>
+                            <div class="kv-val mono">BATCH-9943</div>
+                        </div>
+                        <div>
+                            <div class="kv-label">Status</div>
+                            <div class="kv-val">Queued for submission</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-light" id="batchBack" disabled>Back</button><button
+                    class="btn btn-primary" id="batchNext">Next</button></div>
+        </div>
+    </div>
+
+    <!-- Regular Modals -->
+    <div class="modal-backdrop" id="railDetailModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Rail Parameters</h3>
+                    <div class="modal-sub">SWIFT MT103 Configuration</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">Settlement Mode</div>
+                        <div class="config-desc">Real-time Gross Settlement (RTGS)</div>
+                    </div><span class="badge primary">Active</span>
+                </div>
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">BIC Verification</div>
+                        <div class="config-desc">Mandatory check on all outgoing</div>
+                    </div><label class="toggle"><input type="checkbox" checked><span
+                            class="toggle-slider"></span></label>
+                </div>
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">Message Chaining</div>
+                        <div class="config-desc">Group messages by destination bank</div>
+                    </div><label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button
+                    class="btn btn-primary" data-result="Rail settings updated">Save Configuration</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="totalSettledModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Settled Volume (Today)</h3>
+                    <div class="modal-sub">Cumulative daily volume across all rails</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body" style="text-align:center;">
+                <div class="money-large" style="color:var(--success);">$248,412,000</div>
+                <div class="list-sub" style="margin-top:10px;">Comprising 8,410 successfully cleared instructions.</div>
+                <div style="margin-top:20px;"><button class="btn btn-light" data-modal="exportModal">Export Settlement
+                        Ledger</button></div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="pendingClearingModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Pending Clearing Pool</h3>
+                    <div class="modal-sub">1,402 instructions awaiting next batch window</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Txn ID</th>
+                            <th>Rail</th>
+                            <th>Direction</th>
+                            <th>Amount</th>
+                            <th>Time in Pool</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="mono">TX-88219</td>
+                            <td>ACH</td>
+                            <td>Out</td>
+                            <td>$24,000</td>
+                            <td>14 mins</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">TX-88218</td>
+                            <td>FPS</td>
+                            <td>In</td>
+                            <td>£1,200</td>
+                            <td>2 mins</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">TX-88217</td>
+                            <td>ACH</td>
+                            <td>Out</td>
+                            <td>$8,400</td>
+                            <td>22 mins</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button
+                    class="btn btn-primary" data-modal="batchWizardModal">Accelerate to Batch</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="failureAnalysisModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Settlement Failure Analysis</h3>
+                    <div class="modal-sub">3 instructions requiring manual intervention</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="list-item">
+                    <div class="list-left">
+                        <div class="list-icon" style="background:var(--danger-soft);color:var(--danger);"><svg
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg></div>
+                        <div>
+                            <div class="list-title">BIC Not Found</div>
+                            <div class="list-sub">Instruction TX-9921 · Swift rail</div>
+                        </div>
+                    </div><button class="btn btn-light btn-sm" data-modal="fixInstructionModal">Resolve</button>
+                </div>
+                <div class="list-item">
+                    <div class="list-left">
+                        <div class="list-icon" style="background:var(--danger-soft);color:var(--danger);"><svg
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg></div>
+                        <div>
+                            <div class="list-title">Insufficient Liquidity</div>
+                            <div class="list-sub">Nostro [Chase-USD] · $2.1M short</div>
+                        </div>
+                    </div><button class="btn btn-light btn-sm" data-modal="fundNostroModal">Fund</button>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="eodStatusModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">EOD Job Status</h3>
+                    <div class="modal-sub">Job-level drilldown for today's EOD</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="timeline">
+                    <div class="tl-item">
+                        <div class="tl-time">Done</div>
+                        <div class="tl-text">Ledger Balance Snapshot [EOD-SNAPSHOT]</div>
+                    </div>
+                    <div class="tl-item">
+                        <div class="tl-time">Done</div>
+                        <div class="tl-text">Fee Accrual Calculation [EOD-FEES]</div>
+                    </div>
+                    <div class="tl-item">
+                        <div class="tl-time">Running</div>
+                        <div class="tl-text">Regulatory Buffer Check [EOD-REG] · 42%</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="cutOffCountdownModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Upcoming Cut-offs</h3>
+                    <div class="modal-sub">Rail-specific cut-off countdowns</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">ACH Window 3</div>
+                        <div class="config-desc">Domestic batch submission</div>
+                    </div>
+                    <div class="countdown">00:42:18</div>
+                </div>
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">SWIFT RTGS</div>
+                        <div class="config-desc">Same-day settlement window</div>
+                    </div>
+                    <div class="countdown">02:14:05</div>
+                </div>
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">SEPA Batch 1</div>
+                        <div class="config-desc">Next business day settlement</div>
+                    </div>
+                    <div class="countdown">04:30:11</div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="holidayCalendarModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Global Holiday Calendar</h3>
+                    <div class="modal-sub">Impact on settlement windows</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="field"><label class="field-label">Jurisdiction</label><select class="select-field">
+                        <option>United States (FedWise)</option>
+                        <option>Kenya (CBK)</option>
+                        <option>EU (TARGET2)</option>
+                    </select></div>
+                <div style="background:var(--surface-2);padding:14px;border-radius:12px;">
+                    <div style="font-weight:700;margin-bottom:8px;">Upcoming Holidays</div>
+                    <div class="config-row">
+                        <div>
+                            <div class="config-label">Presidents' Day</div>
+                            <div class="config-desc">16 Feb 2026 · US Fed Closed</div>
+                        </div><span class="badge warning">No Settlement</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="forecastDetailModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Liquidity Gap Forecast</h3>
+                    <div class="modal-sub">Projected inflows vs outflows for settlement</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div
+                    style="height:200px;background:var(--surface-2);border-radius:14px;margin-bottom:14px;display:flex;align-items:flex-end;gap:10px;padding:20px;">
+                    <div style="flex:1;height:40%;background:var(--success);border-radius:6px 6px 0 0;"></div>
+                    <div style="flex:1;height:80%;background:var(--success);border-radius:6px 6px 0 0;"></div>
+                    <div style="flex:1;height:55%;background:var(--danger);border-radius:6px 6px 0 0;"></div>
+                    <div style="flex:1;height:30%;background:var(--success);border-radius:6px 6px 0 0;"></div>
+                </div>
+                <div class="alert success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                    </svg>No liquidity gap projected for the next 72 hours.</div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="batchDetailModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Batch BATCH-9942</h3>
+                    <div class="modal-sub">ACH Net Settlement batch</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body" style="position:relative;">
+                <div class="loading-overlay" id="batchActionLoading">
+                    <div class="spinner"></div>
+                </div>
+                <div class="kv-grid" style="margin-bottom:14px;">
+                    <div>
+                        <div class="kv-label">Entries</div>
+                        <div class="kv-val">428</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Net Amount</div>
+                        <div class="kv-val">$4,120,400</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Rail</div>
+                        <div class="kv-val">ACH</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Status</div>
+                        <div class="kv-val"><span class="badge warning">Pending</span></div>
+                    </div>
+                </div>
+                <div style="display:flex;gap:8px;"><button class="btn btn-primary" style="flex:1;"
+                        onclick="simulateLoading('batchActionLoading','Batch submitted to ACH network')">Submit
+                        Now</button><button class="btn btn-light" style="flex:1;" data-modal="batchAuditModal">Audit
+                        Trail</button></div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="nettingCalcModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Multi-lateral Netting</h3>
+                    <div class="modal-sub">Recalculate net settlement obligations</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body" style="position:relative;">
+                <div class="loading-overlay" id="nettingLoading">
+                    <div class="spinner"></div>
+                </div>
+                <div class="field"><label class="field-label">Optimization Goal</label><select class="select-field">
+                        <option>Minimize Nostro Transfers</option>
+                        <option>Maximize Real-time Speed</option>
+                    </select></div>
+                <div class="alert info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                    </svg>Running this will re-batch all unconfirmed clearing entries.</div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button
+                    class="btn btn-primary"
+                    onclick="simulateLoading('nettingLoading','Netting recalculated: Inbound matched 92%')">Run
+                    Recalculate</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="reportPreviewModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Report Preview</h3>
+                    <div class="modal-sub">Daily Settlement Confirmation · Today</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div
+                    style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:30px;min-height:300px;">
+                    <div style="display:flex;justify-content:space-between;margin-bottom:20px;">
+                        <div>
+                            <div style="font-weight:700;">PayMo BaaS</div>
+                            <div class="list-sub">Settlement Conf</div>
+                        </div>
+                        <div style="text-align:right;">
+                            <div style="font-weight:700;">VERIFIED</div>
+                            <div class="list-sub">12 Feb 2026</div>
+                        </div>
+                    </div>
+                    <div class="dist-row">
+                        <div class="dist-label">Total Batches</div>
+                        <div class="dist-val">12</div>
+                    </div>
+                    <div class="dist-row">
+                        <div class="dist-label">Settled Amount</div>
+                        <div class="dist-val">$248,412,000</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light"
+                    data-result="Report downloaded as PDF">Download</button><button class="btn btn-primary"
+                    data-close>Close</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="generateReportModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Generate Report</h3>
+                    <div class="modal-sub">Select parameters for settlement report</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="field"><label class="field-label">Report Type</label><select class="select-field">
+                        <option>Post-Settlement Ledger</option>
+                        <option>Rail Uptime Summary</option>
+                        <option>Failure Root-Cause Analysis</option>
+                    </select></div>
+                <div class="field"><label class="field-label">Period</label><select class="select-field">
+                        <option>Today</option>
+                        <option>Last 7 Days</option>
+                        <option>Month-to-Date</option>
+                    </select></div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button
+                    class="btn btn-primary"
+                    data-result="Report generation started. You will be notified.">Generate</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="eodActionModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">EOD Job Sequence</h3>
+                    <div class="modal-sub">Initiate official close of business</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body" style="position:relative;">
+                <div class="loading-overlay" id="eodLoading">
+                    <div class="spinner"></div>
+                </div>
+                <div class="alert warning" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                    </svg>3 Clearing Exceptions remain. Proceeding will carry them over to T+1.</div>
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">Snapshot Ledger</div>
+                        <div class="config-desc">Finalize all transaction entries</div>
+                    </div><label class="toggle"><input type="checkbox" checked disabled><span
+                            class="toggle-slider"></span></label>
+                </div>
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">Generate Compliance Exports</div>
+                        <div class="config-desc">SAR and AML daily rollups</div>
+                    </div><label class="toggle"><input type="checkbox" checked><span
+                            class="toggle-slider"></span></label>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button
+                    class="btn btn-primary"
+                    onclick="simulateLoading('eodLoading','EOD Sequence triggered · Monitor progress in panel')">Start
+                    EOD Sequence</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="exceptionHandlingModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Clearing Exceptions</h3>
+                    <div class="modal-sub">3 items requiring manual review for T+0 settlement</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Ref</th>
+                            <th>Exception</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="mono">TX-771</td>
+                            <td>Fuzzy Name Match</td>
+                            <td><button class="btn btn-light btn-sm">Force Match</button></td>
+                        </tr>
+                        <tr>
+                            <td class="mono">TX-782</td>
+                            <td>Currency Mismatch</td>
+                            <td><button class="btn btn-light btn-sm">Fix FX</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="fixInstructionModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Fix Settlement Instruction</h3>
+                    <div class="modal-sub">Manual data repair for TX-9921</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="field"><label class="field-label">Target BIC</label><input class="input"
+                        value="CHASUS33XXX"></div>
+                <div class="field"><label class="field-label">Repair Reason</label><select class="select-field">
+                        <option>Typo in original BIC</option>
+                        <option>Intermediary required</option>
+                    </select></div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button
+                    class="btn btn-primary" data-result="Instruction repaired and re-queued">Repair & Re-queue</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="fundNostroModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Fund Nostro Account</h3>
+                    <div class="modal-sub">Chase-USD Account shortfall replenishment</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body" style="position:relative;">
+                <div class="loading-overlay" id="fundLoading">
+                    <div class="spinner"></div>
+                </div>
+                <div class="kv-grid" style="margin-bottom:14px;">
+                    <div>
+                        <div class="kv-label">Current Balance</div>
+                        <div class="kv-val">$482,000</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Required for EOD</div>
+                        <div class="kv-val" style="color:var(--danger);">$2,582,000</div>
+                    </div>
+                </div>
+                <div class="field"><label class="field-label">Funding Source</label><select class="select-field">
+                        <option>Internal Treasury - EUR</option>
+                        <option>Warehouse Facility B</option>
+                    </select></div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button
+                    class="btn btn-primary"
+                    onclick="simulateLoading('fundLoading','Transfer of $2.1M initiated to Chase-USD')">Transfer
+                    Funds</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="batchAuditModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Batch Audit Trail</h3>
+                    <div class="modal-sub">BATCH-9942 history</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="timeline">
+                    <div class="tl-item">
+                        <div class="tl-time">09:00</div>
+                        <div class="tl-text">Batch generated by [SYS-AUTO]</div>
+                    </div>
+                    <div class="tl-item">
+                        <div class="tl-time">10:42</div>
+                        <div class="tl-text">Calculated net multilateral position</div>
+                    </div>
+                    <div class="tl-item">
+                        <div class="tl-time">11:15</div>
+                        <div class="tl-text">Manual sign-off by [ADMIN-SARAH]</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="filterModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Operational Filters</h3>
+                    <div class="modal-sub">Refine operational view</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="field"><label class="field-label">Settlement Rail</label><select class="select-field">
+                        <option>All Rails</option>
+                        <option>SWIFT</option>
+                        <option>ACH</option>
+                        <option>SEPA</option>
+                    </select></div>
+                <div class="field"><label class="field-label">Status</label><select class="select-field">
+                        <option>All Status</option>
+                        <option>Settled</option>
+                        <option>Pending</option>
+                        <option>Failed</option>
+                    </select></div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-ghost" data-result="Filters reset">Reset</button>
+                <div style="display:flex;gap:8px;"><button class="btn btn-light" data-close>Cancel</button><button
+                        class="btn btn-primary" data-result="Operational filters applied">Apply</button></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="exportModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Export Ledger</h3>
+                    <div class="modal-sub">Export settlement and clearing data</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="field"><label class="field-label">Data Range</label><select class="select-field">
+                        <option>Today's Settlement</option>
+                        <option>Full History (30d)</option>
+                    </select></div>
+                <div class="field"><label class="field-label">Format</label><select class="select-field">
+                        <option>XLSX (Formatted)</option>
+                        <option>CSV (Raw)</option>
+                        <option>ISO 20022 XML</option>
+                    </select></div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button
+                    class="btn btn-primary" data-result="Export generated and queued for download">Generate
+                    Export</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="notificationsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Operational Notifications</h3>
+                    <div class="modal-sub">Settlement events</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body" style="padding:0;">
+                <div class="list-item">
+                    <div class="list-left">
+                        <div class="list-icon" style="background:var(--danger-soft);color:var(--danger);"><svg
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path
+                                    d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z">
+                                </path>
+                            </svg></div>
+                        <div>
+                            <div class="list-title">BIC Failure</div>
+                            <div class="list-sub">TX-9921 Swift Rail · 5m ago</div>
+                        </div>
+                    </div><button class="btn btn-light btn-sm" data-modal="fixInstructionModal">Fix</button>
+                </div>
+                <div class="list-item">
+                    <div class="list-left">
+                        <div class="list-icon" style="background:var(--success-soft);color:var(--success);"><svg
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg></div>
+                        <div>
+                            <div class="list-title">Batch BATCH-9940 Settled</div>
+                            <div class="list-sub">FPS Rail · Today</div>
+                        </div>
+                    </div><button class="btn btn-light btn-sm" data-modal="reportPreviewModal">Conf</button>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light"
+                    data-result="Notifications cleared">Mark Read</button><button class="btn btn-light"
+                    data-close>Close</button></div>
+        </div>
+    </div>
+
+    <!-- Navigation Module Modals -->
+    <div class="modal-backdrop" id="navTransModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Transactions</h3>
+                    <div class="modal-sub">Core transaction engine</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="alert info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                    </svg>Redirect to Transaction Monitoring...</div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Navigate</button>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="navLiqModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Liquidity</h3>
+                    <div class="modal-sub">Nostro & Warehouse positions</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="kv-grid">
+                    <div>
+                        <div class="kv-label">Total Nostro</div>
+                        <div class="kv-val">$482M</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Usage</div>
+                        <div class="kv-val">64%</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Navigate</button>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="navClearModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Clearing</h3>
+                    <div class="modal-sub">Incoming & Outgoing clearing queues</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="kv-grid">
+                    <div>
+                        <div class="kv-label">Instructions</div>
+                        <div class="kv-val">4,210</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Ready</div>
+                        <div class="kv-val">98.2%</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Navigate</button>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="navCalModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Operational Calendar</h3>
+                    <div class="modal-sub">Global rails and holiday schedules</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="alert info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                    </svg>Next bank holiday: 16 Feb (US Presidents' Day)</div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Navigate</button>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="navReportsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Reporting</h3>
+                    <div class="modal-sub">Daily, Monthly, and Annual audits</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="alert info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                    </svg>All regulatory reporting is up to date.</div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Navigate</button>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="navReconModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Reconciliation</h3>
+                    <div class="modal-sub">Internal vs External book match</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="kv-grid">
+                    <div>
+                        <div class="kv-label">Confidence</div>
+                        <div class="kv-val">100.0%</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Items</div>
+                        <div class="kv-val">128,410</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Navigate</button>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="navAdminModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">System Admin</h3>
+                    <div class="modal-sub">Rail configuration and user access</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">Admin Access</div>
+                    </div><span class="badge success">Active</span>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Navigate</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Result Modal -->
+    <div class="modal-backdrop" id="resultModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title" id="resultTitle">Operation Complete</h3>
+                    <div class="modal-sub">Status update</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="alert success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg><span id="resultMessage">Action successful.</span></div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Done</button></div>
+        </div>
+    </div>
+
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        document.getElementById('sidebarToggle').addEventListener('click', () => sidebar.classList.toggle('expanded'));
+        document.getElementById('mobileMenuBtn').addEventListener('click', () => sidebar.classList.toggle('mobile-open'));
+
+        function openModal(id) { const m = document.getElementById(id); if (m) m.classList.add('show'); }
+        function closeAll() { document.querySelectorAll('.modal-backdrop.show').forEach(m => m.classList.remove('show')); }
+
+        document.addEventListener('click', e => {
+            if (e.target.closest('.toggle')) return;
+            const close = e.target.closest('[data-close]');
+            if (close) { e.preventDefault(); e.stopPropagation(); closeAll(); return; }
+            const result = e.target.closest('[data-result]');
+            if (result) { e.preventDefault(); e.stopPropagation(); setResult(result.dataset.result); return; }
+            const opener = e.target.closest('[data-modal]');
+            if (opener) { e.preventDefault(); e.stopPropagation(); openModal(opener.dataset.modal); }
+        });
+
+        document.querySelectorAll('.modal-backdrop').forEach(b => b.addEventListener('click', e => { if (e.target === b) closeAll(); }));
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAll(); });
+
+        function setResult(message) {
+            closeAll();
+            document.getElementById('resultMessage').textContent = message;
+            openModal('resultModal');
+        }
+
+        function switchTab(name) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.dataset.panel === name));
+        }
+        document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => switchTab(tab.dataset.tab)));
+
+        function setupStepper(rootId, stepperId, backId, nextId, total, doneMessage) {
+            const root = document.getElementById(rootId);
+            if (!root) return;
+            let current = 1;
+            const render = () => {
+                document.querySelectorAll(`#${stepperId} .step`).forEach((s, i) => { s.classList.toggle('active', i + 1 === current); s.classList.toggle('done', i + 1 < current); });
+                root.querySelectorAll('.step-panel').forEach(p => p.classList.toggle('active', Number(p.dataset.step) === current));
+                document.getElementById(backId).disabled = current === 1;
+                document.getElementById(nextId).textContent = current === total ? 'Complete & Sign' : 'Next';
+            };
+            document.getElementById(backId).addEventListener('click', () => { if (current > 1) { current--; render(); } });
+            document.getElementById(nextId).addEventListener('click', () => {
+                if (current === 2) {
+                    simulateLoading('batchLoading', null, () => { current++; render(); });
+                } else if (current < total) {
+                    current++; render();
+                } else {
+                    current = 1; render(); setResult(doneMessage);
+                }
+            });
+            render();
+        }
+        setupStepper('batchWizardModal', 'batchStepper', 'batchBack', 'batchNext', 4, 'Settlement batch authorized and submitted to the clearing network');
+
+        function simulateLoading(overlayId, message, callback) {
+            const overlay = document.getElementById(overlayId);
+            overlay.classList.add('active');
+            setTimeout(() => {
+                overlay.classList.remove('active');
+                if (message) setResult(message);
+                if (callback) callback();
+            }, 1200);
+        }
+
+        // Auto-focus next input in PIN fields
+        document.querySelectorAll('.pin-input input').forEach((el, idx, inputs) => {
+            el.addEventListener('keyup', (e) => {
+                if (e.key >= 0 && e.key <= 9 && idx < inputs.length - 1) inputs[idx + 1].focus();
+                if (e.key === 'Backspace' && idx > 0) inputs[idx - 1].focus();
+            });
+        });
+    </script>
+</body>
+
+</html>

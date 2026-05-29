@@ -1,0 +1,1458 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reconciliation Center - PayMo BaaS</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="./master.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        .recon-workspace {
+            display: grid;
+            grid-template-columns: 1fr 40px 1fr;
+            gap: 0;
+            background: var(--border-soft);
+            border-radius: var(--radius);
+            overflow: hidden;
+            border: 1px solid var(--border-soft);
+        }
+
+        .recon-pane {
+            background: var(--surface);
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 500px;
+        }
+
+        .recon-pane-header {
+            padding: 12px 16px;
+            background: var(--surface-2);
+            border-bottom: 1px solid var(--border-soft);
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            color: var(--text-3);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .recon-item {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-soft);
+            cursor: pointer;
+            transition: all .15s;
+        }
+
+        .recon-item:hover {
+            background: var(--surface-2);
+        }
+
+        .recon-item.selected {
+            background: var(--primary-soft);
+            border-left: 3px solid var(--primary);
+        }
+
+        .recon-item.matched {
+            background: var(--success-soft);
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .recon-divider {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-soft);
+            color: var(--text-4);
+            font-size: 18px;
+        }
+
+        .side-tabs {
+            display: flex;
+            gap: 2px;
+            padding: 4px;
+            background: var(--surface-3);
+            border-radius: 8px;
+            margin-bottom: 12px;
+            width: fit-content;
+        }
+
+        .side-tab {
+            padding: 4px 12px;
+            font-size: 11px;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .side-tab.active {
+            background: var(--surface);
+            box-shadow: var(--shadow-sm);
+            color: var(--primary);
+        }
+
+        .match-score {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 700;
+        }
+
+        .match-score.high {
+            background: var(--success-soft);
+            color: var(--success);
+        }
+
+        .match-score.med {
+            background: var(--warning-soft);
+            color: var(--warning);
+        }
+
+        .money-mono {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+        }
+
+        .loading-shimmer {
+            background: linear-gradient(90deg, #f6f7f8 0%, #edeef1 20%, #f6f7f8 40%, #f6f7f8 100%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: 100% 0;
+            }
+
+            100% {
+                background-position: -100% 0;
+            }
+        }
+
+        .auth-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .auth-input {
+            width: 100%;
+            height: 50px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: 700;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+        }
+
+        .auth-input:focus {
+            border-color: var(--primary);
+            outline: none;
+            background: var(--primary-soft);
+        }
+
+        .kv-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-soft);
+            font-size: 13px;
+        }
+
+        .kv-row:last-child {
+            border-bottom: 0;
+        }
+
+        .kv-label {
+            color: var(--text-3);
+        }
+
+        .kv-value {
+            font-weight: 600;
+            text-align: right;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-logo">P</div>
+            <nav class="sidebar-nav">
+                <button class="sidebar-item" title="Transactions" data-modal="navTransModal"><svg viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                    </svg><span class="sidebar-label">Transactions</span></button>
+                <button class="sidebar-item active" title="Reconciliation"><svg viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <polyline points="17 1 21 5 17 9"></polyline>
+                        <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
+                        <polyline points="7 23 3 19 7 15"></polyline>
+                        <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
+                    </svg><span class="sidebar-label">Recon Center</span></button>
+                <button class="sidebar-item" title="Bank Statements" data-modal="navBankModal"><svg viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                    </svg><span class="sidebar-label">Statements</span></button>
+                <button class="sidebar-item" title="Rules Engine" data-modal="navRulesModal"><svg viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path
+                            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z">
+                        </path>
+                    </svg><span class="sidebar-label">Rules</span></button>
+                <button class="sidebar-item" title="Reports" data-modal="navReportsModal"><svg viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="20" x2="12" y2="10"></line>
+                        <line x1="18" y1="20" x2="18" y2="4"></line>
+                        <line x1="6" y1="20" x2="6" y2="16"></line>
+                    </svg><span class="sidebar-label">Reports</span></button>
+                <button class="sidebar-item" title="Settings" data-modal="navSettingsModal"><svg viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="2" y1="12" x2="22" y2="12"></line>
+                        <path
+                            d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+                        </path>
+                    </svg><span class="sidebar-label">Network</span></button>
+            </nav>
+            <button class="sidebar-expand" id="sidebarToggle"><svg width="12" height="12" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg><span class="sidebar-label">Collapse</span></button>
+        </aside>
+
+        <main class="main">
+            <div class="topbar">
+                <div>
+                    <div class="crumb">
+                        <button class="mobile-menu-btn btn btn-light btn-sm" id="mobileMenuBtn"
+                            style="margin-right:8px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2">
+                                <line x1="3" y1="12" x2="21" y2="12"></line>
+                                <line x1="3" y1="6" x2="21" y2="6"></line>
+                                <line x1="3" y1="18" x2="21" y2="18"></line>
+                            </svg></button>
+                        <span>BAAS Operations</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg><span>Reconciliation Center</span>
+                    </div>
+                    <h1 class="page-title">Reconciliation Center</h1>
+                </div>
+                <div class="topbar-actions">
+                    <button class="btn btn-light btn-icon" title="Notifications" data-modal="notificationsModal"><svg
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                        </svg></button>
+                    <button class="btn btn-light" data-modal="importWizardModal"><svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="17 8 12 3 7 8"></polyline>
+                            <line x1="12" y1="3" x2="12" y2="15"></line>
+                        </svg><span class="btn-text">Import Statement</span></button>
+                    <button class="btn btn-primary" data-modal="runReconModal"><svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <polyline points="23 4 23 10 17 10"></polyline>
+                            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                        </svg>Run Auto-Recon</button>
+                </div>
+            </div>
+
+            <div class="stats-row">
+                <div class="stat-card" data-modal="matchRateModal">
+                    <div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                        </svg></div>
+                    <div class="stat-label">Match Rate</div>
+                    <div class="stat-value">98.4%</div>
+                    <div class="stat-trend up"><span>+0.5% vs yesterday</span></div>
+                </div>
+                <div class="stat-card" data-modal="unmatchedModal">
+                    <div class="stat-icon red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                        </svg></div>
+                    <div class="stat-label">Unmatched Items</div>
+                    <div class="stat-value">124</div>
+                    <div class="stat-trend down"><span>-12 since 8 AM</span></div>
+                </div>
+                <div class="stat-card" data-modal="agingModal">
+                    <div class="stat-icon amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg></div>
+                    <div class="stat-label">Avg. Aging</div>
+                    <div class="stat-value">14.2h</div>
+                    <div class="stat-trend up"><span>+2h spike</span></div>
+                </div>
+                <div class="stat-card" data-modal="importHistoryModal">
+                    <div class="stat-icon purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                        </svg></div>
+                    <div class="stat-label">Statements Today</div>
+                    <div class="stat-value">42</div>
+                    <div class="stat-trend neutral"><span>4 awaiting parse</span></div>
+                </div>
+                <div class="stat-card" data-modal="journalModal">
+                    <div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                        </svg></div>
+                    <div class="stat-label">Adj. Journals</div>
+                    <div class="stat-value">18</div>
+                    <div class="stat-trend up"><span>$12,400 adjusted</span></div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="tabs" id="mainTabs">
+                    <button class="tab active" data-tab="dashboard"><svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="14" width="7" height="7"></rect>
+                            <rect x="3" y="14" width="7" height="7"></rect>
+                        </svg>Dashboard</button>
+                    <button class="tab" data-tab="workspace"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M17 3L21 7L17 11"></path>
+                            <path d="M3 13L7 17L3 21"></path>
+                            <path d="M21 7H11"></path>
+                            <path d="M3 17H13"></path>
+                        </svg>Manual Workspace</button>
+                    <button class="tab" data-tab="engine"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path
+                                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z">
+                            </path>
+                        </svg>Auto-Recon Engine</button>
+                    <button class="tab" data-tab="imports"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="17 8 12 3 7 8"></polyline>
+                            <line x1="12" y1="3" x2="12" y2="15"></line>
+                        </svg>Statement Imports</button>
+                    <button class="tab" data-tab="reports"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                        </svg>Reports</button>
+                </div>
+
+                <!-- 1. DASHBOARD TAB -->
+                <section class="tab-panel active" data-panel="dashboard">
+                    <div class="panel-body">
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div>
+                                <div class="panel-header px-0 py-2 border-b-0">
+                                    <h3 class="panel-title">Match Rate by Channel</h3>
+                                </div>
+                                <div class="bg-slate-50 p-4 rounded-xl">
+                                    <div class="dist-row">
+                                        <div class="dist-label">SWIFT / Treasury</div>
+                                        <div class="dist-bar"><span
+                                                style="width:99.8%;background:var(--success);"></span></div>
+                                        <div class="dist-val">99.8%</div>
+                                    </div>
+                                    <div class="dist-row">
+                                        <div class="dist-label">ACH / Bulk</div>
+                                        <div class="dist-bar"><span
+                                                style="width:98.2%;background:var(--success);"></span></div>
+                                        <div class="dist-val">98.2%</div>
+                                    </div>
+                                    <div class="dist-row">
+                                        <div class="dist-label">PesaLink</div>
+                                        <div class="dist-bar"><span
+                                                style="width:94.5%;background:var(--warning);"></span></div>
+                                        <div class="dist-val">94.5%</div>
+                                    </div>
+                                    <div class="dist-row">
+                                        <div class="dist-label">Card Schemes</div>
+                                        <div class="dist-bar"><span
+                                                style="width:97.1%;background:var(--success);"></span></div>
+                                        <div class="dist-val">97.1%</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="panel-header px-0 py-2 border-b-0">
+                                    <h3 class="panel-title">Unmatched Aging (Value)</h3>
+                                </div>
+                                <div class="bg-slate-50 p-4 rounded-xl">
+                                    <div class="dist-row">
+                                        <div class="dist-label">&lt; 24 Hours</div>
+                                        <div class="dist-bar"><span style="width:75%;background:var(--primary);"></span>
+                                        </div>
+                                        <div class="dist-val">$240K</div>
+                                    </div>
+                                    <div class="dist-row">
+                                        <div class="dist-label">1 - 3 Days</div>
+                                        <div class="dist-bar"><span style="width:15%;background:var(--warning);"></span>
+                                        </div>
+                                        <div class="dist-val">$48K</div>
+                                    </div>
+                                    <div class="dist-row">
+                                        <div class="dist-label">4 - 7 Days</div>
+                                        <div class="dist-bar"><span style="width:8%;background:var(--danger);"></span>
+                                        </div>
+                                        <div class="dist-val">$25K</div>
+                                    </div>
+                                    <div class="dist-row">
+                                        <div class="dist-label">8+ Days</div>
+                                        <div class="dist-bar"><span style="width:2%;background:#1a1a1a;"></span></div>
+                                        <div class="dist-val">$6K</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-6">
+                            <div class="panel-header px-0 py-2 border-b-0">
+                                <h3 class="panel-title">System Health & Job Schedule</h3>
+                            </div>
+                            <div class="table-wrap">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Recon Job</th>
+                                            <th>Frequency</th>
+                                            <th>Last Run</th>
+                                            <th>Status</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Global Treasury Sweep</td>
+                                            <td>Hourly</td>
+                                            <td>14:00 (12m ago)</td>
+                                            <td><span class="badge success">Success</span></td>
+                                            <td><button class="btn btn-light btn-sm"
+                                                    data-modal="jobDetailModal">Log</button></td>
+                                        </tr>
+                                        <tr>
+                                            <td>PesaLink RTGS Match</td>
+                                            <td>Every 5m</td>
+                                            <td>14:11 (1m ago)</td>
+                                            <td><span class="badge success">Success</span></td>
+                                            <td><button class="btn btn-light btn-sm"
+                                                    data-modal="jobDetailModal">Log</button></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Card Scheme Settlement</td>
+                                            <td>Daily</td>
+                                            <td>Today 06:00</td>
+                                            <td><span class="badge warning">Partial</span></td>
+                                            <td><button class="btn btn-light btn-sm"
+                                                    data-modal="jobDetailModal">Retry</button></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 2. MANUAL WORKSPACE TAB -->
+                <section class="tab-panel" data-panel="workspace">
+                    <div class="panel-body">
+                        <div class="flex justify-between items-center mb-4">
+                            <div class="side-tabs">
+                                <div class="side-tab active">Unmatched Internal (82)</div>
+                                <div class="side-tab">Unmatched Bank (42)</div>
+                                <div class="side-tab">AI Suggestions (14)</div>
+                            </div>
+                            <div class="flex gap-2">
+                                <div class="search-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <circle cx="11" cy="11" r="8"></circle>
+                                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                    </svg><input placeholder="Search ref or amount..."></div>
+                                <button class="btn btn-primary btn-sm" id="bulkMatchBtn"
+                                    data-modal="bulkMatchModal">Bulk Match</button>
+                            </div>
+                        </div>
+
+                        <div class="recon-workspace">
+                            <div class="recon-pane">
+                                <div class="recon-pane-header"><span>Internal Ledger
+                                        (System)</span><span>$482,900.00</span></div>
+                                <div class="overflow-y-auto" style="max-height:500px;">
+                                    <div class="recon-item" data-id="int-1" onclick="selectItem(this, 'left')">
+                                        <div class="flex justify-between font-medium"><span>TXN-99210-XC</span><span
+                                                class="money-mono text-blue-600">$1,450.00</span></div>
+                                        <div class="flex justify-between text-xs mt-1 text-slate-500"><span>12 Feb 2026,
+                                                10:42</span><span>PesaLink Outbound</span></div>
+                                    </div>
+                                    <div class="recon-item selected" data-id="int-2" onclick="selectItem(this, 'left')">
+                                        <div class="flex justify-between font-medium"><span>TXN-99215-RE</span><span
+                                                class="money-mono text-blue-600">$8,200.00</span></div>
+                                        <div class="flex justify-between text-xs mt-1 text-slate-500"><span>12 Feb 2026,
+                                                11:15</span><span>SWIFT Treasury</span></div>
+                                    </div>
+                                    <div class="recon-item" data-id="int-3" onclick="selectItem(this, 'left')">
+                                        <div class="flex justify-between font-medium"><span>TXN-99220-ZZ</span><span
+                                                class="money-mono text-blue-600">$340.22</span></div>
+                                        <div class="flex justify-between text-xs mt-1 text-slate-500"><span>12 Feb 2026,
+                                                12:04</span><span>Bill Pay - KPLC</span></div>
+                                    </div>
+                                    <div class="recon-item" data-id="int-4" onclick="selectItem(this, 'left')">
+                                        <div class="flex justify-between font-medium"><span>TXN-99228-PO</span><span
+                                                class="money-mono text-blue-600">$12,000.00</span></div>
+                                        <div class="flex justify-between text-xs mt-1 text-slate-500"><span>12 Feb 2026,
+                                                12:30</span><span>Nostro Sweep</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="recon-divider"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" width="20">
+                                    <path d="M12 5v14M19 12l-7 7-7-7"></path>
+                                </svg></div>
+                            <div class="recon-pane">
+                                <div class="recon-pane-header"><span>Bank Statement
+                                        (External)</span><span>$482,880.00</span></div>
+                                <div class="overflow-y-auto" style="max-height:500px;">
+                                    <div class="recon-item" data-id="ext-1" onclick="selectItem(this, 'right')">
+                                        <div class="flex justify-between font-medium"><span>FT2604299103</span><span
+                                                class="money-mono text-green-600">$1,450.00</span></div>
+                                        <div class="flex justify-between text-xs mt-1 text-slate-500"><span>12 Feb
+                                                2026</span><span>PESALINK CR J. DOE</span></div>
+                                    </div>
+                                    <div class="recon-item selected" data-id="ext-2"
+                                        onclick="selectItem(this, 'right')">
+                                        <div class="flex justify-between font-medium"><span>TRF-TREAS-8200</span><span
+                                                class="money-mono text-green-600">$8,200.00</span></div>
+                                        <div class="flex justify-between text-xs mt-1 text-slate-500"><span>12 Feb
+                                                2026</span><span>TREASURY SETTLEMENT</span></div>
+                                        <div class="mt-2"><span class="match-score high">AI MATCH: 98%</span></div>
+                                    </div>
+                                    <div class="recon-item" data-id="ext-3" onclick="selectItem(this, 'right')">
+                                        <div class="flex justify-between font-medium"><span>BK-FEE-990</span><span
+                                                class="money-mono text-red-600">-$20.00</span></div>
+                                        <div class="flex justify-between text-xs mt-1 text-slate-500"><span>12 Feb
+                                                2026</span><span>MONTHLY ACCOUNT FEE</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-center mt-6 gap-4">
+                            <button class="btn btn-light" data-modal="splitMatchModal">Split Transaction</button>
+                            <button class="btn btn-light" data-modal="writeOffModal">Write-off Variance</button>
+                            <button class="btn btn-primary px-12" id="confirmMatchBtn"
+                                onclick="handleMatchAction()">Manual Match</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 3. AUTO-RECON ENGINE TAB -->
+                <section class="tab-panel" data-panel="engine">
+                    <div class="panel-body">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="panel-title">Auto-Reconciliation Rule Engine</h2>
+                            <button class="btn btn-primary" data-modal="createRuleModal">+ New Rule</button>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div class="dir-card" data-modal="ruleDetailModal">
+                                <div class="dir-card-head">
+                                    <div class="dir-card-left">
+                                        <div class="dir-avatar"
+                                            style="background:var(--success-soft);color:var(--success);">E</div>
+                                        <div>
+                                            <h4>Exact Reference</h4>
+                                            <div class="sub">GLOBAL · ACTIVE</div>
+                                        </div>
+                                    </div><label class="toggle"><input type="checkbox" checked><span
+                                            class="toggle-slider"></span></label>
+                                </div>
+                                <div class="text-xs text-slate-500 mt-2">Match items where Ref ID is identical and
+                                    amount variance is 0.00. Priority: 1.</div>
+                            </div>
+                            <div class="dir-card" data-modal="ruleDetailModal">
+                                <div class="dir-card-head">
+                                    <div class="dir-card-left">
+                                        <div class="dir-avatar"
+                                            style="background:var(--primary-soft);color:var(--primary);">F</div>
+                                        <div>
+                                            <h4>Fuzzy Meta-Match</h4>
+                                            <div class="sub">PESALINK · ACTIVE</div>
+                                        </div>
+                                    </div><label class="toggle"><input type="checkbox" checked><span
+                                            class="toggle-slider"></span></label>
+                                </div>
+                                <div class="text-xs text-slate-500 mt-2">Match based on user ID and amount where date is
+                                    +/- 24h. Priority: 2.</div>
+                            </div>
+                            <div class="dir-card" data-modal="ruleDetailModal">
+                                <div class="dir-card-head">
+                                    <div class="dir-card-left">
+                                        <div class="dir-avatar"
+                                            style="background:var(--warning-soft);color:var(--warning);">T</div>
+                                        <div>
+                                            <h4>Tolerance Rule</h4>
+                                            <div class="sub">ACH · ACTIVE</div>
+                                        </div>
+                                    </div><label class="toggle"><input type="checkbox" checked><span
+                                            class="toggle-slider"></span></label>
+                                </div>
+                                <div class="text-xs text-slate-500 mt-2">Match items with identical ref where amount
+                                    variance &lt; $0.05. Priority: 3.</div>
+                            </div>
+                        </div>
+
+                        <div class="uw-card mt-8">
+                            <h3 class="uw-title">Global tolerance Settings</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div class="field"><label class="field-label">Amount Tolerance (Absolute)</label>
+                                    <div class="flex gap-2"><input class="input" value="0.05"><select class="select">
+                                            <option>USD</option>
+                                            <option>KES</option>
+                                            <option>GBP</option>
+                                        </select></div>
+                                    <p class="field-hint">Auto-post variance to reconciliation adjustment account.</p>
+                                </div>
+                                <div class="field"><label class="field-label">Date Tolerance (Days)</label><input
+                                        class="input" type="number" value="3">
+                                    <p class="field-hint">Allow matching across bank holidays and weekends.</p>
+                                </div>
+                            </div>
+                            <div class="flex justify-end gap-2 mt-4"><button class="btn btn-light"
+                                    data-modal="resetToleranceModal">Reset to Global</button><button
+                                    class="btn btn-primary"
+                                    onclick="setResult('Tolerance settings updated for all active rails')">Save
+                                    Settings</button></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 4. STATEMENT IMPORTS TAB -->
+                <section class="tab-panel" data-panel="imports">
+                    <div class="panel-body">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="panel-title">Statement Import History</h2>
+                            <div class="flex gap-2"><button class="btn btn-light"
+                                    data-modal="importConfigModal">Configure SFTP/API</button><button
+                                    class="btn btn-primary" data-modal="importWizardModal">Upload Manual</button></div>
+                        </div>
+                        <div class="table-wrap">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Import Date</th>
+                                        <th>Bank / Channel</th>
+                                        <th>Format</th>
+                                        <th>Status</th>
+                                        <th>Items</th>
+                                        <th>Errors</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Today 08:30</td>
+                                        <td>Chase Bank NYC</td>
+                                        <td>CAMT.053</td>
+                                        <td><span class="badge success">Imported</span></td>
+                                        <td>1,240</td>
+                                        <td>0</td>
+                                        <td class="right"><button class="btn btn-light btn-sm"
+                                                data-modal="importLogModal">View</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Today 06:12</td>
+                                        <td>Barclays UK</td>
+                                        <td>MT940</td>
+                                        <td><span class="badge success">Imported</span></td>
+                                        <td>842</td>
+                                        <td>0</td>
+                                        <td class="right"><button class="btn btn-light btn-sm"
+                                                data-modal="importLogModal">View</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Yesterday 23:55</td>
+                                        <td>Equity Bank</td>
+                                        <td>CSV (Custom)</td>
+                                        <td><span class="badge danger">Failed Parse</span></td>
+                                        <td>0</td>
+                                        <td>12</td>
+                                        <td class="right"><button class="btn btn-danger btn-sm"
+                                                data-modal="importLogModal">Repair</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Yesterday 18:00</td>
+                                        <td>Standard Chartered</td>
+                                        <td>ISO 20022</td>
+                                        <td><span class="badge warning">Warning</span></td>
+                                        <td>412</td>
+                                        <td>2</td>
+                                        <td class="right"><button class="btn btn-light btn-sm"
+                                                data-modal="importLogModal">View</button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 5. REPORTS TAB -->
+                <section class="tab-panel" data-panel="reports">
+                    <div class="panel-body">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div class="uw-card flex flex-col justify-between">
+                                <div>
+                                    <h3 class="uw-title">Daily Recon Summary</h3>
+                                    <p class="text-xs text-slate-500">Complete breakdown of matched vs unmatched for the
+                                        current cycle.</p>
+                                </div>
+                                <button class="btn btn-light w-full mt-4" data-modal="reportWizardModal">Generate
+                                    PDF</button>
+                            </div>
+                            <div class="uw-card flex flex-col justify-between">
+                                <div>
+                                    <h3 class="uw-title">Outstanding Items</h3>
+                                    <p class="text-xs text-slate-500">Audit-ready list of all items currently sitting in
+                                        variance or unmatched.</p>
+                                </div>
+                                <button class="btn btn-light w-full mt-4" data-modal="reportWizardModal">Export
+                                    CSV</button>
+                            </div>
+                            <div class="uw-card flex flex-col justify-between">
+                                <div>
+                                    <h3 class="uw-title">Recon Certificate</h3>
+                                    <p class="text-xs text-slate-500">Official division-signed certificate for internal
+                                        control compliance.</p>
+                                </div>
+                                <button class="btn btn-primary w-full mt-4" data-modal="certModal">Generate
+                                    Cert</button>
+                            </div>
+                        </div>
+                        <div class="mt-8">
+                            <h2 class="panel-title mb-4">Adjustment Journal Entries</h2>
+                            <div class="table-wrap">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Entry ID</th>
+                                            <th>Account</th>
+                                            <th>Debit</th>
+                                            <th>Credit</th>
+                                            <th>Reason</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>12 Feb 2026</td>
+                                            <td class="mono">JE-9921</td>
+                                            <td>Recon Variance</td>
+                                            <td>$0.02</td>
+                                            <td>-</td>
+                                            <td>Tolerance Match</td>
+                                        </tr>
+                                        <tr>
+                                            <td>11 Feb 2026</td>
+                                            <td class="mono">JE-9918</td>
+                                            <td>Bank Fees</td>
+                                            <td>$20.00</td>
+                                            <td>-</td>
+                                            <td>Manual Write-off</td>
+                                        </tr>
+                                        <tr>
+                                            <td>11 Feb 2026</td>
+                                            <td class="mono">JE-9915</td>
+                                            <td>Unidentified Deposits</td>
+                                            <td>-</td>
+                                            <td>$1,200.00</td>
+                                            <td>Unmatched Credit</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODALS (20+) -->
+    <div class="modal-backdrop" id="matchRateModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Match Rate Deep-Dive</h3>
+                    <div class="modal-sub">Historical trend and channel performance</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="mini-chart loading-shimmer mb-6 rounded-lg"></div>
+                <div class="kv-grid">
+                    <div>
+                        <div class="kv-label">Current Cycle</div>
+                        <div class="kv-val">98.4%</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">7-Day Average</div>
+                        <div class="kv-val">97.9%</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">SLA Target</div>
+                        <div class="kv-val">99.0%</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Variance</div>
+                        <div class="kv-val text-red-600">-0.6%</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="unmatchedModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Unmatched Inventory</h3>
+                    <div class="modal-sub">124 items currently unreconciled</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="table-wrap">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Type</th>
+                                <th>Amount</th>
+                                <th>System Date</th>
+                                <th>Source</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>TXN-998</td>
+                                <td>Credit</td>
+                                <td>$4,500.00</td>
+                                <td>Today</td>
+                                <td>PesaLink</td>
+                            </tr>
+                            <tr>
+                                <td>TXN-882</td>
+                                <td>Debit</td>
+                                <td>$120.40</td>
+                                <td>Today</td>
+                                <td>ACH</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-primary"
+                    onclick="switchTab('workspace'); closeAll();">Go to Workspace</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="importWizardModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Bank Statement Import</h3>
+                    <div class="modal-sub">Multi-format file ingestion</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="stepper" id="importStepper">
+                <div class="step active">
+                    <div class="step-num">1</div>File
+                </div>
+                <div class="step-line"></div>
+                <div class="step">
+                    <div class="step-num">2</div>Parse
+                </div>
+                <div class="step-line"></div>
+                <div class="step">
+                    <div class="step-num">3</div>Validate
+                </div>
+                <div class="step-line"></div>
+                <div class="step">
+                    <div class="step-num">4</div>Import
+                </div>
+            </div>
+            <div class="modal-body">
+                <div class="step-panel active" data-step="1">
+                    <div class="border-2 border-dashed border-slate-200 rounded-2xl p-12 text-center bg-slate-50"><svg
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            class="mx-auto mb-4 text-slate-400" width="48">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="17 8 12 3 7 8"></polyline>
+                            <line x1="12" y1="3" x2="12" y2="15"></line>
+                        </svg>
+                        <p class="text-sm font-medium">Drop MT940, CAMT, or CSV here</p>
+                        <p class="text-xs text-slate-400 mt-1">Maximum file size 50MB</p><button
+                            class="btn btn-light btn-sm mt-4">Select File</button>
+                    </div>
+                </div>
+                <div class="step-panel" data-step="2">
+                    <div class="loading-shimmer h-40 rounded-xl mb-4"></div>
+                    <p class="text-xs text-slate-500">Auto-detecting encoding and format... Found ISO 20022 (CAMT.053).
+                    </p>
+                </div>
+                <div class="step-panel" data-step="3">
+                    <div class="kv-grid">
+                        <div>
+                            <div class="kv-label">Total Transactions</div>
+                            <div class="kv-val">1,242</div>
+                        </div>
+                        <div>
+                            <div class="kv-label">Date Range</div>
+                            <div class="kv-val">11 Feb - 12 Feb</div>
+                        </div>
+                    </div>
+                    <div class="alert info mt-4">Validation complete. All hash sums match bank control records.</div>
+                </div>
+                <div class="step-panel" data-step="4">
+                    <div class="text-center py-6"><svg viewBox="0 0 24 24" fill="none" stroke="var(--success)"
+                            stroke-width="2" class="mx-auto mb-4" width="48">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                        </svg>
+                        <h4 class="font-bold">Ready to Commit</h4>
+                        <p class="text-xs text-slate-500 mt-1">This will ingest 1,242 records into the production
+                            ledger.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-light" id="importBack" disabled>Back</button><button
+                    class="btn btn-primary" id="importNext">Next</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="runReconModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Trigger Recon Engine</h3>
+                    <div class="modal-sub">Manually start reconciliation batch</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="field"><label class="field-label">Target Rail</label><select class="select-field">
+                        <option>All Rails</option>
+                        <option>SWIFT</option>
+                        <option>ACH</option>
+                        <option>PesaLink</option>
+                    </select></div>
+                <div class="field"><label class="field-label">Cycle Range</label><select class="select-field">
+                        <option>Last 24 Hours (Open)</option>
+                        <option>Custom Period</option>
+                    </select></div><label class="choice-row selected"><input type="checkbox" checked>
+                    <div>
+                        <div class="choice-title">Run AI Suggestion Engine</div>
+                        <div class="choice-desc">Generate fuzzy matches for review</div>
+                    </div>
+                </label>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button
+                    class="btn btn-primary" id="startReconBtn">Start Batch</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="splitMatchModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Split & Match</h3>
+                    <div class="modal-sub">Allocate single statement entry to multiple internal items</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="bg-blue-50 p-4 rounded-xl mb-6">
+                    <div class="kv-label">Statement Item</div>
+                    <div class="flex justify-between mt-1"><span class="font-bold">BULK-PAYMENT-REF-202</span><span
+                            class="money-mono text-green-600">$10,000.00</span></div>
+                </div>
+                <div class="space-y-4">
+                    <div class="flex gap-4 items-end">
+                        <div class="flex-1"><label class="field-label text-xs">Internal ID</label><input class="input"
+                                value="TXN-991"></div>
+                        <div class="w-32"><label class="field-label text-xs">Amount</label><input class="input"
+                                value="4,000.00"></div><button class="btn btn-ghost text-red-500">×</button>
+                    </div>
+                    <div class="flex gap-4 items-end">
+                        <div class="flex-1"><label class="field-label text-xs">Internal ID</label><input class="input"
+                                value="TXN-992"></div>
+                        <div class="w-32"><label class="field-label text-xs">Amount</label><input class="input"
+                                value="6,000.00"></div><button class="btn btn-ghost text-red-500">×</button>
+                    </div>
+                </div><button class="btn btn-light btn-sm mt-4 w-full">+ Add Split</button>
+            </div>
+            <div class="modal-footer">
+                <div class="text-sm font-semibold">Remaining: $0.00</div><button class="btn btn-primary"
+                    data-result="Transaction split and matched successfully">Confirm Split</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="writeOffModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Variance Write-off</h3>
+                    <div class="modal-sub">Resolve small differences or bank fees</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="kv-grid mb-6">
+                    <div>
+                        <div class="kv-label">Variance</div>
+                        <div class="kv-val text-red-600">$20.00</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">System Value</div>
+                        <div class="kv-val">$1,450.00</div>
+                    </div>
+                </div>
+                <div class="field"><label class="field-label">Write-off Account</label><select class="select-field">
+                        <option>Bank Fees & Charges</option>
+                        <option>Exchange Rate Loss</option>
+                        <option>Operational Loss</option>
+                    </select></div>
+                <div class="field"><label class="field-label">Comment</label><textarea class="textarea"
+                        placeholder="Internal audit note..."></textarea></div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button
+                    class="btn btn-danger" data-result="Variance written off to Bank Fees account">Confirm
+                    Write-off</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="createRuleModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Create Recon Rule</h3>
+                    <div class="modal-sub">Define logic for auto-matching</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="field"><label class="field-label">Rule Name</label><input class="input"
+                        placeholder="e.g. SWIFT Matcher"></div>
+                <div class="field-row">
+                    <div class="field"><label class="field-label">Rail</label><select class="select-field">
+                            <option>Global</option>
+                            <option>SWIFT</option>
+                            <option>ACH</option>
+                        </select></div>
+                    <div class="field"><label class="field-label">Priority</label><input class="input" type="number"
+                            value="1"></div>
+                </div>
+                <div class="field mt-4"><label class="field-label">Matching Logic</label>
+                    <div class="bg-slate-50 p-4 rounded-xl space-y-3"><label class="flex items-center gap-2"><input
+                                type="checkbox" checked> <span>Exact Amount Match</span></label><label
+                            class="flex items-center gap-2"><input type="checkbox" checked> <span>Exact Reference
+                                Match</span></label><label class="flex items-center gap-2"><input type="checkbox">
+                            <span>Fuzzy Name Matching</span></label></div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button
+                    class="btn btn-primary" data-result="New reconciliation rule deployed">Create Rule</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="certModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Generate Recon Certificate</h3>
+                    <div class="modal-sub">Security verification required</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-6">
+                    <p class="text-sm">You are signing off on the reconciliation for 12 Feb 2026. This action will be
+                        logged for regulatory audit.</p>
+                </div>
+                <div class="auth-grid"><input class="auth-input" type="password" maxlength="1"><input class="auth-input"
+                        type="password" maxlength="1"><input class="auth-input" type="password" maxlength="1"><input
+                        class="auth-input" type="password" maxlength="1"></div><button
+                    class="btn btn-primary w-full py-3"
+                    data-result="Certificate generated and e-signed by admin">Authorize & Sign</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="agingModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Aging Analysis</h3>
+                    <div class="modal-sub">Time-based unreconciled items</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="loading-shimmer h-40 rounded-xl"></div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="importHistoryModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Import History</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="table-wrap">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Imported At</th>
+                                <th>User</th>
+                                <th>Filename</th>
+                                <th>Result</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>14:02</td>
+                                <td>System (SFTP)</td>
+                                <td>CHASE_TXN_001.CAMT</td>
+                                <td>Success</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="journalModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Adjustment Journals</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="loading-shimmer h-40 rounded-xl"></div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="bulkMatchModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Bulk Reconciliation</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <p class="text-sm">Found 12 items with identical references and amounts. Reconcile all?</p>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button
+                    class="btn btn-primary" data-result="12 items reconciled in bulk">Proceed</button></div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="ruleDetailModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Rule Configuration</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="loading-shimmer h-40 rounded-xl"></div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-danger mr-auto"
+                    data-result="Rule deleted">Delete</button><button class="btn btn-primary"
+                    data-result="Rule updated">Save Changes</button></div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="jobDetailModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Job Execution Log</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="bg-black text-green-400 p-4 rounded-xl mono text-xs h-60 overflow-y-auto">Starting
+                    job...<br>[INFO] Connecting to ledger API...<br>[INFO] Fetched 12,000 records.<br>[WARN] Found 1
+                    variance above tolerance.<br>[INFO] Job finished in 12s.</div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="importLogModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Import Trace</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="loading-shimmer h-60 rounded-xl"></div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="reportWizardModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Report Options</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="field"><label class="field-label">Inclusion Scope</label><select class="select-field">
+                        <option>All Items</option>
+                        <option>Unmatched Only</option>
+                    </select></div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-primary"
+                    data-result="Report generated">Generate</button></div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="resetToleranceModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Reset Tolerances</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <p class="text-sm">Revert to standard 0.05 USD / 3 Day tolerance for this rail?</p>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button
+                    class="btn btn-primary" data-result="Tolerances reset">Reset</button></div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="importConfigModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">SFTP / API Import Config</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="field"><label class="field-label">Host</label><input class="input"
+                            value="sftp.chase.com"></div>
+                    <div class="field"><label class="field-label">Port</label><input class="input" value="22"></div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-result="Config saved">Test &
+                    Save</button></div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="notificationsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Notifications</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="list-item">
+                    <div class="list-icon" style="background:var(--danger-soft);color:var(--danger);"><svg
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16">
+                            <path
+                                d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z">
+                            </path>
+                        </svg></div>
+                    <div class="flex-1">
+                        <div class="font-semibold text-xs">PesaLink Import Failed</div>
+                        <div class="text-[10px] text-slate-500">Invalid footer hash.</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div>
+        </div>
+    </div>
+
+    <!-- Result Modal -->
+    <div class="modal-backdrop" id="resultModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title" id="resultTitle">Success</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="flex items-center gap-4 py-4">
+                    <div class="w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" width="24">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg></div>
+                    <p class="text-sm font-medium" id="resultMessage">Action completed successfully.</p>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Done</button></div>
+        </div>
+    </div>
+
+    <!-- Simple Nav Modals -->
+    <div class="modal-backdrop" id="navTransModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Transactions</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <p class="text-sm text-slate-500">Redirecting to Transaction Explorer...</p>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="navBankModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Bank Connectivity</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <p class="text-sm text-slate-500">Managing 14 bank API endpoints.</p>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="navRulesModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Logic Rules</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <p class="text-sm text-slate-500">Configure global matching logic.</p>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="navReportsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Reporting Hub</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <p class="text-sm text-slate-500">Audit logs and reconciliation history.</p>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="navSettingsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Network Settings</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <p class="text-sm text-slate-500">Manage SFTP keys and API credentials.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        document.getElementById('sidebarToggle').addEventListener('click', () => sidebar.classList.toggle('expanded'));
+        document.getElementById('mobileMenuBtn').addEventListener('click', () => sidebar.classList.toggle('mobile-open'));
+
+        function openModal(id) { const m = document.getElementById(id); if (m) m.classList.add('show'); }
+        function closeAll() { document.querySelectorAll('.modal-backdrop.show').forEach(m => m.classList.remove('show')); }
+
+        document.addEventListener('click', e => {
+            if (e.target.closest('.toggle') || e.target.closest('.verdict')) { return; }
+            const close = e.target.closest('[data-close]');
+            if (close) { e.preventDefault(); e.stopPropagation(); closeAll(); return; }
+            const result = e.target.closest('[data-result]');
+            if (result) { e.preventDefault(); e.stopPropagation(); setResult(result.dataset.result); return; }
+            const opener = e.target.closest('[data-modal]');
+            if (opener) { e.preventDefault(); e.stopPropagation(); openModal(opener.dataset.modal); }
+        });
+
+        document.querySelectorAll('.modal-backdrop').forEach(b => b.addEventListener('click', e => { if (e.target === b) closeAll(); }));
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAll(); });
+
+        function setResult(message) {
+            closeAll();
+            document.getElementById('resultMessage').textContent = message;
+            openModal('resultModal');
+        }
+
+        function switchTab(name) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.dataset.panel === name));
+        }
+        document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => switchTab(tab.dataset.tab)));
+
+        function selectItem(el, side) {
+            el.parentElement.querySelectorAll('.recon-item').forEach(i => i.classList.remove('selected'));
+            el.classList.add('selected');
+        }
+
+        function handleMatchAction() {
+            const left = document.querySelector('.recon-pane:first-child .recon-item.selected');
+            const right = document.querySelector('.recon-pane:last-child .recon-item.selected');
+            if (left && right) {
+                setResult(`Successfully matched ${left.querySelector('.money-mono').textContent} item with bank entry.`);
+                left.classList.add('matched'); right.classList.add('matched');
+            }
+        }
+
+        // Stepper Logic
+        function setupStepper(rootId, stepperId, backId, nextId, total, doneMessage) {
+            const root = document.getElementById(rootId);
+            if (!root) return;
+            let current = 1;
+            const render = () => {
+                document.querySelectorAll(`#${stepperId} .step`).forEach((s, i) => { s.classList.toggle('active', i + 1 === current); s.classList.toggle('done', i + 1 < current); });
+                root.querySelectorAll('.step-panel').forEach(p => p.classList.toggle('active', Number(p.dataset.step) === current));
+                document.getElementById(backId).disabled = current === 1;
+                document.getElementById(nextId).textContent = current === total ? 'Submit' : 'Next';
+            };
+            document.getElementById(backId).addEventListener('click', () => { if (current > 1) { current--; render(); } });
+            document.getElementById(nextId).addEventListener('click', () => {
+                if (current < total) { current++; render(); }
+                else { current = 1; render(); setResult(doneMessage); }
+            });
+            render();
+        }
+        setupStepper('importWizardModal', 'importStepper', 'importBack', 'importNext', 4, 'Statement import complete. Reconciling...');
+
+        // Simulate Recon Job
+        document.getElementById('startReconBtn')?.addEventListener('click', () => {
+            const btn = document.getElementById('startReconBtn');
+            btn.innerHTML = '<svg class="animate-spin -ml-1 mr-3 h-4 w-4 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Processing...';
+            setTimeout(() => {
+                btn.innerHTML = 'Start Batch';
+                setResult('Reconciliation job completed. 412 items matched automatically.');
+            }, 1500);
+        });
+    </script>
+</body>
+
+</html>

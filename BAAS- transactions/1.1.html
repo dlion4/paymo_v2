@@ -1,1 +1,1355 @@
+<!DOCTYPE html>
+<html lang="en">
 
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transfer Overview (Command Center) - PayMo BaaS</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="master.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        /* Advanced UI/UX Extensions */
+        :root {
+            --mpesa: #49aa47;
+            --pesalink: #1d3a6d;
+            --rtgs: #e63946;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+
+        .ticker-row {
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+        }
+
+        .ticker-row:hover {
+            transform: scale(1.005);
+            background: var(--surface-2);
+            border-left-color: var(--primary);
+        }
+
+        /* Animation for Live Ticker */
+        @keyframes pulse-live {
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--danger);
+            border-radius: 50%;
+            animation: pulse-live 2s infinite;
+        }
+
+        /* Custom Scrollbar for Ticker */
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .custom-scroll::-webkit-scrollbar-track {
+            background: var(--bg-soft);
+        }
+
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 10px;
+        }
+
+        .rail-card {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+
+        .rail-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .rail-indicator {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 40px;
+            height: 40px;
+            background: var(--surface-3);
+            clip-path: polygon(100% 0, 0 0, 100% 100%);
+        }
+
+        /* Loader Styles */
+        .loader-inline {
+            width: 14px;
+            height: 14px;
+            border: 2px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .currency-pill {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: var(--surface-3);
+        }
+
+        .currency-pill.active {
+            background: var(--primary);
+            color: #fff;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .mini-tab {
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            color: var(--text-3);
+        }
+
+        .mini-tab.active {
+            background: var(--surface);
+            color: var(--text);
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* Pin Input */
+        .pin-box {
+            width: 45px;
+            height: 50px;
+            text-align: center;
+            font-size: 24px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--surface-2);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+        <!-- ============== SIDEBAR ============== -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-logo">P</div>
+            <nav class="sidebar-nav">
+                <button class="sidebar-item active" title="Command Center"><svg viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                    </svg><span class="sidebar-label">Command Center</span></button>
+                <button class="sidebar-item" title="Nostro/Float" data-modal="liquidityModal"><svg viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                    </svg><span class="sidebar-label">Liquidity</span></button>
+                <button class="sidebar-item" title="African Rails" data-modal="railsModal"><svg viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                    </svg><span class="sidebar-label">Rails</span></button>
+                <button class="sidebar-item" title="Global Rails" data-modal="globalRailsModal"><svg viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="2" y1="12" x2="22" y2="12"></line>
+                        <path
+                            d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+                        </path>
+                    </svg><span class="sidebar-label">Global</span></button>
+                <button class="sidebar-item" title="Bulk Upload" data-modal="bulkUploadModal"><svg viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg><span class="sidebar-label">Upload</span></button>
+                <button class="sidebar-item" title="Approvals" data-modal="approvalQueueModal"><svg viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="8.5" cy="7" r="4"></circle>
+                        <polyline points="17 11 19 13 23 9"></polyline>
+                    </svg><span class="sidebar-label">Approvals</span></button>
+                <button class="sidebar-item" title="Compliance" data-modal="complianceHoldModal"><svg
+                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg><span class="sidebar-label">Compliance</span></button>
+                <button class="sidebar-item" title="FX Pos" data-modal="fxPositionModal"><svg viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="17 1 21 5 17 9"></polyline>
+                        <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
+                        <polyline points="7 23 3 19 7 15"></polyline>
+                        <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
+                    </svg><span class="sidebar-label">FX Pos</span></button>
+            </nav>
+            <button class="sidebar-expand" id="sidebarToggle"><svg width="12" height="12" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg><span class="sidebar-label">Collapse</span></button>
+        </aside>
+
+        <main class="main">
+            <!-- ============== TOPBAR ============== -->
+            <div class="topbar">
+                <div>
+                    <div class="crumb">
+                        <button class="mobile-menu-btn btn btn-light btn-sm" id="mobileMenuBtn"
+                            style="margin-right:8px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2">
+                                <line x1="3" y1="12" x2="21" y2="12"></line>
+                                <line x1="3" y1="6" x2="21" y2="6"></line>
+                                <line x1="3" y1="18" x2="21" y2="18"></line>
+                            </svg></button>
+                        <span>Operations</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg><span>Command Center</span>
+                    </div>
+                    <h1 class="page-title flex items-center gap-3">Command Center <span class="live-dot"
+                            title="Live WebSocket Active"></span></h1>
+                </div>
+                <div class="topbar-actions">
+                    <div
+                        style="display:flex; background:var(--surface-3); padding:4px; border-radius:10px; margin-right:12px;">
+                        <div class="currency-pill active" data-currency="KES">KES</div>
+                        <div class="currency-pill" data-currency="USD">USD</div>
+                        <div class="currency-pill" data-currency="EUR">EUR</div>
+                        <div class="currency-pill" data-currency="UGX">UGX</div>
+                    </div>
+                    <button class="btn btn-light" data-modal="instantReportModal"><svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                        </svg>Instant Report</button>
+                    <button class="btn btn-primary" data-modal="newTransferModal"><svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>New Transfer</button>
+                </div>
+            </div>
+
+            <!-- ============== KPI ROW ============== -->
+            <div class="stats-row">
+                <div class="stat-card" data-modal="totalVolumeModal">
+                    <div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M12 1v22"></path>
+                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"></path>
+                        </svg></div>
+                    <div class="stat-label">Total Volume (Today)</div>
+                    <div class="stat-value" id="mainVolume">KES 48.2M</div>
+                    <div class="stat-trend up"><span>+12.4% MoM</span></div>
+                </div>
+                <div class="stat-card" data-modal="successRateModal">
+                    <div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                        </svg></div>
+                    <div class="stat-label">Success Rate</div>
+                    <div class="stat-value">99.4%</div>
+                    <div class="stat-trend up"><span>Above target (99%)</span></div>
+                </div>
+                <div class="stat-card" data-modal="settlementTimeModal">
+                    <div class="stat-icon purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg></div>
+                    <div class="stat-label">Avg Settlement</div>
+                    <div class="stat-value">4.2s</div>
+                    <div class="stat-trend green"><span>Real-time local</span></div>
+                </div>
+                <div class="stat-card" data-modal="failedTxnModal">
+                    <div class="stat-icon red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path
+                                d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z">
+                            </path>
+                            <line x1="12" y1="9" x2="12" y2="13"></line>
+                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                        </svg></div>
+                    <div class="stat-label">Failed Attention</div>
+                    <div class="stat-value">28</div>
+                    <div class="stat-trend red"><span>High priority first</span></div>
+                </div>
+                <div class="stat-card" data-modal="revenueModal">
+                    <div class="stat-icon amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <line x1="12" y1="1" x2="12" y2="23"></line>
+                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"></path>
+                        </svg></div>
+                    <div class="stat-label">Revenue (Today)</div>
+                    <div class="stat-value">KES 842K</div>
+                    <div class="stat-trend neutral"><span>Marginal spread up</span></div>
+                </div>
+            </div>
+
+            <div class="two-col mt-6">
+                <!-- ============== LIVE TICKER SECTION ============== -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                            </svg>Live Transaction Ticker</h2>
+                        <div class="panel-actions">
+                            <div style="background:var(--surface-3); padding:3px; border-radius:8px; display:flex;">
+                                <div class="mini-tab active" data-filter="all">All Rails</div>
+                                <div class="mini-tab" data-filter="mpesa">M-Pesa</div>
+                                <div class="mini-tab" data-filter="pesalink">PesaLink</div>
+                            </div>
+                            <button class="btn btn-light btn-sm" data-modal="tickerExportModal">Export Snap</button>
+                        </div>
+                    </div>
+                    <div class="panel-body no-pad overflow-hidden">
+                        <div class="table-wrap custom-scroll" style="height: 480px; overflow-y: auto;">
+                            <table class="table">
+                                <thead style="position: sticky; top: 0; z-index: 10;">
+                                    <tr>
+                                        <th>Txn Ref</th>
+                                        <th>Sender / Receiver</th>
+                                        <th>Rail</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tickerBody">
+                                    <tr class="ticker-row" data-modal="txnDetailModal">
+                                        <td>
+                                            <div class="mono text-xs">BTX-882194</div>
+                                            <div class="list-sub">10:42:01 EAT</div>
+                                        </td>
+                                        <td>
+                                            <div>0712...884 (M-Pesa)</div>
+                                            <div class="list-sub">Equity Bank (K. Wanjiku)</div>
+                                        </td>
+                                        <td><span class="badge primary">M-Pesa STK</span></td>
+                                        <td><strong>KES 12,500.00</strong></td>
+                                        <td><span class="badge success"><span class="badge-dot"></span>Completed</span>
+                                        </td>
+                                    </tr>
+                                    <tr class="ticker-row" data-modal="txnDetailModal">
+                                        <td>
+                                            <div class="mono text-xs">BTX-882193</div>
+                                            <div class="list-sub">10:41:48 EAT</div>
+                                        </td>
+                                        <td>
+                                            <div>KCB Bank (Main Float)</div>
+                                            <div class="list-sub">Stanbic Bank (Acme Corp)</div>
+                                        </td>
+                                        <td><span class="badge"
+                                                style="background:var(--pesalink); color:#fff;">PesaLink</span></td>
+                                        <td><strong>KES 240,000.00</strong></td>
+                                        <td><span class="badge warning"><span class="badge-dot"></span>Processing</span>
+                                        </td>
+                                    </tr>
+                                    <tr class="ticker-row" data-modal="txnDetailModal">
+                                        <td>
+                                            <div class="mono text-xs">BTX-882192</div>
+                                            <div class="list-sub">10:41:30 EAT</div>
+                                        </td>
+                                        <td>
+                                            <div>0700...112 (Airtel)</div>
+                                            <div class="list-sub">0722...445 (M-Pesa)</div>
+                                        </td>
+                                        <td><span class="badge info">Interop</span></td>
+                                        <td><strong>KES 1,200.00</strong></td>
+                                        <td><span class="badge success"><span class="badge-dot"></span>Completed</span>
+                                        </td>
+                                    </tr>
+                                    <tr class="ticker-row" data-modal="txnDetailModal">
+                                        <td>
+                                            <div class="mono text-xs">BTX-882191</div>
+                                            <div class="list-sub">10:41:12 EAT</div>
+                                        </td>
+                                        <td>
+                                            <div>Chase Bank (US)</div>
+                                            <div class="list-sub">Absa Bank (Nostrol)</div>
+                                        </td>
+                                        <td><span class="badge purple">SWIFT gpi</span></td>
+                                        <td><strong>$45,000.00</strong></td>
+                                        <td><span class="badge warning"><span class="badge-dot"></span>Pending</span>
+                                        </td>
+                                    </tr>
+                                    <tr class="ticker-row" data-modal="txnDetailModal">
+                                        <td>
+                                            <div class="mono text-xs">BTX-882190</div>
+                                            <div class="list-sub">10:40:55 EAT</div>
+                                        </td>
+                                        <td>
+                                            <div>0721...990 (M-Pesa)</div>
+                                            <div class="list-sub">Equity Bank</div>
+                                        </td>
+                                        <td><span class="badge primary">M-Pesa</span></td>
+                                        <td><strong>KES 5,000.00</strong></td>
+                                        <td><span class="badge danger"><span class="badge-dot"></span>Failed</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============== RAIL STATUS GRID ============== -->
+                <div>
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2 class="panel-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path
+                                        d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z">
+                                    </path>
+                                </svg>African Rail Status</h2>
+                            <div class="panel-actions"><button class="btn btn-ghost btn-sm"
+                                    data-modal="fullRailMatrixModal">View All</button></div>
+                        </div>
+                        <div class="panel-body grid grid-cols-2 gap-3">
+                            <div class="rail-card p-3 border border-soft rounded-xl bg-white"
+                                data-modal="mpesaStatusModal">
+                                <div class="flex justify-between items-start">
+                                    <div class="font-bold text-sm" style="color:var(--mpesa)">M-Pesa</div>
+                                    <span class="badge success btn-sm py-0.5">Online</span>
+                                </div>
+                                <div class="text-xs text-3 mt-1">Daraja API: 42ms</div>
+                                <div class="mt-3 flex justify-between">
+                                    <div class="text-[10px] text-4">DISB. QUEUE</div>
+                                    <div class="text-xs font-bold">Normal</div>
+                                </div>
+                                <div class="progress green mt-1"><span style="width:92%"></span></div>
+                            </div>
+
+                            <div class="rail-card p-3 border border-soft rounded-xl bg-white"
+                                data-modal="pesalinkStatusModal">
+                                <div class="flex justify-between items-start">
+                                    <div class="font-bold text-sm" style="color:var(--pesalink)">PesaLink</div>
+                                    <span class="badge success btn-sm py-0.5">Online</span>
+                                </div>
+                                <div class="text-xs text-3 mt-1">TPS: 184/s</div>
+                                <div class="mt-3 flex justify-between">
+                                    <div class="text-[10px] text-4">LINKAGE</div>
+                                    <div class="text-xs font-bold">100%</div>
+                                </div>
+                                <div class="progress green mt-1"><span style="width:100%"></span></div>
+                            </div>
+
+                            <div class="rail-card p-3 border border-soft rounded-xl bg-white"
+                                data-modal="rtgsStatusModal">
+                                <div class="flex justify-between items-start">
+                                    <div class="font-bold text-sm" style="color:var(--rtgs)">RTGS (CBK)</div>
+                                    <span class="badge warning btn-sm py-0.5">Delayed</span>
+                                </div>
+                                <div class="text-xs text-3 mt-1">Next: 3:00PM Cut-off</div>
+                                <div class="mt-3 flex justify-between">
+                                    <div class="text-[10px] text-4">KEPSS QUEUE</div>
+                                    <div class="text-xs font-bold">High</div>
+                                </div>
+                                <div class="progress amber mt-1"><span style="width:75%"></span></div>
+                            </div>
+
+                            <div class="rail-card p-3 border border-soft rounded-xl bg-white"
+                                data-modal="interopStatusModal">
+                                <div class="flex justify-between items-start">
+                                    <div class="font-bold text-sm">Interoperability</div>
+                                    <span class="badge success btn-sm py-0.5">Online</span>
+                                </div>
+                                <div class="text-xs text-3 mt-1">M-Pesa ↔ Airtel</div>
+                                <div class="mt-3 flex justify-between">
+                                    <div class="text-[10px] text-4">SETTLEMENT</div>
+                                    <div class="text-xs font-bold">T+0</div>
+                                </div>
+                                <div class="progress green mt-1"><span style="width:98%"></span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ============== LIQUIDITY SUMMARY ============== -->
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2 class="panel-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                                </svg>Liquidity & Float</h2>
+                            <button class="btn btn-light btn-sm" data-modal="liquidityModal">Forecast</button>
+                        </div>
+                        <div class="panel-body">
+                            <div class="dist-row">
+                                <div class="dist-label">M-Pesa KES Float</div>
+                                <div class="dist-bar"><span style="width:85%; background:var(--mpesa);"></span></div>
+                                <div class="dist-val">42.4M</div>
+                            </div>
+                            <div class="dist-row">
+                                <div class="dist-label">KCB KES Nostro</div>
+                                <div class="dist-bar"><span style="width:40%; background:var(--primary);"></span></div>
+                                <div class="dist-val">12.1M</div>
+                            </div>
+                            <div class="dist-row">
+                                <div class="dist-label">Standard USD</div>
+                                <div class="dist-bar"><span style="width:12%; background:var(--info);"></span></div>
+                                <div class="dist-val">$240K</div>
+                            </div>
+                            <div class="alert warning mt-2 p-2 text-xs">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                    class="w-3 h-3">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                </svg>
+                                Low balance alert: USD Nostro below $500K threshold.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============== PENDING ACTIONS & ALERTS ============== -->
+            <div class="panel mt-6">
+                <div class="panel-header">
+                    <h2 class="panel-title text-red-600"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path
+                                d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z">
+                            </path>
+                        </svg>High-Priority Queue</h2>
+                    <div class="panel-actions">
+                        <button class="btn btn-light btn-sm" data-modal="bulkApproveModal">Bulk Action</button>
+                    </div>
+                </div>
+                <div class="panel-body no-pad">
+                    <div class="list-item" data-modal="complianceHoldModal">
+                        <div class="list-left">
+                            <div class="list-icon" style="background:var(--danger-soft); color:var(--danger);"><svg
+                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                </svg></div>
+                            <div>
+                                <div class="list-title">AML Flag: BTX-882191</div>
+                                <div class="list-sub">Inbound $45,000 from High-Risk Entity · Score: 88</div>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button class="btn btn-light btn-sm" data-modal="complianceHoldModal">Verify ID</button>
+                            <button class="btn btn-danger btn-sm" data-modal="complianceHoldModal">Block</button>
+                        </div>
+                    </div>
+
+                    <div class="list-item" data-modal="approvalQueueModal">
+                        <div class="list-left">
+                            <div class="list-icon" style="background:var(--info-soft); color:var(--info);"><svg
+                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="8.5" cy="7" r="4"></circle>
+                                    <polyline points="17 11 19 13 23 9"></polyline>
+                                </svg></div>
+                            <div>
+                                <div class="list-title">Dual Authorization Required</div>
+                                <div class="list-sub">B2C Bulk Disbursement: KES 8.2M · 412 Recipients</div>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary btn-sm" data-modal="approvalQueueModal">Authorize</button>
+                    </div>
+
+                    <div class="list-item" data-modal="failedTxnModal">
+                        <div class="list-left">
+                            <div class="list-icon" style="background:var(--warning-soft); color:var(--warning);"><svg
+                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="15" y1="9" x2="9" y2="15"></line>
+                                    <line x1="9" y1="9" x2="15" y2="15"></line>
+                                </svg></div>
+                            <div>
+                                <div class="list-title">PesaLink Reversal Failure</div>
+                                <div class="list-sub">BTX-882170 · KES 45,000 · Retries Exhausted</div>
+                            </div>
+                        </div>
+                        <button class="btn btn-light btn-sm" data-modal="manualReconModal">Manual Fix</button>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- ============================================
+       MODALS (OVER 20)
+       ============================================ -->
+
+    <!-- 1. New Transfer (Multistep) -->
+    <div class="modal-backdrop" id="newTransferModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Initiate New Transfer</h3>
+                    <div class="modal-sub">Secure single-entry transfer system</div>
+                </div>
+                <button class="modal-close" data-close>x</button>
+            </div>
+            <div class="stepper" id="transferStepper">
+                <div class="step active">
+                    <div class="step-num">1</div>Recipient
+                </div>
+                <div class="step-line"></div>
+                <div class="step">
+                    <div class="step-num">2</div>Amount
+                </div>
+                <div class="step-line"></div>
+                <div class="step">
+                    <div class="step-num">3</div>Verify
+                </div>
+                <div class="step-line"></div>
+                <div class="step">
+                    <div class="step-num">4</div>Secure
+                </div>
+            </div>
+            <div class="modal-body">
+                <div class="step-panel active" data-step="1">
+                    <div class="field"><label class="field-label">Payment Rail</label>
+                        <div class="grid grid-cols-3 gap-2">
+                            <div class="choice-row selected"><input type="radio" name="rail" checked>
+                                <div>
+                                    <div class="choice-title">M-Pesa B2C</div>
+                                </div>
+                            </div>
+                            <div class="choice-row"><input type="radio" name="rail">
+                                <div>
+                                    <div class="choice-title">PesaLink</div>
+                                </div>
+                            </div>
+                            <div class="choice-row"><input type="radio" name="rail">
+                                <div>
+                                    <div class="choice-title">RTGS</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="field mt-4"><label class="field-label">Recipient Mobile / Account</label><input
+                            class="input" placeholder="e.g. 0712345678 or IBAN"></div>
+                </div>
+                <div class="step-panel" data-step="2">
+                    <div class="field-row">
+                        <div class="field"><label class="field-label">Currency</label><select class="select-field">
+                                <option>KES</option>
+                                <option>USD</option>
+                            </select></div>
+                        <div class="field"><label class="field-label">Amount</label><input class="input" type="number"
+                                value="5000"></div>
+                    </div>
+                    <div class="field"><label class="field-label">Reference / Reason</label><input class="input"
+                            placeholder="Supplier Payment"></div>
+                </div>
+                <div class="step-panel" data-step="3">
+                    <div class="alert info mb-4">Review transfer details before authorizing.</div>
+                    <div class="kv-grid">
+                        <div>
+                            <div class="kv-label">Recipient</div>
+                            <div class="kv-val">S. Omondi (0711...889)</div>
+                        </div>
+                        <div>
+                            <div class="kv-label">Rail</div>
+                            <div class="kv-val">M-Pesa B2C</div>
+                        </div>
+                        <div>
+                            <div class="kv-label">Amount</div>
+                            <div class="kv-val">KES 5,000.00</div>
+                        </div>
+                        <div>
+                            <div class="kv-label">Fee</div>
+                            <div class="kv-val">KES 15.00</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="step-panel" data-step="4">
+                    <div class="text-center">
+                        <div class="mb-4 font-semibold">Enter Admin Passkey</div>
+                        <div class="auth-code flex justify-center gap-2">
+                            <input class="pin-box" type="password" maxlength="1">
+                            <input class="pin-box" type="password" maxlength="1">
+                            <input class="pin-box" type="password" maxlength="1">
+                            <input class="pin-box" type="password" maxlength="1">
+                        </div>
+                        <div class="text-xs text-4 mt-4">Authorized by [L3_USER_01]</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-light" id="transferBack" disabled>Back</button>
+                <button class="btn btn-primary" id="transferNext">Next</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Transaction Detail -->
+    <div class="modal-backdrop" id="txnDetailModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Transaction BTX-882194</h3>
+                    <div class="modal-sub">M-Pesa STK Push · Completed 2m ago</div>
+                </div>
+                <button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="tabs mb-4 px-0">
+                    <button class="tab active" data-modaltab="details">General</button>
+                    <button class="tab" data-modaltab="logs">API Logs</button>
+                    <button class="tab" data-modaltab="audit">Audit Trail</button>
+                </div>
+                <div class="modaltab-panel active" data-modaltab="details">
+                    <div class="kv-grid">
+                        <div>
+                            <div class="kv-label">Sender</div>
+                            <div class="kv-val">0712...884 (Individual)</div>
+                        </div>
+                        <div>
+                            <div class="kv-label">Receiver</div>
+                            <div class="kv-val">PayMo Equity Account</div>
+                        </div>
+                        <div>
+                            <div class="kv-label">Amount</div>
+                            <div class="kv-val">KES 12,500.00</div>
+                        </div>
+                        <div>
+                            <div class="kv-label">Safaricom Receipt</div>
+                            <div class="kv-val mono">S9B2X8R4P1</div>
+                        </div>
+                        <div>
+                            <div class="kv-label">Settlement</div>
+                            <div class="kv-val">T+0 (Immediate)</div>
+                        </div>
+                        <div>
+                            <div class="kv-label">Risk Flag</div>
+                            <div class="kv-val"><span class="badge success">Low Risk</span></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modaltab-panel hidden" data-modaltab="logs">
+                    <pre
+                        class="mono text-[11px] p-3 bg-gray-900 text-green-400 rounded-lg h-32 overflow-y-auto">{"stk_callback": {"ResultCode": 0, "MerchantRequestID": "29115-1051120-1", "Amount": 12500, "Receipt": "S9B2X8R4P1"}}</pre>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end">
+                <button class="btn btn-light" data-result="Receipt sent to customer">Send Receipt</button>
+                <button class="btn btn-danger" data-modal="complianceHoldModal">Reverse</button>
+                <button class="btn btn-primary" data-close>Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Nostro/Float Liquidity -->
+    <div class="modal-backdrop" id="liquidityModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Multi-Currency Liquidity Position</h3>
+                    <div class="modal-sub">Real-time balances across correspondents</div>
+                </div>
+                <button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Partner</th>
+                            <th>Currency</th>
+                            <th>Balance</th>
+                            <th>Health</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Safaricom (M-Pesa)</td>
+                            <td>KES</td>
+                            <td><strong>42,420,000</strong></td>
+                            <td><span class="badge success">Optimal</span></td>
+                            <td><button class="btn btn-light btn-sm" data-modal="nostroFundingModal">Fund</button></td>
+                        </tr>
+                        <tr>
+                            <td>KCB Bank</td>
+                            <td>KES</td>
+                            <td><strong>12,100,000</strong></td>
+                            <td><span class="badge warning">Low</span></td>
+                            <td><button class="btn btn-primary btn-sm" data-modal="nostroFundingModal">Sweep</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Correspondent (US)</td>
+                            <td>USD</td>
+                            <td><strong>$240,120</strong></td>
+                            <td><span class="badge danger">Critical</span></td>
+                            <td><button class="btn btn-danger btn-sm" data-modal="nostroFundingModal">Fund</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. African Rails Detailed Status -->
+    <div class="modal-backdrop" id="railsModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">African Payment Rails Status Grid</h3>
+                    <div class="modal-sub">Real-time health of local infrastructure</div>
+                </div>
+                <button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="uw-card">
+                        <div class="uw-title">M-Pesa Safaricom</div>
+                        <div class="config-row">
+                            <div>
+                                <div class="config-label">Daraja Gateway</div>
+                            </div><span class="badge success">Operational</span>
+                        </div>
+                        <div class="config-row">
+                            <div>
+                                <div class="config-label">B2C Queue Depth</div>
+                            </div><span class="badge info">Low</span>
+                        </div>
+                    </div>
+                    <div class="uw-card">
+                        <div class="uw-title">PesaLink (IPSL)</div>
+                        <div class="config-row">
+                            <div>
+                                <div class="config-label">Switch Status</div>
+                            </div><span class="badge success">Up 24/7</span>
+                        </div>
+                        <div class="config-row">
+                            <div>
+                                <div class="config-label">Connected Banks</div>
+                            </div><span class="badge info">32 Banks</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. Global Rails Status -->
+    <div class="modal-backdrop" id="globalRailsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Global Rails Matrix</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">SWIFT gpi Tracker</div>
+                    </div><span class="badge success">Active</span>
+                </div>
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">SEPA Instant</div>
+                    </div><span class="badge success">Ready</span>
+                </div>
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">FPS (UK)</div>
+                    </div><span class="badge warning">Maintenance</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. Bulk Upload (Multistep) -->
+    <div class="modal-backdrop" id="bulkUploadModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Bulk Disbursement</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="border-2 border-dashed border-soft p-8 text-center rounded-xl mb-4">
+                    <div class="text-4 text-xs mb-2">Drop CSV/Excel File here</div>
+                    <button class="btn btn-light btn-sm" data-result="File template.csv uploaded">Browse File</button>
+                </div>
+                <button class="btn btn-primary w-full" data-result="Validating 412 records...">Validate &
+                    Upload</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 7. Approval Queue -->
+    <div class="modal-backdrop" id="approvalQueueModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Authorization Queue</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="list-item">
+                    <div class="list-left">
+                        <div>
+                            <div class="list-title">Bulk B2C #BATCH-99</div>
+                            <div class="list-sub">KES 8,200,000 · 412 recipients</div>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary btn-sm" data-result="Batch Authorized">Authorize</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 8. Compliance Hold Details -->
+    <div class="modal-backdrop" id="complianceHoldModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Compliance Review: BTX-882191</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="alert danger mb-4">Flagged: Name match on World-Check Sanctions List.</div>
+                <div class="kv-grid">
+                    <div>
+                        <div class="kv-label">Entity Name</div>
+                        <div class="kv-val">International Trading Co.</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Entity Origin</div>
+                        <div class="kv-val">Lagos, NG</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end">
+                <button class="btn btn-danger" data-result="Transaction permanently blocked">Block Permanent</button>
+                <button class="btn btn-success" data-result="Compliance cleared">Override (Release)</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 9. FX Position Detail -->
+    <div class="modal-backdrop" id="fxPositionModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">FX Position Summary</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Pair</th>
+                            <th>Net Exposure</th>
+                            <th>Target Rate</th>
+                            <th>Delta</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>USD/KES</td>
+                            <td>-$1.2M</td>
+                            <td>129.40</td>
+                            <td><span class="text-red-500">-0.2%</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 10. Instant Report Config -->
+    <div class="modal-backdrop" id="instantReportModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Generate Instant Report</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="field"><label class="field-label">Report Template</label><select class="select-field">
+                        <option>Operations Daily Summary</option>
+                        <option>Safaricom Settlement Log</option>
+                    </select></div>
+                <button class="btn btn-primary w-full" data-result="Report generating in background...">Generate
+                    PDF</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 11. Nostro Funding Modal -->
+    <div class="modal-backdrop" id="nostroFundingModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Fund Float Account</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="field"><label class="field-label">Source Nostro</label><select class="select-field">
+                        <option>KCB Bank KES</option>
+                    </select></div>
+                <div class="field"><label class="field-label">Amount</label><input class="input" type="number"
+                        value="10000000"></div>
+                <button class="btn btn-primary w-full" data-result="Liquidity sweep initiated">Confirm Sweep</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 12. Manual Reconciliation -->
+    <div class="modal-backdrop" id="manualReconModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Manual Reconcilation Workbench</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="alert info">Match bank statement entry to internal ledger.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 13. Failed Transaction Detail -->
+    <div class="modal-backdrop" id="failedTxnModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Failed Transactions Attention Queue</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="list-item">
+                    <div>
+                        <div class="list-title">KES 45,000 Reversal</div>
+                        <div class="list-sub">PesaLink IPSL Error 903</div>
+                    </div><button class="btn btn-primary btn-sm" data-result="Re-triggered successful">Retry</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 14. Total Volume Drill-down -->
+    <div class="modal-backdrop" id="totalVolumeModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Portfolio Performance Matrix</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="four-col mb-4">
+                    <div class="stat-card">MTD: 1.2B</div>
+                    <div class="stat-card">YTD: 14.8B</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 15. Success Rate Detail -->
+    <div class="modal-backdrop" id="successRateModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Success Rate by Rail</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="dist-row">
+                    <div class="dist-label">M-Pesa</div>
+                    <div class="dist-bar"><span style="width:99.8%; background:var(--mpesa);"></span></div>
+                    <div class="dist-val">99.8%</div>
+                </div>
+                <div class="dist-row">
+                    <div class="dist-label">PesaLink</div>
+                    <div class="dist-bar"><span style="width:99.2%; background:var(--pesalink);"></span></div>
+                    <div class="dist-val">99.2%</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 16. Settlement Time Analysis -->
+    <div class="modal-backdrop" id="settlementTimeModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Settlement Performance</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="dist-row">
+                    <div class="dist-label">STK Push</div>
+                    <div class="dist-bar"><span style="width:100%; background:var(--mpesa);"></span></div>
+                    <div class="dist-val">8s</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 17. Revenue Drill-down -->
+    <div class="modal-backdrop" id="revenueModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Revenue & Margin Analysis</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Rail</th>
+                            <th>Fee Rev</th>
+                            <th>FX Spread</th>
+                            <th>Gross</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>PesaLink</td>
+                            <td>KES 142K</td>
+                            <td>-</td>
+                            <td>KES 142K</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 18. Safaricom Maintenance Log -->
+    <div class="modal-backdrop" id="mpesaStatusModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Safaricom Daraja Health</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="alert info">No scheduled maintenance for the next 48h.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 19. PesaLink Interbank health -->
+    <div class="modal-backdrop" id="pesalinkStatusModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">PesaLink Switch Connectivity</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">KCB Connection</div>
+                    </div><span class="badge success">Active</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 20. Interop Matrix -->
+    <div class="modal-backdrop" id="interopStatusModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Interoperability Grid</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="dist-row">
+                    <div class="dist-label">M-Pesa ↔ Airtel</div>
+                    <div class="dist-bar"><span style="width:98%; background:var(--primary);"></span></div>
+                    <div class="dist-val">98%</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 21. RTGS Status Matrix -->
+    <div class="modal-backdrop" id="rtgsStatusModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">RTGS (KEPSS) Real-time Status</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="alert info mb-4">RTGS is currently active. CBK Cut-off in 4h 18m.</div>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Bank</th>
+                            <th>Nostro Req</th>
+                            <th>Available</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Equity</td>
+                            <td>KES 120M</td>
+                            <td>KES 145M</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Result Modal -->
+    <div class="modal-backdrop" id="resultModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title" id="resultTitle">Action Completed</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="alert success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        class="w-4 h-4">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg><span id="resultMessage" class="ml-2">Operation successful.</span></div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Done</button></div>
+        </div>
+    </div>
+
+    <!-- Ticker Export Modal -->
+    <div class="modal-backdrop" id="tickerExportModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Export Ticker Snapshot</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="field"><label class="field-label">Range</label><select class="select-field">
+                        <option>Last 1,000 Transactions</option>
+                        <option>Last 1 Hour</option>
+                    </select></div>
+                <button class="btn btn-primary w-full"
+                    data-result="CSV file BTX_ticker_snapshot.csv downloaded">Download CSV</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* PayMo BaaS - Advanced Dashboard Interactions */
+
+        // Sidebar
+        const sidebar = document.getElementById('sidebar');
+        document.getElementById('sidebarToggle').addEventListener('click', () => sidebar.classList.toggle('expanded'));
+        document.getElementById('mobileMenuBtn').addEventListener('click', () => sidebar.classList.toggle('mobile-open'));
+
+        // Modal Control
+        function openModal(id) { const m = document.getElementById(id); if (m) m.classList.add('show'); }
+        function closeAll() { document.querySelectorAll('.modal-backdrop.show').forEach(m => m.classList.remove('show')); }
+
+        document.addEventListener('click', e => {
+            const close = e.target.closest('[data-close]');
+            if (close) { e.preventDefault(); e.stopPropagation(); closeAll(); return; }
+
+            const result = e.target.closest('[data-result]');
+            if (result) { e.preventDefault(); e.stopPropagation(); setResult(result.dataset.result); return; }
+
+            const opener = e.target.closest('[data-modal]');
+            if (opener) { e.preventDefault(); e.stopPropagation(); openModal(opener.dataset.modal); }
+        });
+
+        document.querySelectorAll('.modal-backdrop').forEach(b => b.addEventListener('click', e => { if (e.target === b) closeAll(); }));
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAll(); });
+
+        function setResult(message) {
+            closeAll();
+            document.getElementById('resultMessage').textContent = message;
+            openModal('resultModal');
+        }
+
+        // Modal Tabs logic
+        document.querySelectorAll('.tab[data-modaltab]').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const parent = tab.closest('.modal-body');
+                parent.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                parent.querySelectorAll('.modaltab-panel').forEach(p => p.classList.add('hidden'));
+
+                tab.classList.add('active');
+                parent.querySelector(`.modaltab-panel[data-modaltab="${tab.dataset.modaltab}"]`).classList.remove('hidden');
+            });
+        });
+
+        // Multi-step: Transfer Wizard
+        (function setupTransferWizard() {
+            let step = 1;
+            const back = document.getElementById('transferBack');
+            const next = document.getElementById('transferNext');
+            const modal = document.getElementById('newTransferModal');
+
+            const update = () => {
+                modal.querySelectorAll('.step').forEach((s, i) => {
+                    s.classList.toggle('active', i + 1 === step);
+                    s.classList.toggle('done', i + 1 < step);
+                });
+                modal.querySelectorAll('.step-panel').forEach(p => p.classList.toggle('active', +p.dataset.step === step));
+                back.disabled = step === 1;
+                next.textContent = step === 4 ? 'Confirm & Authorize' : 'Next';
+            };
+
+            next.addEventListener('click', () => {
+                if (step < 4) { step++; update(); }
+                else { step = 1; update(); setResult('Transfer BTX-882201 successfully initiated via M-Pesa STK'); }
+            });
+            back.addEventListener('click', () => { if (step > 1) { step--; update(); } });
+        })();
+
+        // Live Ticker Mock Data Generation
+        const ticker = document.getElementById('tickerBody');
+        setInterval(() => {
+            const row = ticker.lastElementChild.cloneNode(true);
+            const ref = 'BTX-' + Math.floor(Math.random() * 900000 + 100000);
+            row.querySelector('.mono').textContent = ref;
+            row.querySelector('.list-sub').textContent = new Date().toLocaleTimeString('en-GB') + ' EAT';
+            ticker.prepend(row);
+            if (ticker.children.length > 10) ticker.lastElementChild.remove();
+        }, 5000);
+
+        // Currency Switch Simulation
+        document.querySelectorAll('.currency-pill').forEach(pill => {
+            pill.addEventListener('click', () => {
+                document.querySelectorAll('.currency-pill').forEach(p => p.classList.remove('active'));
+                pill.classList.add('active');
+                const c = pill.dataset.currency;
+                document.getElementById('mainVolume').textContent = c === 'KES' ? 'KES 48.2M' : c === 'USD' ? '$372K' : c + ' 420K';
+            });
+        });
+    </script>
+</body>
+
+</html>
