@@ -599,470 +599,6 @@ This dashboard handles the entire lifecycle of money movement between financial 
 
 ---
 
-# DASHBOARD 2: BANK-TO-BANK SERVICES & UTILITIES
-
-This dashboard provides value-added financial services, utility functions, and ecosystem tools built on top of the core transfer infrastructure.
-
----
-
-## Page 2.1 — Services Overview (Services Hub)
-
-**Purpose:** Central command center for all non-transfer financial services.
-
-### Sections & Content:
-
-1. **Services Catalog**
-   - Visual grid of available services
-   - Service status (active, beta, coming soon)
-   - Usage statistics per service
-   - Quick activation toggles
-
-2. **Service Performance Dashboard**
-   - Revenue from value-added services
-   - Adoption rate per service
-   - Customer satisfaction scores
-   - Service uptime and reliability
-
-3. **Active Services Summary**
-   - Number of active bill pay contracts
-   - Recurring payment schedules running
-   - FX hedges in place
-   - Active virtual accounts
-   - Open API banking connections
-
-4. **Cross-Sell Opportunities**
-   - AI-powered service recommendations per client
-   - Revenue opportunity scoring
-   - Personalized service bundles
-
----
-
-## Page 2.2 — Bill Pay & Utilities
-
-**Purpose:** Biller aggregation and payment orchestration for utilities and services.
-
-### Sections & Content:
-
-1. **Biller Directory**
-   - Searchable database of connected billers
-   - Categories: electricity, water, gas, internet, mobile, TV, insurance, tax
-   - Biller details: account format, processing time, fees
-   - Favorite billers quick access
-
-2. **Bill Payment Initiation**
-   - Biller selection or manual entry
-   - Account number validation
-   - Bill amount entry or fetch from biller (if API connected)
-   - Payment scheduling (one-time, recurring, auto-pay)
-   - Payment method selection (bank transfer, wallet, card)
-
-3. **Recurring Payments Management**
-   - Active recurring payment list
-   - Schedule details: frequency, next date, end date
-   - Amount rules: fixed, variable (up to limit), fetch from biller
-   - Pause, edit, or cancel recurring payments
-   - Payment history per recurring setup
-
-4. **Bill Presentment**
-   - Electronic bill inbox
-   - Bill detail view with line items
-   - Due date reminders
-   - Auto-pay enrollment per bill
-
-5. **Biller Reconciliation**
-   - Payment confirmation tracking
-   - Failed bill payment handling
-   - Refund request management
-   - Biller dispute resolution
-
----
-
-## Page 2.3 — Collections & Invoicing
-
-**Purpose:** Receivables management and payment collection infrastructure.
-
-### Sections & Content:
-
-1. **Invoice Generator**
-   - Customizable invoice templates
-   - Line item management
-   - Tax calculation engine
-   - Multi-currency invoicing
-   - Branded invoice PDF generation
-
-2. **Payment Links & Checkout**
-   - Generate payment links (pay-by-bank)
-   - Embedded checkout widget configuration
-   - QR code generation for in-person collection
-   - Payment page customization
-
-3. **Collections Dashboard**
-   - Outstanding invoices summary
-   - Aging report (0-30, 31-60, 61-90, 90+ days)
-   - Collection success rate
-   - Overdue invoice alerts
-
-4. **Recurring Billing**
-   - Subscription plan creation
-   - Billing cycle configuration
-   - Proration handling
-   - Dunning management (failed payment retry)
-   - Subscription analytics (MRR, churn, LTV)
-
-5. **Collections Reconciliation**
-   - Automatic payment-to-invoice matching
-   - Partial payment handling
-   - Overpayment management
-   - Credit note generation
-
----
-
-## Page 2.4 — Virtual Accounts & Sub-Accounts
-
-**Purpose:** Programmatic account creation for clients, merchants, and use-case segregation.
-
-### Sections & Content:
-
-1. **Virtual Account Manager**
-   - List of all virtual accounts
-   - Account details: number, currency, balance, status
-   - Linked parent account
-   - Transaction history per virtual account
-
-2. **Virtual Account Creation**
-   - Single or bulk creation
-   - Currency and jurisdiction selection
-   - Naming/labeling convention
-   - Auto-close rules (zero balance, inactivity)
-
-3. **Account Allocation Rules**
-   - Auto-allocation of incoming transfers
-   - Sweep rules to parent account
-   - Reserve/hold amount configuration
-   - Interest allocation (if applicable)
-
-4. **Multi-Tenancy Management**
-   - Client workspace isolation
-   - White-label configuration per tenant
-   - Tenant-level reporting and analytics
-   - Tenant billing and fee configuration
-
-5. **Virtual IBAN/Dedicated Account Numbers**
-   - IBAN generation per virtual account
-   - Local account number formats per country
-   - Account verification status
-   - Routing information management
-
----
-
-## Page 2.5 — FX & Treasury Services
-
-**Purpose:** Foreign exchange operations and treasury management.
-
-### Sections & Content:
-
-1. **Live FX Rates Board**
-   - Real-time mid-market rates
-   - Bid/ask spreads
-   - Rate history charts
-   - Rate alert configuration
-
-2. **FX Conversion**
-   - Spot conversion tool
-   - Amount and currency pair selection
-   - Rate lock duration
-   - Settlement date selection
-   - Fee and spread disclosure
-
-3. **Forward Contracts & Hedging**
-   - Forward contract creation
-   - Tenor selection (1W to 12M)
-   - Hedge ratio configuration
-   - Mark-to-market valuation
-   - Hedge effectiveness reporting
-
-4. **Multi-Currency Wallets**
-   - Wallet balances per currency
-   - Currency conversion history
-   - Wallet-to-wallet transfers
-   - Currency exposure summary
-
-5. **Treasury Analytics**
-   - Currency exposure heatmap
-   - VaR (Value at Risk) calculations
-   - Hedge ratio tracking
-   - P&L from FX operations
-
----
-
-## Page 2.6 — Payroll & Disbursements
-
-**Purpose:** Bulk payment distribution for salaries, vendor payments, and disbursements.
-
-### Sections & Content:
-
-1. **Payroll Run Management**
-   - Payroll period configuration
-   - Employee database integration
-   - Salary component breakdown
-   - Tax and deduction calculations
-   - Net pay computation
-
-2. **Bulk Disbursement**
-   - Upload beneficiary list (CSV/Excel)
-   - Amount and bank account validation
-   - Payment scheduling
-   - Approval workflow
-   - Execution and status tracking
-
-3. **Payout Dashboard**
-   - Total disbursements today/this period
-   - Success/failure breakdown
-   - Per-employee payment status
-   - Retry failed payments
-
-4. **Payslip Generation & Distribution**
-   - Automated payslip generation
-   - Digital payslip delivery (email, portal)
-   - Payslip archive and retrieval
-   - YTD earnings summary
-
-5. **Compliance & Reporting**
-   - Tax filing preparation
-   - Pension contribution reports
-   - Regulatory payroll reports
-   - Audit trail for all disbursements
-
----
-
-## Page 2.7 — Open Banking & Account Aggregation
-
-**Purpose:** Connect external bank accounts for data aggregation and payment initiation.
-
-### Sections & Content:
-
-1. **Connected Accounts**
-   - List of user-linked external bank accounts
-   - Account details: bank name, account type, balance, last sync
-   - Connection health status
-   - Re-authentication triggers
-
-2. **Account Linking Flow**
-   - Bank search and selection
-   - OAuth / credential-based connection
-   - Consent management (data scope, duration)
-   - Multi-factor authentication handling
-
-3. **Account Data Aggregation**
-   - Consolidated balance view across all accounts
-   - Transaction aggregation and categorization
-   - Cash position across institutions
-   - Net worth calculation
-
-4. **Payment Initiation (PIS)**
-   - Initiate payment from linked account
-   - Payee management
-   - Payment authorization via bank app
-   - Payment status tracking
-
-5. **Data Permissions & Consent**
-   - Active consent management
-   - Consent expiration tracking
-   - Data scope modification
-   - Consent revocation
-
----
-
-## Page 2.8 — Fraud & Risk Management
-
-**Purpose:** Comprehensive risk detection and fraud prevention across all services.
-
-### Sections & Content:
-
-1. **Risk Score Dashboard**
-   - Overall risk posture
-   - Risk score distribution across transactions
-   - High-risk transaction alerts
-   - Risk trend analysis
-
-2. **Rule Engine**
-   - Transaction limit rules (velocity, amount, frequency)
-   - Geolocation rules
-   - Device fingerprinting rules
-   - Behavioral anomaly rules
-   - Custom rule builder with drag-and-drop
-
-3. **Machine Learning Models**
-   - Fraud detection model performance
-   - Feature importance analysis
-   - Model retraining triggers
-   - False positive/negative tracking
-
-4. **Case Management**
-   - Alert queue for manual review
-   - Case assignment and escalation
-   - Investigation notes and evidence
-   - Disposition tracking (clear, confirm fraud, suspicious)
-
-5. **3D Secure & Authentication**
-   - 3DS configuration per transaction type
-   - Exemption rule management
-   - Authentication success rates
-   - Friction vs. security balance tuning
-
----
-
-## Page 2.9 — Client & Partner Management
-
-**Purpose:** B2B client onboarding, relationship management, and partner bank administration.
-
-### Sections & Content:
-
-1. **Client Directory**
-   - List of all platform clients (businesses, fintechs, merchants)
-   - Client profile: company details, KYC status, risk rating
-   - Active services per client
-   - Account manager assignment
-
-2. **Client Onboarding**
-   - Digital onboarding workflow
-   - KYB (Know Your Business) checks
-   - Document collection and verification
-   - Approval workflow (compliance, risk, legal)
-   - Go-live readiness checklist
-
-3. **Partner Bank Management**
-   - Partner bank directory
-   - Agreement terms and SLAs
-   - Settlement arrangements
-   - API integration status
-   - Performance scorecards
-
-4. **Pricing & Fee Configuration**
-   - Client-specific pricing plans
-   - Fee structure: per transaction, monthly, revenue share
-   - Discount and promotional pricing
-   - Invoice generation and billing
-
-5. **Client Support Portal**
-   - Support ticket management
-   - SLA tracking per client
-   - Knowledge base access
-   - Escalation matrix
-
----
-
-## Page 2.10 — Reporting & Business Intelligence
-
-**Purpose:** Enterprise-grade analytics and executive reporting.
-
-### Sections & Content:
-
-1. **Executive Dashboard**
-   - Revenue overview (transaction fees, FX spread, service fees)
-   - Customer growth metrics
-   - Platform utilization rates
-   - NPS and customer satisfaction
-
-2. **Financial Reports**
-   - P&L statement
-   - Revenue by product line
-   - Cost of goods sold (payment rail costs)
-   - Gross margin analysis
-   - Forecast vs. actual
-
-3. **Operational Reports**
-   - Transaction volume by corridor
-   - Settlement performance
-   - Support ticket analytics
-   - System uptime and reliability
-
-4. **Regulatory & Compliance Reports**
-   - AML program effectiveness
-   - Sanctions screening statistics
-   - Regulatory filing calendar
-   - Audit readiness reports
-
-5. **Custom Analytics Studio**
-   - SQL query builder
-   - Visualization library (charts, maps, tables)
-   - Dashboard sharing and scheduling
-   - Data export and API access
-
----
-
-## Page 2.11 — System Administration & Settings
-
-**Purpose:** Platform configuration, user management, and system health.
-
-### Sections & Content:
-
-1. **User & Role Management**
-   - User directory with roles
-   - Role-based access control (RBAC)
-   - Permission matrix (page, action, data level)
-   - SSO/SAML configuration
-   - Session and password policies
-
-2. **Organization Settings**
-   - Company profile and branding
-   - Time zone, currency, language defaults
-   - Notification preferences
-   - Audit log retention policies
-
-3. **System Health & Monitoring**
-   - Service status page
-   - API latency and error rates
-   - Database performance
-   - Infrastructure resource utilization
-   - Incident management log
-
-4. **Backup & Disaster Recovery**
-   - Backup schedule and status
-   - Recovery point objective (RPO) monitoring
-   - Disaster recovery drill history
-   - Failover configuration
-
-5. **Integration Marketplace**
-   - Available third-party integrations
-   - Accounting software (QuickBooks, Xero)
-   - ERP connectors (SAP, Oracle)
-   - CRM integrations (Salesforce, HubSpot)
-   - Custom webhook integrations
-
----
-
-## Page 2.12 — Notifications & Communication Center
-
-**Purpose:** Multi-channel communication management with clients and stakeholders.
-
-### Sections & Content:
-
-1. **Notification Templates**
-   - Email, SMS, push notification templates
-   - Variable insertion (name, amount, status)
-   - Multi-language support
-   - Template versioning
-
-2. **Communication Rules**
-   - Event-triggered notifications
-   - Threshold-based alerts
-   - Digest vs. instant delivery preferences
-   - Quiet hours configuration
-
-3. **Client Communication Log**
-   - History of all client communications
-   - Delivery status tracking
-   - Open/click rates
-   - Bounce and complaint handling
-
-4. **Alert Management**
-   - System alerts configuration
-   - Escalation rules
-   - On-call rotation integration
-   - Alert severity classification
-
----
 
 ## Cross-Cutting Features (Both Dashboards)
 
@@ -1104,19 +640,19 @@ Based on your existing Angular v21 + Bootstrap icons + theme toggle setup:
 
 ---
 
-This outline gives  a production-grade, enterprise-level blueprint that rivals PesaLink, Plaid, Payoneer, and the top BaaS platforms in the market. Each page is designed with real operational workflows, compliance requirements, and scalability in mind. You can now break this down into user stories and start building sprint by sprint.
+This outline gives  a production-grade, enterprise-level blueprint that rivals PesaLink, Plaid, Payoneer, and the top BaaS platforms in the market. Each page is designed with real operational workflows, compliance requirements, and scalability in mind. 
 
-now i want you to design the master css using this theme as the main default theme, with the styled and design in bootstrap and custom css and custom js , make it well designed well with the icons and the cards and tabs exactly as the theme in the pic sample
+now i want you to design using the master css using this theme as the main default theme, with the styled and design in bootstrap and custom css and custom js , make it well designed well with the icons and the cards and tabs exactly as the theme in the pic sample
 we are making the dashboard with sidebar and collapsable to show icons with hover icons 
 
 create relevant mini tabs whenever necessary and relevant mini pop ups to avoid dead end placeholder every button or link should be completed by events like loading etc
 don’t leave blanks or placeholder make everything completed
-create mini modal pop ups upon clicking buttons for the next step section 
+create mini modal pop ups, medium-large sized pop ups, medium pop up modals upon clicking buttons for the next step section 
 create tabs within the modal if the steps requires multiple steps
 create multistep modals like for making payments like inlcude relevant steps and steps for security feature like pin or passkey etc and conformations, event like button clicking , cards tables and sections to have UI/UX design like 
 no dead ends, make everything completed use little or less toastas (limit them not everything should be toasted)
 use the theme with bootstrap inline styles
-include the animations styled in bootstrap inline styles and  no custom js
+us ethe master styles  and  custom js
 
 make it comprohensive and functional, responsive on mobile screen
  
@@ -1142,17 +678,37 @@ p
 
 give a single combined html page alone for thia modifications
 
-Let me fetch the dashboard HTML from the GitHub repository to understand the current design and then recreate it as a React application with proper alignment, responsiveness, modals, and no dead ends.
-
-Fetched
-
-PayMo — Personal Banking Dashboard
 
 
 
-so this is my dashboad page
+
+
+so this is my dashboad pages
 correct the few errors of card alinment, resposive content on small device should not crump up or squeeze
 then use modals pop ups where relevant, no blank no dead ends no empty place holders
 make it responsive
 add missing modals
+
+now i want you to design using the master css using this theme as the main default theme, with the styled and design in bootstrap and custom css and custom js , make it well designed well with the icons and the cards and tabs exactly as the theme in the pic sample
+we are making the dashboard with sidebar and collapsable to show icons with hover icons 
+
+create relevant mini tabs whenever necessary and relevant mini pop ups to avoid dead end placeholder every button or link should be completed by events like loading etc
+don’t leave blanks or placeholder make everything completed
+create mini modal pop ups, medium-large sized pop ups, medium pop up modals upon clicking buttons for the next step section 
+create tabs within the modal if the steps requires multiple steps
+create multistep modals like for making payments like inlcude relevant steps and steps for security feature like pin or passkey etc and conformations, event like button clicking , cards tables and sections to have UI/UX design like 
+no dead ends, make everything completed use little or less toastas (limit them not everything should be toasted)
+use the theme with bootstrap inline styles
+use the master styles  and  custom js
+
+make it comprohensive and functional, responsive on mobile screen
+
+in the same manner and design using the theme and master css
+
+make it comprehensive, reduce the use of toastas, no broken links no empty sections
+use modals, tabs, mutistep modals pop ups no blanks, no empty links no empty buttons
+use over 20 modals
+make it comprehesive reduce the use of toastas, no broken links no empty sections
+this is the admins side dashboard so allow permissions and editable fields, data, records and sections relevantly
+design the next page
 
