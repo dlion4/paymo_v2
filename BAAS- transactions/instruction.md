@@ -997,8 +997,1428 @@ Based on deep research into PesaLink, Plaid, Payoneer, and leading 2026 BaaS pla
   - Auto-top-up from designated reserve account
   - Emergency funding trigger (call credit line)
 - **Excess liquidity investment options:**
-  - Central Bank of Kenya Treasury
+  
 
+
+---
+
+## Page 1.5 — Liquidity & Float Management (Continued)
+
+### Section 1.5.3 — Auto-Sweep & Rebalancing (Continued)
+
+- **Excess liquidity investment options:**
+  - Central Bank of Kenya Treasury Bills (91-day, 182-day, 364-day) — auto-purchase when excess KES detected
+  - Central Bank of Kenya Treasury Bonds — longer-term investment for structural surplus
+  - Bank fixed deposits — negotiate rates with partner banks (KCB, Equity, Co-op)
+  - Money market funds — Stanbic Money Market Fund, CIC Money Market Fund
+  - Repurchase agreements (repos) — overnight and term repos with primary dealers
+  - USD Treasury Bills — for USD surplus
+  - Euro commercial paper — for EUR surplus
+  - Regional central bank instruments — Bank of Uganda, Bank of Tanzania paper
+  - Investment maturity ladder — ensure liquidity is available when needed
+  - Yield comparison dashboard — compare returns across instruments
+  - Risk rating per instrument (sovereign risk, counterparty risk, liquidity risk)
+
+### Section 1.5.4 — Funding & Defunding
+
+- **Request funding from partner bank:**
+  - Credit line drawdown request form
+  - Available credit lines per partner: KCB, Equity, Stanbic, ABSA, NCBA
+  - Drawdown amount, currency, purpose
+  - Interest rate terms (fixed, floating, KES benchmark + spread)
+  - Tenor: overnight, 7 days, 30 days, 90 days, 1 year
+  - Collateral requirements and available collateral
+  - Approval workflow: Operations → Treasury → CFO
+  - Drawdown confirmation and fund receipt tracking
+- **Defund excess to treasury:**
+  - Excess liquidity identification per account
+  - Defund amount and destination (primary treasury, investment account)
+  - Defund method: internal transfer, RTGS, SWIFT
+  - Defund scheduling: immediate, end of day, end of week
+  - Defund history and status
+- **Funding history and status:**
+  - All historical drawdowns with amount, date, tenor, rate, status
+  - Outstanding drawdowns with maturity dates
+  - Interest accrual tracking
+  - Total cost of funding calculation
+- **Interest accrual tracking:**
+  - Daily interest accrual on credit lines
+  - Interest payment schedule
+  - Interest capitalization option
+  - Effective annual rate calculation
+
+### Section 1.5.5 — Liquidity Alerts & Limits
+
+- **Low balance alerts per account:**
+  - Threshold configuration per account per currency
+  - Alert escalation: Warning (80% of threshold) → Critical (100%) → Emergency (120%)
+  - Notification channels: In-app, SMS, email, Slack, PagerDuty
+  - Alert suppression rules (e.g., suppress during known settlement windows)
+- **Concentration risk alerts:**
+  - Single bank concentration limit (max % of total liquidity at one bank)
+  - Single currency concentration limit
+  - Single rail concentration limit
+  - Mobile money float concentration (max % at one MNO)
+  - Alert when approaching limit, auto-action when exceeding
+- **Regulatory liquidity ratio monitoring:**
+  - CBK liquidity coverage ratio (LCR) — minimum 20% for Kenyan banks
+  - Net stable funding ratio (NSFR) tracking
+  - Cash reserve ratio (CRR) compliance
+  - Local currency liquidity ratio
+  - Foreign currency liquidity ratio
+  - Daily reporting to CBK via KEPSS
+- **Custom alert rule builder:**
+  - Build custom alerts with drag-and-drop conditions
+  - Conditions: account balance, currency, time, day, rail status, transaction volume
+  - Actions: send notification, trigger sweep, block transactions, escalate to manager
+  - Alert testing and simulation
+
+### Section 1.5.6 — Mobile Money Float Management
+
+- **M-Pesa float monitoring:**
+  - Real-time float balance at Safaricom
+  - Float utilization rate (used vs. available)
+  - Float burn rate (how fast float depletes during peak hours)
+  - Float top-up scheduling (auto-top-up when below threshold)
+  - Float reconciliation: PayMo records vs. Safaricom statement
+  - Float interest (if any) or cost of holding float
+  - Agent network liquidity impact on float requirements
+- **Cross-network float balancing:**
+  - M-Pesa vs. Airtel Money vs. T-Kash float ratios
+  - Customer preference analytics (which network do customers use most)
+  - Auto-rebalancing between networks based on demand
+  - Interoperability settlement reconciliation
+- **Regional mobile money float:**
+  - MTN MoMo float per country (Uganda, Tanzania, Rwanda, Ghana, Nigeria)
+  - Airtel Money float per country
+  - Orange Money float per country
+  - Cross-border float transfer rules and costs
+
+### Section 1.5.7 — FX Liquidity Management
+
+- **FX position dashboard:**
+  - Net open position per currency pair (KES/USD, KES/EUR, KES/GBP, KES/UGX, KES/TZS)
+  - Position limits per pair (regulatory and internal)
+  - Intraday position vs. overnight position
+  - Position aging (how long has position been open)
+- **FX hedging:**
+  - Forward contract book: outstanding forwards, maturities, rates
+  - FX option book: calls, puts, strikes, expiries
+  - Natural hedging: matching inflows and outflows in same currency
+  - Hedge effectiveness tracking
+- **FX rate monitoring:**
+  - Real-time rates from CBK, Reuters, Bloomberg
+  - Rate alerts: significant movements, threshold breaches
+  - Historical rate charts (1D, 1W, 1M, 1Y, 5Y)
+  - Volatility indicators
+
+---
+
+## Page 1.6 — Reconciliation Center
+
+**Purpose:** Automated and manual matching of transactions across all African and global rails, mobile money statements, and bank statements.
+
+### Section 1.6.1 — Reconciliation Dashboard
+
+- **Match rate percentage:**
+  - Overall match rate across all rails
+  - Per-rail match rate: M-Pesa, PesaLink, RTGS, EFT, SWIFT, EAPS, PAPSS, PayPal
+  - Per-currency match rate
+  - Trend over time (improving or deteriorating)
+- **Unmatched items count:**
+  - Total unmatched items
+  - Per-rail unmatched count
+  - Aging analysis: < 1 day, 1-3 days, 3-7 days, 7-30 days, > 30 days
+  - Value of unmatched items
+- **Breakdown by rail, currency, date range:**
+  - Interactive charts and tables
+  - Drill-down capability
+- **Aging analysis of unmatched items:**
+  - Heat map by age and value
+  - Auto-escalation rules (escalate to manager after 3 days, to director after 7 days)
+  - Write-off thresholds and approval workflow
+
+### Section 1.6.2 — Auto-Reconciliation Engine
+
+- **Matching rules configuration:**
+  - **Exact match:** Amount, currency, reference, date all match exactly
+  - **Fuzzy match:** Amount within tolerance (±0.01 or ±1%), date within ±1 day, reference partially matches
+  - **Reference-based match:** Match on transaction reference number only
+  - **Amount-date match:** Match on amount and date when reference is missing
+  - **Multi-item match:** One bank statement line matches multiple internal transactions (batch)
+  - **Split match:** One internal transaction matches multiple bank statement lines
+- **Tolerance settings:**
+  - Amount tolerance: absolute (e.g., ±KES 1) or percentage (e.g., ±0.5%)
+  - Date tolerance: ±0 days (same day), ±1 day, ±3 days
+  - Currency tolerance: exact match or converted at rate of day
+- **Scheduled reconciliation jobs:**
+  - M-Pesa: Every 15 minutes (high volume, real-time nature)
+  - PesaLink: Every 30 minutes
+  - RTGS: Every hour during banking hours
+  - EFT: Daily at 6:00 AM (after overnight batch processing)
+  - SWIFT: Every 2 hours
+  - EAPS: Every hour
+  - PAPSS: Every 2 hours
+  - PayPal: Daily at 4:00 AM
+  - Custom schedules per rail
+- **Exception handling rules:**
+  - Auto-match if confidence > 95%
+  - Queue for manual review if confidence 70-95%
+  - Flag for investigation if confidence < 70%
+  - Auto-create adjustment entry for identified fee discrepancies
+
+### Section 1.6.3 — Manual Reconciliation Workspace
+
+- **Side-by-side comparison:**
+  - Left panel: Internal transaction records (PayMo system)
+  - Right panel: External statement (bank, MNO, PayPal)
+  - Synchronized scrolling
+  - Highlight differences in amount, date, reference, status
+- **Suggested matches (AI-powered):**
+  - Machine learning model suggests most likely matches
+  - Confidence score per suggestion
+  - One-click accept suggestion
+  - Bulk accept suggestions above confidence threshold
+- **Manual match actions:**
+  - Match selected items
+  - Split one item to match multiple
+  - Combine multiple items to match one
+  - Write off small differences (with approval and reason)
+  - Create adjustment journal entry
+  - Mark as "requires investigation" with assignee
+- **Bulk reconciliation tools:**
+  - Select all suggested matches and bulk accept
+  - Bulk write-off for small differences under threshold
+  - Bulk mark as "pending vendor response"
+
+### Section 1.6.4 — Bank Statement Import
+
+- **Multi-format support:**
+  - **Kenyan bank formats:**
+    - KCB: CSV, Excel, MT940
+    - Equity: CSV, Excel, MT940, CAMT.053
+    - Co-op: CSV, Excel
+    - Stanbic: CSV, Excel, MT940, CAMT.053
+    - ABSA: CSV, Excel, MT940
+    - NCBA: CSV, Excel
+    - Standard Chartered: MT940, CAMT.053
+  - **Mobile money formats:**
+    - Safaricom M-Pesa: CSV, Excel, API pull (Daraja)
+    - Airtel Money: CSV, Excel
+    - T-Kash: CSV, Excel
+    - MTN MoMo: CSV, Excel, API pull
+  - **Global formats:**
+    - MT940 (SWIFT statement message)
+    - CAMT.053 (ISO 20022 account report)
+    - BAI2 (Bank Administration Institute format)
+    - OFX (Open Financial Exchange)
+    - CSV with configurable column mapping
+    - Excel with multiple sheet support
+    - ISO 20022 pain.002 (payment status report)
+    - ISO 20022 pacs.002 (FIToFIPaymentStatusReport)
+  - **API auto-import:**
+    - Direct API connection to KCB, Equity, Stanbic, ABSA
+    - Direct API to Safaricom Daraja for M-Pesa statements
+    - Direct API to PayPal for transaction reports
+    - SFTP auto-download from bank secure servers
+    - Email auto-import (monitored inbox for statement attachments)
+- **Statement parsing validation:**
+  - Schema validation per format
+  - Data type validation (dates, amounts, currencies)
+  - Duplicate detection (prevent re-import of same statement)
+  - Balance validation (opening + transactions = closing)
+  - Error report with line-by-line detail
+- **Import history and error logs:**
+  - All imports with date, source, format, row count, success count, error count
+  - Error log with reason and suggested fix
+  - Re-import capability for failed files
+
+### Section 1.6.5 — Reconciliation Reports
+
+- **Daily reconciliation summary:**
+  - Per-rail summary: total transactions, matched, unmatched, match rate
+  - Aging of unmatched items
+  - Action items for the day
+  - Auto-generated at 6:00 AM
+- **Outstanding items report:**
+  - All unmatched items with detail
+  - Assigned investigator
+  - Days outstanding
+  - Estimated resolution date
+  - Escalation status
+- **Adjustment journal entries:**
+  - All adjustments made during reconciliation
+  - Reason code, amount, account, approver
+  - Linked to original transaction and statement
+  - Audit trail
+- **Audit-ready reconciliation certificates:**
+  - Signed reconciliation certificate per period
+  - CFO sign-off workflow
+  - External auditor access (read-only)
+  - Regulatory submission format (CBK, KRA, etc.)
+
+---
+
+## Page 1.7 — Settlement & Clearing
+
+**Purpose:** End-of-day and real-time settlement operations across Kenyan, East African, African, and global clearing systems.
+
+### Section 1.7.1 — Settlement Calendar
+
+- **Daily settlement schedule per rail:**
+  - **M-Pesa:** Real-time T+0 settlement, end-of-day net settlement to bank
+  - **PesaLink:** Real-time 24/7, net settlement at 11:00 PM EAT
+  - **RTGS (KEPSS):** Real-time during banking hours (8:00 AM - 3:00 PM EAT), final settlement at 3:00 PM
+  - **EFT:** Batch settlement at 10:00 AM, 2:00 PM, 4:00 PM EAT
+  - **SWIFT:** Value date based on message type and correspondent bank
+  - **EAPS:** Daily settlement at 4:00 PM EAT across EAC central banks
+  - **PAPSS:** Daily settlement at 3:00 PM GMT across African central banks
+  - **SEPA Instant:** Real-time, net settlement at end of day
+  - **ACH (US):** Settlement at 8:30 AM, 1:00 PM, 5:00 PM, 8:30 PM ET
+  - **FPS (UK):** Real-time, net settlement at end of day
+  - **PayPal:** Instant internal, bank withdrawal T+1 to T+3
+- **Cut-off time countdown timers:**
+  - Per-rail countdown to next cut-off
+  - Visual urgency indicator (green > 2 hours, amber 30 min - 2 hours, red < 30 min)
+  - Auto-alert at 30 minutes, 10 minutes, and 1 minute before cut-off
+- **Holiday calendar per jurisdiction:**
+  - Kenya: New Year's Day, Good Friday, Easter Monday, Labour Day, Madaraka Day, Eid al-Fitr (variable), Mashujaa Day, Jamhuri Day, Christmas Day, Boxing Day
+  - Uganda: Independence Day, Martyrs' Day, etc.
+  - Tanzania: Union Day, Saba Saba, Nyerere Day, etc.
+  - Rwanda: Umuganura, Liberation Day, etc.
+  - Nigeria: Democracy Day, Independence Day, etc.
+  - Ghana: Independence Day, Republic Day, etc.
+  - South Africa: Human Rights Day, Freedom Day, Youth Day, etc.
+  - US: Federal holidays
+  - UK: Bank holidays
+  - EU: ECB holidays
+  - Islamic holidays (variable dates): Eid al-Fitr, Eid al-Adha
+- **Estimated settlement dates:**
+  - Auto-calculation considering holidays, weekends, rail schedules
+  - Display to customer at initiation
+  - Update if conditions change (e.g., rail downtime)
+
+### Section 1.7.2 — Netting & Batching
+
+- **Gross vs. net settlement options:**
+  - Gross settlement: Each transaction settled individually (RTGS, M-Pesa)
+  - Net settlement: Offsetting transactions netted to single amount (EFT, PesaLink end-of-day)
+  - Hybrid: Intraday net with end-of-day gross (some correspondent banking)
+- **Batch creation and management:**
+  - Auto-batch creation based on rules: rail, currency, value date, beneficiary bank
+  - Manual batch creation for special handling
+  - Batch content review and edit before submission
+  - Batch submission status tracking
+  - Batch rejection handling and resubmission
+- **Multi-lateral netting calculations:**
+  - Net position per participant in netting arrangement
+  - Netting efficiency ratio (gross vs. net volume)
+  - Netting agreement management
+  - Dispute resolution for netting disagreements
+- **Batch submission status:**
+  - Submitted → Acknowledged → Validated → Accepted → Settled
+  - Per-batch detail: count, value, participants, status
+  - Batch-level rejection reasons and correction
+
+### Section 1.7.3 — Settlement Reports
+
+- **Pre-settlement validation reports:**
+  - Liquidity sufficiency check per settlement account
+  - Missing or incomplete transactions flagged
+  - Limit breach warnings
+  - Regulatory ratio impact preview
+  - Auto-generated 1 hour before settlement
+- **Post-settlement confirmation:**
+  - Settlement completion confirmation per rail
+  - Final positions per account
+  - Discrepancy report (if any)
+  - Settlement certificate generation
+- **Settlement failure analysis:**
+  - Failed settlement reasons: insufficient liquidity, system error, counterparty default, regulatory block
+  - Impact assessment: which transactions affected, customer notification required
+  - Resolution actions taken
+  - Prevention measures for future
+- **Central bank reporting (where applicable):**
+  - CBK daily settlement report
+  - CBK weekly liquidity report
+  - CBK monthly payment system report
+  - EAC cross-border settlement report
+  - PAPSS settlement report
+
+### Section 1.7.4 — End-of-Day (EOD) Process
+
+- **EOD checklist and status:**
+  - Pre-EOD tasks: All RTGS transactions submitted before 3:00 PM cut-off
+  - EOD tasks: PesaLink net settlement, M-Pesa end-of-day reconciliation, EFT batch submission, SWIFT message queue processing
+  - Post-EOD tasks: Statement downloads, reconciliation initiation, reporting generation
+  - Per-task status: Pending, In Progress, Completed, Failed
+  - Task owner and completion time
+- **Automated EOD job monitoring:**
+  - Real-time status of all automated EOD jobs
+  - Job dependency chain visualization
+  - Failed job auto-retry with escalation
+  - EOD completion time tracking and SLA
+- **EOD exception handling:**
+  - Exception identification and categorization
+  - Auto-assignment to on-call operations team
+  - Escalation matrix: Operations → Manager → Director → CTO
+  - Emergency EOD override procedures
+- **Next-day opening position preview:**
+  - Projected opening balances per account
+  - Expected overnight inflows (e.g., M-Pesa T+0 settlement)
+  - Scheduled outgoing payments for next business day
+  - Liquidity adequacy forecast
+
+---
+
+## Page 1.8 — Transaction Analytics & Reporting
+
+**Purpose:** Deep insights into transfer patterns, performance, and trends with African market focus.
+
+### Section 1.8.1 — Volume & Value Analytics
+
+- **Transaction count and value over time:**
+  - Time series charts: hourly, daily, weekly, monthly, quarterly, yearly
+  - Cumulative vs. periodic views
+  - Year-over-year (YoY) comparison
+  - Month-over-month (MoM) comparison
+  - Week-over-week (WoW) comparison
+- **Trend analysis:**
+  - Linear trend line with R-squared
+  - Seasonal decomposition (trend, seasonal, residual)
+  - Growth rate tracking: absolute and percentage
+  - Compound annual growth rate (CAGR)
+- **Peak hour/day identification:**
+  - Heat map by hour of day and day of week
+  - Peak identification: highest volume hours, highest value hours
+  - Off-peak identification for maintenance scheduling
+  - Capacity planning based on peak projections
+- **Growth rate tracking:**
+  - Volume growth by product, rail, currency, corridor
+  - Value growth by product, rail, currency, corridor
+  - Customer growth correlation with transaction growth
+  - Market share estimation vs. competitors
+
+### Section 1.8.2 — Performance Metrics
+
+- **Success rate trends:**
+  - Overall success rate over time
+  - Per-rail success rate: M-Pesa, PesaLink, RTGS, EFT, SWIFT, EAPS, PAPSS, PayPal
+  - Per-currency success rate
+  - Per-corridor success rate
+  - Success rate by transaction value band
+  - Success rate by time of day
+- **Settlement time distribution:**
+  - Histogram of actual settlement times per rail
+  - Mean, median, mode, standard deviation
+  - 50th, 75th, 90th, 95th, 99th percentile
+  - SLA compliance rate (percentage within promised time)
+  - Settlement time by beneficiary bank
+- **Failure reason breakdown:**
+  - Top 20 failure reasons across all rails
+  - Per-rail failure reason distribution
+  - Trending failure types (increasing or decreasing)
+  - Failure reason correlation with time, amount, currency, corridor
+  - Resolution time per failure type
+- **Retry success rates:**
+  - First attempt success rate
+  - Second attempt success rate
+  - Third+ attempt success rate
+  - Optimal retry strategy per failure type
+  - Cost of retries vs. value of successful completion
+
+### Section 1.8.3 — Revenue & Cost Analysis
+
+- **Fee revenue per rail, per client, per corridor:**
+  - M-Pesa revenue: STK Push fees, B2C fees, C2B merchant discount rate
+  - PesaLink revenue: per-transaction fees, monthly subscription fees
+  - RTGS revenue: high-value transaction fees
+  - EFT revenue: batch processing fees
+  - SWIFT revenue: message fees, correspondent bank fees markup
+  - FX spread revenue: difference between interbank rate and customer rate
+  - Corridor-specific revenue: KES→UGX, KES→TZS, KES→USD, etc.
+- **Cost per transaction breakdown:**
+  - Rail cost: what PayMo pays to MNO, bank, or network
+  - Infrastructure cost: servers, bandwidth, API calls
+  - Operations cost: manual handling, reconciliation, support
+  - Compliance cost: screening, reporting, audit
+  - Total cost per transaction per rail
+  - Cost trend over time (negotiating better rates, volume discounts)
+- **Margin analysis:**
+  - Gross margin per transaction (revenue - rail cost)
+  - Net margin per transaction (revenue - total cost)
+  - Margin by product, rail, currency, corridor, customer segment
+  - Margin trend and optimization opportunities
+- **Profitability by payment corridor:**
+  - KES domestic: M-Pesa, PesaLink, RTGS, EFT
+  - KES↔UGX: EAPS, mobile money interoperability
+  - KES↔TZS: EAPS, mobile money interoperability
+  - KES↔USD: SWIFT, correspondent banking
+  - KES↔EUR: SWIFT, SEPA
+  - KES↔GBP: SWIFT, FPS
+  - USD domestic: ACH, Wire
+  - EUR domestic: SEPA, SEPA Instant
+  - GBP domestic: FPS
+  - PayPal global corridor
+
+### Section 1.8.4 — Custom Report Builder
+
+- **Drag-and-drop report designer:**
+  - Data source selection: transactions, settlements, reconciliations, liquidity, compliance
+  - Field selection and ordering
+  - Filter configuration
+  - Grouping and aggregation options
+  - Sorting configuration
+  - Chart type selection: table, bar, line, pie, heatmap, map, funnel
+- **Pre-built templates:**
+  - Daily Operations Report: All transactions, success rates, exceptions, liquidity position
+  - Monthly Board Report: Strategic KPIs, growth, profitability, risk metrics
+  - Regulatory Report: CBK required format, transaction volumes, values, rail breakdown
+  - Client Statement: Per-client transaction summary, fees, balances
+  - M-Pesa Performance Report: STK Push success, B2C queue, float position
+  - PesaLink Performance Report: Interbank volume, bank connectivity, uptime
+  - Cross-Border Report: EAPS, PAPSS, SWIFT volumes and values
+  - FX Report: Currency flows, hedge positions, P&L
+  - Compliance Report: Screening hits, SARs filed, regulatory submissions
+  - Audit Report: All user actions, data changes, system events
+- **Scheduled report generation and delivery:**
+  - Schedule: hourly, daily, weekly, monthly, quarterly, annually
+  - Delivery method: email, SFTP, API webhook, in-app notification
+  - Format: PDF, Excel, CSV, JSON, XML
+  - Recipient management: internal users, external regulators, clients
+  - Delivery confirmation tracking
+- **Export formats:**
+  - PDF: Formatted with logo, headers, footers, page numbers
+  - Excel: Multiple sheets, formulas, pivot tables, charts
+  - CSV: Raw data for import into other systems
+  - JSON: Machine-readable for API integration
+  - XML: ISO 20022 format for regulatory submission
+
+### Section 1.8.5 — Real-Time Monitoring
+
+- **Live transaction heatmap:**
+  - Geographic heatmap: transaction origin and destination by country, region, city
+  - Time-based heatmap: transactions by hour and day
+  - Rail-based heatmap: transactions by rail and status
+  - Value-based heatmap: high-value transaction concentration
+  - Interactive drill-down: click region to see detail
+- **Geographic flow visualization:**
+  - Sankey diagram showing money flows between countries, banks, rails
+  - Flow thickness proportional to value
+  - Direction arrows showing inflow vs. outflow
+  - Net flow per corridor
+  - Animation showing flow over time
+- **Anomaly detection alerts:**
+  - Statistical anomaly: volume/value deviation > 3 standard deviations from mean
+  - Behavioral anomaly: unusual pattern (e.g., sudden spike in M-Pesa reversals)
+  - Fraud pattern anomaly: structuring, rapid-fire transactions, round amounts
+  - System anomaly: sudden drop in success rate for a rail
+  - Alert generation with severity, suggested action, auto-suppression rules
+- **SLA compliance tracking:**
+  - Per-SLA metric: settlement time, success rate, availability, support response time
+  - SLA dashboard: green (compliant), amber (at risk), red (breached)
+  - SLA breach root cause analysis
+  - SLA credit calculation (refunds for breaches)
+  - SLA improvement trend
+
+---
+
+## Page 1.9 — Compliance & AML (Transactions)
+
+**Purpose:** Transaction-level compliance monitoring and regulatory reporting with Kenya-specific requirements.
+
+### Section 1.9.1 — Transaction Screening
+
+- **Real-time sanctions screening:**
+  - Lists: OFAC (US), UN Security Council, EU Consolidated List, UK Sanctions List, HMT (UK Treasury)
+  - Local lists: CBK sanctions list, Kenyan government prohibited persons, EAC sanctions
+  - Screening against: sender name, receiver name, beneficiary name, bank name, MNO name, reference text, narrative
+  - Fuzzy matching with confidence score
+  - False positive management: whitelist, previous disposition, auto-clear rules
+  - Screening hit review and disposition workflow:
+    - Hit identified → Alert generated → Analyst review → Disposition (clear / confirm match / escalate)
+    - Disposition options: False positive, True positive (block and report), Requires further investigation
+    - Audit trail of all dispositions
+    - SLA: Review within 4 hours of hit
+- **PEP (Politically Exposed Persons) screening:**
+  - Global PEP databases: Dow Jones, Refinitiv World-Check, LexisNexis
+  - Local PEP lists: Kenyan MPs, Cabinet Secretaries, Governors, MCAs, EAC officials, African Union officials
+  - Family members and close associates screening
+  - PEP risk rating: High (head of state), Medium (MP, governor), Low (MCA)
+  - Enhanced due diligence triggers for PEP transactions
+  - Ongoing monitoring: PEP status changes, new appointments, removals
+- **Adverse media monitoring:**
+  - News feed scanning for negative mentions of transaction parties
+  - Sources: local Kenyan media (Daily Nation, The Standard, Business Daily), African media, international media
+  - Keywords: fraud, corruption, money laundering, terrorism, sanctions, investigation
+  - Alert generation for adverse media hits
+  - Manual review and disposition workflow
+- **Screening hit review and disposition:**
+  - Queue of all pending screening hits
+  - Per-hit detail: matched name, matched list, confidence score, transaction detail
+  - Analyst assignment and workload balancing
+  - Disposition tracking and reporting
+  - Quality assurance: random sample review by senior analyst
+
+### Section 1.9.2 — AML Monitoring
+
+- **Suspicious transaction detection rules:**
+  - **Structuring/smurfing detection:** Multiple transactions just below reporting threshold (e.g., KES 999,000 when threshold is KES 1,000,000)
+  - **Rapid movement detection:** Funds received and immediately transferred out (velocity)
+  - **Round amount detection:** Unusual frequency of round amounts (e.g., KES 100,000, KES 500,000)
+  - **Off-hours activity:** Transactions outside normal business hours for the customer profile
+  - **Geographic risk:** Transactions to/from high-risk jurisdictions (FATF grey list, black list)
+  - **Counterparty risk:** Transactions with known high-risk entities
+  - **Behavioral deviation:** Transaction pattern significantly different from customer's historical behavior
+  - **M-Pesa specific:** Multiple STK Push requests to same number, unusually high C2B collections
+  - **Cross-border specific:** Sudden increase in remittances, structuring across corridors
+- **Threshold monitoring:**
+  - CBK reporting threshold: KES 1,000,000 (approximately USD 7,500) for CTR
+  - EAC cross-border reporting thresholds
+  - FATF Recommendation 16 threshold for wire transfers
+  - Custom thresholds per customer risk profile
+  - Threshold breach alerts and auto-reporting
+- **Transaction pattern analysis:**
+  - Customer transaction profile: expected volume, value, frequency, counterparties, rails
+  - Deviation scoring: how much does current behavior deviate from profile
+  - Peer group comparison: how does customer compare to similar customers
+  - Network analysis: identify clusters of related accounts
+  - Graph visualization of transaction networks
+
+### Section 1.9.3 — Regulatory Reporting
+
+- **CTR (Currency Transaction Report) generation:**
+  - CBK Form CTR-001 for cash transactions > KES 1,000,000
+  - Auto-generation when threshold breached
+  - Customer detail: name, ID, address, occupation, source of funds
+  - Transaction detail: amount, currency, date, purpose, counterparty
+  - Filing to Financial Reporting Centre (FRC) of Kenya
+  - Filing status tracking and confirmation
+- **SAR (Suspicious Activity Report) filing:**
+  - SAR Form for suspicious transactions regardless of amount
+  - Narrative generation: auto-draft based on alert triggers
+  - Supporting evidence attachment: transaction records, screening hits, adverse media
+  - Filing to FRC within 24 hours of identification
+  - Filing status tracking
+  - Follow-up with FRC: requests for additional information, feedback
+- **Cross-border reporting:**
+  - CBK cross-border transaction reporting
+  - EAC cross-border payment reporting
+  - FATF wire transfer information requirements (originator and beneficiary information)
+  - SWIFT MT202COV compliance for cover payments
+- **Regulatory filing status tracking:**
+  - Calendar of all upcoming filing deadlines
+  - Filing completion status per report
+  - Overdue filing alerts with escalation
+  - Historical filing archive
+  - Regulatory feedback and correspondence management
+- **Report history and audit trail:**
+  - All filed reports with date, content, filer, status
+  - Amendment tracking if report corrected
+  - Regulatory response tracking
+  - Audit trail for examiner review
+
+### Section 1.9.4 — Audit Trail
+
+- **Immutable transaction logs:**
+  - Every transaction logged with: ID, timestamp, amount, currency, sender, receiver, rail, status, user, IP, device
+  - Cryptographic hash for tamper detection
+  - Blockchain-style chaining for integrity
+  - Retention: 7 years minimum (per CBK requirements)
+- **User action logging:**
+  - Every user action logged: login, logout, view, create, edit, approve, reject, export
+  - Action detail: what changed, from what to what
+  - User identity, role, department
+  - IP address, geolocation, device fingerprint
+  - Session ID and duration
+- **Data change tracking:**
+  - Field-level change tracking for all master data
+  - Before and after values
+  - Change reason (mandatory for sensitive fields)
+  - Approval workflow for sensitive changes
+- **Compliance evidence repository:**
+  - All compliance-related documents: KYC files, screening results, SARs, CTRs, audit reports
+  - Document versioning
+  - Access control: who can view, edit, delete
+  - Retention policy enforcement
+  - Legal hold capability (prevent deletion for litigation)
+
+---
+
+## Page 1.10 — API & Integration Management
+
+**Purpose:** Developer portal for bank, MNO, PSP, and client integrations with African market focus.
+
+### Section 1.10.1 — API Keys & Credentials
+
+- **Key generation and rotation:**
+  - Generate API keys for: banks, MNOs, PSPs, corporate clients, fintech partners, government agencies
+  - Key types: Production, Sandbox, Read-only, Webhook
+  - Auto-rotation schedule: 90 days, 180 days, 365 days
+  - Rotation notification: 30 days, 7 days, 1 day before expiry
+  - Emergency rotation capability
+  - Key revocation with immediate effect
+- **Scope and permission management:**
+  - Granular permissions per API endpoint
+  - Resource-level access control (account, transaction, customer)
+  - Action-level access control (create, read, update, delete, approve)
+  - Role-based permission templates: Bank Integration, MNO Integration, Corporate Client, Fintech Partner, Government, Auditor
+  - Custom permission builder
+- **IP whitelisting:**
+  - Per-API-key allowed IP ranges
+  - Geo-blocking: allow only from specific countries
+  - VPN detection and handling
+  - IP change notification and approval workflow
+- **Usage quotas and throttling:**
+  - Rate limits: requests per second, per minute, per hour, per day
+  - Burst allowance configuration
+  - Quota utilization dashboard
+  - Throttling behavior: queue, reject, or degrade
+  - Quota increase request workflow
+
+### Section 1.10.2 — Webhook Management
+
+- **Webhook endpoint configuration:**
+  - Per-integration webhook URL
+  - Supported events: transaction.created, transaction.completed, transaction.failed, transaction.reversed, settlement.completed, reconciliation.matched, compliance.alert, liquidity.low, rate.changed
+  - Event filtering: subscribe to specific events only
+  - Payload format: JSON, XML, form-encoded
+  - Custom headers for authentication
+- **Webhook delivery status and retry logs:**
+  - Real-time delivery status: Delivered, Failed, Retrying, Queued
+  - Delivery latency tracking
+  - Retry schedule: immediate, 5 min, 15 min, 1 hour, 4 hours, next day
+  - Max retry count: configurable per integration
+  - Dead letter queue for permanently failed webhooks
+  - Manual retry capability
+- **Webhook testing tool:**
+  - Send test webhook to endpoint
+  - Verify signature validation
+  - Inspect payload structure
+  - Test retry behavior
+  - Load test with simulated high volume
+
+### Section 1.10.3 — API Documentation
+
+- **Interactive API explorer (Swagger/OpenAPI):**
+  - All endpoints documented with request/response schemas
+  - Try-it-now functionality with sandbox environment
+  - Authentication examples
+  - Error code reference
+  - Rate limit headers explanation
+- **Code samples in multiple languages:**
+  - JavaScript/Node.js
+  - Python
+  - Java
+  - C#
+  - PHP
+  - Ruby
+  - Go
+  - cURL examples
+  - Postman collection download
+- **SDK downloads:**
+  - PayMo JavaScript SDK
+  - PayMo Python SDK
+  - PayMo Java SDK
+  - PayMo Android SDK (for mobile integrations)
+  - PayMo iOS SDK
+  - M-Pesa Daraja wrapper SDK
+  - PesaLink integration SDK
+- **Changelog and versioning:**
+  - API version history
+  - Breaking change notifications
+  - Deprecation schedule
+  - Migration guides between versions
+  - Sunset dates for deprecated versions
+
+### Section 1.10.4 — Integration Health
+
+- **Connected client systems status:**
+  - Per-integration health dashboard
+  - Connection status: Healthy, Degraded, Down, Maintenance
+  - Last successful API call timestamp
+  - Last failed API call timestamp and reason
+- **API call volume and latency:**
+  - Requests per minute/hour/day per integration
+  - Average response time per endpoint
+  - 95th percentile response time
+  - Error rate per integration
+  - Trend analysis: improving or deteriorating
+- **Error rate monitoring:**
+  - Top error codes per integration
+  - Error trend over time
+  - Error correlation with system changes
+  - Auto-alert when error rate exceeds threshold
+- **Integration performance scorecards:**
+  - Score per integration: availability, latency, error rate, usage
+  - Grade: A (excellent), B (good), C (fair), D (poor), F (critical)
+  - Performance improvement recommendations
+  - Quarterly integration review scheduling
+
+### Section 1.10.5 — Sandbox Environment
+
+- **Test account management:**
+  - Create test accounts for: KES, USD, EUR, UGX, TZS
+  - Test M-Pesa wallet simulation
+  - Test bank account simulation (KCB, Equity, Co-op, Stanbic)
+  - Test PayPal account simulation
+  - Reset test data capability
+- **Mock transaction generation:**
+  - Generate mock M-Pesa STK Push transactions
+  - Generate mock PesaLink transfers
+  - Generate mock RTGS transactions
+  - Generate mock SWIFT transfers
+  - Generate mock EAPS cross-border transactions
+  - Generate mock compliance alerts
+  - Bulk mock data generation for load testing
+- **Scenario simulation:**
+  - Successful transaction flow
+  - Failed transaction flow (insufficient funds, invalid account, timeout)
+  - Reversed transaction flow
+  - Compliance hold flow
+  - Multi-currency FX flow
+  - Cross-border EAPS flow
+  - Bulk disbursement flow
+  - Webhook delivery flow
+- **Sandbox-to-production migration tools:**
+  - Configuration comparison: sandbox vs. production
+  - Migration checklist
+  - Gradual traffic shifting (10%, 25%, 50%, 100%)
+  - Rollback capability
+  - Production verification tests
+
+---
+
+## Page 1.11 — Mobile Money & PSP Integration Hub
+
+**Purpose:** Dedicated management center for mobile money operators, PSPs, and alternative payment methods — the backbone of African payments.
+
+### Section 1.11.1 — M-Pesa Integration Management
+
+- **Daraja API Configuration:**
+  - Consumer key and secret management
+  - API version tracking (Daraja v1, v2, v3)
+  - Environment toggle: Sandbox, Production
+  - API endpoint configuration: STK Push, B2C, C2B, Account Balance, Transaction Status, Reversal
+  - OAuth token management: generation, refresh, expiry monitoring
+  - Passkey management for STK Push
+  - Shortcode configuration: Paybill numbers, Till numbers, B2C organization shortcode
+  - Initiator name and security credential management
+- **STK Push Management:**
+  - Real-time queue depth and processing rate
+  - Success rate by hour, by amount band, by customer segment
+  - Timeout analysis: average time to customer PIN entry
+  - Cancellation rate and reasons
+  - Retry strategy for failed STK Push
+  - Customer notification customization
+- **B2C Disbursement Management:**
+  - Queue management: pending, processing, completed, failed
+  - Disbursement scheduling: immediate, batch, recurring
+  - Per-transaction and daily limits monitoring
+  - Failed disbursement retry logic
+  - Disbursement to unregistered M-Pesa users handling
+  - Disbursement confirmation callback processing
+- **C2B Collection Management:**
+  - Paybill number performance: volume, value, success rate
+  - Till number performance
+  - Callback URL configuration and health
+  - Validation and confirmation URL management
+  - Duplicate transaction handling
+  - Settlement reconciliation: M-Pesa records vs. PayMo records
+- **M-Pesa Statement Integration:**
+  - Auto-pull M-Pesa statement via Daraja API
+  - Statement parsing and reconciliation
+  - Discrepancy identification and resolution
+  - Historical statement archive
+
+### Section 1.11.2 — Airtel Money Integration
+
+- **API Configuration:**
+  - Airtel Money API credentials
+  - Endpoint configuration
+  - OAuth token management
+- **Transaction Management:**
+  - Collection (C2B) configuration
+  - Disbursement (B2C) configuration
+  - Transaction status inquiry
+  - Reversal handling
+- **Interoperability Status:**
+  - M-Pesa ↔ Airtel Money rail health
+  - Transaction success rate cross-network
+  - Settlement reconciliation
+
+### Section 1.11.3 — T-Kash Integration
+
+- **API Configuration:**
+  - Telkom T-Kash API credentials
+  - Endpoint and token management
+- **Transaction Management:**
+  - Collection and disbursement
+  - Status inquiry
+  - Reconciliation
+
+### Section 1.11.4 — MTN MoMo Integration
+
+- **Pan-African API Configuration:**
+  - MTN MoMo API credentials per country: Uganda, Tanzania, Rwanda, Ghana, Nigeria, Ivory Coast, Cameroon, Congo, Swaziland, Zambia, Benin, Guinea, Liberia, South Sudan
+  - Sandbox and production environment per country
+  - API key rotation per country
+- **Per-Country Transaction Management:**
+  - Collection (request-to-pay) configuration
+  - Disbursement (transfer) configuration
+  - Balance inquiry
+  - Transaction status inquiry
+  - User info inquiry (KYC validation)
+  - Account holder validation
+- **Cross-Border MoMo:**
+  - MTN MoMo cross-border transfer configuration
+  - Corridor-specific settings
+  - FX handling for cross-border
+
+### Section 1.11.5 — PayPal Integration
+
+- **API Configuration:**
+  - PayPal REST API credentials (Client ID, Secret)
+  - Environment: Sandbox, Production
+  - Webhook ID configuration
+  - API version tracking
+- **Transaction Management:**
+  - PayPal to PayMo deposit processing
+  - PayMo to PayPal withdrawal processing
+  - PayPal Express Checkout integration
+  - PayPal Payouts (mass payment) for bulk disbursements
+  - Transaction fee tracking and reconciliation
+- **M-Pesa ↔ PayPal Linkage:**
+  - Kenya-specific M-Pesa to PayPal top-up
+  - PayPal to M-Pesa withdrawal
+  - Transaction limit management
+  - FX rate display and lock
+
+### Section 1.11.6 — Card Integration (Visa Direct / Mastercard Send)
+
+- **API Configuration:**
+  - Visa Direct API credentials
+  - Mastercard Send API credentials
+  - Certificate management
+- **Push-to-Card Functionality:**
+  - Card eligibility check (BIN range validation)
+  - Push payment initiation
+  - Transaction status tracking
+  - Reversal handling
+- **Dispute Management:**
+  - Chargeback handling
+  - Dispute evidence submission
+  - Win/loss tracking
+
+### Section 1.11.7 — Equitel (Equity Bank) Integration
+
+- **Thin SIM Integration:**
+  - Equitel API configuration
+  - Transaction routing via Equitel
+  - Balance inquiry
+  - Statement integration
+
+---
+
+## Page 1.12 — KRA & Government Integration
+
+**Purpose:** Integration with Kenya Revenue Authority and government payment systems for tax compliance and G2P/P2G transactions.
+
+### Section 1.12.1 — KRA eTIMS Integration
+
+- **eTIMS API Configuration:**
+  - KRA eTIMS API credentials
+  - Environment: Sandbox, Production
+  - Token management and refresh
+- **Tax Invoice Processing:**
+  - Real-time tax invoice validation
+  - Invoice number verification
+  - Tax amount validation
+  - KRA PIN validation
+  - Invoice status: Valid, Invalid, Cancelled, Expired
+- **Transaction Hold for Tax Verification:**
+  - Auto-hold transactions pending eTIMS validation
+  - Release upon validation success
+  - Reject upon validation failure
+  - Manual override with approval
+
+### Section 1.12.2 — iTax Integration
+
+- **iTax API Configuration:**
+  - KRA iTax API credentials
+  - Taxpayer PIN validation
+- **Tax Payment Processing:**
+  - Income tax payment
+  - VAT payment
+  - PAYE payment
+  - Withholding tax payment
+  - Stamp duty payment
+  - Excise duty payment
+  - Customs duty payment
+- **Tax Payment Status Tracking:**
+  - Payment acknowledgment from KRA
+  - Receipt generation
+  - Tax compliance certificate check
+
+### Section 1.12.3 — GavaConnect Integration
+
+- **Government Payment Portal:**
+  - Integration with GavaConnect for government service payments
+  - Passport application fees
+  - Driving license fees
+  - Business registration fees
+  - Land rates
+  - Court fees
+  - Police abstract fees
+  - NHIF payments
+  - NSSF payments
+
+### Section 1.12.4 — E-Citizen Integration
+
+- **E-Citizen Platform:**
+  - Integration with Kenya e-Citizen portal
+  - Government service payment routing
+  - Single sign-on capability
+  - Payment confirmation to e-Citizen
+
+---
+
+## Page 1.13 — Multi-Currency & FX Management
+
+**Purpose:** Comprehensive foreign exchange operations supporting African and global currencies.
+
+### Section 1.13.1 — Live FX Rates Board
+
+- **Real-time mid-market rates:**
+  - KES/USD, KES/EUR, KES/GBP, KES/CHF, KES/JPY, KES/CNY
+  - KES/UGX, KES/TZS, KES/RWF, KES/SSP
+  - USD/EUR, USD/GBP, EUR/GBP
+  - NGN/USD, GHS/USD, ZAR/USD
+  - Source: CBK daily rate, Reuters, Bloomberg, central bank rates
+- **Bid/ask spreads:**
+  - PayMo customer buy rate (bid)
+  - PayMo customer sell rate (ask)
+  - Spread percentage and absolute value
+  - Spread comparison to competitors
+- **Rate history charts:**
+  - Intraday (1-minute intervals)
+  - Daily (last 30 days)
+  - Weekly (last 52 weeks)
+  - Monthly (last 5 years)
+  - Annotations for significant events (CBK rate decisions, elections, global events)
+- **Rate alert configuration:**
+  - Target rate alert: notify when rate reaches desired level
+  - Threshold alert: notify when rate moves beyond threshold
+  - Volatility alert: notify when rate volatility exceeds threshold
+  - Delivery: in-app, SMS, email, webhook
+
+### Section 1.13.2 — FX Conversion
+
+- **Spot conversion tool:**
+  - Amount and currency pair selection
+  - Direction: buy foreign currency, sell foreign currency
+  - Real-time rate display with 15-minute lock
+  - Rate countdown timer
+  - Settlement date selection (T+0, T+1, T+2)
+- **Fee and spread disclosure:**
+  - Interbank rate
+  - PayMo spread applied
+  - Customer rate
+  - Total cost in base currency
+  - Effective cost percentage
+- **Transaction limit checks:**
+  - Per-transaction limit
+  - Daily limit
+  - Customer segment limit
+  - Regulatory limit (if any)
+
+### Section 1.13.3 — Forward Contracts & Hedging
+
+- **Forward contract creation:**
+  - Currency pair, amount, tenor (1W to 12M)
+  - Forward rate calculation (spot + forward points)
+  - Forward points display
+  - Settlement date
+- **Hedge ratio configuration:**
+  - Percentage of exposure to hedge
+  - Natural hedge offset
+  - Net hedge position
+- **Mark-to-market valuation:**
+  - Daily revaluation of outstanding forwards
+  - Unrealized P&L
+  - Collateral requirement calculation
+- **Hedge effectiveness reporting:**
+  - Hedge ratio achievement
+  - Basis risk tracking
+  - Ineffectiveness measurement
+
+### Section 1.13.4 — Multi-Currency Wallets
+
+- **Wallet balances per currency:**
+  - KES wallet
+  - USD wallet
+  - EUR wallet
+  - GBP wallet
+  - UGX wallet
+  - TZS wallet
+  - And all supported currencies
+- **Currency conversion history:**
+  - All conversions with date, amount, rate, cost
+  - Cumulative conversion volume per currency pair
+  - Average achieved rate vs. market rate
+- **Wallet-to-wallet transfers:**
+  - Instant transfer between own wallets
+  - FX applied at current rate
+  - No fee for internal transfers
+- **Currency exposure summary:**
+  - Net long/short per currency
+  - Exposure as percentage of total assets
+  - Concentration risk alerts
+
+### Section 1.13.5 — Treasury Analytics
+
+- **Currency exposure heatmap:**
+  - Visual heatmap of net positions
+  - Green (hedged), yellow (partially hedged), red (unhedged)
+  - Drill-down per currency pair
+- **VaR (Value at Risk) calculations:**
+  - 1-day VaR at 95% and 99% confidence
+  - 10-day VaR for regulatory reporting
+  - Historical simulation method
+  - Parametric method
+  - Monte Carlo simulation
+- **Hedge ratio tracking:**
+  - Target hedge ratio vs. actual
+  - Trend over time
+  - Rebalancing recommendations
+- **P&L from FX operations:**
+  - Realized P&L from settled trades
+  - Unrealized P&L from open positions
+  - Total FX P&L
+  - P&L attribution: trading, translation, transaction
+
+---
+
+## Page 1.14 — Customer & Account Management
+
+**Purpose:** Management of PayMo customer accounts, KYC/KYB, and relationship data.
+
+### Section 1.14.1 — Customer Directory
+
+- **Retail customers:**
+  - Individual profiles: name, ID number (Kenyan national ID, passport), date of birth, address, phone, email
+  - KYC status: Pending, In Progress, Verified, Enhanced, Restricted
+  - Risk rating: Low, Medium, High
+  - Account types: Wallet, Bank-linked, Card-linked
+  - Transaction history summary
+- **SME customers:**
+  - Business profiles: company name, registration number, KRA PIN, business type, industry
+  - KYB status and documents
+  - Directors and beneficial owners
+  - Business bank accounts linked
+  - Credit facilities active
+- **Corporate customers:**
+  - Company profiles: legal name, registration, tax ID, industry, turnover
+  - Treasury contacts
+  - Authorized signatories
+  - Credit limits and utilization
+  - Integration APIs active
+- **Real estate developers:**
+  - Developer profiles: company, projects, licenses
+  - Project-specific accounts
+  - Construction finance facilities
+
+### Section 1.14.2 — KYC/KYB Management
+
+- **Document collection and verification:**
+  - ID verification: Kenyan national ID (Huduma Namba), passport, driving license, alien ID
+  - Address verification: utility bill, bank statement, tenancy agreement
+  - Business registration: certificate of incorporation, CR12, memorandum
+  - Tax compliance: KRA PIN, tax compliance certificate
+  - Beneficial ownership declaration
+  - PEP declaration
+- **Verification status tracking:**
+  - Per-document status: Uploaded, Under Review, Verified, Rejected, Expired
+  - Overall KYC status
+  - Expiry alerts (ID expiry, business license expiry)
+- **Enhanced due diligence:**
+  - Trigger conditions: high-risk country, high-risk business, PEP, adverse media
+  - EDD document requirements
+  - EDD approval workflow
+  - Ongoing monitoring triggers
+
+### Section 1.14.3 — Account Configuration
+
+- **Account types:**
+  - Personal wallet (KES, multi-currency)
+  - Business current account
+  - Business savings account
+  - Escrow account
+  - Collection account (Paybill/Till linked)
+  - Disbursement account (B2C linked)
+- **Account limits:**
+  - Transaction limits per type
+  - Daily, weekly, monthly limits
+  - Limit increase request workflow
+- **Account status management:**
+  - Active, Dormant, Frozen, Suspended, Closed
+  - Status change reason and approval
+  - Customer notification
+
+---
+
+## Page 1.15 — Fee & Commission Management
+
+**Purpose:** Configuration and management of all fees, commissions, and pricing across the platform.
+
+### Section 1.15.1 — Fee Structure Configuration
+
+- **Transaction fees per rail:**
+  - M-Pesa STK Push: percentage or flat fee
+  - M-Pesa B2C: tiered fee structure
+  - M-Pesa C2B: merchant discount rate
+  - PesaLink: flat fee per transaction
+  - RTGS: flat fee based on amount band
+  - EFT: flat fee or per-item fee
+  - SWIFT: message fee + correspondent fee markup
+  - SEPA: flat fee
+  - ACH: flat fee
+  - PayPal: percentage markup
+- **FX fees:**
+  - Spread per currency pair
+  - Minimum spread
+  - Volume-based spread tiers
+- **Account fees:**
+  - Monthly maintenance fee
+  - Minimum balance fee
+  - Dormancy fee
+  - Statement fee
+- **Service fees:**
+  - KYC verification fee
+  - API access fee
+  - Premium support fee
+  - Chargeback fee
+  - Reversal fee
+
+### Section 1.15.2 — Commission Management
+
+- **Agent commissions:**
+  - Cash-in commission
+  - Cash-out commission
+  - Bill payment commission
+  - Airtime purchase commission
+- **Partner commissions:**
+  - Merchant commission for C2B
+  - Bank partner commission
+  - MNO partner commission
+  - Referral commission
+- **Commission calculation and settlement:**
+  - Real-time commission accrual
+  - Commission statement generation
+  - Commission payment scheduling
+  - Commission reconciliation
+
+### Section 1.15.3 — Promotional Pricing
+
+- **Campaign management:**
+  - Campaign creation: name, duration, target segment, products
+  - Discount types: percentage off, flat discount, waived fee
+  - Eligibility rules
+  - Usage limits per customer
+- **Campaign performance:**
+  - Uptake rate
+  - Revenue impact
+  - Customer acquisition cost
+  - ROI calculation
+
+---
+
+## Page 1.16 — Dispute & Chargeback Management
+
+**Purpose:** Management of customer disputes, chargebacks, and transaction reversals.
+
+### Section 1.16.1 — Dispute Intake
+
+- **Dispute channels:**
+  - Customer self-service portal
+  - Customer support hotline
+  - Email
+  - In-app chat
+  - Social media monitoring
+- **Dispute categorization:**
+  - Unauthorized transaction
+  - Incorrect amount
+  - Duplicate transaction
+  - Non-receipt of goods/services
+  - Goods not as described
+  - Refund not processed
+  - M-Pesa STK Push not received
+  - Wrong beneficiary credited
+- **Dispute form:**
+  - Transaction reference
+  - Dispute reason
+  - Evidence upload
+  - Expected resolution
+
+### Section 1.16.2 — Dispute Investigation
+
+- **Investigation workflow:**
+  - Auto-assignment to investigator
+  - Transaction trace and audit
+  - Beneficiary bank/MNO inquiry
+  - Evidence collection
+  - Customer communication
+- **SLA tracking:**
+  - Acknowledgment: 24 hours
+  - Investigation: 5 business days
+  - Resolution: 10 business days
+  - Escalation triggers
+
+### Section 1.16.3 — Resolution & Compensation
+
+- **Resolution options:**
+  - Uphold (transaction valid)
+  - Reverse (refund customer)
+  - Partial refund
+  - Goodwill gesture
+  - Escalate to arbitration
+- **Compensation processing:**
+  - Refund initiation
+  - Compensation calculation (principal + interest + fees)
+  - Customer notification
+  - General ledger posting
+
+### Section 1.16.4 — Chargeback Management
+
+- **Chargeback intake:**
+  - Card scheme chargeback (Visa, Mastercard)
+  - PayPal dispute
+  - M-Pesa reversal request
+- **Chargeback response:**
+  - Evidence compilation
+  - Representment submission
+  - Arbitration preparation
+- **Win/loss tracking:**
+  - Chargeback win rate
+  - Loss rate and analysis
+  - Fraud pattern identification
+
+---
+
+## Page 1.17 — System Health & Operations
+
+**Purpose:** Platform infrastructure monitoring, incident management, and operational readiness.
+
+### Section 1.17.1 — System Status Dashboard
+
+- **Service status page:**
+  - M-Pesa integration: Healthy, Degraded, Down
+  - PesaLink integration: Healthy, Degraded, Down
+  - RTGS/KEPSS: Healthy, Degraded, Down
+  - EFT/ACH: Healthy, Degraded, Down
+  - SWIFT: Healthy, Degraded, Down
+  - EAPS: Healthy, Degraded, Down
+  - PAPSS: Healthy, Degraded, Down
+  - PayPal: Healthy, Degraded, Down
+  - Visa Direct: Healthy, Degraded, Down
+  - Mastercard Send: Healthy, Degraded, Down
+  - Core banking system: Healthy, Degraded, Down
+  - Database: Healthy, Degraded, Down
+  - API gateway: Healthy, Degraded, Down
+  - Web application: Healthy, Degraded, Down
+  - Mobile app: Healthy, Degraded, Down
+- **Uptime percentage:**
+  - Per-service uptime (target: 99.9%)
+  - MTTR (Mean Time To Recovery)
+  - MTBF (Mean Time Between Failures)
+
+### Section 1.17.2 — Incident Management
+
+- **Incident log:**
+  - All incidents with severity, start time, end time, duration, impact
+  - Incident categorization: rail downtime, API failure, database issue, network issue, third-party outage
+- **Incident response:**
+  - Auto-alert to on-call team
+  - Incident war room coordination
+  - Status page update
+  - Customer communication
+  - Post-incident review
+- **Post-mortem documentation:**
+  - Root cause analysis
+  - Timeline of events
+  - Lessons learned
+  - Prevention measures
+  - Action items with owners
+
+### Section 1.17.3 — Capacity Planning
+
+- **Resource utilization:**
+  - CPU, memory, disk, network
+  - Database connection pool
+  - API rate limit utilization
+  - Queue depth
+- **Scaling triggers:**
+  - Auto-scaling rules
+  - Manual scaling capability
+  - Load testing schedule
+  - Capacity forecast
+
+---
+
+## Cross-Cutting Features (All Dashboard 1 Pages)
+
+| Feature | Description |
+|---------|-------------|
+| **Global Search** | Universal search across transactions, customers, accounts, rails, settings, documents |
+| **Advanced Notifications** | Real-time alerts via in-app, SMS, email, Slack, WhatsApp Business, PagerDuty, webhook |
+| **Dark/Light Mode** | Theme toggle for user preference, with auto-detect from OS |
+| **Multi-Language Support** | English (default), Swahili, French, Arabic, Portuguese, Luganda, Kinyarwanda, Hausa, Yoruba, Zulu, Amharic |
+| **Accessibility (a11y)** | WCAG 2.1 AA compliance, keyboard navigation, screen reader support, high contrast mode, font sizing |
+| **Mobile Responsive** | Full functionality on tablet and mobile devices, PWA support |
+| **Keyboard Shortcuts** | Power-user shortcuts for common actions (Ctrl+T new transfer, Ctrl+R reconciliation, etc.) |
+| **Data Export** | One-click export of any table/view to CSV, Excel, PDF, JSON, XML |
+| **Audit Trail** | Immutable log of all user actions across the platform with cryptographic integrity |
+| **Help & Support** | Contextual help, chat support, knowledge base, video tutorials, community forum |
+| **Multi-Currency Display** | Primary currency selector (KES default) with secondary currency display |
+| **Timezone Support** | EAT (Nairobi, default), CAT, WAT, GMT, ET, CET — per-user preference |
+| **Date Format** | DD/MM/YYYY (default for Kenya), MM/DD/YYYY, YYYY-MM-DD |
+| **Number Format** | Kenyan format (1,000,000.00), European format (1.000.000,00), Indian format (10,00,000.00) |
+| **Session Management** | Auto-lock after inactivity, concurrent session control, remote logout |
+| **Role-Based Access** | Super Admin, Admin, Operations Manager, Operations Analyst, Compliance Officer, Treasury Manager, Finance Manager, Auditor, Read-Only |
+| **Two-Factor Authentication** | SMS OTP, Email OTP, Authenticator App, Hardware Token, Biometric |
+| **Data Residency** | Primary data storage in Kenya, with DR in Rwanda or South Africa, GDPR-compliant EU storage |
+| **API-First Design** | Every UI action available via API for automation and integration |
+
+---
+
+## Suggested Tech Stack (Africa-Optimized)
+
+| Layer | Technology |
+|-------|------------|
+| **Frontend** | Angular v21, Bootstrap 5, Bootstrap Icons, RxJS, NgRx |
+| **State Management** | NgRx Store + Effects |
+| **Charts & Visualization** | Apache ECharts (supports African map projections), Chart.js |
+| **Tables** | AG Grid Enterprise |
+| **Forms** | Reactive Forms + Custom validators |
+| **Real-time** | WebSockets (Socket.io) with fallback to SSE for low-bandwidth |
+| **Offline Support** | Service Workers, IndexedDB for offline transaction queueing |
+| **Theming** | CSS Custom Properties for light/dark, plus high contrast |
+| **Maps** | Leaflet.js with OpenStreetMap (offline tile support for rural areas) |
+| **Backend** | Node.js/NestJS (primary), Java Spring Boot (for core banking integration) |
+| **Database** | PostgreSQL (transactional, primary), MongoDB (logs, unstructured data), Redis (cache, session), TimescaleDB (time-series metrics) |
+| **Message Queue** | Apache Kafka (primary), RabbitMQ (fallback for low-latency) |
+| **Search** | Elasticsearch |
+| **Monitoring** | Grafana + Prometheus + Loki |
+| **Mobile SDK** | Flutter (for cross-platform mobile app with offline capability) |
+| **M-Pesa Integration** | Safaricom Daraja API v2 |
+| **PesaLink Integration** | IPSL API |
+| **KRA Integration** | eTIMS API, iTax API |
+| **Document Storage** | MinIO (S3-compatible, on-premise for data sovereignty) |
+| **Identity** | Keycloak with Kenyan ID verification integration |
+
+---
+
+This completes the comprehensive, Africa-first Dashboard 1 for PayMo — covering every aspect of bank-to-bank transactions with deep localization for Kenyan, East African, and broader African markets, while maintaining full global capability.
 
 
 
@@ -1045,22 +2465,7 @@ These features should be available globally across both dashboards:
 
 ## Suggested Tech Stack (Aligned with Your Angular v21 Setup)
 
-Based on your existing Angular v21 + Bootstrap icons + theme toggle setup:
 
-| Layer | Technology |
-|-------|------------|
-| **Frontend** | Angular v21, Bootstrap 5, Bootstrap Icons, RxJS, NgRx |
-| **State Management** | NgRx Store + Effects |
-| **Charts & Visualization** | Apache ECharts or Chart.js |
-| **Tables** | AG Grid Enterprise |
-| **Forms** | Reactive Forms + Custom validators |
-| **Real-time** | WebSockets (Socket.io) or SSE |
-| **Theming** | CSS Custom Properties (variables) for light/dark |
-| **Backend** | Node.js/NestJS or Java Spring Boot |
-| **Database** | PostgreSQL (transactional), MongoDB (logs), Redis (cache) |
-| **Message Queue** | Apache Kafka or RabbitMQ |
-| **Search** | Elasticsearch |
-| **Monitoring** | Grafana + Prometheus |
 
 ---
 
