@@ -1,6 +1,6 @@
 make the page very advanced designed not just two cards with and tabs like make or add other sections, in the modals dont just show modals to infoma a statement or tip or alert make the struture very relevant you are under doing the design
 the image like the ui ux be like the image add other sectionsto make the page very comprohesive
-use repo for reference
+MUST USE repo for reference:
 https://github.com/dlion4/paymo_v2/blob/main/BAAS-%20transactions/instruction.md
 
 create a advanced master css add more styles modified and add extras styles for modals no empty modals
@@ -102,17 +102,12 @@ Design Excellence:
 🎭 Bootstrap 5 + custom master CSS for cohesive styling
 The dashboard is production-ready with comprehensive admin functionality, real payment rail integrations (M-Pesa, PesaLink, RTGS, SWIFT, PAPSS, SEPA), and a beautiful modern UI.
 
-Deployed the project
-Show Less
-image.png
+
 
 make the page very advanced designed not just two cards with and tabs like make or add other sections, in the modals dont just show modals to infoma a statement or tip or alert make the struture very relevant you are under doing the design
 the image like the ui ux be like the image add other sectionsto make the page very comprohesive
-use repo for reference
-https://github.com/dlion4/paymo_v2/blob/main/BAAS-%20transactions/instruction.md
 
-https://github.com/dlion4/paymo_v2/blob/main/BAAS-%20transactions/master.css
-create a advanced master css add more styles modifie and add extras styles
+
 
 in the same design
 create relevant mini tabs whenever necessary and relevant mini pop ups to avoid dead ends or placeholder every button or link should be completed by events like loading etc
@@ -125,28 +120,17 @@ no dead ends, make everything completed use little or less toastas (limit them n
 use the theme with bootstrap inline styles
 use the master styles and custom js
 
-make it comprohensive and functional, responsive on mobile screen
+make it comprehensive and functional, responsive on mobile screen
 
 in the same manner and design using the theme and master css
 
 make it comprehensive, reduce the use of toastas, no broken links no empty sections
 use modals, tabs, mutistep modals pop ups no blanks, no empty links no empty buttons
-use over 20 modals
+use over 20 modals,modals with relevant details not just buttons inside and place holder dummy buttons buttons should work and mofals should not be placeholders , like one modal should not be relleinked over and over and over just to avoid creating new filled modals
 make it very comprehesive, and very well outlined, reduce the use of toastas, no broken links no empty sections
 this is the admins side dashboard so allow permissions and editable fields, data, records and sections relevantly
 design the next page:
 
 PayMo BaaS Fintech — Dashboard 1: Bank-to-Bank Transactions (Africa-First Edition)
 Architecture Principle: PayMo is built Africa-first, globally-ready. The default experience is optimized for Kenyan, East African, and broader African markets — with M-Pesa, PesaLink, RTGS, mobile money interoperability, and local PSPs as first-class citizens. Global rails (SWIFT, SEPA, ACH, PayPal, etc.) are fully supported but layered on top of the local foundation.
-Page 1.1 — Transfer Overview (Command Center)
-Purpose: Real-time operational command center for all money movement across local African rails, mobile money, and global payment infrastructure.
-Section 1.1.1 — Live Transaction Ticker
-Real-time feed of all incoming and outgoing transactions across every rail
-Per-transaction display: Amount, currency (KES/UGX/TZS/RWF/USD/EUR/GBP), sender identifier (bank name / M-Pesa number / PayPal email / MTN MoMo), receiver identifier, payment rail used, transaction status, exact timestamp (EAT/CAT/WAT/GMT), and transaction reference
-Color-coded status indicators: Green (completed), Amber (processing/pending), Red (failed), Blue (scheduled), Purple (reversed)
-Auto-refresh every 3 seconds with WebSocket push notifications
-Sound alerts for high-value transactions (configurable threshold per currency)
-Filter ticker by: Rail type, currency, amount range, sender category, receiver category, risk flag
-Click-to-drill: Any ticker item expands to full transaction detail drawer
-Export ticker snapshot to CSV/Excel for the last 1,000 transactions
-Transaction volume sparkline next to each active rail showing last 60 minutes of activity
+P
