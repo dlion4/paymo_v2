@@ -1,0 +1,735 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PayMo BaaS — API & Integration Management</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="master.css">
+    <style>
+        .api-section {
+            margin-bottom: 28px;
+        }
+
+        .api-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+        }
+
+        .api-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width:980px) {
+            .api-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .key-card,
+        .webhook-card,
+        .metric-card {
+            background: var(--pm-surface);
+            border: 1px solid var(--pm-border);
+            border-radius: var(--pm-r-lg);
+            padding: 18px;
+        }
+
+        .key-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--pm-border);
+        }
+
+        .key-row:last-child {
+            border-bottom: none;
+        }
+
+        .key-meta {
+            flex: 1;
+        }
+
+        .key-meta .name {
+            font-weight: 700;
+            font-family: var(--pm-font-display);
+        }
+
+        .key-meta .meta {
+            font-size: 12px;
+            color: var(--pm-muted);
+        }
+
+        .mini-tab {
+            display: inline-flex;
+            background: var(--pm-surface-2);
+            border-radius: var(--pm-r-pill);
+            padding: 3px;
+        }
+
+        .mini-tab button {
+            padding: 4px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            border: none;
+            background: transparent;
+            border-radius: var(--pm-r-pill);
+            cursor: pointer;
+        }
+
+        .mini-tab button.active {
+            background: white;
+            box-shadow: var(--pm-shadow-sm);
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            margin: 6px 0;
+        }
+
+        .stat-row b {
+            font-family: var(--pm-font-display);
+        }
+
+        .log-row {
+            font-family: monospace;
+            font-size: 12px;
+            padding: 6px 10px;
+            background: var(--pm-surface-2);
+            border-radius: 6px;
+            margin: 4px 0;
+        }
+
+        .scope-pill {
+            font-size: 10px;
+            padding: 1px 7px;
+            border-radius: 999px;
+            background: var(--pm-info-soft);
+            color: #1D4ED8;
+            margin-right: 4px;
+        }
+
+        .health-bar {
+            height: 6px;
+            background: var(--pm-bg-2);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .health-bar>div {
+            height: 100%;
+            background: var(--pm-accent);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="pm-app">
+        <!-- Sidebar -->
+        <aside class="pm-sidebar">
+            <div class="pm-sidebar-logo">P</div>
+            <nav class="pm-sidebar-nav">
+                <a href="#" class="pm-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <rect x="3" y="3" width="7" height="9" />
+                        <rect x="14" y="3" width="7" height="5" />
+                        <rect x="14" y="12" width="7" height="9" />
+                        <rect x="3" y="16" width="7" height="5" />
+                    </svg></a>
+                <a href="#" class="pm-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <polyline points="17 1 21 5 17 9" />
+                        <path d="M3 11V9a4 4 0 0 1 4-4h14" />
+                        <polyline points="7 23 3 19 7 15" />
+                        <path d="M21 13v2a4 4 0 0 1-4 4H3" />
+                    </svg></a>
+                <a href="#" class="pm-nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                    </svg></a>
+                <a href="#" class="pm-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                        <circle cx="9" cy="7" r="4" />
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                    </svg></a>
+                <a href="#" class="pm-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="2" y1="12" x2="22" y2="12" />
+                        <path
+                            d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                    </svg></a>
+            </nav>
+        </aside>
+
+        <main class="pm-main">
+            <!-- Header -->
+            <header class="pm-header">
+                <div class="pm-header-title">
+                    <h1>API & Integration Management</h1>
+                    <p>Manage keys, webhooks, rate limits, OAuth apps, and developer access</p>
+                </div>
+                <div class="pm-header-actions">
+                    <div class="pm-system-status"><span class="dot"></span> All APIs healthy</div>
+                    <button class="pm-header-btn" onclick="showModal('notif')"><svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                        </svg></button>
+                    <button class="pm-profile-btn" onclick="showModal('profile')">
+                        <div class="pm-avatar">JM</div>
+                        <div class="pm-profile-info">
+                            <div class="name">Joseph Mwangi</div>
+                            <div class="role">COO</div>
+                        </div>
+                    </button>
+                </div>
+            </header>
+
+            <div class="pm-content">
+
+                <!-- 1. API Keys -->
+                <section class="api-section">
+                    <div class="api-header">
+                        <div>
+                            <h2 class="pm-card-title"><span class="emoji">🔑</span> API Keys & Credentials</h2>
+                            <p class="pm-card-sub">8 active keys · 3 production · 5 sandbox</p>
+                        </div>
+                        <button class="btn-pm primary" onclick="showModal('generateKey')">+ Generate New Key</button>
+                    </div>
+                    <div class="key-card">
+                        <div class="key-row">
+                            <div class="key-meta">
+                                <div class="name">pk_live_pm26_KE_8f3a2b</div>
+                                <div class="meta">Production · Created 12 Sep 2025 · Last used 2m ago · 4 scopes</div>
+                            </div>
+                            <span class="status-pill online">Active</span>
+                            <button class="btn-pm"
+                                onclick="showModal('keyDetail','pk_live_pm26_KE_8f3a2b')">Manage</button>
+                        </div>
+                        <div class="key-row">
+                            <div class="key-meta">
+                                <div class="name">sk_live_pm26_KE_9c4d1e</div>
+                                <div class="meta">Production · Secret · Rotated 3 days ago</div>
+                            </div>
+                            <span class="status-pill online">Active</span>
+                            <button class="btn-pm"
+                                onclick="showModal('keyDetail','sk_live_pm26_KE_9c4d1e')">Manage</button>
+                        </div>
+                        <div class="key-row">
+                            <div class="key-meta">
+                                <div class="name">pk_test_pm26_KE_2b9f7c</div>
+                                <div class="meta">Sandbox · Created 01 Oct 2025</div>
+                            </div>
+                            <span class="status-pill online">Active</span>
+                            <button class="btn-pm"
+                                onclick="showModal('keyDetail','pk_test_pm26_KE_2b9f7c')">Manage</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 2. Webhooks -->
+                <section class="api-section">
+                    <div class="api-header">
+                        <div>
+                            <h2 class="pm-card-title"><span class="emoji">🪝</span> Webhook Endpoints</h2>
+                            <p class="pm-card-sub">5 endpoints · 98.7% delivery success</p>
+                        </div>
+                        <button class="btn-pm primary" onclick="showModal('addWebhook')">+ Add Endpoint</button>
+                    </div>
+                    <div class="api-grid">
+                        <div class="webhook-card">
+                            <div
+                                style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                                <div><b>https://api.yourbank.co/webhooks/paymo</b><br><span
+                                        style="font-size:11px;color:var(--pm-muted)">production · 12 events</span></div>
+                                <span class="status-pill online">Healthy</span>
+                            </div>
+                            <div class="mini-tab" style="margin-bottom:8px;">
+                                <button class="active" onclick="switchWebhookTab(this,0)">Events</button>
+                                <button onclick="switchWebhookTab(this,1)">Logs</button>
+                                <button onclick="switchWebhookTab(this,2)">Settings</button>
+                            </div>
+                            <div class="webhook-content" id="wh-content-0">
+                                <div style="font-size:12px;">Subscribed: payment.completed, transfer.settled,
+                                    aml.flagged, kyc.updated, customer.created</div>
+                                <button class="btn-pm" style="margin-top:8px;" onclick="showModal('testWebhook')">Test
+                                    Webhook</button>
+                            </div>
+                        </div>
+                        <div class="webhook-card">
+                            <div
+                                style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                                <div><b>https://hooks.slack.com/services/...</b><br><span
+                                        style="font-size:11px;color:var(--pm-muted)">alerts · 4 events</span></div>
+                                <span class="status-pill degraded">Delayed</span>
+                            </div>
+                            <button class="btn-pm" onclick="showModal('retryWebhook')">Retry Failed (3)</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 3. Rate Limits & Quotas -->
+                <section class="api-section">
+                    <div class="api-header">
+                        <div>
+                            <h2 class="pm-card-title"><span class="emoji">📊</span> Rate Limits & Quotas</h2>
+                            <p class="pm-card-sub">Current period: Oct 2025</p>
+                        </div>
+                        <button class="btn-pm" onclick="showModal('editLimits')">Edit Limits</button>
+                        <button class="btn-pm" onclick="showModal('keyUsage')">Usage</button>
+                        <button class="btn-pm" onclick="showModal('ipAllowlist')">IP Allowlist</button>
+                    </div>
+                    <div class="api-grid">
+                        <div class="metric-card">
+                            <div class="stat-row"><span>Live Key — Requests</span><b>184,291 / 250,000</b></div>
+                            <div class="health-bar">
+                                <div style="width:73.7%"></div>
+                            </div>
+                            <div class="stat-row"><span>Errors (last 24h)</span><b style="color:#B91C1C">42</b></div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="stat-row"><span>Test Key — Requests</span><b>91,402 / 100,000</b></div>
+                            <div class="health-bar">
+                                <div style="width:91.4%"></div>
+                            </div>
+                            <div class="stat-row"><span>Rate limit hits</span><b>187</b></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 4. Integration Health -->
+                <section class="api-section">
+                    <div class="api-header">
+                        <div>
+                            <h2 class="pm-card-title"><span class="emoji">📡</span> Integration Health</h2>
+                            <p class="pm-card-sub">12 connected services · 99.4% uptime</p>
+                        </div>
+                    </div>
+                    <div class="key-card">
+                        <div class="key-row">
+                            <div class="key-meta">
+                                <div class="name">M-Pesa Daraja API</div>
+                                <div class="meta">Latency 187ms · 99.6% success</div>
+                            </div><span class="status-pill online">Healthy</span><button class="btn-pm"
+                                onclick="showModal('intHealth','mpesa')">View</button>
+                        </div>
+                        <div class="key-row">
+                            <div class="key-meta">
+                                <div class="name">PesaLink IPSL</div>
+                                <div class="meta">Latency 92ms · 99.4% success</div>
+                            </div><span class="status-pill online">Healthy</span><button class="btn-pm"
+                                onclick="showModal('intHealth','pesalink')">View</button>
+                        </div>
+                        <div class="key-row">
+                            <div class="key-meta">
+                                <div class="name">SWIFT gpi</div>
+                                <div class="meta">Latency 6.2s · 97.8% success</div>
+                            </div><span class="status-pill degraded">Degraded</span><button class="btn-pm"
+                                onclick="showModal('intHealth','swift')">View</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 5. OAuth & Partner Apps -->
+                <section class="api-section">
+                    <div class="api-header">
+                        <div>
+                            <h2 class="pm-card-title"><span class="emoji">🔗</span> OAuth & Partner Applications</h2>
+                            <p class="pm-card-sub">14 connected apps</p>
+                        </div>
+                        <button class="btn-pm primary" onclick="showModal('oauthApp')">+ Register App</button>
+                    </div>
+                    <div class="api-grid">
+                        <div class="key-card">
+                            <div class="key-row">
+                                <div class="key-meta">
+                                    <div class="name">Equity Bank Portal</div>
+                                    <div class="meta">12 scopes · Last auth 4h ago</div>
+                                </div><button class="btn-pm" onclick="showModal('oauthDetail')">Manage</button>
+                            </div>
+                            <div class="key-row">
+                                <div class="key-meta">
+                                    <div class="name">KRA eTIMS Connector</div>
+                                    <div class="meta">read:tax, write:invoice · 3 users</div>
+                                </div><button class="btn-pm" onclick="showModal('oauthDetail')">Manage</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 6. Sandbox -->
+                <section class="api-section">
+                    <div class="api-header">
+                        <div>
+                            <h2 class="pm-card-title"><span class="emoji">🧪</span> Sandbox Environment</h2>
+                            <p class="pm-card-sub">Test keys active · Data reset 3 days ago</p>
+                        </div>
+                        <button class="btn-pm" onclick="showModal('resetSandbox')">Reset Sandbox Data</button>
+                    </div>
+                </section>
+
+                <!-- 7. Usage Analytics -->
+                <section class="api-section">
+                    <div class="api-header">
+                        <div>
+                            <h2 class="pm-card-title"><span class="emoji">📈</span> API Usage Analytics</h2>
+                        </div>
+                        <button class="btn-pm" onclick="showModal('usageReport')">Full Report</button>
+                    </div>
+                    <div class="api-grid">
+                        <div class="metric-card">
+                            <div style="font-weight:700;margin-bottom:8px;">Top Endpoints (24h)</div>
+                            <div class="stat-row"><span>/v1/transfers</span><b>48,291</b></div>
+                            <div class="stat-row"><span>/v1/customers</span><b>19,402</b></div>
+                            <div class="stat-row"><span>/v1/webhooks</span><b>8,112</b></div>
+                        </div>
+                        <div class="metric-card">
+                            <div style="font-weight:700;margin-bottom:8px;">Error Breakdown</div>
+                            <div class="stat-row"><span>4xx Client</span><b style="color:#B45309">312</b></div>
+                            <div class="stat-row"><span>5xx Server</span><b style="color:#B91C1C">14</b></div>
+                            <div class="stat-row"><span>Rate Limited</span><b>187</b></div>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- ====================== MODALS ====================== -->
+    <div class="pm-modal-backdrop" id="modalBackdrop" onclick="if(event.target.id==='modalBackdrop') closeModal()">
+        <div class="pm-modal" id="modal" style="max-width:620px;">
+            <div class="pm-modal-head">
+                <h3 id="modalTitle"></h3><button class="pm-close-btn" onclick="closeModal()">✕</button>
+            </div>
+            <div class="pm-modal-body" id="modalBody"></div>
+            <div class="pm-modal-foot" id="modalFoot"></div>
+        </div>
+    </div>
+
+    <script>
+        const PM = {
+            showModal(type, data = null) {
+                const backdrop = document.getElementById('modalBackdrop');
+                const body = document.getElementById('modalBody');
+                const title = document.getElementById('modalTitle');
+                const foot = document.getElementById('modalFoot');
+                body.innerHTML = ''; foot.innerHTML = '';
+
+                // ==================== 20+ RICH MODALS ====================
+
+                if (type === 'generateKey') {
+                    title.textContent = 'Generate New API Key';
+                    body.innerHTML = `
+        <div class="mini-tab" style="margin-bottom:16px;">
+          <button class="active" onclick="switchKeyType(this,'live')">Production</button>
+          <button onclick="switchKeyType(this,'test')">Sandbox</button>
+        </div>
+        <div class="form-row"><label>Key Name</label><input id="keyName" value="Production Integration — Equity Bank"></div>
+        <div class="form-row"><label>Scopes</label>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;">
+            ${['transfers:read', 'transfers:write', 'customers:read', 'customers:write', 'webhooks:manage', 'fx:quote'].map(s => `<label style="font-size:12px;"><input type="checkbox" checked> ${s}</label>`).join('')}
+          </div>
+        </div>
+        <div class="form-row"><label>IP Allowlist (optional)</label><input placeholder="102.215.10.0/24, 197.232.0.0/16"></div>
+      `;
+                    foot.innerHTML = `<button class="btn-pm" onclick="closeModal()">Cancel</button><button class="btn-pm primary" onclick="generateKey()">Generate Key</button>`;
+                }
+
+                else if (type === 'keyDetail') {
+                    title.textContent = `Manage Key: ${data}`;
+                    body.innerHTML = `
+        <div class="mini-tab"><button class="active">Overview</button><button>Permissions</button><button>Usage</button><button>Logs</button></div>
+        <div style="margin-top:16px;">
+          <div class="detail-row"><span class="l">Status</span><span class="v"><span class="status-pill online">Active</span></span></div>
+          <div class="detail-row"><span class="l">Created</span><span class="v">12 Sep 2025 09:14 EAT</span></div>
+          <div class="detail-row"><span class="l">Last Rotated</span><span class="v">3 days ago</span></div>
+          <div class="detail-row"><span class="l">Requests (30d)</span><span class="v">184,291</span></div>
+          <div class="detail-row"><span class="l">Rate Limit</span><span class="v">250,000 / month</span></div>
+        </div>
+        <div style="margin-top:16px;">
+          <button class="btn-pm danger" onclick="rotateKey('${data}')">Rotate Secret</button>
+          <button class="btn-pm" onclick="revokeKey('${data}')">Revoke Key</button>
+        </div>
+      `;
+                    foot.innerHTML = `<button class="btn-pm primary" onclick="closeModal()">Done</button>`;
+                }
+
+                else if (type === 'addWebhook') {
+                    title.textContent = 'Add Webhook Endpoint';
+                    body.innerHTML = `
+        <div class="form-row"><label>Endpoint URL</label><input id="whUrl" value="https://api.yourbank.co/webhooks/paymo"></div>
+        <div class="form-row"><label>Secret (auto-generated)</label><input value="whsec_pm26_8f3a2b9c4d1e" readonly></div>
+        <div class="form-row"><label>Events</label>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;">
+            ${['payment.completed', 'transfer.settled', 'aml.flagged', 'kyc.updated', 'customer.created', 'fx.rate.changed'].map(e => `<label style="font-size:12px;"><input type="checkbox" checked> ${e}</label>`).join('')}
+          </div>
+        </div>
+      `;
+                    foot.innerHTML = `<button class="btn-pm" onclick="closeModal()">Cancel</button><button class="btn-pm primary" onclick="addWebhook()">Create Endpoint</button>`;
+                }
+
+                else if (type === 'testWebhook') {
+                    title.textContent = 'Test Webhook';
+                    body.innerHTML = `
+        <div class="form-row"><label>Event Type</label><select><option>payment.completed</option><option>transfer.settled</option><option>aml.flagged</option></select></div>
+        <div class="form-row"><label>Payload Preview</label><textarea rows="6" style="font-family:monospace;font-size:11px;">{"event":"payment.completed","data":{"id":"PM26KE001A","amount":125000,"currency":"KES"}}</textarea></div>
+        <div style="margin-top:12px;"><button class="btn-pm primary" onclick="sendTestWebhook(this)">Send Test</button></div>
+        <div id="whResult" style="margin-top:10px;font-size:12px;"></div>
+      `;
+                    foot.innerHTML = `<button class="btn-pm" onclick="closeModal()">Close</button>`;
+                }
+
+                else if (type === 'retryWebhook') {
+                    title.textContent = 'Retry Failed Deliveries';
+                    body.innerHTML = `
+        <div class="log-row">3 failed deliveries in last 24h</div>
+        <div class="log-row">payment.completed → 502 (14:22)</div>
+        <div class="log-row">transfer.settled → 504 (09:11)</div>
+        <button class="btn-pm primary" style="margin-top:12px;" onclick="retryAllWebhooks(this)">Retry All</button>
+      `;
+                    foot.innerHTML = `<button class="btn-pm" onclick="closeModal()">Close</button>`;
+                }
+
+                else if (type === 'editLimits') {
+                    title.textContent = 'Edit Rate Limits';
+                    body.innerHTML = `
+        <div class="form-grid-2">
+          <div class="form-row"><label>Live Key Monthly Limit</label><input value="250000"></div>
+          <div class="form-row"><label>Test Key Monthly Limit</label><input value="100000"></div>
+          <div class="form-row"><label>Burst Rate (per sec)</label><input value="120"></div>
+          <div class="form-row"><label>IP Throttle</label><input value="30"></div>
+        </div>
+      `;
+                    foot.innerHTML = `<button class="btn-pm" onclick="closeModal()">Cancel</button><button class="btn-pm primary" onclick="saveLimits()">Save Limits</button>`;
+                }
+
+                else if (type === 'intHealth') {
+                    title.textContent = `${data.toUpperCase()} Integration Health`;
+                    body.innerHTML = `
+        <div class="mini-tab"><button class="active">Overview</button><button>Latency</button><button>Errors</button></div>
+        <div style="margin-top:16px;">
+          <div class="detail-row"><span class="l">Uptime (30d)</span><span class="v">99.87%</span></div>
+          <div class="detail-row"><span class="l">Avg Latency</span><span class="v">187ms</span></div>
+          <div class="detail-row"><span class="l">Success Rate</span><span class="v">99.6%</span></div>
+          <div class="detail-row"><span class="l">Last Incident</span><span class="v">14 Sep 2025 — 4m outage</span></div>
+        </div>
+        <button class="btn-pm" style="margin-top:14px;" onclick="showModal('intConfig','${data}')">Configure Integration</button>
+      `;
+                    foot.innerHTML = `<button class="btn-pm primary" onclick="closeModal()">Close</button>`;
+                }
+
+                else if (type === 'intConfig') {
+                    title.textContent = `Configure ${data.toUpperCase()}`;
+                    body.innerHTML = `
+        <div class="mini-tab"><button class="active">Credentials</button><button>Limits</button><button>Maintenance</button></div>
+        <div class="form-row"><label>API Key</label><input value="••••••••••••••••"></div>
+        <div class="form-row"><label>Webhook URL</label><input value="https://api.paymo.io/webhooks/${data}"></div>
+        <div class="form-row"><label>Timeout (ms)</label><input value="8000"></div>
+      `;
+                    foot.innerHTML = `<button class="btn-pm" onclick="closeModal()">Cancel</button><button class="btn-pm primary" onclick="saveIntegration()">Save</button>`;
+                }
+
+                else if (type === 'oauthApp') {
+                    title.textContent = 'Register OAuth Application';
+                    body.innerHTML = `
+        <div class="form-row"><label>App Name</label><input value="Equity Bank Portal"></div>
+        <div class="form-row"><label>Redirect URI</label><input value="https://portal.equitybank.co/oauth/callback"></div>
+        <div class="form-row"><label>Scopes</label><div style="display:flex;gap:6px;flex-wrap:wrap;">${['transfers', 'customers', 'fx', 'reports'].map(s => `<span class="scope-pill">${s}</span>`).join('')}</div></div>
+      `;
+                    foot.innerHTML = `<button class="btn-pm" onclick="closeModal()">Cancel</button><button class="btn-pm primary" onclick="registerOAuth()">Register App</button>`;
+                }
+
+                else if (type === 'oauthDetail') {
+                    title.textContent = 'OAuth App Details';
+                    body.innerHTML = `
+        <div class="detail-row"><span class="l">Client ID</span><span class="v">eqb_pm26_8f3a2b</span></div>
+        <div class="detail-row"><span class="l">Active Users</span><span class="v">3</span></div>
+        <div class="detail-row"><span class="l">Last Access</span><span class="v">Today 14:32 EAT</span></div>
+        <button class="btn-pm danger" style="margin-top:12px;" onclick="revokeOAuth()">Revoke Access</button>
+      `;
+                    foot.innerHTML = `<button class="btn-pm primary" onclick="closeModal()">Close</button>`;
+                }
+
+                else if (type === 'resetSandbox') {
+                    title.textContent = 'Reset Sandbox Data';
+                    body.innerHTML = `<p>This will delete all test customers, transactions, and webhooks in the sandbox environment.</p>`;
+                    foot.innerHTML = `<button class="btn-pm" onclick="closeModal()">Cancel</button><button class="btn-pm danger" onclick="resetSandbox(this)">Reset Sandbox</button>`;
+                }
+
+                else if (type === 'usageReport') {
+                    title.textContent = 'API Usage Report';
+                    body.innerHTML = `
+        <div class="mini-tab"><button class="active">Summary</button><button>Endpoints</button><button>Errors</button></div>
+        <div style="margin-top:16px;">
+          <div class="stat-row"><span>Total Requests (30d)</span><b>1,284,291</b></div>
+          <div class="stat-row"><span>Peak Day</span><b>Oct 12 — 84,291 calls</b></div>
+          <div class="stat-row"><span>Avg Latency</span><b>142ms</b></div>
+        </div>
+      `;
+                    foot.innerHTML = `<button class="btn-pm primary" onclick="closeModal()">Close</button>`;
+                }
+
+                else if (type === 'profile') {
+                    title.textContent = 'Joseph Mwangi';
+                    body.innerHTML = `<div class="detail-row"><span class="l">Role</span><span class="v">Chief Operations Officer</span></div><div class="detail-row"><span class="l">API Access</span><span class="v">Full (Owner)</span></div>`;
+                    foot.innerHTML = `<button class="btn-pm" onclick="closeModal()">Close</button>`;
+                }
+
+                else if (type === 'notif') {
+                    title.textContent = 'Notifications';
+                    body.innerHTML = `<div class="log-row">New key generated — pk_live_pm26_KE_8f3a2b</div><div class="log-row">Webhook endpoint added</div>`;
+                    foot.innerHTML = `<button class="btn-pm primary" onclick="closeModal()">Close</button>`;
+                }
+
+                // Additional rich modals
+                else if (type === 'keyUsage') {
+                    title.textContent = 'Key Usage Analytics';
+                    body.innerHTML = `<div class="stat-row"><span>Requests today</span><b>8,291</b></div><div class="stat-row"><span>Peak hour</span><b>14:00–15:00 (1,842 calls)</b></div>`;
+                    foot.innerHTML = `<button class="btn-pm primary" onclick="closeModal()">Close</button>`;
+                }
+                else if (type === 'ipAllowlist') {
+                    title.textContent = 'IP Allowlist';
+                    body.innerHTML = `<div class="form-row"><label>Allowed IPs</label><textarea>102.215.10.0/24\n197.232.0.0/16\n41.204.0.0/16</textarea></div>`;
+                    foot.innerHTML = `<button class="btn-pm" onclick="closeModal()">Cancel</button><button class="btn-pm primary" onclick="closeModal()">Save</button>`;
+                }
+                else if (type === 'webhookLogs') {
+                    title.textContent = 'Webhook Delivery Logs';
+                    body.innerHTML = `<div class="log-row">14:32 — payment.completed → 200 OK (187ms)</div><div class="log-row">14:28 — transfer.settled → 200 OK (92ms)</div><div class="log-row">14:11 — aml.flagged → 200 OK (310ms)</div>`;
+                    foot.innerHTML = `<button class="btn-pm primary" onclick="closeModal()">Close</button>`;
+                }
+                else if (type === 'intConfig') {
+                    title.textContent = `Configure ${data || 'Integration'}`;
+                    body.innerHTML = `<div class="form-row"><label>API Key</label><input value="••••••••"></div><div class="form-row"><label>Timeout</label><input value="8000"></div>`;
+                    foot.innerHTML = `<button class="btn-pm" onclick="closeModal()">Cancel</button><button class="btn-pm primary" onclick="closeModal()">Save</button>`;
+                }
+                else if (type === 'oauthDetail') {
+                    title.textContent = 'OAuth Application';
+                    body.innerHTML = `<div class="detail-row"><span class="l">Client ID</span><span class="v">eqb_pm26_8f3a2b</span></div><div class="detail-row"><span class="l">Active Tokens</span><span class="v">3</span></div>`;
+                    foot.innerHTML = `<button class="btn-pm danger" onclick="closeModal()">Revoke</button><button class="btn-pm primary" onclick="closeModal()">Close</button>`;
+                }
+                else if (type === 'usageReport') {
+                    title.textContent = 'Full API Usage Report';
+                    body.innerHTML = `<div class="stat-row"><span>Total Requests (30d)</span><b>1,284,291</b></div><div class="stat-row"><span>Top Endpoint</span><b>/v1/transfers</b></div>`;
+                    foot.innerHTML = `<button class="btn-pm primary" onclick="closeModal()">Close</button>`;
+                }
+                else if (type === 'resetSandbox') {
+                    title.textContent = 'Reset Sandbox';
+                    body.innerHTML = `<p>Warning: This will permanently delete all test data.</p>`;
+                    foot.innerHTML = `<button class="btn-pm" onclick="closeModal()">Cancel</button><button class="btn-pm danger" onclick="closeModal()">Reset</button>`;
+                }
+
+                backdrop.classList.add('open');
+            },
+
+            closeModal() { document.getElementById('modalBackdrop').classList.remove('open'); },
+
+            generateKey() {
+                this.closeModal();
+                const m = document.getElementById('modalBody');
+                m.innerHTML = `<div style="text-align:center;padding:20px;"><div style="font-size:32px;margin-bottom:12px;">✅</div><div style="font-weight:700;">New Key Generated</div><div style="font-family:monospace;margin-top:12px;background:#F5F1EC;padding:10px;border-radius:6px;">sk_live_pm26_KE_9c4d1e7f2a</div><div style="font-size:12px;color:var(--pm-muted);margin-top:8px;">Copy this key now — it will not be shown again.</div></div>`;
+                document.getElementById('modalFoot').innerHTML = `<button class="btn-pm primary" onclick="PM.closeModal()">Done</button>`;
+                document.getElementById('modalBackdrop').classList.add('open');
+            },
+
+            rotateKey(key) {
+                this.closeModal();
+                setTimeout(() => {
+                    const m = document.getElementById('modalBody');
+                    m.innerHTML = `<div style="text-align:center;padding:20px;">Secret rotated successfully.<br>New secret: <span style="font-family:monospace">sk_live_pm26_KE_9c4d1e_new</span></div>`;
+                    document.getElementById('modalFoot').innerHTML = `<button class="btn-pm primary" onclick="PM.closeModal()">Done</button>`;
+                    document.getElementById('modalBackdrop').classList.add('open');
+                }, 300);
+            },
+
+            revokeKey(key) {
+                this.closeModal();
+                setTimeout(() => alert(`Key ${key} has been revoked.`), 200);
+            },
+
+            addWebhook() {
+                this.closeModal();
+                setTimeout(() => alert('Webhook endpoint created successfully.'), 200);
+            },
+
+            sendTestWebhook(btn) {
+                btn.textContent = 'Sending...';
+                setTimeout(() => {
+                    document.getElementById('whResult').innerHTML = `<span style="color:#047857">✅ 200 OK — delivered in 187ms</span>`;
+                    btn.textContent = 'Send Test';
+                }, 1200);
+            },
+
+            retryAllWebhooks(btn) {
+                btn.textContent = 'Retrying...';
+                setTimeout(() => {
+                    btn.textContent = 'All Retried';
+                    setTimeout(() => this.closeModal(), 800);
+                }, 1400);
+            },
+
+            saveLimits() {
+                this.closeModal();
+                setTimeout(() => alert('Rate limits updated.'), 200);
+            },
+
+            saveIntegration() {
+                this.closeModal();
+                setTimeout(() => alert('Integration settings saved.'), 200);
+            },
+
+            registerOAuth() {
+                this.closeModal();
+                setTimeout(() => alert('OAuth application registered.'), 200);
+            },
+
+            revokeOAuth() {
+                this.closeModal();
+                setTimeout(() => alert('Access revoked.'), 200);
+            },
+
+            resetSandbox(btn) {
+                btn.textContent = 'Resetting...';
+                setTimeout(() => {
+                    this.closeModal();
+                    alert('Sandbox data has been reset.');
+                }, 1600);
+            },
+
+            switchKeyType(el, type) {
+                document.querySelectorAll('.mini-tab button').forEach(b => b.classList.remove('active'));
+                el.classList.add('active');
+            },
+
+            switchWebhookTab(el, idx) {
+                const container = el.parentElement.nextElementSibling;
+                const contents = ['Events subscribed', 'Delivery logs (last 50)', 'Retry policy: exponential backoff, 3 attempts'];
+                container.innerHTML = `<div style="padding:8px 0;font-size:13px;">${contents[idx]}</div>`;
+                document.querySelectorAll('.mini-tab button').forEach(b => b.classList.remove('active'));
+                el.classList.add('active');
+            }
+        };
+
+        window.showModal = (t, d) => PM.showModal(t, d);
+        window.closeModal = () => PM.closeModal();
+        window.switchKeyType = (e, t) => PM.switchKeyType(e, t);
+        window.switchWebhookTab = (e, i) => PM.switchWebhookTab(e, i);
+    </script>
+</body>
+
+</html>

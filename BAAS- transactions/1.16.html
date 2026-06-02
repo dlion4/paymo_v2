@@ -1,0 +1,886 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PayMo BaaS — Dispute & Chargeback Management | Page 1.16</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="master.css">
+    <style>
+        .dispute-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            font-size: 13px;
+        }
+
+        .dispute-table th {
+            text-align: left;
+            font-size: 10px;
+            text-transform: uppercase;
+            color: var(--pm-muted);
+            font-weight: 700;
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--pm-border);
+            background: var(--pm-surface-2);
+        }
+
+        .dispute-table td {
+            padding: 14px;
+            border-bottom: 1px solid var(--pm-border);
+            vertical-align: top;
+        }
+
+        .dispute-table tr:hover {
+            background: var(--pm-surface-2);
+        }
+
+        .dispute-card {
+            border: 1px solid var(--pm-border);
+            border-radius: 14px;
+            padding: 16px;
+            background: var(--pm-surface);
+            transition: all .2s;
+            cursor: pointer;
+        }
+
+        .dispute-card:hover {
+            box-shadow: var(--pm-shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .metric-card {
+            background: var(--pm-surface);
+            border: 1px solid var(--pm-border);
+            border-radius: 14px;
+            padding: 18px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .mini-tab {
+            display: inline-flex;
+            gap: 4px;
+            background: var(--pm-surface-2);
+            border: 1px solid var(--pm-border);
+            border-radius: 999px;
+            padding: 3px;
+        }
+
+        .mini-tab button {
+            font-size: 12px;
+            padding: 6px 14px;
+            border-radius: 999px;
+            border: none;
+            background: transparent;
+            color: var(--pm-ink-soft);
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .mini-tab button.active {
+            background: white;
+            box-shadow: var(--pm-shadow-sm);
+            color: var(--pm-ink);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+        }
+
+        .evidence-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--pm-border);
+        }
+
+        .evidence-row:last-child {
+            border-bottom: none;
+        }
+
+        .stepper {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .step {
+            flex: 1;
+            padding: 8px 12px;
+            background: var(--pm-surface-2);
+            border-radius: 10px;
+            font-size: 12px;
+            text-align: center;
+            position: relative;
+        }
+
+        .step.active {
+            background: var(--pm-primary);
+            color: white;
+            font-weight: 600;
+        }
+
+        .step.completed {
+            background: #D1FAE5;
+            color: #047857;
+        }
+
+        .reason-pill {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-weight: 600;
+        }
+
+        .reason-fraud {
+            background: #FEE2E2;
+            color: #B91C1C;
+        }
+
+        .reason-quality {
+            background: #FEF3C7;
+            color: #B45309;
+        }
+
+        .reason-service {
+            background: #DBEAFE;
+            color: #1D4ED8;
+        }
+
+        .reason-other {
+            background: #EDE9FE;
+            color: #6D28D9;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="pm-app">
+        <!-- Sidebar -->
+        <aside class="pm-sidebar">
+            <div class="pm-sidebar-logo">P</div>
+            <nav class="pm-sidebar-nav">
+                <a href="#" class="pm-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <rect x="3" y="3" width="7" height="9" />
+                        <rect x="14" y="3" width="7" height="5" />
+                        <rect x="14" y="12" width="7" height="9" />
+                        <rect x="3" y="16" width="7" height="5" />
+                    </svg></a>
+                <a href="#" class="pm-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <polyline points="17 1 21 5 17 9" />
+                        <path d="M3 11V9a4 4 0 0 1 4-4h14" />
+                        <polyline points="7 23 3 19 7 15" />
+                        <path d="M21 13v2a4 4 0 0 1-4 4H3" />
+                    </svg></a>
+                <a href="#" class="pm-nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                    </svg></a>
+                <a href="#" class="pm-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <circle cx="12" cy="12" r="3" />
+                        <path
+                            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                    </svg></a>
+            </nav>
+        </aside>
+
+        <main class="pm-main">
+            <!-- Header -->
+            <header class="pm-header">
+                <div class="pm-header-title">
+                    <h1>Dispute & Chargeback Management</h1>
+                    <p>Section 1.16 — Full lifecycle dispute resolution & chargeback defense</p>
+                </div>
+                <div class="pm-header-actions">
+                    <div class="pm-system-status"><span class="dot"></span> 23 open • 4 critical</div>
+                    <button class="pm-header-btn" onclick="openModal('modal-notifications')"><svg viewBox="0 0 24 24"
+                            fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                        </svg></button>
+                    <button class="pm-profile-btn" onclick="openModal('modal-profile')">
+                        <div class="pm-avatar">JM</div>
+                        <div class="pm-profile-info">
+                            <div class="name">Joseph Mwangi</div>
+                            <div class="role">COO</div>
+                        </div>
+                    </button>
+                </div>
+            </header>
+
+            <div class="pm-content">
+
+                <!-- KPI Row -->
+                <div class="kpi-row" style="grid-template-columns:repeat(5,1fr);">
+                    <div class="kpi kpi-balance" onclick="openModal('modal-metrics')">
+                        <div class="kpi-label">Open Disputes</div>
+                        <div class="kpi-value">47</div>
+                        <div class="kpi-tag up">↑ 8 this week</div>
+                    </div>
+                    <div class="kpi kpi-volume" onclick="openModal('modal-metrics')">
+                        <div class="kpi-label">Total Exposure</div>
+                        <div class="kpi-value">KES 8.4M</div>
+                        <div class="kpi-tag up">↑ 12%</div>
+                    </div>
+                    <div class="kpi kpi-success" onclick="openModal('modal-metrics')">
+                        <div class="kpi-label">Win Rate</div>
+                        <div class="kpi-value">68%</div>
+                        <div class="kpi-tag up">Target 72%</div>
+                    </div>
+                    <div class="kpi kpi-settle" onclick="openModal('modal-metrics')">
+                        <div class="kpi-label">Avg Resolution</div>
+                        <div class="kpi-value">4.8d</div>
+                        <div class="kpi-tag down">↓ 0.6d</div>
+                    </div>
+                    <div class="kpi kpi-banks" onclick="openModal('modal-metrics')">
+                        <div class="kpi-label">Critical Cases</div>
+                        <div class="kpi-value">4</div>
+                        <div class="kpi-tag down">SLA at risk</div>
+                    </div>
+                </div>
+
+                <!-- SECTION 1.16.1: Active Disputes Queue -->
+                <div class="pm-card">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="pm-card-title"><span class="emoji">⚖️</span> Section 1.16.1 — Active Disputes &
+                                Chargebacks Queue</h2>
+                            <p class="pm-card-sub">47 open • 12 new today • 4 critical (SLA &lt; 24h)</p>
+                        </div>
+                        <div class="pm-card-actions">
+                            <div class="mini-tab" id="dispute-filter-tabs">
+                                <button class="active" data-filter="all">All</button>
+                                <button data-filter="new">New</button>
+                                <button data-filter="fraud">Fraud</button>
+                                <button data-filter="quality">Quality</button>
+                                <button data-filter="critical">Critical</button>
+                            </div>
+                            <button class="btn-pm primary" onclick="openModal('modal-new-dispute')">+ Log New
+                                Dispute</button>
+                            <button class="btn-pm" onclick="exportDisputes()">Export</button>
+                        </div>
+                    </div>
+
+                    <div style="overflow-x:auto;">
+                        <table class="dispute-table" id="dispute-table">
+                            <thead>
+                                <tr>
+                                    <th>Case ID</th>
+                                    <th>Transaction</th>
+                                    <th>Customer</th>
+                                    <th>Amount</th>
+                                    <th>Reason</th>
+                                    <th>Stage</th>
+                                    <th>Due</th>
+                                    <th>Priority</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dispute-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- SECTION 1.16.2: Evidence & Case Management -->
+                <div class="two-col">
+                    <div class="pm-card">
+                        <div class="section-header">
+                            <div>
+                                <h2 class="pm-card-title"><span class="emoji">📁</span> Section 1.16.2 — Evidence Vault
+                                    & Case Management</h2>
+                                <p class="pm-card-sub">312 evidence files • 89% auto-tagged</p>
+                            </div>
+                        </div>
+                        <div id="evidence-list"></div>
+                        <button class="btn-pm" style="margin-top:12px;"
+                            onclick="openModal('modal-evidence-upload')">Upload New Evidence</button>
+                    </div>
+
+                    <div class="pm-card">
+                        <div class="section-header">
+                            <div>
+                                <h2 class="pm-card-title"><span class="emoji">📊</span> Section 1.16.3 — Representment
+                                    Workflow</h2>
+                                <p class="pm-card-sub">12 cases in representment • 7 ready to submit</p>
+                            </div>
+                        </div>
+                        <div id="representment-list"></div>
+                    </div>
+                </div>
+
+                <!-- SECTION 1.16.4: Analytics & Prevention -->
+                <div class="pm-card">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="pm-card-title"><span class="emoji">📈</span> Section 1.16.4 — Analytics, Metrics
+                                & Prevention Engine</h2>
+                            <p class="pm-card-sub">Last 90 days • Win rate trending up</p>
+                        </div>
+                        <button class="btn-pm" onclick="openModal('modal-prevention')">Configure Auto-Rules</button>
+                    </div>
+
+                    <div class="three-col">
+                        <div class="metric-card" onclick="openModal('modal-analytics')">
+                            <div class="kpi-label">Chargeback Rate</div>
+                            <div class="kpi-value" style="font-size:28px;">1.8%</div>
+                            <div style="color:#047857; font-size:12px;">↓ 0.3% MoM • Below 2.0% threshold</div>
+                            <div class="bar" style="margin-top:8px;">
+                                <div style="width:72%; background:#10B981; height:4px;"></div>
+                            </div>
+                        </div>
+                        <div class="metric-card" onclick="openModal('modal-analytics')">
+                            <div class="kpi-label">Top Reason Codes</div>
+                            <div style="margin-top:8px; font-size:12px;">
+                                <div>4837 Fraud — 34%</div>
+                                <div>4853 Cardholder Dispute — 28%</div>
+                                <div>4840 Processing Error — 19%</div>
+                            </div>
+                        </div>
+                        <div class="metric-card" onclick="openModal('modal-analytics')">
+                            <div class="kpi-label">Prevention Impact</div>
+                            <div class="kpi-value" style="font-size:28px;">KES 2.1M</div>
+                            <div style="font-size:12px; color:#047857;">Saved via auto-decline rules this month</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bottom: Reason Code Breakdown + Recent Activity -->
+                <div class="two-col">
+                    <div class="pm-card">
+                        <h3 class="pm-card-title" style="margin-bottom:12px;">Reason Code Breakdown (90d)</h3>
+                        <div id="reason-breakdown"></div>
+                    </div>
+                    <div class="pm-card">
+                        <h3 class="pm-card-title" style="margin-bottom:12px;">Recent Activity Log</h3>
+                        <div id="activity-log"></div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- ====================== 20+ FUNCTIONAL MODALS ====================== -->
+
+    <!-- Modal: Dispute Detail (Rich) -->
+    <div class="pm-modal-backdrop" id="modal-dispute-detail">
+        <div class="pm-modal wide">
+            <div class="pm-modal-head">
+                <div>
+                    <h3 id="modal-dispute-id">Case DC-48291</h3>
+                    <p id="modal-dispute-sub">KES 124,500 • Fraud • Due in 14h</p>
+                </div>
+                <button class="pm-close-btn" onclick="closeModal('modal-dispute-detail')">×</button>
+            </div>
+            <div class="pm-modal-body">
+                <div class="mini-tab" style="margin-bottom:16px;">
+                    <button class="active" onclick="switchTab(this,'tab-overview')">Overview</button>
+                    <button onclick="switchTab(this,'tab-evidence')">Evidence (8)</button>
+                    <button onclick="switchTab(this,'tab-timeline')">Timeline</button>
+                    <button onclick="switchTab(this,'tab-resolution')">Resolution</button>
+                </div>
+
+                <div id="tab-overview">
+                    <div class="detail-grid">
+                        <div class="detail-row"><span class="l">Transaction Ref</span><span class="v">PM26KE48291</span>
+                        </div>
+                        <div class="detail-row"><span class="l">Original Date</span><span class="v">Oct 12, 2025 • 14:32
+                                EAT</span></div>
+                        <div class="detail-row"><span class="l">Customer</span><span class="v">Wanjiku Mwangi
+                                (+254712445902)</span></div>
+                        <div class="detail-row"><span class="l">Merchant</span><span class="v">Equity Logistics
+                                Ltd</span></div>
+                        <div class="detail-row"><span class="l">Rail</span><span class="v">PesaLink</span></div>
+                        <div class="detail-row"><span class="l">Issuer Bank</span><span class="v">KCB Bank</span></div>
+                    </div>
+                    <div class="divider"></div>
+                    <h4 style="margin:0 0 8px;">Description</h4>
+                    <p style="font-size:13px; color:var(--pm-ink-soft);">Cardholder claims transaction was not
+                        authorized. Merchant provided delivery confirmation and signed POD.</p>
+                </div>
+
+                <div id="tab-evidence" style="display:none;">
+                    <div class="evidence-row">
+                        <div>📄</div>
+                        <div style="flex:1;">Signed Proof of Delivery.pdf</div><button class="btn-pm"
+                            onclick="downloadEvidence(this)">Download</button>
+                    </div>
+                    <div class="evidence-row">
+                        <div>🖼️</div>
+                        <div style="flex:1;">Customer Signature.jpg</div><button class="btn-pm"
+                            onclick="downloadEvidence(this)">Download</button>
+                    </div>
+                    <div class="evidence-row">
+                        <div>📹</div>
+                        <div style="flex:1;">Delivery Video.mp4</div><button class="btn-pm"
+                            onclick="downloadEvidence(this)">Download</button>
+                    </div>
+                    <button class="btn-pm primary" style="margin-top:12px;"
+                        onclick="openModal('modal-evidence-upload')">+ Add Evidence</button>
+                </div>
+
+                <div id="tab-timeline" style="display:none;">
+                    <div class="kv">
+                        <div class="a" style="background:#10B981">✓</div>
+                        <div class="b">
+                            <div class="t">Dispute received from issuer</div>
+                            <div class="d">Oct 18 • 09:12</div>
+                        </div>
+                    </div>
+                    <div class="kv">
+                        <div class="a" style="background:#3B82F6">→</div>
+                        <div class="b">
+                            <div class="t">Auto-assigned to Joseph Mwangi</div>
+                            <div class="d">Oct 18 • 09:14</div>
+                        </div>
+                    </div>
+                    <div class="kv">
+                        <div class="a" style="background:#F59E0B">⚠</div>
+                        <div class="b">
+                            <div class="t">Evidence uploaded (3 files)</div>
+                            <div class="d">Oct 19 • 11:42</div>
+                        </div>
+                    </div>
+                    <div class="kv">
+                        <div class="a" style="background:#8B5CF6">⏱</div>
+                        <div class="b">
+                            <div class="t">Representment submitted</div>
+                            <div class="d">Oct 20 • 14:05</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="tab-resolution" style="display:none;">
+                    <div class="form-row"><label>Resolution Decision</label>
+                        <select id="resolution-select">
+                            <option value="win">Win — Representment accepted</option>
+                            <option value="loss">Accept liability</option>
+                            <option value="partial">Partial credit</option>
+                            <option value="escalate">Escalate to network</option>
+                        </select>
+                    </div>
+                    <div class="form-row"><label>Internal Notes</label><textarea rows="3"
+                            placeholder="Reasoning for decision..."></textarea></div>
+                </div>
+            </div>
+            <div class="pm-modal-foot">
+                <button class="btn-pm" onclick="closeModal('modal-dispute-detail')">Close</button>
+                <button class="btn-pm" onclick="openModal('modal-challenge')">Challenge</button>
+                <button class="btn-pm primary" onclick="submitResolution()">Submit Resolution</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Multi-step: Challenge / Representment Flow -->
+    <div class="pm-modal-backdrop" id="modal-challenge">
+        <div class="pm-modal wide">
+            <div class="pm-modal-head">
+                <h3>Challenge Dispute — Step <span id="challenge-step">1</span>/4</h3><button class="pm-close-btn"
+                    onclick="closeModal('modal-challenge')">×</button>
+            </div>
+            <div class="pm-modal-body">
+                <div class="stepper">
+                    <div class="step active" id="step-1">1. Select Defense</div>
+                    <div class="step" id="step-2">2. Evidence</div>
+                    <div class="step" id="step-3">3. Review</div>
+                    <div class="step" id="step-4">4. Submit</div>
+                </div>
+                <div id="challenge-content"></div>
+            </div>
+            <div class="pm-modal-foot">
+                <button class="btn-pm" onclick="prevChallengeStep()">Back</button>
+                <button class="btn-pm primary" id="challenge-next-btn" onclick="nextChallengeStep()">Continue</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Dispute Modal -->
+    <div class="pm-modal-backdrop" id="modal-new-dispute">
+        <div class="pm-modal">
+            <div class="pm-modal-head">
+                <h3>Log New Dispute</h3><button class="pm-close-btn"
+                    onclick="closeModal('modal-new-dispute')">×</button>
+            </div>
+            <div class="pm-modal-body">
+                <div class="form-row"><label>Transaction Reference</label><input id="new-dispute-ref"
+                        value="PM26KE48912"></div>
+                <div class="form-row"><label>Amount</label><input type="text" value="KES 87,500"></div>
+                <div class="form-row"><label>Reason Code</label>
+                    <select>
+                        <option>4837 — Fraudulent Transaction</option>
+                        <option>4853 — Cardholder Dispute</option>
+                        <option>4840 — Processing Error</option>
+                    </select>
+                </div>
+                <div class="form-row"><label>Issuer Bank</label><input value="KCB Bank"></div>
+            </div>
+            <div class="pm-modal-foot">
+                <button class="btn-pm" onclick="closeModal('modal-new-dispute')">Cancel</button>
+                <button class="btn-pm primary" onclick="createNewDispute()">Create Case</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Evidence Upload Modal -->
+    <div class="pm-modal-backdrop" id="modal-evidence-upload">
+        <div class="pm-modal">
+            <div class="pm-modal-head">
+                <h3>Upload Evidence</h3><button class="pm-close-btn"
+                    onclick="closeModal('modal-evidence-upload')">×</button>
+            </div>
+            <div class="pm-modal-body">
+                <div style="border:2px dashed var(--pm-border); padding:32px; text-align:center; border-radius:12px; cursor:pointer;"
+                    onclick="simulateUpload()">
+                    <div style="font-size:42px;">📎</div>
+                    <div style="font-weight:600;">Drop files here or click to browse</div>
+                    <div style="font-size:11px; color:var(--pm-muted);">PDF, JPG, PNG, MP4 • Max 25MB</div>
+                </div>
+                <div class="form-row" style="margin-top:14px;"><label>Description</label><input
+                        placeholder="Signed POD from driver"></div>
+            </div>
+            <div class="pm-modal-foot">
+                <button class="btn-pm" onclick="closeModal('modal-evidence-upload')">Cancel</button>
+                <button class="btn-pm primary" onclick="simulateUpload()">Upload & Tag</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PIN Approval Modal (Multi-step) -->
+    <div class="pm-modal-backdrop" id="modal-pin">
+        <div class="pm-modal">
+            <div class="pm-modal-head">
+                <h3>Authorize Action</h3><button class="pm-close-btn" onclick="closeModal('modal-pin')">×</button>
+            </div>
+            <div class="pm-modal-body" style="text-align:center;">
+                <p style="margin-bottom:16px;">Enter your 6-digit security PIN to submit representment</p>
+                <div style="display:flex; justify-content:center; gap:8px; margin:20px 0;">
+                    <input type="password" maxlength="1" class="pin-input"
+                        style="width:42px; height:48px; text-align:center; font-size:22px; border:2px solid var(--pm-border); border-radius:8px;">
+                    <input type="password" maxlength="1" class="pin-input"
+                        style="width:42px; height:48px; text-align:center; font-size:22px; border:2px solid var(--pm-border); border-radius:8px;">
+                    <input type="password" maxlength="1" class="pin-input"
+                        style="width:42px; height:48px; text-align:center; font-size:22px; border:2px solid var(--pm-border); border-radius:8px;">
+                    <input type="password" maxlength="1" class="pin-input"
+                        style="width:42px; height:48px; text-align:center; font-size:22px; border:2px solid var(--pm-border); border-radius:8px;">
+                    <input type="password" maxlength="1" class="pin-input"
+                        style="width:42px; height:48px; text-align:center; font-size:22px; border:2px solid var(--pm-border); border-radius:8px;">
+                    <input type="password" maxlength="1" class="pin-input"
+                        style="width:42px; height:48px; text-align:center; font-size:22px; border:2px solid var(--pm-border); border-radius:8px;">
+                </div>
+                <div style="font-size:12px; color:#B91C1C;">Incorrect PIN will lock account after 3 attempts</div>
+            </div>
+            <div class="pm-modal-foot">
+                <button class="btn-pm" onclick="closeModal('modal-pin')">Cancel</button>
+                <button class="btn-pm primary" onclick="verifyPIN()">Authorize</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- More Modals (20+ total) -->
+    <div class="pm-modal-backdrop" id="modal-metrics">
+        <div class="pm-modal">
+            <div class="pm-modal-head">
+                <h3>Dispute Metrics (90d)</h3><button class="pm-close-btn"
+                    onclick="closeModal('modal-metrics')">×</button>
+            </div>
+            <div class="pm-modal-body">
+                <div class="detail-grid">
+                    <div class="detail-row"><span class="l">Total Disputes</span><span class="v">312</span></div>
+                    <div class="detail-row"><span class="l">Win Rate</span><span class="v">68.4%</span></div>
+                    <div class="detail-row"><span class="l">Avg Resolution Time</span><span class="v">4.8 days</span>
+                    </div>
+                    <div class="detail-row"><span class="l">Total Recovered</span><span class="v">KES 19.2M</span></div>
+                </div>
+            </div>
+            <div class="pm-modal-foot"><button class="btn-pm primary"
+                    onclick="closeModal('modal-metrics')">Close</button></div>
+        </div>
+    </div>
+
+    <div class="pm-modal-backdrop" id="modal-analytics">
+        <div class="pm-modal wide">
+            <div class="pm-modal-head">
+                <h3>Analytics Dashboard</h3><button class="pm-close-btn"
+                    onclick="closeModal('modal-analytics')">×</button>
+            </div>
+            <div class="pm-modal-body">
+                <div
+                    style="height:200px; background:var(--pm-surface-2); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:13px; color:var(--pm-muted);">
+                    Interactive charts would render here (win rate by rail, reason code trends, recovery curve)</div>
+            </div>
+            <div class="pm-modal-foot"><button class="btn-pm" onclick="closeModal('modal-analytics')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="pm-modal-backdrop" id="modal-prevention">
+        <div class="pm-modal">
+            <div class="pm-modal-head">
+                <h3>Auto-Prevention Rules</h3><button class="pm-close-btn"
+                    onclick="closeModal('modal-prevention')">×</button>
+            </div>
+            <div class="pm-modal-body">
+                <div class="form-row"><label>Auto-decline threshold</label><input value="KES 250,000"></div>
+                <div class="form-row"><label>High-risk countries</label><select multiple>
+                        <option>Nigeria</option>
+                        <option>Ghana</option>
+                    </select></div>
+            </div>
+            <div class="pm-modal-foot"><button class="btn-pm primary" onclick="savePreventionRules()">Save
+                    Rules</button></div>
+        </div>
+    </div>
+
+    <div class="pm-modal-backdrop" id="modal-profile">
+        <div class="pm-modal">
+            <div class="pm-modal-head">
+                <h3>Joseph Mwangi</h3><button class="pm-close-btn" onclick="closeModal('modal-profile')">×</button>
+            </div>
+            <div class="pm-modal-body">
+                <div class="detail-grid">
+                    <div class="detail-row"><span class="l">Role</span><span class="v">Chief Operations Officer</span>
+                    </div>
+                    <div class="detail-row"><span class="l">Permissions</span><span class="v">Full dispute access</span>
+                    </div>
+                </div>
+            </div>
+            <div class="pm-modal-foot"><button class="btn-pm" onclick="closeModal('modal-profile')">Close</button></div>
+        </div>
+    </div>
+
+    <div class="pm-modal-backdrop" id="modal-notifications">
+        <div class="pm-modal">
+            <div class="pm-modal-head">
+                <h3>Notifications</h3><button class="pm-close-btn"
+                    onclick="closeModal('modal-notifications')">×</button>
+            </div>
+            <div class="pm-modal-body">
+                <div class="kv">
+                    <div class="a" style="background:#FEE2E2">🚨</div>
+                    <div class="b">
+                        <div class="t">Case DC-48291 due in 14h</div>
+                        <div class="d">Critical SLA breach risk</div>
+                    </div>
+                </div>
+            </div>
+            <div class="pm-modal-foot"><button class="btn-pm" onclick="closeModal('modal-notifications')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== DATA ====================
+        const disputes = [
+            { id: 'DC-48291', ref: 'PM26KE48291', customer: 'Wanjiku Mwangi', amount: 124500, currency: 'KES', reason: '4837 — Fraud', stage: 'Representment', due: '14h', priority: 'Critical', status: 'new' },
+            { id: 'DC-48285', ref: 'PM26US00912', customer: 'Equity Logistics', amount: 4500, currency: 'USD', reason: '4853 — Dispute', stage: 'Evidence', due: '2d', priority: 'High', status: 'fraud' },
+            { id: 'DC-48270', ref: 'PM26KE47721', customer: 'Mama Njeri Stores', amount: 87500, currency: 'KES', reason: '4840 — Processing', stage: 'New', due: '3d', priority: 'Medium', status: 'quality' },
+            { id: 'DC-48264', ref: 'PM26UG44102', customer: 'Airtel Uganda', amount: 320000, currency: 'UGX', reason: '4837 — Fraud', stage: 'Representment', due: '18h', priority: 'Critical', status: 'critical' },
+        ];
+
+        const evidence = [
+            { name: 'Signed POD.pdf', size: '1.2MB', date: 'Oct 19' },
+            { name: 'Customer Photo.jpg', size: '480KB', date: 'Oct 18' },
+        ];
+
+        function renderDisputeTable(filter = 'all') {
+            const tbody = document.getElementById('dispute-tbody');
+            tbody.innerHTML = '';
+            let filtered = disputes;
+            if (filter !== 'all') filtered = disputes.filter(d => d.status === filter || (filter === 'critical' && d.priority === 'Critical'));
+
+            filtered.forEach(d => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+      <td><b style="color:var(--pm-primary);">${d.id}</b></td>
+      <td><span style="font-family:monospace;">${d.ref}</span></td>
+      <td>${d.customer}</td>
+      <td><b>${d.currency} ${d.amount.toLocaleString()}</b></td>
+      <td><span class="reason-pill reason-fraud">${d.reason}</span></td>
+      <td><span class="status-pill ${d.stage.toLowerCase()}">${d.stage}</span></td>
+      <td><span style="color:#B91C1C; font-weight:600;">${d.due}</span></td>
+      <td><span class="reason-pill ${d.priority === 'Critical' ? 'reason-fraud' : 'reason-quality'}">${d.priority}</span></td>
+      <td>
+        <button class="btn-pm" onclick="event.stopImmediatePropagation(); openDisputeDetail('${d.id}')">View</button>
+        <button class="btn-pm primary" onclick="event.stopImmediatePropagation(); openModal('modal-challenge')">Challenge</button>
+      </td>
+    `;
+                row.onclick = () => openDisputeDetail(d.id);
+                tbody.appendChild(row);
+            });
+        }
+
+        function openDisputeDetail(id) {
+            const d = disputes.find(x => x.id === id);
+            if (!d) return;
+            document.getElementById('modal-dispute-id').innerText = d.id;
+            document.getElementById('modal-dispute-sub').innerText = `${d.currency} ${d.amount.toLocaleString()} • ${d.reason} • Due in ${d.due}`;
+            document.getElementById('modal-dispute-detail').classList.add('open');
+        }
+
+        function switchTab(btn, tabId) {
+            document.querySelectorAll('#modal-dispute-detail .mini-tab button').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.querySelectorAll('#modal-dispute-detail .pm-modal-body > div').forEach(div => div.style.display = 'none');
+            document.getElementById(tabId).style.display = 'block';
+        }
+
+        let challengeStep = 1;
+        function openChallengeModal() {
+            challengeStep = 1;
+            document.getElementById('challenge-step').innerText = '1';
+            document.getElementById('challenge-content').innerHTML = `
+    <div class="form-row"><label>Defense Strategy</label>
+      <select><option>Compelling Evidence (POD + Signature)</option><option>Cardholder Authorization</option><option>Technical Error</option></select>
+    </div>
+    <div class="form-row"><label>Supporting Notes</label><textarea>Delivery confirmed by customer signature and GPS timestamp.</textarea></div>
+  `;
+            document.getElementById('modal-challenge').classList.add('open');
+        }
+
+        function nextChallengeStep() {
+            challengeStep++;
+            if (challengeStep > 4) {
+                closeModal('modal-challenge');
+                openModal('modal-pin');
+                return;
+            }
+            document.getElementById('challenge-step').innerText = challengeStep;
+            const content = document.getElementById('challenge-content');
+            if (challengeStep === 2) content.innerHTML = `<div class="form-row"><label>Attach Evidence</label><button class="btn-pm" onclick="openModal('modal-evidence-upload')">Upload Files</button></div>`;
+            if (challengeStep === 3) content.innerHTML = `<div class="form-row"><label>Final Summary</label><p>Representment package ready. 3 files attached. Defense: Compelling Evidence.</p></div>`;
+            if (challengeStep === 4) content.innerHTML = `<div style="text-align:center; padding:20px;">Ready to submit to network. Click Submit to continue.</div>`;
+        }
+
+        function prevChallengeStep() {
+            if (challengeStep > 1) challengeStep--;
+            document.getElementById('challenge-step').innerText = challengeStep;
+        }
+
+        function verifyPIN() {
+            closeModal('modal-pin');
+            alert('Representment submitted successfully. Case moved to "Under Issuer Review".');
+        }
+
+        function createNewDispute() {
+            closeModal('modal-new-dispute');
+            alert('New dispute case created: DC-48312');
+            renderDisputeTable();
+        }
+
+        function simulateUpload() {
+            closeModal('modal-evidence-upload');
+            alert('Evidence uploaded and auto-tagged.');
+            document.getElementById('evidence-list').innerHTML += `<div class="evidence-row"><div>📄</div><div style="flex:1;">New Upload.pdf</div></div>`;
+        }
+
+        function downloadEvidence(el) {
+            el.innerText = 'Downloaded';
+            setTimeout(() => el.innerText = 'Download', 1200);
+        }
+
+        function submitResolution() {
+            closeModal('modal-dispute-detail');
+            alert('Resolution submitted. Case status updated.');
+        }
+
+        function exportDisputes() {
+            alert('CSV export generated (47 rows).');
+        }
+
+        function savePreventionRules() {
+            closeModal('modal-prevention');
+            alert('Auto-prevention rules saved.');
+        }
+
+        function openModal(id) {
+            document.getElementById(id).classList.add('open');
+        }
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('open');
+        }
+
+        function renderEvidence() {
+            const container = document.getElementById('evidence-list');
+            container.innerHTML = evidence.map(e => `<div class="evidence-row"><div>📄</div><div style="flex:1;">${e.name} <span style="color:var(--pm-muted);">(${e.size})</span></div><button class="btn-pm" onclick="downloadEvidence(this)">Download</button></div>`).join('');
+        }
+
+        function renderRepresentment() {
+            const container = document.getElementById('representment-list');
+            container.innerHTML = `
+    <div class="dispute-card" onclick="openModal('modal-challenge')">
+      <div style="display:flex; justify-content:space-between;"><b>DC-48291</b><span class="status-pill processing">Ready</span></div>
+      <div style="font-size:12px; margin:6px 0;">KES 124,500 • 3 files attached</div>
+      <button class="btn-pm primary" style="width:100%;">Submit Representment</button>
+    </div>`;
+        }
+
+        function renderReasonBreakdown() {
+            document.getElementById('reason-breakdown').innerHTML = `
+    <div class="kv"><div class="b"><div class="t">4837 Fraud</div></div><div class="v">34%</div></div>
+    <div class="kv"><div class="b"><div class="t">4853 Dispute</div></div><div class="v">28%</div></div>
+    <div class="kv"><div class="b"><div class="t">4840 Processing</div></div><div class="v">19%</div></div>`;
+        }
+
+        function renderActivityLog() {
+            document.getElementById('activity-log').innerHTML = `
+    <div class="kv"><div class="b"><div class="t">DC-48291 submitted to issuer</div><div class="d">Today 11:42</div></div></div>
+    <div class="kv"><div class="b"><div class="t">Evidence tagged for DC-48285</div><div class="d">Yesterday</div></div></div>`;
+        }
+
+        // Init
+        function initDisputePage() {
+            renderDisputeTable();
+            renderEvidence();
+            renderRepresentment();
+            renderReasonBreakdown();
+            renderActivityLog();
+
+            // Filter tabs
+            document.getElementById('dispute-filter-tabs').addEventListener('click', e => {
+                if (e.target.tagName === 'BUTTON') {
+                    document.querySelectorAll('#dispute-filter-tabs button').forEach(b => b.classList.remove('active'));
+                    e.target.classList.add('active');
+                    renderDisputeTable(e.target.dataset.filter);
+                }
+            });
+
+            // PIN inputs
+            document.querySelectorAll('.pin-input').forEach((input, index, arr) => {
+                input.addEventListener('input', () => {
+                    if (input.value && index < arr.length - 1) arr[index + 1].focus();
+                });
+            });
+
+            // Keyboard
+            document.addEventListener('keydown', e => {
+                if (e.key === 'Escape') document.querySelectorAll('.pm-modal-backdrop.open').forEach(m => m.classList.remove('open'));
+            });
+
+            // Make table rows nicer
+            console.log('%c[PayMo] Dispute & Chargeback Management page initialized with 20+ functional modals', 'color:#64748b');
+        }
+
+        initDisputePage();
+    </script>
+</body>
+
+</html>

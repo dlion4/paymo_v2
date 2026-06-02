@@ -1,0 +1,834 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💸</text></svg>" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PayMo BaaS — Settlement &amp; Clearing | Page 1.7</title>
+    <meta name="description"
+        content="Settlement Calendar, Netting &amp; Batching, Settlement Reports, End-of-Day Process — PayMo BaaS Africa-First Fintech" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="master.css">
+    <style>
+        .settle-header {
+            background: linear-gradient(135deg, #1E293B 0%, #334155 100%);
+            color: white;
+            padding: 24px 32px;
+            border-radius: var(--pm-r-lg);
+            margin-bottom: 20px;
+        }
+
+        .settle-header h1 {
+            font-family: var(--pm-font-display);
+            font-size: 28px;
+            margin: 0;
+        }
+
+        .settle-header p {
+            opacity: 0.8;
+            margin: 6px 0 0;
+        }
+
+        .section-card {
+            background: var(--pm-surface);
+            border: 1px solid var(--pm-border);
+            border-radius: var(--pm-r-lg);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .mini-tab {
+            padding: 6px 14px;
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: var(--pm-r-pill);
+            border: 1px solid var(--pm-border);
+            background: var(--pm-surface);
+            color: var(--pm-ink-soft);
+            cursor: pointer;
+        }
+
+        .mini-tab.active {
+            background: var(--pm-primary);
+            color: white;
+            border-color: var(--pm-primary);
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+        }
+
+        .cal-day {
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid var(--pm-border);
+            text-align: center;
+            font-size: 11px;
+            cursor: pointer;
+        }
+
+        .cal-day.today {
+            background: var(--pm-primary);
+            color: white;
+            font-weight: 700;
+        }
+
+        .cal-day.settle {
+            background: var(--pm-accent-soft);
+            border-color: var(--pm-accent);
+        }
+
+        .cal-day.holiday {
+            background: var(--pm-warning-soft);
+        }
+
+        .settle-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--pm-border);
+        }
+
+        .settle-row:last-child {
+            border-bottom: none;
+        }
+
+        .stat-pill {
+            font-size: 11px;
+            padding: 3px 9px;
+            border-radius: var(--pm-r-pill);
+            font-weight: 600;
+        }
+
+        .batch-card {
+            border: 1px solid var(--pm-border);
+            border-radius: var(--pm-r-md);
+            padding: 14px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all .2s;
+        }
+
+        .batch-card:hover {
+            box-shadow: var(--pm-shadow-md);
+            transform: translateY(-1px);
+        }
+
+        .eod-step {
+            display: flex;
+            gap: 14px;
+            padding: 14px;
+            border: 1px solid var(--pm-border);
+            border-radius: var(--pm-r-md);
+            margin-bottom: 10px;
+            align-items: flex-start;
+        }
+
+        .eod-step.done {
+            background: var(--pm-accent-soft);
+        }
+
+        .eod-step.running {
+            background: var(--pm-info-soft);
+        }
+
+        .modal-tabs {
+            display: flex;
+            gap: 4px;
+            border-bottom: 1px solid var(--pm-border);
+            margin-bottom: 16px;
+        }
+
+        .modal-tab {
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            color: var(--pm-ink-soft);
+            border-bottom: 2px solid transparent;
+        }
+
+        .modal-tab.active {
+            color: var(--pm-primary);
+            border-color: var(--pm-primary);
+        }
+
+        .mini-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 10px;
+        }
+
+        .mini-stat {
+            background: var(--pm-surface-2);
+            padding: 12px;
+            border-radius: var(--pm-r-md);
+            text-align: center;
+        }
+
+        .mini-stat .v {
+            font-family: var(--pm-font-display);
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .mini-stat .l {
+            font-size: 10px;
+            color: var(--pm-muted);
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="pm-app">
+        <!-- Sidebar -->
+        <aside class="pm-sidebar">
+            <div class="pm-sidebar-logo">P</div>
+            <nav class="pm-sidebar-nav">
+                <a href="#" class="pm-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <rect x="3" y="3" width="7" height="9" />
+                        <rect x="14" y="3" width="7" height="5" />
+                        <rect x="14" y="12" width="7" height="9" />
+                        <rect x="3" y="16" width="7" height="5" />
+                    </svg></a>
+                <a href="#" class="pm-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <polyline points="17 1 21 5 17 9" />
+                        <path d="M3 11V9a4 4 0 0 1 4-4h14" />
+                        <polyline points="7 23 3 19 7 15" />
+                        <path d="M21 13v2a4 4 0 0 1-4 4H3" />
+                    </svg></a>
+                <a href="#" class="pm-nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                    </svg></a>
+                <a href="#" class="pm-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="2" y1="12" x2="22" y2="12" />
+                    </svg></a>
+                <a href="#" class="pm-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                        <polyline points="14 2 14 8 20 8" />
+                    </svg></a>
+                <a href="#" class="pm-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <line x1="18" y1="20" x2="18" y2="10" />
+                        <line x1="12" y1="20" x2="12" y2="4" />
+                        <line x1="6" y1="20" x2="6" y2="14" />
+                    </svg></a>
+                <a href="#" class="pm-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                    </svg></a>
+                <a href="#" class="pm-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <circle cx="12" cy="12" r="3" />
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83" />
+                    </svg></a>
+                <a href="#" class="pm-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                        <line x1="12" y1="17" x2="12.01" y2="17" />
+                    </svg></a>
+            </nav>
+        </aside>
+
+        <main class="pm-main">
+            <!-- Header -->
+            <header class="pm-header">
+                <div class="pm-header-title">
+                    <h1>Settlement &amp; Clearing</h1>
+                    <p>Page 1.7 — Calendar • Netting • Reports • EOD Process</p>
+                </div>
+                <div class="pm-header-search">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8" />
+                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                    </svg>
+                    <input type="text" id="globalSearch" placeholder="Search settlements, batches, reports...">
+                </div>
+                <div class="pm-header-actions">
+                    <div class="pm-system-status"><span class="dot"></span> All systems normal</div>
+                    <button class="pm-header-btn" onclick="PM.openNotifications()"><svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                        </svg></button>
+                    <button class="pm-profile-btn" onclick="PM.openProfile()">
+                        <div class="pm-avatar">JM</div>
+                        <div class="pm-profile-info">
+                            <div class="name">Joseph Mwangi</div>
+                            <div class="role">COO</div>
+                        </div>
+                    </button>
+                </div>
+            </header>
+
+            <div class="pm-content">
+
+                <!-- HERO -->
+                <div class="settle-header">
+                    <div
+                        style="display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap;">
+                        <div>
+                            <h1 style="color:white;">Settlement &amp; Clearing • 17 Jan 2026</h1>
+                            <p style="color:rgba(255,255,255,0.75);">Cut-off in <b id="cutoffTimer">2h 14m</b> • 4 rails
+                                in progress • 12 batches queued</p>
+                        </div>
+                        <div style="display:flex; gap:8px;">
+                            <button class="btn-pm" onclick="PM.openEODChecklist()"
+                                style="background:rgba(255,255,255,0.15);color:white;border-color:rgba(255,255,255,0.3)">Run
+                                EOD</button>
+                            <button class="btn-pm primary" onclick="PM.openManualSettlement()">Manual
+                                Settlement</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 1.7.1 SETTLEMENT CALENDAR -->
+                <div class="section-card">
+                    <div class="pm-card-head">
+                        <div>
+                            <h2 class="pm-card-title"><span class="emoji">📅</span> Settlement Calendar</h2>
+                            <p class="pm-card-sub">Rail-specific cut-off times • Holidays • Settlement windows</p>
+                        </div>
+                        <div style="display:flex; gap:8px;">
+                            <div class="fg"><button class="fg-btn active"
+                                    onclick="PM.filterCalendar('all')">All</button><button class="fg-btn"
+                                    onclick="PM.filterCalendar('KE')">KE</button><button class="fg-btn"
+                                    onclick="PM.filterCalendar('EA')">EA</button><button class="fg-btn"
+                                    onclick="PM.filterCalendar('GLOBAL')">Global</button></div>
+                            <button class="btn-pm" onclick="PM.openCalendarConfig()">Configure</button>
+                        </div>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns: 1.3fr 1fr; gap:20px;">
+                        <!-- Mini Calendar -->
+                        <div>
+                            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                                <div style="font-weight:700;">January 2026</div>
+                                <div><button class="btn-pm" onclick="PM.prevMonth()">←</button><button class="btn-pm"
+                                        onclick="PM.nextMonth()">→</button></div>
+                            </div>
+                            <div class="calendar-grid" id="calendarGrid"></div>
+                            <div
+                                style="margin-top:10px; font-size:11px; display:flex; gap:12px; color:var(--pm-muted);">
+                                <div><span
+                                        style="background:var(--pm-accent-soft);padding:1px 6px;border-radius:4px;">■</span>
+                                    Settlement day</div>
+                                <div><span
+                                        style="background:var(--pm-warning-soft);padding:1px 6px;border-radius:4px;">■</span>
+                                    Holiday</div>
+                            </div>
+                        </div>
+
+                        <!-- Today's Windows -->
+                        <div>
+                            <div style="font-weight:700; margin-bottom:8px;">Today's Settlement Windows</div>
+                            <div class="settle-row">
+                                <div style="width:110px;"><span class="stat-pill"
+                                        style="background:#10B981;color:white;">M-Pesa</span></div>
+                                <div style="flex:1;">B2B 08:00–20:00 • B2C 00:00–23:59</div>
+                                <div style="font-weight:700;">T+0</div>
+                            </div>
+                            <div class="settle-row">
+                                <div style="width:110px;"><span class="stat-pill"
+                                        style="background:#3B82F6;color:white;">PesaLink</span></div>
+                                <div style="flex:1;">Instant 24/7 • Batch 06:00, 12:00, 18:00</div>
+                                <div style="font-weight:700;">Instant</div>
+                            </div>
+                            <div class="settle-row">
+                                <div style="width:110px;"><span class="stat-pill"
+                                        style="background:#8B5CF6;color:white;">RTGS</span></div>
+                                <div style="flex:1;">09:00–15:30 EAT (Mon–Fri)</div>
+                                <div style="font-weight:700;">Real-time</div>
+                            </div>
+                            <div class="settle-row">
+                                <div style="width:110px;"><span class="stat-pill"
+                                        style="background:#1E293B;color:white;">SWIFT</span></div>
+                                <div style="flex:1;">Cut-off 14:00 EAT • Settlement T+1</div>
+                                <div style="font-weight:700;">T+1</div>
+                            </div>
+                            <div class="settle-row">
+                                <div style="width:110px;"><span class="stat-pill"
+                                        style="background:#F59E0B;color:white;">PAPSS</span></div>
+                                <div style="flex:1;">09:00–17:00 • 120s finality</div>
+                                <div style="font-weight:700;">T+0</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 1.7.2 NETTING & BATCHING -->
+                <div class="section-card">
+                    <div class="pm-card-head">
+                        <div>
+                            <h2 class="pm-card-title"><span class="emoji">⚖️</span> Netting &amp; Batching</h2>
+                            <p class="pm-card-sub">Multi-lateral netting • Auto-batch rules • Queue management</p>
+                        </div>
+                        <button class="btn-pm primary" onclick="PM.openBatchConfig()">Configure Rules</button>
+                    </div>
+
+                    <div
+                        style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:14px; margin-bottom:14px;">
+                        <div class="mini-stat">
+                            <div class="v">KES 1.84B</div>
+                            <div class="l">Net Position Today</div>
+                        </div>
+                        <div class="mini-stat">
+                            <div class="v">47</div>
+                            <div class="l">Active Batches</div>
+                        </div>
+                        <div class="mini-stat">
+                            <div class="v">12</div>
+                            <div class="l">Pending Netting</div>
+                        </div>
+                        <div class="mini-stat">
+                            <div class="v">94.7%</div>
+                            <div class="l">Netting Efficiency</div>
+                        </div>
+                    </div>
+
+                    <div style="font-weight:700; margin:10px 0 8px;">Active Batches</div>
+                    <div id="batchList"></div>
+                </div>
+
+                <!-- 1.7.3 SETTLEMENT REPORTS -->
+                <div class="section-card">
+                    <div class="pm-card-head">
+                        <div>
+                            <h2 class="pm-card-title"><span class="emoji">📊</span> Settlement Reports</h2>
+                            <p class="pm-card-sub">Daily • Reconciliation • Exception • Audit Trail</p>
+                        </div>
+                        <button class="btn-pm primary" onclick="PM.openReportGenerator()">Generate Report</button>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:12px;">
+                        <div class="batch-card" onclick="PM.openSettlementReport('daily')">
+                            <div style="display:flex; justify-content:space-between;">
+                                <div><b>Daily Settlement Report</b>
+                                    <div style="font-size:11px; color:var(--pm-muted);">17 Jan 2026 — 14:32 EAT</div>
+                                </div><span class="stat-pill" style="background:#10B981;color:white;">Ready</span>
+                            </div>
+                            <div style="margin-top:10px; font-size:12px;">1,284 transactions • KES 2.41B • 99.4% success
+                            </div>
+                        </div>
+                        <div class="batch-card" onclick="PM.openSettlementReport('recon')">
+                            <div style="display:flex; justify-content:space-between;">
+                                <div><b>Reconciliation Report</b>
+                                    <div style="font-size:11px; color:var(--pm-muted);">17 Jan 2026 — 13:45 EAT</div>
+                                </div><span class="stat-pill" style="background:#3B82F6;color:white;">Ready</span>
+                            </div>
+                            <div style="margin-top:10px; font-size:12px;">4 mismatches • KES 184K • 3 resolved</div>
+                        </div>
+                        <div class="batch-card" onclick="PM.openSettlementReport('exception')">
+                            <div style="display:flex; justify-content:space-between;">
+                                <div><b>Exception Report</b>
+                                    <div style="font-size:11px; color:var(--pm-muted);">17 Jan 2026 — 12:10 EAT</div>
+                                </div><span class="stat-pill" style="background:#F59E0B;color:white;">12 Items</span>
+                            </div>
+                            <div style="margin-top:10px; font-size:12px;">Failed • Delayed • Held • Reversed</div>
+                        </div>
+                        <div class="batch-card" onclick="PM.openSettlementReport('audit')">
+                            <div style="display:flex; justify-content:space-between;">
+                                <div><b>Audit Trail</b>
+                                    <div style="font-size:11px; color:var(--pm-muted);">16 Jan 2026 — 23:59 EAT</div>
+                                </div><span class="stat-pill" style="background:#8B5CF6;color:white;">PDF</span>
+                            </div>
+                            <div style="margin-top:10px; font-size:12px;">8,472 entries • 47 operators • Full trace
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 1.7.4 END-OF-DAY PROCESS -->
+                <div class="section-card">
+                    <div class="pm-card-head">
+                        <div>
+                            <h2 class="pm-card-title"><span class="emoji">🌙</span> End-of-Day Process</h2>
+                            <p class="pm-card-sub">Automated checklist • Reconciliation • Final settlement • System
+                                close</p>
+                        </div>
+                        <button class="btn-pm" onclick="PM.openEODChecklist()">View Full Checklist</button>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:12px;">
+                        <div class="eod-step done">
+                            <div
+                                style="width:28px; height:28px; background:#10B981; color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px;">
+                                ✓</div>
+                            <div style="flex:1;">
+                                <div style="font-weight:600;">Rail cut-off complete</div>
+                                <div style="font-size:11px; color:var(--pm-muted);">M-Pesa, PesaLink, RTGS closed</div>
+                            </div>
+                        </div>
+                        <div class="eod-step running">
+                            <div
+                                style="width:28px; height:28px; background:#3B82F6; color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px;">
+                                ⟳</div>
+                            <div style="flex:1;">
+                                <div style="font-weight:600;">Netting engine running</div>
+                                <div style="font-size:11px; color:var(--pm-muted);">47 batches • 94.7% complete</div>
+                            </div>
+                        </div>
+                        <div class="eod-step">
+                            <div
+                                style="width:28px; height:28px; background:var(--pm-bg-2); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px;">
+                                3</div>
+                            <div style="flex:1;">
+                                <div style="font-weight:600;">Reconciliation</div>
+                                <div style="font-size:11px; color:var(--pm-muted);">Awaiting final batch</div>
+                            </div>
+                        </div>
+                        <div class="eod-step">
+                            <div
+                                style="width:28px; height:28px; background:var(--pm-bg-2); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px;">
+                                4</div>
+                            <div style="flex:1;">
+                                <div style="font-weight:600;">EOD Reports</div>
+                                <div style="font-size:11px; color:var(--pm-muted);">Auto-generate at 23:45</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- ====================== MODALS ====================== -->
+    <div class="pm-modal-backdrop" id="modalBackdrop" onclick="if(event.target.id==='modalBackdrop') PM.closeModal()">
+        <div class="pm-modal" id="modalEl" style="max-width:720px;">
+            <div class="pm-modal-head">
+                <div>
+                    <h3 id="modalTitle"></h3>
+                    <p id="modalSubtitle"></p>
+                </div><button class="pm-close-btn" onclick="PM.closeModal()">×</button>
+            </div>
+            <div class="pm-modal-body" id="modalBody"></div>
+            <div class="pm-modal-foot" id="modalFoot"></div>
+        </div>
+    </div>
+
+    <script>
+        const PM = {
+            currentMonth: 0,
+            calendarFilter: 'all',
+
+            /* ---------- Utilities ---------- */
+            toast(msg, type = 'success') {
+                const c = document.createElement('div');
+                c.style.cssText = 'position:fixed;bottom:24px;right:24px;background:white;border:1px solid var(--pm-border);padding:12px 18px;border-radius:10px;box-shadow:var(--pm-shadow-lg);z-index:2000;display:flex;gap:8px;align-items:center;';
+                c.innerHTML = `<span>${type === 'success' ? '✅' : type === 'error' ? '❌' : '⚠️'}</span><div>${msg}</div>`;
+                document.body.appendChild(c);
+                setTimeout(() => { c.style.transition = 'all .3s'; c.style.opacity = '0'; setTimeout(() => c.remove(), 300); }, 2800);
+            },
+
+            openModal(title, sub, body, foot = '') {
+                document.getElementById('modalTitle').textContent = title;
+                document.getElementById('modalSubtitle').textContent = sub || '';
+                document.getElementById('modalBody').innerHTML = body;
+                document.getElementById('modalFoot').innerHTML = foot;
+                document.getElementById('modalBackdrop').classList.add('open');
+            },
+            closeModal() { document.getElementById('modalBackdrop').classList.remove('open'); },
+
+            /* ---------- Calendar ---------- */
+            renderCalendar() {
+                const grid = document.getElementById('calendarGrid');
+                grid.innerHTML = '';
+                const days = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+                days.forEach(d => { const el = document.createElement('div'); el.style.fontSize = '10px'; el.style.color = 'var(--pm-muted)'; el.style.textAlign = 'center'; el.textContent = d; grid.appendChild(el); });
+
+                const today = 17;
+                for (let i = 1; i <= 31; i++) {
+                    const day = document.createElement('div');
+                    day.className = 'cal-day';
+                    if (i === today) day.classList.add('today');
+                    if ([3, 10, 17, 24, 31].includes(i)) day.classList.add('settle');
+                    if ([1, 6, 13, 20, 27].includes(i)) day.classList.add('holiday');
+                    day.textContent = i;
+                    day.onclick = () => this.openDayDetail(i);
+                    grid.appendChild(day);
+                }
+            },
+            filterCalendar(region) {
+                this.calendarFilter = region;
+                document.querySelectorAll('.fg-btn').forEach(b => b.classList.remove('active'));
+                event.target.classList.add('active');
+                // In real app would filter days
+                this.toast(`Calendar filtered to ${region}`);
+            },
+            openDayDetail(day) {
+                this.openModal(`Settlement Day — ${day} Jan 2026`, 'Detailed view', `
+      <div class="mini-grid">
+        <div class="mini-stat"><div class="v">KES 2.41B</div><div class="l">Total Settled</div></div>
+        <div class="mini-stat"><div class="v">1,284</div><div class="l">Transactions</div></div>
+        <div class="mini-stat"><div class="v">99.4%</div><div class="l">Success Rate</div></div>
+        <div class="mini-stat"><div class="v">4.2s</div><div class="l">Avg Time</div></div>
+      </div>
+      <div style="margin-top:16px;"><b>Rail Breakdown</b></div>
+      <div class="settle-row"><div style="width:90px;">M-Pesa</div><div style="flex:1;"><div class="progress"><div style="width:98%;background:#10B981"></div></div></div><div style="width:70px;text-align:right;">KES 1.12B</div></div>
+      <div class="settle-row"><div style="width:90px;">PesaLink</div><div style="flex:1;"><div class="progress"><div style="width:94%;background:#3B82F6"></div></div></div><div style="width:70px;text-align:right;">KES 684M</div></div>
+      <div class="settle-row"><div style="width:90px;">RTGS</div><div style="flex:1;"><div class="progress"><div style="width:87%;background:#8B5CF6"></div></div></div><div style="width:70px;text-align:right;">KES 412M</div></div>
+      <div class="settle-row"><div style="width:90px;">PAPSS</div><div style="flex:1;"><div class="progress"><div style="width:76%;background:#F59E0B"></div></div></div><div style="width:70px;text-align:right;">KES 194M</div></div>
+    `, `<button class="btn-pm" onclick="PM.closeModal()">Close</button><button class="btn-pm primary" onclick="PM.openSettlementReport('daily')">Download Report</button>`);
+            },
+            openCalendarConfig() {
+                this.openModal('Calendar Configuration', 'Rail cut-offs & holidays', `
+      <div class="modal-tabs"><div class="modal-tab active">Cut-off Times</div><div class="modal-tab">Holidays 2026</div><div class="modal-tab">Auto-Rules</div></div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+        <div><label style="font-size:12px;">M-Pesa B2B</label><input value="20:00 EAT" style="width:100%;padding:8px;border:1px solid var(--pm-border);border-radius:8px;"></div>
+        <div><label style="font-size:12px;">RTGS</label><input value="15:30 EAT" style="width:100%;padding:8px;border:1px solid var(--pm-border);border-radius:8px;"></div>
+        <div><label style="font-size:12px;">SWIFT</label><input value="14:00 EAT" style="width:100%;padding:8px;border:1px solid var(--pm-border);border-radius:8px;"></div>
+        <div><label style="font-size:12px;">PAPSS</label><input value="17:00 EAT" style="width:100%;padding:8px;border:1px solid var(--pm-border);border-radius:8px;"></div>
+      </div>
+    `, `<button class="btn-pm" onclick="PM.closeModal()">Cancel</button><button class="btn-pm primary" onclick="PM.toast('Calendar updated');PM.closeModal()">Save Changes</button>`);
+            },
+
+            /* ---------- Netting & Batching ---------- */
+            renderBatches() {
+                const container = document.getElementById('batchList');
+                const batches = [
+                    { id: 'B-1842', rail: 'M-Pesa B2B', net: 'KES 412.8M', tx: 1247, status: 'processing', pct: 78 },
+                    { id: 'B-1843', rail: 'PesaLink', net: 'KES 184.2M', tx: 892, status: 'completed', pct: 100 },
+                    { id: 'B-1844', rail: 'RTGS High-Value', net: 'KES 1.24B', tx: 31, status: 'processing', pct: 45 },
+                    { id: 'B-1845', rail: 'PAPSS', net: 'USD 4.2M', tx: 67, status: 'pending', pct: 0 },
+                    { id: 'B-1846', rail: 'SWIFT gpi', net: 'USD 2.1M', tx: 18, status: 'processing', pct: 92 },
+                ];
+                container.innerHTML = batches.map(b => `
+      <div class="batch-card" onclick="PM.openBatchDetail('${b.id}')">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div><b>${b.id}</b> — ${b.rail}</div>
+          <span class="stat-pill" style="background:${b.status === 'completed' ? '#10B981' : b.status === 'processing' ? '#3B82F6' : '#F59E0B'};color:white;">${b.status}</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-top:8px; font-size:13px;">
+          <div><b>${b.net}</b> • ${b.tx} txs</div>
+          <div>${b.pct}%</div>
+        </div>
+        <div class="progress" style="margin-top:6px;"><div style="width:${b.pct}%; background:${b.status === 'completed' ? '#10B981' : '#3B82F6'}"></div></div>
+      </div>
+    `).join('');
+            },
+            openBatchDetail(id) {
+                this.openModal(`Batch ${id}`, 'Multi-lateral netting details', `
+      <div class="mini-grid">
+        <div class="mini-stat"><div class="v">KES 412.8M</div><div class="l">Net Position</div></div>
+        <div class="mini-stat"><div class="v">1,247</div><div class="l">Transactions</div></div>
+        <div class="mini-stat"><div class="v">18</div><div class="l">Participants</div></div>
+        <div class="mini-stat"><div class="v">78%</div><div class="l">Complete</div></div>
+      </div>
+      <div style="margin:16px 0 8px;"><b>Netting Matrix (Top 5)</b></div>
+      <table class="pm-table"><thead><tr><th>Bank</th><th>Debit</th><th>Credit</th><th>Net</th></tr></thead>
+      <tbody>
+        <tr><td>KCB</td><td>KES 124.2M</td><td>KES 98.4M</td><td style="color:#B91C1C;">-KES 25.8M</td></tr>
+        <tr><td>Equity</td><td>KES 87.1M</td><td>KES 142.3M</td><td style="color:#047857;">+KES 55.2M</td></tr>
+        <tr><td>Co-op</td><td>KES 56.4M</td><td>KES 41.9M</td><td style="color:#B91C1C;">-KES 14.5M</td></tr>
+        <tr><td>Stanbic</td><td>KES 31.8M</td><td>KES 67.2M</td><td style="color:#047857;">+KES 35.4M</td></tr>
+        <tr><td>ABSA</td><td>KES 19.3M</td><td>KES 12.7M</td><td style="color:#B91C1C;">-KES 6.6M</td></tr>
+      </tbody></table>
+    `, `<button class="btn-pm" onclick="PM.closeModal()">Close</button><button class="btn-pm" onclick="PM.forceSettleBatch('${id}')">Force Settle</button><button class="btn-pm primary" onclick="PM.openBatchConfig()">Edit Rules</button>`);
+            },
+            openBatchConfig() {
+                this.openModal('Netting & Batch Rules', 'Auto-batch configuration', `
+      <div class="modal-tabs"><div class="modal-tab active">General</div><div class="modal-tab">Thresholds</div><div class="modal-tab">Schedule</div></div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+        <div class="form-row"><label>Minimum batch size</label><input value="KES 50,000,000"></div>
+        <div class="form-row"><label>Maximum batch size</label><input value="KES 2,000,000,000"></div>
+        <div class="form-row"><label>Netting window</label><select><option>Every 30 minutes</option><option>Hourly</option><option>Every 4 hours</option></select></div>
+        <div class="form-row"><label>Auto-settle threshold</label><input value="KES 500,000,000"></div>
+      </div>
+      <div class="form-row"><label>Excluded rails from netting</label><div style="display:flex; gap:6px; flex-wrap:wrap;">${['SWIFT gpi', 'PAPSS', 'SEPA Inst'].map(r => `<span class="stat-pill" style="background:#FEE2E2;color:#B91C1C;">${r}</span>`).join('')}</div></div>
+    `, `<button class="btn-pm" onclick="PM.closeModal()">Cancel</button><button class="btn-pm primary" onclick="PM.toast('Batch rules saved');PM.closeModal()">Save</button>`);
+            },
+            forceSettleBatch(id) {
+                this.closeModal();
+                this.openModal('Force Settlement Confirmation', id, `
+      <p style="color:#B91C1C;">This action will bypass normal netting rules and force immediate settlement. This cannot be undone.</p>
+      <div class="form-row"><label>Reason (required for audit)</label><textarea rows="2" placeholder="Regulatory requirement / liquidity emergency..."></textarea></div>
+      <div class="form-row"><label>Approver PIN</label><input type="password" value="••••" style="font-family:monospace;"></div>
+    `, `<button class="btn-pm" onclick="PM.closeModal()">Cancel</button><button class="btn-pm danger" onclick="PM.confirmForceSettle('${id}')">Force Settle Now</button>`);
+            },
+            confirmForceSettle(id) {
+                this.closeModal();
+                this.toast(`Batch ${id} force-settled successfully`);
+            },
+
+            /* ---------- Reports ---------- */
+            openReportGenerator() {
+                this.openModal('Generate Settlement Report', 'Custom report builder', `
+      <div class="modal-tabs"><div class="modal-tab active">Standard</div><div class="modal-tab">Custom</div><div class="modal-tab">Scheduled</div></div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+        <div class="form-row"><label>Report Type</label><select><option>Daily Settlement</option><option>Reconciliation</option><option>Exception Summary</option><option>Audit Trail</option><option>Multi-rail Net Position</option></select></div>
+        <div class="form-row"><label>Date Range</label><select><option>Today</option><option>Last 7 days</option><option>Last 30 days</option><option>Custom range</option></select></div>
+        <div class="form-row"><label>Rails</label><div style="display:flex; gap:4px; flex-wrap:wrap;">${['M-Pesa', 'PesaLink', 'RTGS', 'SWIFT', 'PAPSS'].map(r => `<label style="font-size:12px;"><input type="checkbox" checked> ${r}</label>`).join('')}</div></div>
+        <div class="form-row"><label>Format</label><select><option>PDF</option><option>Excel (.xlsx)</option><option>CSV</option><option>JSON</option></select></div>
+      </div>
+      <div class="form-row"><label>Include sections</label><div style="display:flex; gap:8px; flex-wrap:wrap;">${['Summary', 'Rail Breakdown', 'Netting Matrix', 'Exceptions', 'Audit Log'].map(s => `<span class="stat-pill" style="background:var(--pm-accent-soft);color:#047857;">${s}</span>`).join('')}</div></div>
+    `, `<button class="btn-pm" onclick="PM.closeModal()">Cancel</button><button class="btn-pm primary" onclick="PM.generateReport()">Generate & Download</button>`);
+            },
+            generateReport() {
+                this.closeModal();
+                this.toast('Report generated — downloading now');
+                setTimeout(() => this.toast('Report saved to Downloads', 'success'), 1800);
+            },
+            openSettlementReport(type) {
+                const titles = { daily: 'Daily Settlement Report', recon: 'Reconciliation Report', exception: 'Exception Report', audit: 'Audit Trail' };
+                this.openModal(titles[type], '17 Jan 2026', `
+      <div style="background:var(--pm-surface-2); padding:16px; border-radius:10px; margin-bottom:14px;">
+        <div style="display:flex; justify-content:space-between;"><div><b>Status:</b> <span style="color:#047857;">Complete</span></div><div><b>Generated:</b> 17 Jan 2026 14:32 EAT</div></div>
+      </div>
+      <div class="mini-grid">
+        <div class="mini-stat"><div class="v">KES 2.41B</div><div class="l">Gross Volume</div></div>
+        <div class="mini-stat"><div class="v">KES 1.84B</div><div class="l">Net Position</div></div>
+        <div class="mini-stat"><div class="v">1,284</div><div class="l">Transactions</div></div>
+        <div class="mini-stat"><div class="v">4</div><div class="l">Exceptions</div></div>
+      </div>
+      <div style="margin-top:16px;"><b>Key Metrics</b></div>
+      <div class="settle-row"><div style="width:140px;">Success Rate</div><div style="flex:1;"><div class="progress"><div style="width:99.4%;background:#10B981"></div></div></div><div style="width:60px;text-align:right;">99.4%</div></div>
+      <div class="settle-row"><div style="width:140px;">Avg Settlement</div><div style="flex:1;">4.2 seconds</div></div>
+      <div class="settle-row"><div style="width:140px;">Highest Value Tx</div><div style="flex:1;">KES 125,000,000 (RTGS)</div></div>
+    `, `<button class="btn-pm" onclick="PM.closeModal()">Close</button><button class="btn-pm" onclick="PM.toast('Report downloaded')">Download PDF</button><button class="btn-pm primary" onclick="PM.toast('Report sent to compliance inbox')">Email to Team</button>`);
+            },
+
+            /* ---------- EOD Process ---------- */
+            openEODChecklist() {
+                this.openModal('End-of-Day Checklist', '17 Jan 2026 — Automated', `
+      <div class="eod-step done"><div style="width:26px;height:26px;background:#10B981;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;">✓</div><div style="flex:1;"><b>Rail cut-off complete</b><div style="font-size:11px;color:var(--pm-muted);">All rails closed at scheduled times</div></div></div>
+      <div class="eod-step running"><div style="width:26px;height:26px;background:#3B82F6;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;">⟳</div><div style="flex:1;"><b>Netting engine</b><div style="font-size:11px;color:var(--pm-muted);">47/50 batches processed</div></div><button class="btn-pm" style="padding:4px 10px;" onclick="PM.forceSettleBatch('B-1844')">Force</button></div>
+      <div class="eod-step"><div style="width:26px;height:26px;background:var(--pm-bg-2);border-radius:50%;display:flex;align-items:center;justify-content:center;">3</div><div style="flex:1;"><b>Reconciliation</b><div style="font-size:11px;color:var(--pm-muted);">4 mismatches pending review</div></div><button class="btn-pm" style="padding:4px 10px;" onclick="PM.openReconModal()">Review</button></div>
+      <div class="eod-step"><div style="width:26px;height:26px;background:var(--pm-bg-2);border-radius:50%;display:flex;align-items:center;justify-content:center;">4</div><div style="flex:1;"><b>Generate EOD Reports</b><div style="font-size:11px;color:var(--pm-muted);">Scheduled for 23:45 EAT</div></div></div>
+      <div class="eod-step"><div style="width:26px;height:26px;background:var(--pm-bg-2);border-radius:50%;display:flex;align-items:center;justify-content:center;">5</div><div style="flex:1;"><b>System Close &amp; Archive</b><div style="font-size:11px;color:var(--pm-muted);">Database snapshot + log archival</div></div></div>
+    `, `<button class="btn-pm" onclick="PM.closeModal()">Close</button><button class="btn-pm primary" onclick="PM.runFullEOD()">Run Full EOD Now</button>`);
+            },
+            runFullEOD() {
+                this.closeModal();
+                this.toast('EOD process started — estimated 14 minutes');
+                setTimeout(() => this.toast('EOD completed successfully', 'success'), 4200);
+            },
+            openReconModal() {
+                this.closeModal();
+                this.openModal('Reconciliation Mismatches', '4 items require resolution', `
+      <div style="max-height:320px; overflow:auto;">
+        <div class="batch-card" onclick="PM.resolveMismatch(1)"><b>M-001</b> — KCB vs PesaLink • KES 45,200 <span class="stat-pill" style="background:#FEE2E2;color:#B91C1C;">Unmatched</span></div>
+        <div class="batch-card" onclick="PM.resolveMismatch(2)"><b>M-002</b> — Equity RTGS reversal • KES 125,000 <span class="stat-pill" style="background:#FEF3C7;color:#B45309;">Partial</span></div>
+        <div class="batch-card" onclick="PM.resolveMismatch(3)"><b>M-003</b> — Stanbic Nostro vs SWIFT • USD 2,400 <span class="stat-pill" style="background:#FEE2E2;color:#B91C1C;">Unmatched</span></div>
+        <div class="batch-card" onclick="PM.resolveMismatch(4)"><b>M-004</b> — PAPSS duplicate credit • KES 18,750 <span class="stat-pill" style="background:#FEF3C7;color:#B45309;">Partial</span></div>
+      </div>
+    `, `<button class="btn-pm" onclick="PM.closeModal()">Close</button><button class="btn-pm primary" onclick="PM.autoResolveAll()">Auto Resolve All</button>`);
+            },
+            resolveMismatch(id) {
+                this.closeModal();
+                this.openModal(`Resolve Mismatch #${id}`, 'Choose resolution', `
+      <div class="form-row"><label>Resolution</label><select><option>Mark as reconciled (manual adjustment)</option><option>File dispute with counterparty</option><option>Write off (under threshold)</option><option>Escalate to compliance</option></select></div>
+      <div class="form-row"><label>Notes</label><textarea rows="2"></textarea></div>
+      <div class="form-row"><label>Approver</label><input value="Joseph Mwangi (COO)"></div>
+    `, `<button class="btn-pm" onclick="PM.closeModal()">Cancel</button><button class="btn-pm primary" onclick="PM.toast('Mismatch resolved');PM.closeModal()">Confirm Resolution</button>`);
+            },
+            autoResolveAll() {
+                this.closeModal();
+                this.toast('4 mismatches auto-resolved using AI rules');
+            },
+
+            /* ---------- Manual Settlement ---------- */
+            openManualSettlement() {
+                this.openModal('Manual Settlement Run', 'Override scheduled netting', `
+      <div class="form-row"><label>Select Rails</label><div style="display:flex; gap:8px; flex-wrap:wrap;">${['M-Pesa B2B', 'PesaLink', 'RTGS', 'SWIFT gpi', 'PAPSS'].map(r => `<label style="font-size:12px;"><input type="checkbox" checked> ${r}</label>`).join('')}</div></div>
+      <div class="form-row"><label>Settlement Date</label><input type="date" value="2026-01-17"></div>
+      <div class="form-row"><label>Reason</label><textarea rows="2" placeholder="Regulatory requirement / liquidity bridge..."></textarea></div>
+      <div class="form-row"><label>Approver PIN</label><div style="display:flex; gap:4px;">${[1, 2, 3, 4].map(() => `<input type="password" maxlength="1" style="width:42px;text-align:center;font-size:20px;" value="•">`).join('')}</div></div>
+    `, `<button class="btn-pm" onclick="PM.closeModal()">Cancel</button><button class="btn-pm primary" onclick="PM.confirmManualSettlement()">Execute Settlement</button>`);
+            },
+            confirmManualSettlement() {
+                this.closeModal();
+                this.toast('Manual settlement executed — 3 rails updated');
+            },
+
+            /* ---------- Header actions ---------- */
+            openNotifications() {
+                this.openModal('Notifications', 'Settlement & Clearing', `
+      <div class="notif-list">
+        <div class="notif-item"><div class="ico" style="background:#FEE2E2;">⚠</div><div class="body"><div class="t">RTGS cut-off in 14 minutes</div><div class="d">31 high-value transactions still pending</div></div></div>
+        <div class="notif-item"><div class="ico" style="background:#DBEAFE;">⟳</div><div class="body"><div class="t">Netting batch B-1844 at 45%</div><div class="d">Expected completion: 16:12 EAT</div></div></div>
+        <div class="notif-item"><div class="ico" style="background:#D1FAE5;">✓</div><div class="body"><div class="t">PesaLink reconciliation complete</div><div class="d">0 mismatches • 892 transactions</div></div></div>
+      </div>
+    `, `<button class="btn-pm" onclick="PM.closeModal()">Close</button>`);
+            },
+            openProfile() {
+                this.openModal('Joseph Mwangi', 'Chief Operations Officer', `
+      <div style="display:flex; gap:16px; align-items:center;">
+        <div class="pm-avatar" style="width:64px;height:64px;font-size:24px;">JM</div>
+        <div><div style="font-weight:700;">Joseph Mwangi</div><div style="color:var(--pm-muted);">j.mwangi@paymo.io</div><div style="margin-top:4px;"><span class="stat-pill" style="background:#10B981;color:white;">● Online</span></div></div>
+      </div>
+      <div class="divider"></div>
+      <div style="display:flex; flex-direction:column; gap:6px;">
+        <button class="btn-pm" style="justify-content:flex-start;" onclick="PM.openSettings()">Account Settings</button>
+        <button class="btn-pm" style="justify-content:flex-start;" onclick="PM.closeModal();PM.toast('Logged out')">Sign Out</button>
+      </div>
+    `, `<button class="btn-pm" onclick="PM.closeModal()">Close</button>`);
+            },
+            openSettings() {
+                this.closeModal();
+                this.openModal('Settlement Settings', 'Permissions & automation', `
+      <div class="modal-tabs"><div class="modal-tab active">General</div><div class="modal-tab">Permissions</div><div class="modal-tab">Automation</div></div>
+      <div class="form-row"><label>Settlement approvers</label><select><option>COO + CFO (dual)</option><option>Any senior manager</option><option>Auto (under threshold)</option></select></div>
+      <div class="form-row"><label>Maximum manual settlement</label><input value="KES 500,000,000"></div>
+      <div class="form-row"><label>Require PIN for force settle</label><input type="checkbox" checked></div>
+    `, `<button class="btn-pm" onclick="PM.closeModal()">Cancel</button><button class="btn-pm primary" onclick="PM.toast('Settings saved');PM.closeModal()">Save</button>`);
+            },
+
+            /* ---------- Init ---------- */
+            init() {
+                this.renderCalendar();
+                this.renderBatches();
+
+                // Live cutoff timer
+                setInterval(() => {
+                    const el = document.getElementById('cutoffTimer');
+                    if (el) {
+                        const parts = el.textContent.split('h ');
+                        let m = parseInt(parts[1]) - 1;
+                        if (m < 0) { m = 59; }
+                        el.textContent = `${parts[0]}h ${m < 10 ? '0' : ''}${m}m`;
+                    }
+                }, 60000);
+
+                // Global search
+                const search = document.getElementById('globalSearch');
+                search.addEventListener('keyup', (e) => {
+                    if (e.key === 'Enter' && search.value.trim()) {
+                        this.toast(`Searching for "${search.value}"...`);
+                        search.value = '';
+                    }
+                });
+
+                // Keyboard shortcuts
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') this.closeModal();
+                    if (e.key === '/' && document.activeElement.tagName === 'BODY') { e.preventDefault(); search.focus(); }
+                });
+
+                // Welcome
+                setTimeout(() => this.toast('Settlement & Clearing loaded — 4 rails active', 'success'), 800);
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => PM.init());
+    </script>
+</body>
+
+</html>

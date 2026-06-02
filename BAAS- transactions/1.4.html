@@ -1,0 +1,984 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌍</text></svg>" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PayMo BaaS — Payment Rails & Routing | Page 1.4</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="master-file1.css">
+    <style>
+        .pm-section {
+            margin-bottom: 28px;
+        }
+
+        .pm-grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .pm-grid-4 {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+
+        .pm-grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .pm-mini-card {
+            background: var(--pm-surface);
+            border: 1px solid var(--pm-border);
+            border-radius: var(--pm-r-md);
+            padding: 14px;
+        }
+
+        .rail-health {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .mini-tab {
+            display: inline-flex;
+            background: var(--pm-surface-2);
+            border-radius: var(--pm-r-pill);
+            padding: 3px;
+        }
+
+        .mini-tab button {
+            padding: 4px 12px;
+            font-size: 11px;
+            font-weight: 600;
+            border: none;
+            background: transparent;
+            border-radius: var(--pm-r-pill);
+            cursor: pointer;
+        }
+
+        .mini-tab button.active {
+            background: white;
+            box-shadow: var(--pm-shadow-sm);
+            color: var(--pm-ink);
+        }
+
+        .metric-big {
+            font-family: var(--pm-font-display);
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .bank-row-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border: 1px solid var(--pm-border);
+            border-radius: var(--pm-r-md);
+            margin-bottom: 8px;
+            cursor: pointer;
+        }
+
+        .bank-row-item:hover {
+            background: var(--pm-surface-2);
+        }
+
+        .rule-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 14px;
+            border: 1px solid var(--pm-border);
+            border-radius: var(--pm-r-md);
+            margin-bottom: 8px;
+        }
+
+        .config-tab {
+            padding: 8px 16px;
+            border-bottom: 3px solid transparent;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .config-tab.active {
+            border-color: var(--pm-primary);
+            color: var(--pm-primary);
+        }
+
+        .perf-row {
+            display: grid;
+            grid-template-columns: 1.4fr 1fr 1fr 1fr 1fr auto;
+            gap: 12px;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--pm-border);
+        }
+
+        .nostro-row {
+            display: grid;
+            grid-template-columns: 1.6fr 1fr 1fr 1fr 1fr 1fr auto;
+            gap: 10px;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--pm-border);
+        }
+
+        .pm-modal.large {
+            max-width: 920px;
+        }
+
+        .pm-modal.xlarge {
+            max-width: 1100px;
+        }
+
+        .step-header {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 18px;
+        }
+
+        .step {
+            flex: 1;
+            padding: 8px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 600;
+            background: var(--pm-surface-2);
+        }
+
+        .step.active {
+            background: var(--pm-primary);
+            color: white;
+        }
+
+        .step.done {
+            background: var(--pm-accent-soft);
+            color: #047857;
+        }
+
+        .pin-keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            max-width: 240px;
+            margin: 0 auto;
+        }
+
+        .pin-btn {
+            height: 54px;
+            font-size: 22px;
+            font-weight: 700;
+            border: 1px solid var(--pm-border);
+            border-radius: 10px;
+            background: var(--pm-surface);
+            cursor: pointer;
+        }
+
+        .pin-btn:active {
+            background: var(--pm-primary);
+            color: white;
+        }
+
+        .mini-chart {
+            height: 42px;
+            display: flex;
+            align-items: flex-end;
+            gap: 3px;
+        }
+
+        .mini-bar {
+            flex: 1;
+            background: var(--pm-primary);
+            border-radius: 3px;
+        }
+
+        .status-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="pm-app">
+        <!-- SIDEBAR -->
+        <aside class="pm-sidebar">
+            <div class="pm-sidebar-logo">P</div>
+            <nav class="pm-sidebar-nav">
+                <a href="#" class="pm-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <rect x="3" y="3" width="7" height="9" />
+                        <rect x="14" y="3" width="7" height="5" />
+                        <rect x="14" y="12" width="7" height="9" />
+                        <rect x="3" y="16" width="7" height="5" />
+                    </svg></a>
+                <a href="#" class="pm-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <polyline points="17 1 21 5 17 9" />
+                        <path d="M3 11V9a4 4 0 0 1 4-4h14" />
+                        <polyline points="7 23 3 19 7 15" />
+                        <path d="M21 13v2a4 4 0 0 1-4 4H3" />
+                    </svg></a>
+                <a href="#" class="pm-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                        <circle cx="9" cy="7" r="4" />
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                    </svg></a>
+                <a href="#" class="pm-nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="2" y1="12" x2="22" y2="12" />
+                        <path
+                            d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                    </svg></a>
+                <a href="#" class="pm-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                        <polyline points="14 2 14 8 20 8" />
+                    </svg></a>
+                <a href="#" class="pm-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <line x1="18" y1="20" x2="18" y2="10" />
+                        <line x1="12" y1="20" x2="12" y2="4" />
+                        <line x1="6" y1="20" x2="6" y2="14" />
+                    </svg></a>
+                <a href="#" class="pm-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                    </svg></a>
+                <a href="#" class="pm-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <circle cx="12" cy="12" r="3" />
+                        <path
+                            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                    </svg></a>
+                <a href="#" class="pm-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                        <line x1="12" y1="17" x2="12.01" y2="17" />
+                    </svg></a>
+            </nav>
+        </aside>
+
+        <main class="pm-main">
+            <!-- HEADER -->
+            <header class="pm-header">
+                <div class="pm-header-title">
+                    <h1>Payment Rails & Routing</h1>
+                    <p>Page 1.4 — Connected Banks, Mobile Money, Routing Engine, Performance & Configuration</p>
+                </div>
+                <div class="pm-header-search">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8" />
+                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                    </svg>
+                    <input type="text" id="globalSearch" placeholder="Search banks, rails, rules, accounts…">
+                </div>
+                <div class="pm-header-actions">
+                    <div class="pm-system-status"><span class="dot"></span> All rails healthy</div>
+                    <button class="pm-header-btn" onclick="showNotifications()"><svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                        </svg><span class="counter">4</span></button>
+                    <button class="pm-profile-btn" onclick="showProfile()">
+                        <div class="pm-avatar">JM</div>
+                        <div class="pm-profile-info">
+                            <div class="name">Joseph Mwangi</div>
+                            <div class="role">COO</div>
+                        </div>
+                    </button>
+                </div>
+            </header>
+
+            <div class="pm-content">
+
+                <!-- 1.4.1 CONNECTED BANKS DIRECTORY -->
+                <section class="pm-section pm-card">
+                    <div class="pm-card-head">
+                        <div>
+                            <h2 class="pm-card-title"><span class="emoji">🏦</span> Connected Banks Directory</h2>
+                            <p class="pm-card-sub">47 institutions • 12 jurisdictions • 6 new this month</p>
+                        </div>
+                        <div class="pm-card-actions">
+                            <button class="btn-pm" onclick="filterBanks('all')">All</button>
+                            <button class="btn-pm" onclick="filterBanks('ke')">KE</button>
+                            <button class="btn-pm" onclick="filterBanks('ea')">EA</button>
+                            <button class="btn-pm" onclick="filterBanks('global')">Global</button>
+                            <button class="btn-pm primary" onclick="showAddBankModal()">+ Add Bank</button>
+                        </div>
+                    </div>
+                    <div id="banksDirectory" class="pm-grid-3"></div>
+                </section>
+
+                <!-- 1.4.2 MOBILE MONEY & PSP DIRECTORY -->
+                <section class="pm-section pm-card">
+                    <div class="pm-card-head">
+                        <div>
+                            <h2 class="pm-card-title"><span class="emoji">📱</span> Mobile Money & PSP Directory</h2>
+                            <p class="pm-card-sub">18 providers • 9 networks • 142M registered users</p>
+                        </div>
+                        <button class="btn-pm primary" onclick="showAddPSPModal()">+ Add Provider</button>
+                    </div>
+                    <div id="pspDirectory" class="pm-grid-4"></div>
+                </section>
+
+                <!-- 1.4.3 ROUTING RULES ENGINE -->
+                <section class="pm-section pm-card">
+                    <div class="pm-card-head">
+                        <div>
+                            <h2 class="pm-card-title"><span class="emoji">🧠</span> Routing Rules Engine</h2>
+                            <p class="pm-card-sub">23 active rules • 4 priority tiers • Last updated 2h ago</p>
+                        </div>
+                        <button class="btn-pm primary" onclick="showCreateRuleModal()">+ Create Rule</button>
+                    </div>
+                    <div class="mini-tab" style="margin-bottom:12px;" id="ruleTabs">
+                        <button class="active" onclick="filterRules('all')">All</button>
+                        <button onclick="filterRules('high')">High Value</button>
+                        <button onclick="filterRules('cross')">Cross Border</button>
+                        <button onclick="filterRules('fallback')">Fallback</button>
+                    </div>
+                    <div id="rulesEngine"></div>
+                </section>
+
+                <!-- 1.4.4 RAIL PERFORMANCE ANALYTICS -->
+                <section class="pm-section">
+                    <div class="pm-grid-2">
+                        <div class="pm-card">
+                            <div class="pm-card-head">
+                                <div>
+                                    <h2 class="pm-card-title"><span class="emoji">📊</span> Rail Performance Analytics
+                                    </h2>
+                                </div>
+                                <button class="btn-pm" onclick="showPerfExport()">Export Report</button>
+                            </div>
+                            <div id="perfTable"></div>
+                        </div>
+                        <div class="pm-card">
+                            <div class="pm-card-head">
+                                <h2 class="pm-card-title"><span class="emoji">📈</span> Settlement Latency Trend (7d)
+                                </h2>
+                            </div>
+                            <svg id="latencyChart" width="100%" height="180" viewBox="0 0 600 180"></svg>
+                            <div class="pm-grid-3" style="margin-top:12px;">
+                                <div class="pm-mini-card">
+                                    <div class="muted" style="font-size:10px;">P50</div>
+                                    <div class="metric-big">4.2s</div>
+                                </div>
+                                <div class="pm-mini-card">
+                                    <div class="muted" style="font-size:10px;">P95</div>
+                                    <div class="metric-big">18.7s</div>
+                                </div>
+                                <div class="pm-mini-card">
+                                    <div class="muted" style="font-size:10px;">P99</div>
+                                    <div class="metric-big">41.3s</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 1.4.5 RAIL CONFIGURATION -->
+                <section class="pm-section pm-card">
+                    <div class="pm-card-head">
+                        <div>
+                            <h2 class="pm-card-title"><span class="emoji">⚙️</span> Rail Configuration</h2>
+                            <p class="pm-card-sub">12 rails • 9 live • 3 maintenance windows scheduled</p>
+                        </div>
+                    </div>
+                    <div id="railConfigTabs" class="mini-tab" style="margin-bottom:12px;">
+                        <button class="active" onclick="showRailConfig('mpesa')">M-Pesa</button>
+                        <button onclick="showRailConfig('pesalink')">PesaLink</button>
+                        <button onclick="showRailConfig('rtgs')">RTGS</button>
+                        <button onclick="showRailConfig('swift')">SWIFT</button>
+                        <button onclick="showRailConfig('papss')">PAPSS</button>
+                    </div>
+                    <div id="railConfigContent"></div>
+                </section>
+
+                <!-- 1.4.6 NOSTRO/VOSTRO ACCOUNT MAPPING -->
+                <section class="pm-section pm-card">
+                    <div class="pm-card-head">
+                        <div>
+                            <h2 class="pm-card-title"><span class="emoji">💰</span> Nostro / Vostro Account Mapping</h2>
+                            <p class="pm-card-sub">31 accounts • 8 currencies • Auto-sweep enabled on 24</p>
+                        </div>
+                        <button class="btn-pm primary" onclick="showMapAccountModal()">+ Map Account</button>
+                    </div>
+                    <div id="nostroTable"></div>
+                </section>
+
+                <!-- BOTTOM STATS -->
+                <section class="bottom-stats">
+                    <div class="bstat green">
+                        <div class="ic">🌍</div>
+                        <div>
+                            <div class="l">Active Rails</div>
+                            <div class="v">12 / 12</div>
+                            <div class="d">100% health</div>
+                        </div>
+                    </div>
+                    <div class="bstat blue">
+                        <div class="ic">🏦</div>
+                        <div>
+                            <div class="l">Connected Banks</div>
+                            <div class="v">47</div>
+                            <div class="d">+6 this month</div>
+                        </div>
+                    </div>
+                    <div class="bstat purple">
+                        <div class="ic">⚡</div>
+                        <div>
+                            <div class="l">Routing Accuracy</div>
+                            <div class="v">99.7%</div>
+                            <div class="d">Last 30 days</div>
+                        </div>
+                    </div>
+                    <div class="bstat warn">
+                        <div class="ic">🔄</div>
+                        <div>
+                            <div class="l">Auto-Sweeps Today</div>
+                            <div class="v">18</div>
+                            <div class="d">KES 41.2M moved</div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODALS -->
+    <div class="pm-modal-backdrop" id="modalBackdrop" onclick="if(event.target.id==='modalBackdrop') closeModal()">
+        <div class="pm-modal large" id="modal">
+            <div class="pm-modal-head">
+                <div>
+                    <h3 id="modalTitle"></h3>
+                    <p id="modalSub"></p>
+                </div><button class="pm-close-btn" onclick="closeModal()">✕</button>
+            </div>
+            <div class="pm-modal-body" id="modalBody"></div>
+            <div class="pm-modal-foot" id="modalFoot"></div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== MOCK DATA ====================
+        const banks = [
+            { id: 1, name: 'KCB Bank Kenya', country: 'KE', swift: 'KCBLKENX', rails: ['M-Pesa', 'PesaLink', 'RTGS', 'EFT'], status: 'live', health: 99.8, volume: 'KES 1.8B', users: 12400000, connected: '2024-03-12' },
+            { id: 2, name: 'Equity Bank', country: 'KE', swift: 'EQTYKENA', rails: ['M-Pesa', 'PesaLink', 'RTGS'], status: 'live', health: 99.6, volume: 'KES 1.4B', users: 9800000, connected: '2024-02-28' },
+            { id: 3, name: 'Stanbic Bank Kenya', country: 'KE', swift: 'SBICKENX', rails: ['RTGS', 'SWIFT', 'EFT'], status: 'live', health: 99.9, volume: 'KES 820M', users: 3100000, connected: '2023-11-05' },
+            { id: 4, name: 'MTN Uganda', country: 'UG', swift: 'MTNUUGKA', rails: ['MoMo', 'EAPS', 'PAPSS'], status: 'live', health: 98.7, volume: 'UGX 92B', users: 18700000, connected: '2024-01-19' },
+            { id: 5, name: 'Safaricom M-Pesa', country: 'KE', swift: '—', rails: ['M-Pesa B2B', 'B2C', 'C2B'], status: 'live', health: 99.9, volume: 'KES 412M', users: 52000000, connected: '2022-06-01' },
+            { id: 6, name: 'Standard Chartered NY', country: 'US', swift: 'SCBLUS33', rails: ['SWIFT', 'ACH'], status: 'live', health: 99.4, volume: 'USD 2.1B', users: 420000, connected: '2023-09-14' },
+            { id: 7, name: 'Co-operative Bank', country: 'KE', swift: 'COOPKENA', rails: ['M-Pesa', 'PesaLink', 'RTGS'], status: 'live', health: 99.5, volume: 'KES 680M', users: 7200000, connected: '2024-04-02' },
+            { id: 8, name: 'Airtel Money', country: 'KE', swift: '—', rails: ['MoMo Interop'], status: 'degraded', health: 97.2, volume: 'KES 84M', users: 8900000, connected: '2024-05-11' },
+        ];
+
+        const psps = [
+            { id: 1, name: 'Safaricom M-Pesa', network: 'Safaricom', users: '52M', tx: 'KES 412M', status: 'live', api: 'Daraja v3' },
+            { id: 2, name: 'Airtel Money', network: 'Airtel', users: '8.9M', tx: 'KES 84M', status: 'degraded', api: 'Airtel API v2' },
+            { id: 3, name: 'MTN MoMo', network: 'MTN', users: '18.7M', tx: 'UGX 92B', status: 'live', api: 'MoMo API' },
+            { id: 4, name: 'Vodacom M-Pesa', network: 'Vodacom', users: '14.2M', tx: 'TZS 1.2T', status: 'live', api: 'Vodacom API' },
+            { id: 5, name: 'T-Kash', network: 'Telkom', users: '3.1M', tx: 'KES 18M', status: 'live', api: 'T-Kash v1' },
+            { id: 6, name: 'PayPal', network: 'Global', users: '400M', tx: 'USD 124K', status: 'degraded', api: 'PayPal REST' },
+        ];
+
+        const rules = [
+            { id: 1, name: 'High-value RTGS auto-route', type: 'high', priority: 'Critical', condition: 'Amount > KES 1M', action: 'Route to RTGS', enabled: true, hits: 1842 },
+            { id: 2, name: 'Cross-border fallback', type: 'cross', priority: 'High', condition: 'Destination currency ≠ KES', action: 'Try PAPSS → SWIFT', enabled: true, hits: 921 },
+            { id: 3, name: 'M-Pesa instant priority', type: 'high', priority: 'Medium', condition: 'Sender = M-Pesa & Amount < KES 300K', action: 'Force PesaLink', enabled: true, hits: 12480 },
+            { id: 4, name: 'EFT after 15:00 fallback', type: 'fallback', priority: 'Low', condition: 'Time > 15:00 EAT', action: 'Queue to next day EFT', enabled: true, hits: 672 },
+        ];
+
+        const perfData = [
+            { rail: 'M-Pesa', success: 99.6, settle: '4.1s', cost: 'KES 12', volume: 'KES 412M', p95: '9s' },
+            { rail: 'PesaLink', success: 99.4, settle: '2.8s', cost: 'KES 25', volume: 'KES 184M', p95: '7s' },
+            { rail: 'RTGS', success: 99.9, settle: '42s', cost: 'KES 150', volume: 'KES 1.8B', p95: '2m 11s' },
+            { rail: 'SWIFT', success: 97.8, settle: '18h', cost: 'USD 45', volume: 'USD 2.1M', p95: '42h' },
+            { rail: 'PAPSS', success: 98.9, settle: '87s', cost: 'USD 8', volume: 'USD 4.2M', p95: '3m 40s' },
+        ];
+
+        const nostro = [
+            { id: 1, bank: 'KCB Bank', type: 'Nostro', ccy: 'KES', bal: 126300000, threshold: 125000000, auto: true, last: '2m ago' },
+            { id: 2, bank: 'Stanbic Bank', type: 'Vostro', ccy: 'USD', bal: 8200000, threshold: 5000000, auto: true, last: '14m ago' },
+            { id: 3, bank: 'Standard Chartered NY', type: 'Nostro', ccy: 'USD', bal: 1420000, threshold: 1000000, auto: false, last: '1h ago' },
+            { id: 4, bank: 'MTN Uganda', type: 'Float', ccy: 'UGX', bal: 5200000000, threshold: 4000000000, auto: true, last: '7m ago' },
+            { id: 5, bank: 'Equity Bank', type: 'Nostro', ccy: 'KES', bal: 89400000, threshold: 100000000, auto: true, last: '33m ago' },
+        ];
+
+        let currentFilter = 'all';
+
+        // ==================== RENDER FUNCTIONS ====================
+        function renderBanks(filter = 'all') {
+            const container = document.getElementById('banksDirectory');
+            let filtered = banks;
+            if (filter !== 'all') filtered = banks.filter(b => b.country.toLowerCase() === filter || (filter === 'global' && b.country !== 'KE' && b.country !== 'UG'));
+            container.innerHTML = filtered.map(b => `
+    <div class="pm-mini-card" onclick="showBankDetail(${b.id})">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div><b style="font-size:15px;">${b.name}</b><div style="font-size:11px;color:var(--pm-muted);">${b.swift} • ${b.country}</div></div>
+        <span class="status-pill ${b.status}">${b.status}</span>
+      </div>
+      <div class="rail-health" style="margin:10px 0;"><span class="status-dot" style="background:#10B981;"></span> <span style="font-size:12px;">Health ${b.health}%</span></div>
+      <div style="font-size:12px;">${b.rails.join(' • ')}</div>
+      <div style="margin-top:8px;font-size:12px;color:var(--pm-muted);">${b.volume} • ${b.users.toLocaleString()} users</div>
+    </div>
+  `).join('');
+        }
+
+        function filterBanks(f) { renderBanks(f); }
+
+        function renderPSPs() {
+            const container = document.getElementById('pspDirectory');
+            container.innerHTML = psps.map(p => `
+    <div class="pm-mini-card" onclick="showPSPDetail(${p.id})">
+      <div style="display:flex;justify-content:space-between;">
+        <div><b>${p.name}</b><div style="font-size:11px;color:var(--pm-muted);">${p.network}</div></div>
+        <span class="status-pill ${p.status}">${p.status}</span>
+      </div>
+      <div style="margin-top:12px;font-size:13px;">${p.users} users • ${p.tx}</div>
+      <div style="font-size:11px;color:var(--pm-muted);margin-top:4px;">API: ${p.api}</div>
+    </div>
+  `).join('');
+        }
+
+        function renderRules(filter = 'all') {
+            const container = document.getElementById('rulesEngine');
+            let filtered = rules;
+            if (filter !== 'all') filtered = rules.filter(r => r.type === filter);
+            container.innerHTML = filtered.map(r => `
+    <div class="rule-row">
+      <div>
+        <b>${r.name}</b><div style="font-size:11px;color:var(--pm-muted);">${r.condition}</div>
+      </div>
+      <div style="text-align:right;">
+        <div><span class="status-pill ${r.priority === 'Critical' ? 'failed' : r.priority === 'High' ? 'processing' : 'completed'}">${r.priority}</span></div>
+        <div style="font-size:11px;color:var(--pm-muted);margin-top:2px;">${r.hits.toLocaleString()} hits</div>
+      </div>
+      <div><button class="btn-pm" onclick="editRule(${r.id},event)">Edit</button> <button class="btn-pm ${r.enabled ? '' : 'primary'}" onclick="toggleRule(${r.id},event)">${r.enabled ? 'Disable' : 'Enable'}</button></div>
+    </div>
+  `).join('');
+        }
+
+        function filterRules(t) {
+            document.querySelectorAll('#ruleTabs button').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            renderRules(t);
+        }
+
+        function renderPerf() {
+            const container = document.getElementById('perfTable');
+            container.innerHTML = `
+    <div style="font-size:11px;color:var(--pm-muted);display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr 1fr 1fr;gap:12px;padding:0 0 8px;">
+      <div>Rail</div><div>Success</div><div>Median</div><div>P95</div><div>Cost</div><div>Volume</div>
+    </div>
+    ${perfData.map(p => `
+      <div class="perf-row" onclick="showRailPerfModal('${p.rail}')">
+        <div><b>${p.rail}</b></div>
+        <div><span class="status-pill completed">${p.success}%</span></div>
+        <div>${p.settle}</div>
+        <div>${p.p95}</div>
+        <div>${p.cost}</div>
+        <div>${p.volume}</div>
+      </div>
+    `).join('')}
+  `;
+        }
+
+        function renderNostro() {
+            const container = document.getElementById('nostroTable');
+            container.innerHTML = `
+    <div style="font-size:11px;color:var(--pm-muted);display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr 1fr 1fr 1fr;gap:10px;padding:0 0 8px;">
+      <div>Account</div><div>Type</div><div>Currency</div><div>Balance</div><div>Threshold</div><div>Auto-sweep</div><div></div>
+    </div>
+    ${nostro.map(n => `
+      <div class="nostro-row" onclick="showNostroDetail(${n.id})">
+        <div><b>${n.bank}</b></div>
+        <div>${n.type}</div>
+        <div>${n.ccy}</div>
+        <div style="font-family:var(--pm-font-display);font-weight:700;">${n.ccy} ${(n.bal / 1000000).toFixed(1)}M</div>
+        <div style="font-size:12px;">${n.ccy} ${(n.threshold / 1000000).toFixed(1)}M</div>
+        <div><span class="status-pill ${n.auto ? 'completed' : 'failed'}">${n.auto ? 'ON' : 'OFF'}</span></div>
+        <div style="text-align:right;"><button class="btn-pm" onclick="event.stopPropagation();reconcileNostro(${n.id})">Reconcile</button></div>
+      </div>
+    `).join('')}
+  `;
+        }
+
+        function renderLatencyChart() {
+            const svg = document.getElementById('latencyChart');
+            svg.innerHTML = `
+    <defs><linearGradient id="lg" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#4F46E5" stop-opacity="0.3"/><stop offset="100%" stop-color="#4F46E5" stop-opacity="0"/></linearGradient></defs>
+    <polyline points="20,140 80,110 140,95 200,70 260,85 320,55 380,60 440,40 500,48 560,30 620,25" fill="none" stroke="#4F46E5" stroke-width="3"/>
+    <polygon points="20,140 80,110 140,95 200,70 260,85 320,55 380,60 440,40 500,48 560,30 620,25 620,160 20,160" fill="url(#lg)"/>
+    ${[0, 50, 100, 150].map((v, i) => `<text x="8" y="${160 - v * 0.8}" font-size="10" fill="#9CA3AF">${v}s</text>`).join('')}
+  `;
+        }
+
+        // ==================== MODALS ====================
+        let modalStack = [];
+
+        function showModal(title, sub, body, foot, size = '') {
+            const backdrop = document.getElementById('modalBackdrop');
+            const modal = document.getElementById('modal');
+            document.getElementById('modalTitle').innerHTML = title;
+            document.getElementById('modalSub').innerHTML = sub || '';
+            document.getElementById('modalBody').innerHTML = body;
+            document.getElementById('modalFoot').innerHTML = foot || '';
+            modal.className = 'pm-modal ' + (size || 'large');
+            backdrop.style.display = 'flex';
+            backdrop.style.opacity = '1';
+            modalStack.push(backdrop);
+        }
+
+        function closeModal() {
+            const backdrop = document.getElementById('modalBackdrop');
+            backdrop.style.display = 'none';
+            modalStack.pop();
+        }
+
+        function showBankDetail(id) {
+            const b = banks.find(x => x.id === id);
+            showModal(b.name, `${b.swift} • ${b.country} • Connected ${b.connected}`, `
+    <div class="pm-grid-3">
+      <div class="pm-mini-card"><div class="muted">Health</div><div class="metric-big">${b.health}%</div></div>
+      <div class="pm-mini-card"><div class="muted">Daily Volume</div><div class="metric-big" style="font-size:18px;">${b.volume}</div></div>
+      <div class="pm-mini-card"><div class="muted">Registered Users</div><div class="metric-big" style="font-size:18px;">${b.users.toLocaleString()}</div></div>
+    </div>
+    <div style="margin-top:16px;"><b>Supported Rails</b><div style="margin-top:8px;">${b.rails.map(r => `<span class="status-pill completed" style="margin:2px;">${r}</span>`).join('')}</div></div>
+    <div style="margin-top:16px;"><b>Recent Activity (7d)</b><div class="mini-chart">${[40, 55, 72, 68, 81, 90, 77].map(h => `<div class="mini-bar" style="height:${h}px;"></div>`).join('')}</div></div>
+  `, `
+    <button class="btn-pm" onclick="closeModal()">Close</button>
+    <button class="btn-pm" onclick="showRailConfig('${b.rails[0].toLowerCase().replace(/[^a-z]/g, '')}')">Configure Rails</button>
+    <button class="btn-pm primary" onclick="reconcileBank(${id})">Run Reconciliation</button>
+  `);
+        }
+
+        function showPSPDetail(id) {
+            const p = psps.find(x => x.id === id);
+            showModal(p.name, `${p.network} • ${p.api}`, `
+    <div class="pm-grid-2">
+      <div class="pm-mini-card"><div class="muted">Registered Users</div><div class="metric-big">${p.users}</div></div>
+      <div class="pm-mini-card"><div class="muted">Daily Volume</div><div class="metric-big" style="font-size:18px;">${p.tx}</div></div>
+    </div>
+    <div style="margin-top:16px;"><b>API Health</b> <span class="status-pill ${p.status}">${p.status}</span></div>
+    <div style="margin-top:12px;"><b>Integration Status</b><br>Webhook endpoint: <code>https://api.paymo.io/webhooks/${p.name.toLowerCase().replace(/\s/g, '')}</code><br>Last ping: 14s ago • 99.92% success</div>
+  `, `
+    <button class="btn-pm" onclick="closeModal()">Close</button>
+    <button class="btn-pm primary" onclick="testPSPIntegration(${id})">Test Integration</button>
+  `);
+        }
+
+        function showAddBankModal() {
+            showModal('Add New Bank Connection', 'Step 1 of 4 — Bank Selection', `
+    <div class="step-header"><div class="step active">1. Select</div><div class="step">2. Auth</div><div class="step">3. Verify</div><div class="step">4. Done</div></div>
+    <div class="form-row"><label>Bank Name</label><input id="bankName" placeholder="e.g. NCBA Bank Kenya"></div>
+    <div class="form-row"><label>SWIFT / BIC</label><input id="swift" placeholder="NCBAKENX"></div>
+    <div class="form-row"><label>Primary Currency</label><select id="ccy"><option>KES</option><option>USD</option><option>UGX</option></select></div>
+  `, `
+    <button class="btn-pm" onclick="closeModal()">Cancel</button>
+    <button class="btn-pm primary" onclick="nextBankStep()">Continue →</button>
+  `);
+        }
+
+        let bankStepData = {};
+        function nextBankStep() {
+            bankStepData.name = document.getElementById('bankName').value;
+            bankStepData.swift = document.getElementById('swift').value;
+            bankStepData.ccy = document.getElementById('ccy').value;
+            showModal('Authenticate Bank', 'Step 2 of 4', `
+    <div class="step-header"><div class="step done">1. Select</div><div class="step active">2. Auth</div><div class="step">3. Verify</div><div class="step">4. Done</div></div>
+    <p>Connect via Open Banking or provide API credentials</p>
+    <div class="form-row"><label>Connection Method</label><select><option>Open Banking (OAuth)</option><option>API Key + Secret</option><option>File-based (SFTP)</option></select></div>
+    <div class="form-row"><label>Client ID / Key</label><input value="ob_${Date.now().toString(36)}"></div>
+  `, `
+    <button class="btn-pm" onclick="showAddBankModal()">Back</button>
+    <button class="btn-pm primary" onclick="bankAuthStep()">Authenticate</button>
+  `);
+        }
+
+        function bankAuthStep() {
+            showModal('Verification', 'Step 3 of 4', `
+    <div class="step-header"><div class="step done">1. Select</div><div class="step done">2. Auth</div><div class="step active">3. Verify</div><div class="step">4. Done</div></div>
+    <p>Upload signed letter of authorization or complete KYC verification</p>
+    <div class="form-row"><label>Upload Document</label><input type="file"></div>
+    <div class="form-row"><label>Authorized Signatory</label><input value="Joseph Mwangi"></div>
+  `, `
+    <button class="btn-pm" onclick="nextBankStep()">Back</button>
+    <button class="btn-pm primary" onclick="completeBankOnboard()">Submit for Approval</button>
+  `);
+        }
+
+        function completeBankOnboard() {
+            closeModal();
+            showModal('Bank Added Successfully', '', `
+    <div style="text-align:center;padding:20px;">
+      <div style="font-size:48px;">✅</div>
+      <h3>${bankStepData.name} has been added</h3>
+      <p style="color:var(--pm-muted);">Status: Pending final compliance review (usually 4-24h)</p>
+    </div>
+  `, `<button class="btn-pm primary" onclick="closeModal();renderBanks()">Done</button>`);
+        }
+
+        function showAddPSPModal() {
+            showModal('Add Mobile Money / PSP', '', `
+    <div class="form-row"><label>Provider Name</label><input placeholder="e.g. T-Kash"></div>
+    <div class="form-row"><label>Network Operator</label><input placeholder="Telkom Kenya"></div>
+    <div class="form-row"><label>API Endpoint</label><input value="https://api.telkom.co.ke/tkash/v2"></div>
+    <div class="form-row"><label>Webhook Secret</label><input value="whsec_tk_${Date.now().toString(36)}" readonly></div>
+  `, `
+    <button class="btn-pm" onclick="closeModal()">Cancel</button>
+    <button class="btn-pm primary" onclick="closeModal();alert('Provider added and webhook tested successfully')">Add Provider</button>
+  `);
+        }
+
+        function editRule(id, e) {
+            e.stopPropagation();
+            const r = rules.find(x => x.id === id);
+            showModal('Edit Routing Rule', r.name, `
+    <div class="form-row"><label>Rule Name</label><input value="${r.name}"></div>
+    <div class="form-row"><label>Condition</label><input value="${r.condition}"></div>
+    <div class="form-row"><label>Action</label><input value="${r.action}"></div>
+    <div class="form-row"><label>Priority</label><select><option ${r.priority === 'Critical' ? 'selected' : ''}>Critical</option><option ${r.priority === 'High' ? 'selected' : ''}>High</option><option ${r.priority === 'Medium' ? 'selected' : ''}>Medium</option></select></div>
+  `, `
+    <button class="btn-pm" onclick="closeModal()">Cancel</button>
+    <button class="btn-pm primary" onclick="closeModal();alert('Rule updated')">Save Changes</button>
+  `);
+        }
+
+        function toggleRule(id, e) {
+            e.stopPropagation();
+            const r = rules.find(x => x.id === id);
+            r.enabled = !r.enabled;
+            renderRules();
+        }
+
+        function showCreateRuleModal() {
+            showModal('Create New Routing Rule', 'Step 1 of 3', `
+    <div class="form-row"><label>Rule Name</label><input placeholder="High-value international fallback"></div>
+    <div class="form-row"><label>Condition Type</label><select><option>Amount threshold</option><option>Currency mismatch</option><option>Time of day</option><option>Risk score</option></select></div>
+    <div class="form-row"><label>Condition Value</label><input placeholder="Amount > KES 2,000,000"></div>
+  `, `
+    <button class="btn-pm" onclick="closeModal()">Cancel</button>
+    <button class="btn-pm primary" onclick="createRuleStep2()">Continue →</button>
+  `);
+        }
+
+        function createRuleStep2() {
+            showModal('Create New Routing Rule', 'Step 2 of 3', `
+    <div class="form-row"><label>Action</label><select><option>Route to specific rail</option><option>Try fallback sequence</option><option>Hold for manual approval</option></select></div>
+    <div class="form-row"><label>Target Rail / Sequence</label><input value="PAPSS → SWIFT gpi → Hold"></div>
+    <div class="form-row"><label>Priority</label><select><option>Critical</option><option selected>High</option><option>Medium</option></select></div>
+  `, `
+    <button class="btn-pm" onclick="showCreateRuleModal()">Back</button>
+    <button class="btn-pm primary" onclick="createRuleStep3()">Continue →</button>
+  `);
+        }
+
+        function createRuleStep3() {
+            showModal('Create New Routing Rule', 'Step 3 of 3 — Review', `
+    <div style="background:var(--pm-surface-2);padding:16px;border-radius:10px;">
+      <b>Rule Summary</b><br>
+      When Amount &gt; KES 2,000,000 and currency ≠ KES → Try PAPSS → SWIFT gpi → Hold for manual approval<br>
+      Priority: High • Status: Enabled after approval
+    </div>
+  `, `
+    <button class="btn-pm" onclick="showCreateRuleModal()">Back</button>
+    <button class="btn-pm primary" onclick="closeModal();alert('Rule created and activated')">Create & Activate</button>
+  `);
+        }
+
+        function showRailPerfModal(rail) {
+            showModal(`${rail} Performance`, 'Last 30 days', `
+    <div class="pm-grid-4">
+      <div class="pm-mini-card"><div class="muted">Success Rate</div><div class="metric-big">99.4%</div></div>
+      <div class="pm-mini-card"><div class="muted">P50 Settlement</div><div class="metric-big">2.8s</div></div>
+      <div class="pm-mini-card"><div class="muted">P95 Settlement</div><div class="metric-big">7.1s</div></div>
+      <div class="pm-mini-card"><div class="muted">Cost / Tx</div><div class="metric-big">KES 25</div></div>
+    </div>
+    <div style="margin-top:16px;"><b>Top 5 Failure Reasons</b><br>1. Timeout at bank (42) 2. Invalid account (31) 3. Insufficient funds (18) 4. Duplicate ref (9) 5. Network error (4)</div>
+  `, `<button class="btn-pm primary" onclick="closeModal()">Close</button>`);
+        }
+
+        function showRailConfig(rail) {
+            const configs = {
+                mpesa: { name: 'M-Pesa (Safaricom)', status: 'live', api: 'https://daraja.safaricom.co.ke', webhook: 'https://api.paymo.io/webhooks/mpesa', limit: 'KES 1,000,000 / tx' },
+                pesalink: { name: 'PesaLink', status: 'live', api: 'https://api.pesalink.co.ke', webhook: 'https://api.paymo.io/webhooks/pesalink', limit: 'KES 999,999 / tx' },
+                rtgs: { name: 'RTGS (KEPSS)', status: 'live', api: 'https://kepss.cbk.go.ke', webhook: 'https://api.paymo.io/webhooks/rtgs', limit: 'KES 999,999,999 / tx' },
+                swift: { name: 'SWIFT gpi', status: 'live', api: 'https://api.swift.com/gpi', webhook: 'https://api.paymo.io/webhooks/swift', limit: 'No limit' },
+                papss: { name: 'PAPSS', status: 'live', api: 'https://api.papss.africa', webhook: 'https://api.paymo.io/webhooks/papss', limit: 'USD 50,000 / tx' },
+            };
+            const c = configs[rail] || configs.mpesa;
+            showModal(c.name + ' Configuration', '', `
+    <div class="mini-tab" style="margin-bottom:14px;">
+      <button class="active" onclick="switchConfigTab(this,'overview')">Overview</button>
+      <button onclick="switchConfigTab(this,'limits')">Limits</button>
+      <button onclick="switchConfigTab(this,'fees')">Fees</button>
+      <button onclick="switchConfigTab(this,'maintenance')">Maintenance</button>
+      <button onclick="switchConfigTab(this,'logs')">Logs</button>
+    </div>
+    <div id="configTabContent">
+      <div><b>Status:</b> <span class="status-pill completed">${c.status}</span></div>
+      <div style="margin-top:8px;"><b>API Endpoint:</b> <code>${c.api}</code></div>
+      <div style="margin-top:8px;"><b>Webhook:</b> <code>${c.webhook}</code></div>
+      <div style="margin-top:8px;"><b>Daily Volume:</b> KES 412M • 124,812 txs</div>
+    </div>
+  `, `
+    <button class="btn-pm" onclick="closeModal()">Close</button>
+    <button class="btn-pm primary" onclick="saveRailConfig()">Save Changes</button>
+  `);
+        }
+
+        function switchConfigTab(btn, tab) {
+            document.querySelectorAll('#modal .mini-tab button').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const content = document.getElementById('configTabContent');
+            if (tab === 'limits') content.innerHTML = `<div class="form-row"><label>Per Transaction Limit</label><input value="KES 1,000,000"></div><div class="form-row"><label>Daily Limit</label><input value="KES 50,000,000"></div>`;
+            else if (tab === 'fees') content.innerHTML = `<div class="form-row"><label>Base Fee</label><input value="KES 12"></div><div class="form-row"><label>Percentage</label><input value="0.15%"></div>`;
+            else if (tab === 'maintenance') content.innerHTML = `<div>Next scheduled: Sun 02:00 EAT (30 min) <button class="btn-pm" style="margin-left:8px;" onclick="alert('Maintenance window rescheduled')">Reschedule</button></div>`;
+            else if (tab === 'logs') content.innerHTML = `<div style="font-family:monospace;font-size:11px;">2025-11-28 14:22:01 — Webhook 200 OK<br>2025-11-28 14:21:44 — API call success (187ms)<br>2025-11-28 14:20:55 — STK Push delivered</div>`;
+            else content.innerHTML = `<div><b>Status:</b> <span class="status-pill completed">live</span></div><div style="margin-top:8px;"><b>API Endpoint:</b> <code>https://daraja.safaricom.co.ke</code></div>`;
+        }
+
+        function saveRailConfig() { closeModal(); alert('Rail configuration saved'); }
+
+        function showMapAccountModal() {
+            showModal('Map New Nostro / Vostro Account', '', `
+    <div class="form-row"><label>Bank</label><select><option>KCB Bank</option><option>Equity Bank</option><option>Stanbic Bank</option></select></div>
+    <div class="form-row"><label>Account Type</label><select><option>Nostro</option><option>Vostro</option><option>Float</option></select></div>
+    <div class="form-row"><label>Currency</label><select><option>KES</option><option>USD</option><option>UGX</option></select></div>
+    <div class="form-row"><label>Account Number</label><input placeholder="0123456789"></div>
+    <div class="form-row"><label>Auto-sweep Threshold</label><input value="50000000"></div>
+  `, `
+    <button class="btn-pm" onclick="closeModal()">Cancel</button>
+    <button class="btn-pm primary" onclick="closeModal();alert('Account mapped successfully')">Map Account</button>
+  `);
+        }
+
+        function showNostroDetail(id) {
+            const n = nostro.find(x => x.id === id);
+            showModal(n.bank + ' — ' + n.type, n.ccy + ' Account', `
+    <div class="pm-grid-3">
+      <div class="pm-mini-card"><div class="muted">Current Balance</div><div class="metric-big">${n.ccy} ${(n.bal / 1000000).toFixed(1)}M</div></div>
+      <div class="pm-mini-card"><div class="muted">Threshold</div><div class="metric-big">${n.ccy} ${(n.threshold / 1000000).toFixed(1)}M</div></div>
+      <div class="pm-mini-card"><div class="muted">Auto-sweep</div><div class="metric-big">${n.auto ? 'Enabled' : 'Disabled'}</div></div>
+    </div>
+    <div style="margin-top:16px;"><b>7-day Movement</b><div class="mini-chart">${[30, 45, 60, 55, 80, 95, 70].map(h => `<div class="mini-bar" style="height:${h}px;"></div>`).join('')}</div></div>
+    <div style="margin-top:16px;"><b>Last Reconciliation</b><br>${n.last} • Match rate 100% • 0 exceptions</div>
+  `, `
+    <button class="btn-pm" onclick="closeModal()">Close</button>
+    <button class="btn-pm" onclick="reconcileNostro(${id})">Reconcile Now</button>
+    <button class="btn-pm primary" onclick="toggleAutoSweep(${id})">Toggle Auto-sweep</button>
+  `);
+        }
+
+        function reconcileNostro(id) {
+            closeModal();
+            showModal('Reconciliation', '', `<div style="text-align:center;padding:30px;"><div style="font-size:42px;">✅</div><h3>Reconciliation Complete</h3><p>0 exceptions found • Last reconciled just now</p></div>`, `<button class="btn-pm primary" onclick="closeModal()">Done</button>`);
+        }
+
+        function toggleAutoSweep(id) {
+            const n = nostro.find(x => x.id === id);
+            n.auto = !n.auto;
+            closeModal();
+            renderNostro();
+        }
+
+        function reconcileBank(id) {
+            closeModal();
+            showModal('Bank Reconciliation', '', `<div style="text-align:center;padding:30px;"><div style="font-size:42px;">✅</div><h3>Reconciliation started</h3><p>Results will be emailed within 5 minutes</p></div>`, `<button class="btn-pm primary" onclick="closeModal()">OK</button>`);
+        }
+
+        function testPSPIntegration(id) {
+            closeModal();
+            showModal('Integration Test', '', `<div style="text-align:center;padding:30px;"><div style="font-size:42px;">✅</div><h3>Test successful</h3><p>Webhook responded in 187ms • All endpoints healthy</p></div>`, `<button class="btn-pm primary" onclick="closeModal()">Done</button>`);
+        }
+
+        function showPerfExport() {
+            showModal('Export Performance Report', '', `
+    <div class="form-row"><label>Date Range</label><select><option>Last 7 days</option><option>Last 30 days</option><option>Custom</option></select></div>
+    <div class="form-row"><label>Format</label><div><button class="btn-pm">CSV</button> <button class="btn-pm">XLSX</button> <button class="btn-pm">PDF</button></div></div>
+  `, `<button class="btn-pm primary" onclick="closeModal();alert('Report exported')">Export</button>`);
+        }
+
+        function showNotifications() {
+            showModal('Notifications', '4 unread', `
+    <div class="notif-item"><div class="ico">⚠️</div><div class="body"><div class="t">Airtel Money degraded</div><div class="d">Success rate dropped to 97.2%</div></div></div>
+    <div class="notif-item"><div class="ico">🔄</div><div class="body"><div class="t">Auto-sweep executed</div><div class="d">KES 41.2M moved to Stanbic Nostro</div></div></div>
+    <div class="notif-item"><div class="ico">📋</div><div class="body"><div class="t">New routing rule approved</div><div class="d">High-value fallback now active</div></div></div>
+  `, `<button class="btn-pm primary" onclick="closeModal()">Mark all read</button>`);
+        }
+
+        function showProfile() {
+            showModal('Joseph Mwangi', 'COO • PayMo BaaS', `
+    <div class="detail-grid">
+      <div class="detail-row"><span class="l">Email</span><span class="v">j.mwangi@paymo.io</span></div>
+      <div class="detail-row"><span class="l">Role</span><span class="v">Chief Operations Officer</span></div>
+      <div class="detail-row"><span class="l">Last Login</span><span class="v">Today 09:14 EAT</span></div>
+      <div class="detail-row"><span class="l">2FA</span><span class="v" style="color:#10B981;">Enabled</span></div>
+    </div>
+  `, `<button class="btn-pm" onclick="closeModal()">Close</button>`);
+        }
+
+        function filterBanksGlobal(q) {
+            const container = document.getElementById('banksDirectory');
+            const filtered = banks.filter(b => (b.name + b.swift).toLowerCase().includes(q.toLowerCase()));
+            container.innerHTML = filtered.map(b => `
+    <div class="pm-mini-card" onclick="showBankDetail(${b.id})">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div><b>${b.name}</b><div style="font-size:11px;color:var(--pm-muted);">${b.swift}</div></div>
+        <span class="status-pill ${b.status}">${b.status}</span>
+      </div>
+    </div>
+  `).join('');
+        }
+
+        // ==================== INIT ====================
+        function init() {
+            renderBanks();
+            renderPSPs();
+            renderRules();
+            renderPerf();
+            renderNostro();
+            renderLatencyChart();
+
+            // Global search
+            document.getElementById('globalSearch').addEventListener('input', e => {
+                const q = e.target.value;
+                if (q.length > 2) filterBanksGlobal(q);
+                else renderBanks();
+            });
+
+            // Keyboard escape
+            document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+            // Initial toast
+            setTimeout(() => {
+                const toast = document.createElement('div');
+                toast.className = 'toast success';
+                toast.style.cssText = 'position:fixed;bottom:20px;right:20px;background:white;border:1px solid #E5E2DC;padding:12px 16px;border-radius:10px;box-shadow:var(--pm-shadow-lg);';
+                toast.innerHTML = '✅ All 12 rails healthy • 47 banks connected';
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 2800);
+            }, 1800);
+        }
+
+        window.onload = init;
+    </script>
+</body>
+
+</html>
