@@ -25,7 +25,7 @@ make it comprehensive, reduce the use of toastas, no broken links no empty secti
 use modals, tabs, mutistep modals pop ups no blanks, no empty links no empty buttons
 use over 20 modals
 make it very comprehesive, and very well outlined, reduce the use of toastas, no broken links no empty sections
-this is the admins side dashboard so allow permissions and editable fields, data, records and sections relevantly
+
 
 
 then dont create in react inviroment just create the
@@ -36,7 +36,7 @@ make the page extremly relevnetarelevant and comprehesive and theme maintained
 use modals with data, details navigations not empty modal pop ups
 no blanks no placeholders no empty links
 in the same manner and theme and design
-create a comprehensive PayMo BaaS admin dashboard with advanced design, 20+ functional modals, multi-step flows, and rich mock data. Let me build this systematically.
+create a comprehensive PayMo BaaS user dashboard with advanced design, 20+ functional modals, multi-step flows, and rich mock data. Let me build this systematically.
 create this single html page no react environment
 
 
@@ -100,7 +100,6 @@ Design Excellence:
 📝 Rich mock data — All sections populated with realistic African fintech data
 🔕 Minimal toasts — Used only for essential confirmations
 🎭 Bootstrap 5 + custom master CSS for cohesive styling
-The dashboard is production-ready with comprehensive admin functionality, real payment rail integrations (M-Pesa, PesaLink, RTGS, SWIFT, PAPSS, SEPA), and a beautiful modern UI.
 
 
 
@@ -130,7 +129,6 @@ make it comprehensive, reduce the use of toastas, no broken links no empty secti
 use modals, tabs, mutistep modals pop ups no blanks, no empty links no empty buttons
 use over 20 modals,modals with relevant details not just buttons inside and place holder dummy buttons buttons should work and modals should not be placeholders , like one modal should not be relleinked over and over and over just to avoid creating new filled modals
 make it very comprehesive, and very well outlined, reduce the use of toastas, no broken links no empty sections
-this is the admins side dashboard so allow permissions and editable fields, data, records and sections relevantly
-design the next page:
+this is not the admins side dashboard  not paymos admin configurations no paymos admin settings
 
 
