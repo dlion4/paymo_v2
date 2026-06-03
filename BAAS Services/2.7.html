@@ -1,0 +1,2266 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PayMo BaaS — Open Banking & Account Aggregation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="master.css">
+    <style>
+        /* Page-specific — Open Banking & Account Aggregation */
+        .ob-card {
+            background: #fff;
+            border: 1px solid var(--pm-border);
+            border-radius: var(--pm-r-lg);
+            padding: 18px;
+            transition: .2s;
+            position: relative;
+            overflow: hidden
+        }
+
+        .ob-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--pm-shadow-lg);
+            border-color: var(--pm-primary-light)
+        }
+
+        .ob-logo {
+            width: 46px;
+            height: 46px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 700;
+            font-family: var(--pm-font-display);
+            flex-shrink: 0
+        }
+
+        .ob-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 12px
+        }
+
+        .ob-name {
+            font-family: var(--pm-font-display);
+            font-size: 14px;
+            font-weight: 600;
+            margin: 0
+        }
+
+        .ob-sub {
+            font-size: 11px;
+            color: var(--pm-muted);
+            margin: 2px 0 0
+        }
+
+        .ob-balance {
+            font-family: var(--pm-font-display);
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--pm-primary)
+        }
+
+        .consent-scope {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 12px;
+            border: 1px solid var(--pm-border);
+            border-radius: var(--pm-r-md);
+            background: #fff;
+            margin-bottom: 8px
+        }
+
+        .consent-scope:hover {
+            background: var(--pm-surface-2)
+        }
+
+        .bank-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 12px
+        }
+
+        .bank-tile {
+            background: #fff;
+            border: 1px solid var(--pm-border);
+            border-radius: var(--pm-r-lg);
+            padding: 14px;
+            cursor: pointer;
+            transition: .2s
+        }
+
+        .bank-tile:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--pm-shadow-lg);
+            border-color: var(--pm-primary-light)
+        }
+
+        .tx-row {
+            display: grid;
+            grid-template-columns: auto 1fr auto auto auto;
+            gap: 12px;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--pm-border)
+        }
+
+        .tx-row:last-child {
+            border-bottom: 0
+        }
+
+        .tx-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--pm-info-soft);
+            color: var(--pm-info);
+            font-weight: 700
+        }
+
+        .insight-card {
+            border-left: 3px solid var(--pm-primary)
+        }
+
+        .insight-card.good {
+            border-left-color: var(--pm-accent)
+        }
+
+        .insight-card.warn {
+            border-left-color: var(--pm-warning)
+        }
+
+        .insight-card.risk {
+            border-left-color: var(--pm-danger)
+        }
+
+        .api-code {
+            background: #0F172A;
+            color: #E2E8F0;
+            padding: 14px;
+            border-radius: var(--pm-r-md);
+            font-family: 'SF Mono', Consolas, monospace;
+            font-size: 12px;
+            overflow: auto
+        }
+
+        .api-code .k {
+            color: #93C5FD
+        }
+
+        .api-code .s {
+            color: #86EFAC
+        }
+
+        .api-code .n {
+            color: #FBBF24
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 24px
+        }
+
+        .timeline:before {
+            content: '';
+            position: absolute;
+            left: 8px;
+            top: 4px;
+            bottom: 4px;
+            width: 2px;
+            background: var(--pm-border)
+        }
+
+        .timeline-item {
+            position: relative;
+            padding: 6px 0 14px
+        }
+
+        .timeline-item:before {
+            content: '';
+            position: absolute;
+            left: -20px;
+            top: 10px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: white;
+            border: 3px solid var(--pm-primary)
+        }
+
+        .timeline-item.done:before {
+            border-color: var(--pm-accent)
+        }
+
+        .timeline-item.pending:before {
+            border-color: var(--pm-border-2)
+        }
+
+        .timeline-item h5 {
+            font-size: 13px;
+            font-weight: 600;
+            margin: 0
+        }
+
+        .timeline-item p {
+            font-size: 12px;
+            color: var(--pm-muted);
+            margin: 2px 0 0
+        }
+
+        .pin-pad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            max-width: 280px;
+            margin: 0 auto
+        }
+
+        .pin-btn {
+            height: 50px;
+            border-radius: 12px;
+            border: 1px solid var(--pm-border);
+            background: #fff;
+            font-size: 18px;
+            font-weight: 700;
+            font-family: var(--pm-font-display);
+            cursor: pointer;
+            transition: .15s;
+            color: var(--pm-ink)
+        }
+
+        .pin-btn:hover {
+            background: var(--pm-surface-2);
+            border-color: var(--pm-primary-light)
+        }
+
+        .pin-dots {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-bottom: 18px
+        }
+
+        .pin-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 2px solid var(--pm-border-2);
+            transition: .15s
+        }
+
+        .pin-dot.filled {
+            background: var(--pm-primary);
+            border-color: var(--pm-primary)
+        }
+
+        .queue-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--pm-border)
+        }
+
+        .queue-row:last-child {
+            border-bottom: 0
+        }
+
+        .queue-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: var(--pm-info-soft);
+            color: var(--pm-info);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0
+        }
+
+        .queue-body {
+            flex: 1;
+            min-width: 0
+        }
+
+        .queue-title {
+            font-size: 13px;
+            font-weight: 600;
+            margin: 0
+        }
+
+        .queue-sub {
+            font-size: 11px;
+            color: var(--pm-muted);
+            margin: 2px 0 0
+        }
+
+        .health-bar {
+            height: 5px;
+            border-radius: 999px;
+            background: var(--pm-bg-2);
+            overflow: hidden
+        }
+
+        .health-bar span {
+            display: block;
+            height: 100%;
+            border-radius: 999px
+        }
+
+        .pm-sidebar.expanded {
+            width: 220px;
+            align-items: stretch
+        }
+
+        .pm-sidebar.expanded .pm-nav-item {
+            justify-content: flex-start;
+            padding: 0 14px;
+            gap: 12px
+        }
+
+        .pm-sidebar.expanded .pm-nav-label {
+            display: inline;
+            font-size: 13px;
+            font-weight: 500
+        }
+
+        .pm-nav-label {
+            display: none
+        }
+
+        .upload-zone {
+            border: 2px dashed var(--pm-border);
+            border-radius: var(--pm-r-lg);
+            padding: 34px;
+            text-align: center;
+            background: var(--pm-surface-2);
+            cursor: pointer;
+            transition: .2s
+        }
+
+        .upload-zone:hover {
+            border-color: var(--pm-primary-light);
+            background: var(--pm-info-soft)
+        }
+
+        @media(max-width:800px) {
+            .tx-row {
+                grid-template-columns: auto 1fr
+            }
+
+            .tx-row>*:nth-child(n+3) {
+                grid-column: 2
+            }
+
+            .bank-grid {
+                grid-template-columns: 1fr
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="pm-app">
+        <aside class="pm-sidebar" id="sidebar">
+            <div class="pm-sidebar-logo" onclick="toggleSidebar()" title="PayMo">P</div>
+            <nav class="pm-sidebar-nav">
+                <button class="pm-nav-item" onclick="pmToast('Dashboard opened','info')" title="Dashboard"><svg
+                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="9" />
+                        <rect x="14" y="3" width="7" height="5" />
+                        <rect x="14" y="12" width="7" height="9" />
+                        <rect x="3" y="16" width="7" height="5" />
+                    </svg><span class="pm-nav-label">Dashboard</span></button>
+                <button class="pm-nav-item" onclick="pmToast('Payments hub opened','info')" title="Payments"><svg
+                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="2" y="5" width="20" height="14" rx="2" />
+                        <line x1="2" y1="10" x2="22" y2="10" />
+                    </svg><span class="pm-nav-label">Payments</span></button>
+                <button class="pm-nav-item" onclick="pmToast('Services hub opened','info')" title="Services"><svg
+                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3" />
+                        <path d="M12 1v6m0 6v10M4.2 4.2l4.2 4.2M15.6 15.6l4.2 4.2M1 12h6m10 0h6" />
+                    </svg><span class="pm-nav-label">Services</span></button>
+                <button class="pm-nav-item active" title="Open Banking"><svg viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <path d="M3 10l9-7 9 7" />
+                        <path d="M4 10h16v10H4z" />
+                        <path d="M8 14h.01M12 14h.01M16 14h.01" />
+                    </svg><span class="pm-nav-label">Open Banking</span></button>
+                <button class="pm-nav-item" onclick="openModal('modal-pis-wizard')" title="Initiate Payment"><svg
+                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="17 1 21 5 17 9" />
+                        <path d="M3 11V9a4 4 0 0 1 4-4h14" />
+                        <polyline points="7 23 3 19 7 15" />
+                        <path d="M21 13v2a4 4 0 0 1-4 4H3" />
+                    </svg><span class="pm-nav-label">PIS</span></button>
+                <button class="pm-nav-item" onclick="openModal('modal-compliance')" title="Compliance"><svg
+                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                    </svg><span class="pm-nav-label">Compliance</span></button>
+                <button class="pm-nav-item" onclick="openModal('modal-reports')" title="Reports"><svg
+                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                        <polyline points="14 2 14 8 20 8" />
+                    </svg><span class="pm-nav-label">Reports</span></button>
+                <button class="pm-nav-item" onclick="openModal('modal-settings')" title="Settings"><svg
+                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3" />
+                        <path d="M12 1v6m0 6v10M4.2 4.2l4.2 4.2M15.6 15.6l4.2 4.2" />
+                    </svg><span class="pm-nav-label">Settings</span></button>
+            </nav>
+            <button class="pm-nav-item" style="margin-top:auto;width:calc(100% - 24px);"
+                onclick="pmToast('Signed out safely','info')" title="Sign out"><svg viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                    <polyline points="16 17 21 12 16 7" />
+                    <line x1="21" y1="12" x2="9" y2="12" />
+                </svg><span class="pm-nav-label">Sign out</span></button>
+        </aside>
+
+        <main class="pm-main">
+            <header class="pm-header">
+                <div class="pm-header-title">
+                    <h1>Open Banking & Account Aggregation</h1>
+                    <p id="pm-now">122 institutions · 1.84M linked accounts · 98.9% consent health</p>
+                </div>
+                <div class="pm-header-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <circle cx="11" cy="11" r="8" />
+                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                    </svg><input id="global-search" placeholder="Search institutions, accounts, consents, transactions…"
+                        oninput="filterOpenBanking(this.value)"></div>
+                <div class="pm-header-actions">
+                    <button class="pm-header-btn" title="System status" onclick="openModal('modal-system-status')"><svg
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+                        </svg><span class="counter" style="background:var(--pm-accent);">99.95%</span></button>
+                    <button class="pm-header-btn" title="Notifications" onclick="openModal('modal-notifications')"><svg
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                        </svg><span class="counter">14</span></button>
+                    <button class="pm-header-btn" title="Developer" onclick="openModal('modal-api-docs')"><svg
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="16 18 22 12 16 6" />
+                            <polyline points="8 6 2 12 8 18" />
+                        </svg></button>
+                    <button class="pm-profile-btn" onclick="openModal('modal-profile')">
+                        <div class="pm-avatar">NO</div>
+                        <div>
+                            <div class="pm-name">Njeri O.</div>
+                            <div class="pm-role">Open Banking Lead</div>
+                        </div>
+                    </button>
+                </div>
+            </header>
+
+            <div class="pm-page-bar">
+                <div>
+                    <div class="pm-breadcrumb"><a href="#">Home</a> / <a href="#">Banking Services</a> / <span
+                            class="text-primary">Open Banking</span></div>
+                    <h2 class="pm-page-title">Open Banking & Account Aggregation</h2>
+                    <p class="pm-page-subtitle">Consent-driven AIS/PIS, account aggregation, insights, webhooks, and
+                        developer-grade open finance APIs.</p>
+                </div>
+                <div class="pm-page-actions">
+                    <button class="pm-btn" onclick="openModal('modal-consents')">Consent Vault</button>
+                    <button class="pm-btn" onclick="openModal('modal-sync-center')">Sync Center</button>
+                    <button class="pm-btn" onclick="openModal('modal-api-docs')">API Docs</button>
+                    <button class="pm-btn pm-btn-primary" onclick="openModal('modal-link-bank')">Link
+                        Institution</button>
+                </div>
+            </div>
+
+            <div class="pm-content">
+                <div class="pm-grid pm-grid-5">
+                    <div class="pm-hero-card" style="grid-column:span 2;">
+                        <h2>Open finance control tower</h2>
+                        <p>122 institutions, 1.84M accounts, 4.8M daily account events, and consent-first data access
+                            across Kenya and East Africa.</p>
+                        <div class="pm-hero-actions"><button class="pm-btn pm-btn-primary"
+                                onclick="openModal('modal-link-bank')">Connect bank</button><button class="pm-btn"
+                                onclick="openModal('modal-pis-wizard')">Initiate payment</button><button class="pm-btn"
+                                onclick="openModal('modal-insights')">Financial insights</button></div>
+                    </div>
+                    <div class="pm-kpi blue">
+                        <div class="pm-kpi-label">Linked accounts</div>
+                        <div class="pm-kpi-value">1.84M</div><span class="pm-kpi-delta pm-delta-up mt-8">+12.8%
+                            MoM</span>
+                        <div class="pm-metric-row mt-12"><span class="pm-metric-label">Active 30d</span><span
+                                class="pm-metric-value">1.42M</span></div>
+                    </div>
+                    <div class="pm-kpi mint">
+                        <div class="pm-kpi-label">Consent health</div>
+                        <div class="pm-kpi-value">98.9%</div><span class="pm-kpi-delta pm-delta-up mt-8">7,842 renewals
+                            due</span>
+                        <div class="health-bar mt-12"><span style="width:98.9%;background:var(--pm-accent);"></span>
+                        </div>
+                    </div>
+                    <div class="pm-kpi violet">
+                        <div class="pm-kpi-label">API calls 24h</div>
+                        <div class="pm-kpi-value">24.8M</div><span class="pm-kpi-delta pm-delta-up mt-8">p95
+                            184ms</span>
+                        <div class="pm-metric-row mt-12"><span class="pm-metric-label">Error rate</span><span
+                                class="pm-metric-value text-success">0.08%</span></div>
+                    </div>
+                </div>
+
+                <div class="pm-grid pm-grid-3">
+                    <div class="pm-card" style="grid-column:span 2;">
+                        <div class="pm-card-header">
+                            <div>
+                                <h3 class="pm-card-title">Attention Required</h3>
+                                <p class="pm-card-subtitle">Consent expiries, institution incidents, suspicious PIS
+                                    attempts</p>
+                            </div><button class="pm-btn pm-btn-sm" onclick="openModal('modal-attention')">View
+                                all</button>
+                        </div>
+                        <div class="queue-row">
+                            <div class="queue-icon" style="background:var(--pm-danger-soft);color:var(--pm-danger);">!
+                            </div>
+                            <div class="queue-body">
+                                <p class="queue-title">Equity Bank OAuth consent refresh elevated failures</p>
+                                <p class="queue-sub">3.4% refresh errors since 08:12 · impacts 18,420 users</p>
+                            </div><button class="pm-btn pm-btn-sm pm-btn-danger"
+                                onclick="openModal('modal-incident')">Investigate</button>
+                        </div>
+                        <div class="queue-row">
+                            <div class="queue-icon" style="background:var(--pm-warning-soft);color:var(--pm-warning);">⏱
+                            </div>
+                            <div class="queue-body">
+                                <p class="queue-title">7,842 consents expire within 7 days</p>
+                                <p class="queue-sub">Auto-renewal nudges queued via push, email, WhatsApp</p>
+                            </div><button class="pm-btn pm-btn-sm"
+                                onclick="openModal('modal-consent-renewal')">Renew</button>
+                        </div>
+                        <div class="queue-row">
+                            <div class="queue-icon" style="background:var(--pm-info-soft);color:var(--pm-info);">🔐
+                            </div>
+                            <div class="queue-body">
+                                <p class="queue-title">12 payment initiation attempts require SCA review</p>
+                                <p class="queue-sub">High-value PesaLink aliases · velocity rule triggered</p>
+                            </div><button class="pm-btn pm-btn-sm"
+                                onclick="openModal('modal-risk-review')">Review</button>
+                        </div>
+                    </div>
+                    <div class="pm-card">
+                        <div class="pm-card-header">
+                            <div>
+                                <h3 class="pm-card-title">Quick Actions</h3>
+                                <p class="pm-card-subtitle">AIS/PIS and open finance workflows</p>
+                            </div>
+                        </div>
+                        <div class="pm-grid pm-grid-2" style="gap:10px;">
+                            <button class="pm-btn" onclick="openModal('modal-link-bank')">Link bank</button><button
+                                class="pm-btn" onclick="openModal('modal-pis-wizard')">Initiate PIS</button><button
+                                class="pm-btn" onclick="openModal('modal-categorize')">Categorize txs</button><button
+                                class="pm-btn" onclick="openModal('modal-consents')">Consent vault</button><button
+                                class="pm-btn" onclick="openModal('modal-webhooks')">Webhooks</button><button
+                                class="pm-btn" onclick="openModal('modal-sandbox')">Sandbox</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2.7.1 -->
+                <section>
+                    <div class="pm-section-head">
+                        <div>
+                            <h3 class="pm-section-title">2.7.1 — Institution Directory & Bank Connectivity</h3>
+                            <p class="pm-section-subtitle">Kenyan and African banks, mobile money wallets, SACCOs, and
+                                fintech accounts with real-time health.</p>
+                        </div>
+                        <div class="pm-pills"><button class="pm-pill active">All</button><button
+                                class="pm-pill">Banks</button><button class="pm-pill">Mobile Money</button><button
+                                class="pm-pill">SACCOs</button><button class="pm-pill">Fintechs</button></div>
+                    </div>
+                    <div class="pm-card mt-12">
+                        <div class="bank-grid" id="institution-grid"></div>
+                    </div>
+                </section>
+
+                <!-- 2.7.2 -->
+                <section>
+                    <div class="pm-section-head">
+                        <div>
+                            <h3 class="pm-section-title">2.7.2 — Account Information Services (AIS)</h3>
+                            <p class="pm-section-subtitle">Balances, statements, owners, transactions, categorization,
+                                and enrichment across all linked accounts.</p>
+                        </div><button class="pm-btn pm-btn-sm" onclick="openModal('modal-link-bank')">Add AIS
+                            connection</button>
+                    </div>
+                    <div class="pm-grid pm-grid-4 mt-12" id="account-grid"></div>
+                    <div class="pm-card mt-16">
+                        <div class="pm-card-header">
+                            <div>
+                                <h3 class="pm-card-title">Aggregated Transaction Feed</h3>
+                                <p class="pm-card-subtitle">Recent normalized events from all linked accounts</p>
+                            </div>
+                            <div class="pm-card-actions"><button class="pm-btn pm-btn-sm"
+                                    onclick="openModal('modal-filter')">Filter</button><button class="pm-btn pm-btn-sm"
+                                    onclick="pmToast('CSV exported','success')">Export</button></div>
+                        </div>
+                        <div id="tx-feed"></div>
+                    </div>
+                </section>
+
+                <!-- 2.7.3 -->
+                <section>
+                    <div class="pm-section-head">
+                        <div>
+                            <h3 class="pm-section-title">2.7.3 — Consent & Permission Management</h3>
+                            <p class="pm-section-subtitle">OAuth consent vault with scopes, expiry, renewal, revocation,
+                                audit and Data Protection Act compliance.</p>
+                        </div><button class="pm-btn pm-btn-sm" onclick="openModal('modal-consents')">Open Consent
+                            Vault</button>
+                    </div>
+                    <div class="pm-grid pm-grid-4 mt-12">
+                        <div class="pm-kpi mint">
+                            <div class="pm-kpi-label">Active consents</div>
+                            <div class="pm-kpi-value">1.62M</div><span class="pm-kpi-delta pm-delta-up mt-8">98.9%
+                                healthy</span>
+                        </div>
+                        <div class="pm-kpi warm">
+                            <div class="pm-kpi-label">Expiring 7d</div>
+                            <div class="pm-kpi-value">7,842</div><span
+                                class="pm-kpi-delta pm-delta-down mt-8">auto-nudges on</span>
+                        </div>
+                        <div class="pm-kpi blue">
+                            <div class="pm-kpi-label">Revoked MTD</div>
+                            <div class="pm-kpi-value">8,420</div><span class="pm-kpi-delta pm-delta-up mt-8">0.52%
+                                revocation</span>
+                        </div>
+                        <div class="pm-kpi violet">
+                            <div class="pm-kpi-label">Scope risk</div>
+                            <div class="pm-kpi-value">Low</div><span class="pm-kpi-delta pm-delta-up mt-8">DPIA
+                                complete</span>
+                        </div>
+                    </div>
+                    <div class="pm-grid pm-grid-3 mt-16">
+                        <div class="pm-card">
+                            <h3 class="pm-card-title">Top consent scopes</h3>
+                            <div class="pm-metric-row mt-12"><span class="pm-metric-label">accounts.read</span><span
+                                    class="pm-metric-value">1.62M</span></div>
+                            <div class="health-bar"><span style="width:96%;background:var(--pm-primary);"></span></div>
+                            <div class="pm-metric-row mt-12"><span class="pm-metric-label">transactions.read</span><span
+                                    class="pm-metric-value">1.48M</span></div>
+                            <div class="health-bar"><span style="width:88%;background:var(--pm-accent);"></span></div>
+                            <div class="pm-metric-row mt-12"><span class="pm-metric-label">payments.initiate</span><span
+                                    class="pm-metric-value">420K</span></div>
+                            <div class="health-bar"><span style="width:32%;background:var(--pm-warning);"></span></div>
+                        </div>
+                        <div class="pm-card">
+                            <h3 class="pm-card-title">Renewal channels</h3>
+                            <div class="pm-metric-row mt-12"><span class="pm-metric-label">Push</span><span
+                                    class="pm-metric-value text-success">42% conversion</span></div>
+                            <div class="pm-metric-row"><span class="pm-metric-label">WhatsApp</span><span
+                                    class="pm-metric-value text-success">38% conversion</span></div>
+                            <div class="pm-metric-row"><span class="pm-metric-label">Email</span><span
+                                    class="pm-metric-value">18% conversion</span></div><button
+                                class="pm-btn w-full mt-12" onclick="openModal('modal-bulk-consent-nudge')">Send renewal
+                                campaign</button>
+                        </div>
+                        <div class="pm-card">
+                            <h3 class="pm-card-title">Privacy operations</h3>
+                            <div class="pm-metric-row mt-12"><span class="pm-metric-label">DSAR open</span><span
+                                    class="pm-metric-value">18</span></div>
+                            <div class="pm-metric-row"><span class="pm-metric-label">Avg fulfilment</span><span
+                                    class="pm-metric-value text-success">4.2 days</span></div>
+                            <div class="pm-metric-row"><span class="pm-metric-label">DPIA status</span><span
+                                    class="pm-metric-value text-success">Complete</span></div><button
+                                class="pm-btn w-full mt-12" onclick="openModal('modal-privacy')">Privacy center</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 2.7.4 -->
+                <section>
+                    <div class="pm-section-head">
+                        <div>
+                            <h3 class="pm-section-title">2.7.4 — Payment Initiation Services (PIS)</h3>
+                            <p class="pm-section-subtitle">Initiate secure payments from linked accounts via PesaLink,
+                                bank app push, USSD, OTP, biometric, or hardware token.</p>
+                        </div><button class="pm-btn pm-btn-sm pm-btn-primary"
+                            onclick="openModal('modal-pis-wizard')">Initiate Payment</button>
+                    </div>
+                    <div class="pm-grid pm-grid-3 mt-12">
+                        <div class="pm-card">
+                            <h3 class="pm-card-title">PIS Volume</h3>
+                            <div class="pm-kpi-value" style="font-size:28px;">KES 14.2B</div><span
+                                class="pm-kpi-delta pm-delta-up mt-8">MTD +18%</span>
+                            <div class="pm-metric-row mt-12"><span class="pm-metric-label">Success rate</span><span
+                                    class="pm-metric-value text-success">99.2%</span></div>
+                        </div>
+                        <div class="pm-card">
+                            <h3 class="pm-card-title">Authorization Methods</h3>
+                            <div class="pm-metric-row mt-12"><span class="pm-metric-label">Bank app push</span><span
+                                    class="pm-metric-value">62%</span></div>
+                            <div class="pm-metric-row"><span class="pm-metric-label">USSD</span><span
+                                    class="pm-metric-value">18%</span></div>
+                            <div class="pm-metric-row"><span class="pm-metric-label">OTP SMS</span><span
+                                    class="pm-metric-value">14%</span></div>
+                            <div class="pm-metric-row"><span class="pm-metric-label">Biometric/token</span><span
+                                    class="pm-metric-value">6%</span></div>
+                        </div>
+                        <div class="pm-card">
+                            <h3 class="pm-card-title">PesaLink Limits</h3>
+                            <div class="pm-metric-row mt-12"><span class="pm-metric-label">Range</span><span
+                                    class="pm-metric-value">KES 10 - 999,999</span></div>
+                            <div class="pm-metric-row"><span class="pm-metric-label">Availability</span><span
+                                    class="pm-metric-value text-success">24/7</span></div>
+                            <div class="pm-metric-row"><span class="pm-metric-label">Alias</span><span
+                                    class="pm-metric-value">Phone / account</span></div><button
+                                class="pm-btn w-full mt-12" onclick="openModal('modal-pis-rules')">Configure
+                                rules</button>
+                        </div>
+                    </div>
+                    <div class="pm-card mt-16">
+                        <div class="pm-card-header">
+                            <div>
+                                <h3 class="pm-card-title">Recent Payment Initiations</h3>
+                                <p class="pm-card-subtitle">Real-time status: pending authorization → processing →
+                                    completed</p>
+                            </div><button class="pm-btn pm-btn-sm"
+                                onclick="openModal('modal-pis-monitor')">Monitor</button>
+                        </div>
+                        <div class="pm-table-wrap">
+                            <table class="pm-table">
+                                <thead>
+                                    <tr>
+                                        <th>Ref</th>
+                                        <th>Source</th>
+                                        <th>Payee</th>
+                                        <th>Amount</th>
+                                        <th>Auth</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>PIS-884216</td>
+                                        <td>Equity ****2214</td>
+                                        <td>KPLC Paybill</td>
+                                        <td>KES 184,000</td>
+                                        <td>Bank app</td>
+                                        <td><span class="pm-chip pm-chip-success">Completed</span></td>
+                                        <td><button class="pm-btn pm-btn-sm"
+                                                onclick="openModal('modal-pis-detail')">View</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td>PIS-884217</td>
+                                        <td>KCB ****8842</td>
+                                        <td>Supplier ABC</td>
+                                        <td>KES 820,000</td>
+                                        <td>Hardware token</td>
+                                        <td><span class="pm-chip pm-chip-warning">Pending auth</span></td>
+                                        <td><button class="pm-btn pm-btn-sm"
+                                                onclick="openModal('modal-pis-detail')">View</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td>PIS-884218</td>
+                                        <td>Co-op ****1420</td>
+                                        <td>NSSF</td>
+                                        <td>KES 42.4M</td>
+                                        <td>Dual auth</td>
+                                        <td><span class="pm-chip pm-chip-info">Processing</span></td>
+                                        <td><button class="pm-btn pm-btn-sm"
+                                                onclick="openModal('modal-pis-detail')">View</button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 2.7.5 -->
+                <section>
+                    <div class="pm-section-head">
+                        <div>
+                            <h3 class="pm-section-title">2.7.5 — Transaction Categorization & Merchant Enrichment</h3>
+                            <p class="pm-section-subtitle">Normalize narration, classify spending, enrich merchants,
+                                detect recurring income and subscriptions.</p>
+                        </div><button class="pm-btn pm-btn-sm" onclick="openModal('modal-categorize')">Train
+                            Categorizer</button>
+                    </div>
+                    <div class="pm-grid pm-grid-4 mt-12">
+                        <div class="pm-kpi blue">
+                            <div class="pm-kpi-label">Categorized 24h</div>
+                            <div class="pm-kpi-value">8.4M</div><span class="pm-kpi-delta pm-delta-up mt-8">96.8%
+                                confidence</span>
+                        </div>
+                        <div class="pm-kpi mint">
+                            <div class="pm-kpi-label">Merchants enriched</div>
+                            <div class="pm-kpi-value">42,840</div><span class="pm-kpi-delta pm-delta-up mt-8">+1,420
+                                today</span>
+                        </div>
+                        <div class="pm-kpi warm">
+                            <div class="pm-kpi-label">Low confidence</div>
+                            <div class="pm-kpi-value">28,420</div><span class="pm-kpi-delta pm-delta-down mt-8">human
+                                review</span>
+                        </div>
+                        <div class="pm-kpi violet">
+                            <div class="pm-kpi-label">Recurring detected</div>
+                            <div class="pm-kpi-value">184K</div><span
+                                class="pm-kpi-delta pm-delta-up mt-8">subscriptions + salary</span>
+                        </div>
+                    </div>
+                    <div class="pm-card mt-16">
+                        <div class="pm-card-header">
+                            <div>
+                                <h3 class="pm-card-title">Category Model Performance</h3>
+                                <p class="pm-card-subtitle">PayMo-Cat-v6 · trained on 480M Africa-first transactions</p>
+                            </div><button class="pm-btn pm-btn-sm" onclick="openModal('modal-model-performance')">Model
+                                details</button>
+                        </div>
+                        <div id="category-bars"></div>
+                    </div>
+                </section>
+
+                <!-- 2.7.6 -->
+                <section>
+                    <div class="pm-section-head">
+                        <div>
+                            <h3 class="pm-section-title">2.7.6 — Personal & Business Financial Insights</h3>
+                            <p class="pm-section-subtitle">Cash flow, budgets, affordability, income verification,
+                                spending trends, and risk scoring.</p>
+                        </div><button class="pm-btn pm-btn-sm" onclick="openModal('modal-insights')">Open
+                            Insights</button>
+                    </div>
+                    <div class="pm-grid pm-grid-4 mt-12">
+                        <div class="ob-card insight-card good">
+                            <h3 class="pm-card-title">Cash Flow Forecast</h3>
+                            <div class="ob-balance mt-8">KES +284K</div>
+                            <p class="ob-sub">Predicted 30-day net position for retail segment</p><button
+                                class="pm-btn pm-btn-sm w-full mt-12" onclick="openModal('modal-cashflow')">View
+                                forecast</button>
+                        </div>
+                        <div class="ob-card insight-card warn">
+                            <h3 class="pm-card-title">Affordability Risk</h3>
+                            <div class="ob-balance mt-8" style="color:var(--pm-warning);">14.2%</div>
+                            <p class="ob-sub">Customers with debt-service ratio above 45%</p><button
+                                class="pm-btn pm-btn-sm w-full mt-12"
+                                onclick="openModal('modal-affordability')">Review</button>
+                        </div>
+                        <div class="ob-card insight-card">
+                            <h3 class="pm-card-title">Income Verification</h3>
+                            <div class="ob-balance mt-8">942K</div>
+                            <p class="ob-sub">Salary patterns verified in last 30 days</p><button
+                                class="pm-btn pm-btn-sm w-full mt-12"
+                                onclick="openModal('modal-income')">Verify</button>
+                        </div>
+                        <div class="ob-card insight-card risk">
+                            <h3 class="pm-card-title">Fraud Signals</h3>
+                            <div class="ob-balance mt-8" style="color:var(--pm-danger);">842</div>
+                            <p class="ob-sub">Suspicious linked-account events for review</p><button
+                                class="pm-btn pm-btn-sm w-full mt-12"
+                                onclick="openModal('modal-fraud')">Investigate</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 2.7.7 -->
+                <section>
+                    <div class="pm-section-head">
+                        <div>
+                            <h3 class="pm-section-title">2.7.7 — Developer APIs, Webhooks & Sandbox</h3>
+                            <p class="pm-section-subtitle">OpenAPI documentation, SDKs, webhook subscriptions, event
+                                replay, and production promotion.</p>
+                        </div><button class="pm-btn pm-btn-sm" onclick="openModal('modal-api-docs')">Developer
+                            console</button>
+                    </div>
+                    <div class="pm-grid pm-grid-2 mt-12">
+                        <div class="pm-card">
+                            <h3 class="pm-card-title">Open Banking API</h3>
+                            <div class="api-code mt-12"><span class="k">GET</span> <span class="s">/v1/accounts</span>
+                                List linked accounts
+                                <span class="k">GET</span> <span class="s">/v1/accounts/:id/balance</span> Realtime
+                                balance
+                                <span class="k">GET</span> <span class="s">/v1/accounts/:id/transactions</span>
+                                <span class="k">POST</span> <span class="s">/v1/payments/initiate</span> Initiate PIS
+                                <span class="k">POST</span> <span class="s">/v1/consents</span> Create consent request
+                                <span class="k">DELETE</span> <span class="s">/v1/consents/:id</span> Revoke consent
+                            </div>
+                            <div class="pm-grid pm-grid-3 mt-12"><button class="pm-btn"
+                                    onclick="pmToast('OpenAPI downloaded','success')">OpenAPI</button><button
+                                    class="pm-btn"
+                                    onclick="pmToast('Postman downloaded','success')">Postman</button><button
+                                    class="pm-btn" onclick="openModal('modal-sandbox')">Sandbox</button></div>
+                        </div>
+                        <div class="pm-card">
+                            <h3 class="pm-card-title">Webhook Health</h3>
+                            <div class="pm-metric-row mt-12"><span class="pm-metric-label">Events 24h</span><span
+                                    class="pm-metric-value">4.8M</span></div>
+                            <div class="pm-metric-row"><span class="pm-metric-label">Delivery success</span><span
+                                    class="pm-metric-value text-success">99.4%</span></div>
+                            <div class="pm-metric-row"><span class="pm-metric-label">Dead-letter queue</span><span
+                                    class="pm-metric-value text-warning">842 events</span></div>
+                            <div class="pm-metric-row"><span class="pm-metric-label">Avg retry time</span><span
+                                    class="pm-metric-value">42s</span></div><button
+                                class="pm-btn pm-btn-primary w-full mt-12"
+                                onclick="openModal('modal-webhooks')">Configure webhooks</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 2.7.8 -->
+                <section>
+                    <div class="pm-section-head">
+                        <div>
+                            <h3 class="pm-section-title">2.7.8 — Security, Compliance & Audit</h3>
+                            <p class="pm-section-subtitle">SCA, consent audit, data retention, encryption, sanctions
+                                screening, fraud monitoring, and CBK/ODPC readiness.</p>
+                        </div><button class="pm-btn pm-btn-sm" onclick="openModal('modal-security-center')">Security
+                            Center</button>
+                    </div>
+                    <div class="pm-grid pm-grid-4 mt-12">
+                        <div class="pm-card">
+                            <h3 class="pm-card-title">SCA Coverage</h3>
+                            <div class="pm-kpi-value" style="font-size:28px;">99.8%</div><span
+                                class="pm-kpi-delta pm-delta-up mt-8">Bank app, OTP, biometric</span>
+                        </div>
+                        <div class="pm-card">
+                            <h3 class="pm-card-title">Encryption</h3>
+                            <div class="pm-kpi-value" style="font-size:28px;">AES-256</div><span
+                                class="pm-kpi-delta pm-delta-up mt-8">TLS 1.3 in transit</span>
+                        </div>
+                        <div class="pm-card">
+                            <h3 class="pm-card-title">Audit Events</h3>
+                            <div class="pm-kpi-value" style="font-size:28px;">18.4M</div><span
+                                class="pm-kpi-delta pm-delta-up mt-8">immutable logs</span>
+                        </div>
+                        <div class="pm-card">
+                            <h3 class="pm-card-title">Compliance</h3>
+                            <div class="pm-kpi-value" style="font-size:28px;">ODPC</div><span
+                                class="pm-kpi-delta pm-delta-up mt-8">DPA + DPIA live</span>
+                        </div>
+                    </div>
+                    <div class="pm-card mt-16">
+                        <div class="pm-card-header">
+                            <div>
+                                <h3 class="pm-card-title">Security & Compliance Queue</h3>
+                                <p class="pm-card-subtitle">Operational controls with owner and SLA</p>
+                            </div><button class="pm-btn pm-btn-sm" onclick="openModal('modal-compliance')">Open
+                                queue</button>
+                        </div>
+                        <div class="pm-table-wrap">
+                            <table class="pm-table">
+                                <thead>
+                                    <tr>
+                                        <th>Control</th>
+                                        <th>Owner</th>
+                                        <th>Finding</th>
+                                        <th>SLA</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>ODPC DSAR</td>
+                                        <td>Privacy</td>
+                                        <td>18 open requests</td>
+                                        <td>30d</td>
+                                        <td><span class="pm-chip pm-chip-success">On track</span></td>
+                                        <td><button class="pm-btn pm-btn-sm"
+                                                onclick="openModal('modal-privacy')">Open</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td>OAuth refresh failures</td>
+                                        <td>Platform</td>
+                                        <td>3.4% Equity errors</td>
+                                        <td>4h</td>
+                                        <td><span class="pm-chip pm-chip-danger">Critical</span></td>
+                                        <td><button class="pm-btn pm-btn-sm"
+                                                onclick="openModal('modal-incident')">Open</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Webhook DLQ</td>
+                                        <td>Integrations</td>
+                                        <td>842 dead-letter events</td>
+                                        <td>24h</td>
+                                        <td><span class="pm-chip pm-chip-warning">Review</span></td>
+                                        <td><button class="pm-btn pm-btn-sm"
+                                                onclick="openModal('modal-webhooks')">Replay</button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="pm-card">
+                    <div class="pm-card-header">
+                        <div>
+                            <h3 class="pm-card-title">System-wide Snapshot</h3>
+                            <p class="pm-card-subtitle">PayMo Open Banking · Nairobi, Kenya · v4.2.1</p>
+                        </div><span class="pm-chip pm-chip-success"><span class="pm-dot pm-dot-success"></span> All core
+                            systems nominal</span>
+                    </div>
+                    <div class="pm-grid pm-grid-6">
+                        <div>
+                            <div style="font-size:11px;color:var(--pm-muted);text-transform:uppercase;">Institutions
+                            </div>
+                            <div class="pm-kpi-value" style="font-size:16px;">122</div>
+                        </div>
+                        <div>
+                            <div style="font-size:11px;color:var(--pm-muted);text-transform:uppercase;">Accounts</div>
+                            <div class="pm-kpi-value" style="font-size:16px;">1.84M</div>
+                        </div>
+                        <div>
+                            <div style="font-size:11px;color:var(--pm-muted);text-transform:uppercase;">PIS MTD</div>
+                            <div class="pm-kpi-value" style="font-size:16px;">KES 14.2B</div>
+                        </div>
+                        <div>
+                            <div style="font-size:11px;color:var(--pm-muted);text-transform:uppercase;">API Calls</div>
+                            <div class="pm-kpi-value" style="font-size:16px;">24.8M</div>
+                        </div>
+                        <div>
+                            <div style="font-size:11px;color:var(--pm-muted);text-transform:uppercase;">Webhook</div>
+                            <div class="pm-kpi-value" style="font-size:16px;">99.4%</div>
+                        </div>
+                        <div>
+                            <div style="font-size:11px;color:var(--pm-muted);text-transform:uppercase;">Support</div>
+                            <div class="pm-kpi-value text-primary" style="font-size:14px;cursor:pointer"
+                                onclick="openModal('modal-help')">Get help →</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODALS -->
+    <div class="pm-backdrop" id="modal-link-bank">
+        <div class="pm-modal pm-modal-lg">
+            <div class="pm-modal-head">
+                <div>
+                    <h3 class="pm-modal-title">Link Institution</h3>
+                    <p class="pm-modal-sub">OAuth consent, SCA and account selection.</p>
+                </div><button class="pm-modal-close" onclick="closeModal('modal-link-bank')">×</button>
+            </div>
+            <div class="pm-modal-body">
+                <div class="pm-steps">
+                    <div class="pm-step active"><span class="pm-step-num">1</span> Institution</div><span
+                        class="pm-step-arrow">›</span>
+                    <div class="pm-step"><span class="pm-step-num">2</span> Consent</div><span
+                        class="pm-step-arrow">›</span>
+                    <div class="pm-step"><span class="pm-step-num">3</span> Authenticate</div><span
+                        class="pm-step-arrow">›</span>
+                    <div class="pm-step"><span class="pm-step-num">4</span> Accounts</div><span
+                        class="pm-step-arrow">›</span>
+                    <div class="pm-step"><span class="pm-step-num">5</span> Done</div>
+                </div>
+                <div class="step-pane">
+                    <div class="bank-grid">
+                        <div class="bank-tile" onclick="stepNext('link')"><b>Equity Bank</b>
+                            <p class="ob-sub">OAuth + PesaLink · 99.92%</p>
+                        </div>
+                        <div class="bank-tile" onclick="stepNext('link')"><b>KCB Bank</b>
+                            <p class="ob-sub">OAuth + USSD fallback</p>
+                        </div>
+                        <div class="bank-tile" onclick="stepNext('link')"><b>Safaricom M-Pesa</b>
+                            <p class="ob-sub">Daraja 3.0 consent</p>
+                        </div>
+                        <div class="bank-tile" onclick="stepNext('link')"><b>Co-operative Bank</b>
+                            <p class="ob-sub">Bank app push</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="step-pane hidden">
+                    <div class="consent-scope">
+                        <div><b>Account details</b>
+                            <p class="ob-sub">Names, account numbers, account type</p>
+                        </div><label class="pm-switch"><input type="checkbox" checked><span
+                                class="pm-switch-slider"></span></label>
+                    </div>
+                    <div class="consent-scope">
+                        <div><b>Balances</b>
+                            <p class="ob-sub">Realtime and available balance</p>
+                        </div><label class="pm-switch"><input type="checkbox" checked><span
+                                class="pm-switch-slider"></span></label>
+                    </div>
+                    <div class="consent-scope">
+                        <div><b>Transactions</b>
+                            <p class="ob-sub">24 months history and new events</p>
+                        </div><label class="pm-switch"><input type="checkbox" checked><span
+                                class="pm-switch-slider"></span></label>
+                    </div>
+                    <div class="consent-scope">
+                        <div><b>Payment initiation</b>
+                            <p class="ob-sub">Optional PIS permission</p>
+                        </div><label class="pm-switch"><input type="checkbox"><span
+                                class="pm-switch-slider"></span></label>
+                    </div>
+                </div>
+                <div class="step-pane hidden">
+                    <div style="text-align:center">
+                        <h4>Authenticate with bank</h4>
+                        <p class="pm-card-subtitle">Simulated Equity Bank app push sent to +254 712***678</p><button
+                            class="pm-btn pm-btn-primary mt-12" onclick="stepNext('link')">Approve in bank
+                            app</button><button class="pm-btn mt-12"
+                            onclick="pmToast('USSD code generated: *247*42#','info')">Use USSD instead</button>
+                    </div>
+                </div>
+                <div class="step-pane hidden">
+                    <div class="consent-scope">
+                        <div><b>Equity Current ****2214</b>
+                            <p class="ob-sub">KES 8,420,000 · business</p>
+                        </div><input type="checkbox" checked>
+                    </div>
+                    <div class="consent-scope">
+                        <div><b>Equity Savings ****8842</b>
+                            <p class="ob-sub">KES 2,184,000 · savings</p>
+                        </div><input type="checkbox" checked>
+                    </div>
+                    <div class="consent-scope">
+                        <div><b>USD Account ****7001</b>
+                            <p class="ob-sub">USD 42,000 · foreign currency</p>
+                        </div><input type="checkbox">
+                    </div>
+                </div>
+                <div class="step-pane hidden">
+                    <div style="text-align:center;padding:24px">
+                        <div style="font-size:48px;color:var(--pm-accent)">✓</div>
+                        <h3>Institution linked</h3>
+                        <p class="pm-card-subtitle">2 accounts synced, 24 months of transactions queued.</p><button
+                            class="pm-btn pm-btn-primary" onclick="closeModal('modal-link-bank')">Done</button>
+                    </div>
+                </div>
+            </div>
+            <div class="pm-modal-foot"><button class="pm-btn" onclick="stepBack('link')">Back</button>
+                <div class="pm-modal-foot-right"><button class="pm-btn"
+                        onclick="closeModal('modal-link-bank')">Cancel</button><button class="pm-btn pm-btn-primary"
+                        onclick="stepNext('link')">Next</button></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="pm-backdrop" id="modal-pis-wizard">
+        <div class="pm-modal pm-modal-lg">
+            <div class="pm-modal-head">
+                <div>
+                    <h3 class="pm-modal-title">Initiate Payment from Linked Account</h3>
+                    <p class="pm-modal-sub">PIS with SCA, alias support, receipt and tracking.</p>
+                </div><button class="pm-modal-close" onclick="closeModal('modal-pis-wizard')">×</button>
+            </div>
+            <div class="pm-modal-body">
+                <div class="pm-steps">
+                    <div class="pm-step active"><span class="pm-step-num">1</span> Payment</div><span
+                        class="pm-step-arrow">›</span>
+                    <div class="pm-step"><span class="pm-step-num">2</span> Review</div><span
+                        class="pm-step-arrow">›</span>
+                    <div class="pm-step"><span class="pm-step-num">3</span> SCA</div><span
+                        class="pm-step-arrow">›</span>
+                    <div class="pm-step"><span class="pm-step-num">4</span> Track</div>
+                </div>
+                <div class="step-pane">
+                    <div class="pm-form-row">
+                        <div class="pm-form-group"><label class="pm-form-label">Source account</label><select
+                                class="pm-form-select">
+                                <option>Equity Current ****2214 · KES 8.42M</option>
+                                <option>KCB Current ****8842 · KES 4.2M</option>
+                            </select></div>
+                        <div class="pm-form-group"><label class="pm-form-label">Rail</label><select
+                                class="pm-form-select">
+                                <option>PesaLink 24/7</option>
+                                <option>Bank transfer EFT</option>
+                                <option>RTGS high value</option>
+                            </select></div>
+                    </div>
+                    <div class="pm-form-row">
+                        <div class="pm-form-group"><label class="pm-form-label">Payee</label><input
+                                class="pm-form-input" value="0712345678 · KPLC Collections"></div>
+                        <div class="pm-form-group"><label class="pm-form-label">Amount</label><input
+                                class="pm-form-input" value="184000"></div>
+                    </div>
+                    <div class="pm-form-group"><label class="pm-form-label">Reference</label><input
+                            class="pm-form-input" value="KPLC postpaid batch INV-2026-8842"></div>
+                </div>
+                <div class="step-pane hidden">
+                    <div class="pm-card" style="background:var(--pm-surface-2)">
+                        <div class="pm-metric-row"><span class="pm-metric-label">Debit</span><span
+                                class="pm-metric-value">Equity Current ****2214</span></div>
+                        <div class="pm-metric-row"><span class="pm-metric-label">Credit</span><span
+                                class="pm-metric-value">KPLC Collections · 0712345678</span></div>
+                        <div class="pm-metric-row"><span class="pm-metric-label">Amount</span><span
+                                class="pm-metric-value text-primary">KES 184,000</span></div>
+                        <div class="pm-metric-row"><span class="pm-metric-label">Fee</span><span
+                                class="pm-metric-value">KES 45</span></div>
+                        <div class="pm-metric-row"><span class="pm-metric-label">ETA</span><span
+                                class="pm-metric-value text-success">Instant</span></div>
+                    </div>
+                </div>
+                <div class="step-pane hidden">
+                    <div style="text-align:center">
+                        <h4>Strong customer authentication</h4>
+                        <p class="pm-card-subtitle">Bank app push sent. Enter fallback PIN for demo.</p>
+                        <div class="pin-dots" id="pis-dots">
+                            <div class="pin-dot"></div>
+                            <div class="pin-dot"></div>
+                            <div class="pin-dot"></div>
+                            <div class="pin-dot"></div>
+                        </div>
+                        <div class="pin-pad"><button class="pin-btn" onclick="pressPin('pis',1)">1</button><button
+                                class="pin-btn" onclick="pressPin('pis',2)">2</button><button class="pin-btn"
+                                onclick="pressPin('pis',3)">3</button><button class="pin-btn"
+                                onclick="pressPin('pis',4)">4</button><button class="pin-btn"
+                                onclick="pressPin('pis',5)">5</button><button class="pin-btn"
+                                onclick="pressPin('pis',6)">6</button><button class="pin-btn"
+                                onclick="pressPin('pis',7)">7</button><button class="pin-btn"
+                                onclick="pressPin('pis',8)">8</button><button class="pin-btn"
+                                onclick="pressPin('pis',9)">9</button><button class="pin-btn"
+                                onclick="pmToast('Biometric approved','success')">Bio</button><button class="pin-btn"
+                                onclick="pressPin('pis',0)">0</button><button class="pin-btn"
+                                onclick="clearPin('pis')">⌫</button></div>
+                    </div>
+                </div>
+                <div class="step-pane hidden">
+                    <div style="text-align:center;padding:24px">
+                        <div style="font-size:48px;color:var(--pm-accent)">✓</div>
+                        <h3>Payment completed</h3>
+                        <p class="pm-card-subtitle">PIS-884216 · PesaLink reference PLK92184</p>
+                        <div class="pm-metric-row"><span class="pm-metric-label">Status</span><span
+                                class="pm-metric-value text-success">Completed</span></div><button class="pm-btn"
+                            onclick="pmToast('Receipt downloaded','success')">Download receipt</button>
+                    </div>
+                </div>
+            </div>
+            <div class="pm-modal-foot"><button class="pm-btn" onclick="stepBack('pis')">Back</button>
+                <div class="pm-modal-foot-right"><button class="pm-btn"
+                        onclick="closeModal('modal-pis-wizard')">Cancel</button><button class="pm-btn pm-btn-primary"
+                        onclick="stepNext('pis')">Next</button></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reusable Rich Modals -->
+    <div class="pm-backdrop" id="modal-consents">
+        <div class="pm-modal pm-modal-lg">
+            <div class="pm-modal-head">
+                <div>
+                    <h3 class="pm-modal-title">Consent Vault</h3>
+                    <p class="pm-modal-sub">Scopes, expiry, renewal, revocation and audit.</p>
+                </div><button class="pm-modal-close" onclick="closeModal('modal-consents')">×</button>
+            </div>
+            <div class="pm-modal-body">
+                <div class="pm-table-wrap">
+                    <table class="pm-table">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Institution</th>
+                                <th>Scopes</th>
+                                <th>Expires</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Amina K.</td>
+                                <td>Equity Bank</td>
+                                <td>accounts.read, transactions.read</td>
+                                <td>6 days</td>
+                                <td><span class="pm-chip pm-chip-warning">Renew</span></td>
+                                <td><button class="pm-btn pm-btn-sm"
+                                        onclick="openModal('modal-consent-renewal')">Renew</button></td>
+                            </tr>
+                            <tr>
+                                <td>Acme Ltd</td>
+                                <td>KCB Bank</td>
+                                <td>accounts.read, payments.initiate</td>
+                                <td>84 days</td>
+                                <td><span class="pm-chip pm-chip-success">Active</span></td>
+                                <td><button class="pm-btn pm-btn-sm"
+                                        onclick="openModal('modal-consent-detail')">View</button></td>
+                            </tr>
+                            <tr>
+                                <td>Retail Group</td>
+                                <td>M-Pesa</td>
+                                <td>wallet.read</td>
+                                <td>21 days</td>
+                                <td><span class="pm-chip pm-chip-success">Active</span></td>
+                                <td><button class="pm-btn pm-btn-sm"
+                                        onclick="openModal('modal-consent-detail')">View</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="pm-modal-foot"><button class="pm-btn"
+                    onclick="closeModal('modal-consents')">Close</button><button class="pm-btn pm-btn-primary"
+                    onclick="openModal('modal-bulk-consent-nudge')">Bulk renewal</button></div>
+        </div>
+    </div>
+    <div class="pm-backdrop" id="modal-account-detail">
+        <div class="pm-modal pm-modal-lg">
+            <div class="pm-modal-head">
+                <div>
+                    <h3 class="pm-modal-title">Linked Account Detail</h3>
+                    <p class="pm-modal-sub">Balance, transactions, consents and sync health.</p>
+                </div><button class="pm-modal-close" onclick="closeModal('modal-account-detail')">×</button>
+            </div>
+            <div class="pm-modal-body">
+                <div class="pm-tabs" data-tabs="acct"><button class="pm-tab active"
+                        data-acct-tab="summary">Summary</button><button class="pm-tab"
+                        data-acct-tab="transactions">Transactions</button><button class="pm-tab"
+                        data-acct-tab="consent">Consent</button><button class="pm-tab"
+                        data-acct-tab="sync">Sync</button></div>
+                <div class="acct-pane" data-acct-pane="summary">
+                    <div class="pm-grid pm-grid-3 mt-12">
+                        <div class="pm-card">
+                            <div class="pm-kpi-label">Balance</div>
+                            <div class="pm-kpi-value">KES 8.42M</div>
+                        </div>
+                        <div class="pm-card">
+                            <div class="pm-kpi-label">Income 30d</div>
+                            <div class="pm-kpi-value text-success">KES 2.8M</div>
+                        </div>
+                        <div class="pm-card">
+                            <div class="pm-kpi-label">Spend 30d</div>
+                            <div class="pm-kpi-value text-warning">KES 1.9M</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="acct-pane hidden" data-acct-pane="transactions">
+                    <div id="acct-tx-mini"></div>
+                </div>
+                <div class="acct-pane hidden" data-acct-pane="consent">
+                    <div class="consent-scope">
+                        <div><b>transactions.read</b>
+                            <p class="ob-sub">expires in 84 days</p>
+                        </div><button class="pm-btn pm-btn-sm" onclick="openModal('modal-revoke')">Revoke</button>
+                    </div>
+                </div>
+                <div class="acct-pane hidden" data-acct-pane="sync">
+                    <div class="pm-metric-row"><span class="pm-metric-label">Last sync</span><span
+                            class="pm-metric-value text-success">2 minutes ago</span></div><button class="pm-btn mt-12"
+                        onclick="pmToast('Manual sync started','success')">Sync now</button>
+                </div>
+            </div>
+            <div class="pm-modal-foot"><button class="pm-btn"
+                    onclick="closeModal('modal-account-detail')">Close</button><button class="pm-btn pm-btn-primary"
+                    onclick="openModal('modal-pis-wizard')">Initiate payment</button></div>
+        </div>
+    </div>
+    <div class="pm-backdrop" id="modal-transaction-detail">
+        <div class="pm-modal pm-modal-sm">
+            <div class="pm-modal-head">
+                <div>
+                    <h3 class="pm-modal-title">Transaction Detail</h3>
+                    <p class="pm-modal-sub">Normalized and enriched transaction record.</p>
+                </div><button class="pm-modal-close" onclick="closeModal('modal-transaction-detail')">×</button>
+            </div>
+            <div class="pm-modal-body">
+                <div class="pm-metric-row"><span class="pm-metric-label">Merchant</span><span
+                        class="pm-metric-value">Safaricom PLC</span></div>
+                <div class="pm-metric-row"><span class="pm-metric-label">Category</span><span
+                        class="pm-metric-value">Mobile & Internet</span></div>
+                <div class="pm-metric-row"><span class="pm-metric-label">Amount</span><span
+                        class="pm-metric-value text-danger">KES 3,499</span></div>
+                <div class="pm-metric-row"><span class="pm-metric-label">Confidence</span><span
+                        class="pm-metric-value text-success">98.4%</span></div><button class="pm-btn w-full mt-12"
+                    onclick="openModal('modal-categorize')">Correct category</button>
+            </div>
+            <div class="pm-modal-foot"><button class="pm-btn pm-btn-primary"
+                    onclick="closeModal('modal-transaction-detail')">Done</button></div>
+        </div>
+    </div>
+    <div class="pm-backdrop" id="modal-api-docs">
+        <div class="pm-modal pm-modal-xl">
+            <div class="pm-modal-head">
+                <div>
+                    <h3 class="pm-modal-title">Developer Console & API Docs</h3>
+                    <p class="pm-modal-sub">OpenAPI, SDKs, sandbox and webhook replay.</p>
+                </div><button class="pm-modal-close" onclick="closeModal('modal-api-docs')">×</button>
+            </div>
+            <div class="pm-modal-body">
+                <div class="pm-tabs" data-tabs="api"><button class="pm-tab active"
+                        data-api-tab="docs">Endpoints</button><button class="pm-tab"
+                        data-api-tab="sdks">SDKs</button><button class="pm-tab" data-api-tab="keys">API
+                        Keys</button><button class="pm-tab" data-api-tab="logs">Logs</button></div>
+                <div class="api-pane" data-api-pane="docs">
+                    <div class="api-code mt-12"><span class="k">GET</span> <span class="s">/v1/institutions</span>
+                        <span class="k">POST</span> <span class="s">/v1/consents</span>
+                        <span class="k">GET</span> <span class="s">/v1/accounts/{id}/transactions</span>
+                        <span class="k">POST</span> <span class="s">/v1/payments/initiate</span>
+                    </div>
+                </div>
+                <div class="api-pane hidden" data-api-pane="sdks">
+                    <div class="bank-grid mt-12">
+                        <div class="pm-card">Node.js<br><button class="pm-btn pm-btn-sm mt-8"
+                                onclick="pmToast('npm install @paymo/openbanking','info')">Install</button></div>
+                        <div class="pm-card">Python<br><button class="pm-btn pm-btn-sm mt-8"
+                                onclick="pmToast('pip install paymo-openbanking','info')">Install</button></div>
+                        <div class="pm-card">PHP<br><button class="pm-btn pm-btn-sm mt-8"
+                                onclick="pmToast('composer require paymo/openbanking','info')">Install</button></div>
+                    </div>
+                </div>
+                <div class="api-pane hidden" data-api-pane="keys">
+                    <div class="pm-metric-row"><span class="pm-metric-label">Production key</span><span
+                            class="pm-metric-value">pk_live_ob_••••8842</span></div><button class="pm-btn mt-12"
+                        onclick="pmToast('Key rotation scheduled','success')">Rotate key</button>
+                </div>
+                <div class="api-pane hidden" data-api-pane="logs">
+                    <div class="api-code mt-12">2026-06-12T10:42Z INFO GET /v1/accounts 200 84ms
+                        2026-06-12T10:43Z WARN webhook retry account.updated attempt=2
+                        2026-06-12T10:44Z INFO POST /v1/payments/initiate 201 188ms</div>
+                </div>
+            </div>
+            <div class="pm-modal-foot"><button class="pm-btn"
+                    onclick="closeModal('modal-api-docs')">Close</button><button class="pm-btn pm-btn-primary"
+                    onclick="pmToast('Postman collection downloaded','success')">Download Postman</button></div>
+        </div>
+    </div>
+
+    <div class="pm-backdrop" id="modal-webhooks">
+        <div class="pm-modal pm-modal-lg">
+            <div class="pm-modal-head">
+                <div>
+                    <h3 class="pm-modal-title">Webhook Management</h3>
+                    <p class="pm-modal-sub">Subscriptions, retry, signing and replay.</p>
+                </div><button class="pm-modal-close" onclick="closeModal('modal-webhooks')">×</button>
+            </div>
+            <div class="pm-modal-body">
+                <div class="pm-form-group"><label class="pm-form-label">Endpoint URL</label><input class="pm-form-input"
+                        value="https://api.acme.co.ke/paymo/webhooks"></div>
+                <div class="consent-scope">
+                    <div><b>account.balance.updated</b>
+                        <p class="ob-sub">Realtime balance changes</p>
+                    </div><input type="checkbox" checked>
+                </div>
+                <div class="consent-scope">
+                    <div><b>transaction.created</b>
+                        <p class="ob-sub">New transaction event</p>
+                    </div><input type="checkbox" checked>
+                </div>
+                <div class="consent-scope">
+                    <div><b>payment.completed</b>
+                        <p class="ob-sub">PIS final status</p>
+                    </div><input type="checkbox" checked>
+                </div>
+                <div class="pm-card mt-12">
+                    <div class="pm-metric-row"><span class="pm-metric-label">DLQ</span><span
+                            class="pm-metric-value text-warning">842 events</span></div><button class="pm-btn"
+                        onclick="pmToast('842 events replay queued','success')">Replay DLQ</button>
+                </div>
+            </div>
+            <div class="pm-modal-foot"><button class="pm-btn"
+                    onclick="closeModal('modal-webhooks')">Cancel</button><button class="pm-btn pm-btn-primary"
+                    onclick="closeModal('modal-webhooks');pmToast('Webhook config saved','success')">Save</button></div>
+        </div>
+    </div>
+    <div class="pm-backdrop" id="modal-insights">
+        <div class="pm-modal pm-modal-lg">
+            <div class="pm-modal-head">
+                <div>
+                    <h3 class="pm-modal-title">Financial Insights</h3>
+                    <p class="pm-modal-sub">Cash flow, budgets, income, affordability and anomaly detection.</p>
+                </div><button class="pm-modal-close" onclick="closeModal('modal-insights')">×</button>
+            </div>
+            <div class="pm-modal-body">
+                <div class="pm-grid pm-grid-2">
+                    <div class="pm-card insight-card good">
+                        <h3 class="pm-card-title">Cash flow forecast</h3>
+                        <p class="ob-sub">30-day forecast confidence 91%</p>
+                        <div class="ob-balance">KES +284K</div>
+                    </div>
+                    <div class="pm-card insight-card warn">
+                        <h3 class="pm-card-title">Subscription creep</h3>
+                        <p class="ob-sub">Average recurring spend up 18%</p>
+                        <div class="ob-balance" style="color:var(--pm-warning)">KES 8,420</div>
+                    </div>
+                    <div class="pm-card insight-card">
+                        <h3 class="pm-card-title">Income verified</h3>
+                        <p class="ob-sub">Stable salary stream detected</p>
+                        <div class="ob-balance">KES 220K/mo</div>
+                    </div>
+                    <div class="pm-card insight-card risk">
+                        <h3 class="pm-card-title">Risk flags</h3>
+                        <p class="ob-sub">Unusual transfers to new beneficiary</p>
+                        <div class="ob-balance" style="color:var(--pm-danger)">3 alerts</div>
+                    </div>
+                </div>
+            </div>
+            <div class="pm-modal-foot"><button class="pm-btn"
+                    onclick="closeModal('modal-insights')">Close</button><button class="pm-btn pm-btn-primary"
+                    onclick="pmToast('Insights exported','success')">Export</button></div>
+        </div>
+    </div>
+    <div class="pm-backdrop" id="modal-categorize">
+        <div class="pm-modal pm-modal-lg">
+            <div class="pm-modal-head">
+                <div>
+                    <h3 class="pm-modal-title">Transaction Categorization Review</h3>
+                    <p class="pm-modal-sub">Train low-confidence model predictions.</p>
+                </div><button class="pm-modal-close" onclick="closeModal('modal-categorize')">×</button>
+            </div>
+            <div class="pm-modal-body">
+                <div class="pm-table-wrap">
+                    <table class="pm-table">
+                        <thead>
+                            <tr>
+                                <th>Narration</th>
+                                <th>Predicted</th>
+                                <th>Confidence</th>
+                                <th>Correct Category</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>MPESA*QK84 SAFHOME</td>
+                                <td>Internet</td>
+                                <td>92%</td>
+                                <td><select class="pm-form-select">
+                                        <option>Internet</option>
+                                        <option>Airtime</option>
+                                    </select></td>
+                            </tr>
+                            <tr>
+                                <td>POS NBO JAVA HSE</td>
+                                <td>Restaurants</td>
+                                <td>88%</td>
+                                <td><select class="pm-form-select">
+                                        <option>Restaurants</option>
+                                        <option>Groceries</option>
+                                    </select></td>
+                            </tr>
+                            <tr>
+                                <td>TRF TO 0712...</td>
+                                <td>Transfers</td>
+                                <td>62%</td>
+                                <td><select class="pm-form-select">
+                                        <option>Peer transfer</option>
+                                        <option>Supplier</option>
+                                    </select></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="pm-modal-foot"><button class="pm-btn"
+                    onclick="closeModal('modal-categorize')">Close</button><button class="pm-btn pm-btn-primary"
+                    onclick="closeModal('modal-categorize');pmToast('Model feedback saved','success')">Save
+                    feedback</button></div>
+        </div>
+    </div>
+
+    <!-- Compact support modals -->
+    <div class="pm-backdrop" id="modal-system-status">
+        <div class="pm-modal pm-modal-lg">
+            <div class="pm-modal-head">
+                <div>
+                    <h3 class="pm-modal-title">System Status</h3>
+                    <p class="pm-modal-sub">Open banking system health.</p>
+                </div><button class="pm-modal-close" onclick="closeModal('modal-system-status')">×</button>
+            </div>
+            <div class="pm-modal-body" id="status-body"></div>
+            <div class="pm-modal-foot"><button class="pm-btn pm-btn-primary"
+                    onclick="closeModal('modal-system-status')">Close</button></div>
+        </div>
+    </div>
+    <div class="pm-backdrop" id="modal-notifications">
+        <div class="pm-modal pm-modal-sm">
+            <div class="pm-modal-head">
+                <div>
+                    <h3 class="pm-modal-title">Notifications (14)</h3>
+                    <p class="pm-modal-sub">Open banking alerts.</p>
+                </div><button class="pm-modal-close" onclick="closeModal('modal-notifications')">×</button>
+            </div>
+            <div class="pm-modal-body">
+                <div class="queue-row">
+                    <div class="queue-icon" style="background:var(--pm-danger-soft);color:var(--pm-danger)">!</div>
+                    <div class="queue-body">
+                        <p class="queue-title">Equity refresh failures</p>
+                        <p class="queue-sub">3.4% since 08:12</p>
+                    </div><button class="pm-btn pm-btn-sm" onclick="openModal('modal-incident')">→</button>
+                </div>
+                <div class="queue-row">
+                    <div class="queue-icon">⏱</div>
+                    <div class="queue-body">
+                        <p class="queue-title">7,842 consents expiring</p>
+                        <p class="queue-sub">Renewal nudges ready</p>
+                    </div><button class="pm-btn pm-btn-sm" onclick="openModal('modal-consent-renewal')">→</button>
+                </div>
+                <div class="queue-row">
+                    <div class="queue-icon">🔐</div>
+                    <div class="queue-body">
+                        <p class="queue-title">12 PIS risk reviews</p>
+                        <p class="queue-sub">High value attempts</p>
+                    </div><button class="pm-btn pm-btn-sm" onclick="openModal('modal-risk-review')">→</button>
+                </div>
+            </div>
+            <div class="pm-modal-foot"><button class="pm-btn" onclick="pmToast('Marked all read','info')">Mark
+                    read</button><button class="pm-btn pm-btn-primary"
+                    onclick="closeModal('modal-notifications')">Close</button></div>
+        </div>
+    </div>
+    <div class="pm-backdrop" id="modal-profile">
+        <div class="pm-modal pm-modal-lg">
+            <div class="pm-modal-head">
+                <div>
+                    <h3 class="pm-modal-title">Profile & Permissions</h3>
+                    <p class="pm-modal-sub">Njeri O. — Open Banking Lead</p>
+                </div><button class="pm-modal-close" onclick="closeModal('modal-profile')">×</button>
+            </div>
+            <div class="pm-modal-body">
+                <div class="flex items-center gap-16">
+                    <div class="pm-avatar" style="width:64px;height:64px;font-size:24px">NO</div>
+                    <div>
+                        <div class="pm-kpi-value" style="font-size:18px">Njeri Otieno</div>
+                        <p class="pm-card-subtitle">Open Banking Lead · Nairobi</p>
+                    </div>
+                </div>
+                <div class="pm-divider"></div>
+                <div class="pm-metric-row"><span class="pm-metric-label">Create consent products</span><span
+                        class="pm-metric-value text-success">Full</span></div>
+                <div class="pm-metric-row"><span class="pm-metric-label">Production API keys</span><span
+                        class="pm-metric-value text-warning">Dual approval</span></div>
+                <div class="pm-metric-row"><span class="pm-metric-label">PIS risk overrides</span><span
+                        class="pm-metric-value text-success">Full</span></div>
+            </div>
+            <div class="pm-modal-foot"><button class="pm-btn pm-btn-primary"
+                    onclick="closeModal('modal-profile')">Done</button></div>
+        </div>
+    </div>
+    <div class="pm-backdrop" id="modal-settings">
+        <div class="pm-modal pm-modal-lg">
+            <div class="pm-modal-head">
+                <div>
+                    <h3 class="pm-modal-title">Workspace Settings</h3>
+                    <p class="pm-modal-sub">Open banking defaults.</p>
+                </div><button class="pm-modal-close" onclick="closeModal('modal-settings')">×</button>
+            </div>
+            <div class="pm-modal-body">
+                <div class="pm-form-row">
+                    <div class="pm-form-group"><label class="pm-form-label">Default consent duration</label><select
+                            class="pm-form-select">
+                            <option>90 days</option>
+                            <option>180 days</option>
+                            <option>365 days</option>
+                        </select></div>
+                    <div class="pm-form-group"><label class="pm-form-label">Sync frequency</label><select
+                            class="pm-form-select">
+                            <option>Realtime where available</option>
+                            <option>Every 15 minutes</option>
+                        </select></div>
+                </div><label class="flex items-center gap-8 mt-12"><span class="pm-switch"><input type="checkbox"
+                            checked><span class="pm-switch-slider"></span></span> Auto-renewal nudges</label><label
+                    class="flex items-center gap-8 mt-8"><span class="pm-switch"><input type="checkbox" checked><span
+                            class="pm-switch-slider"></span></span> DLQ auto-replay</label>
+            </div>
+            <div class="pm-modal-foot"><button class="pm-btn"
+                    onclick="closeModal('modal-settings')">Cancel</button><button class="pm-btn pm-btn-primary"
+                    onclick="closeModal('modal-settings');pmToast('Settings saved','success')">Save</button></div>
+        </div>
+    </div>
+    <div class="pm-backdrop" id="modal-reports">
+        <div class="pm-modal pm-modal-lg">
+            <div class="pm-modal-head">
+                <div>
+                    <h3 class="pm-modal-title">Open Banking Reports</h3>
+                    <p class="pm-modal-sub">Consent, institution, PIS and API reports.</p>
+                </div><button class="pm-modal-close" onclick="closeModal('modal-reports')">×</button>
+            </div>
+            <div class="pm-modal-body">
+                <div class="pm-grid pm-grid-2"><button class="pm-card"
+                        onclick="pmToast('Consent report generated','success')">Consent health report</button><button
+                        class="pm-card" onclick="pmToast('PIS report generated','success')">PIS settlement
+                        report</button><button class="pm-card"
+                        onclick="pmToast('Institution SLA generated','success')">Institution SLA report</button><button
+                        class="pm-card" onclick="pmToast('API usage report generated','success')">API usage
+                        report</button></div>
+            </div>
+            <div class="pm-modal-foot"><button class="pm-btn pm-btn-primary"
+                    onclick="closeModal('modal-reports')">Close</button></div>
+        </div>
+    </div>
+    <div class="pm-backdrop" id="modal-attention">
+        <div class="pm-modal pm-modal-lg">
+            <div class="pm-modal-head">
+                <div>
+                    <h3 class="pm-modal-title">Attention Board</h3>
+                    <p class="pm-modal-sub">Prioritized open banking operations.</p>
+                </div><button class="pm-modal-close" onclick="closeModal('modal-attention')">×</button>
+            </div>
+            <div class="pm-modal-body">
+                <div class="queue-row">
+                    <div class="queue-icon" style="background:var(--pm-danger-soft);color:var(--pm-danger)">!</div>
+                    <div class="queue-body">
+                        <p class="queue-title">Equity OAuth refresh failures</p>
+                        <p class="queue-sub">Critical · owner Platform</p>
+                    </div><button class="pm-btn pm-btn-sm" onclick="openModal('modal-incident')">Open</button>
+                </div>
+                <div class="queue-row">
+                    <div class="queue-icon">⏱</div>
+                    <div class="queue-body">
+                        <p class="queue-title">Consent renewal backlog</p>
+                        <p class="queue-sub">7,842 due within 7 days</p>
+                    </div><button class="pm-btn pm-btn-sm" onclick="openModal('modal-bulk-consent-nudge')">Send</button>
+                </div>
+            </div>
+            <div class="pm-modal-foot"><button class="pm-btn pm-btn-primary"
+                    onclick="closeModal('modal-attention')">Close</button></div>
+        </div>
+    </div>
+    <div class="pm-backdrop" id="modal-incident">
+        <div class="pm-modal pm-modal-lg">
+            <div class="pm-modal-head">
+                <div>
+                    <h3 class="pm-modal-title" style="color:var(--pm-danger)">INC-2714 — Equity OAuth refresh failures
+                    </h3>
+                    <p class="pm-modal-sub">3.4% failure rate · 18,420 impacted users</p>
+                </div><button class="pm-modal-close" onclick="closeModal('modal-incident')">×</button>
+            </div>
+            <div class="pm-modal-body">
+                <div class="pm-grid pm-grid-3">
+                    <div class="pm-card">
+                        <div class="pm-kpi-label">Failure rate</div>
+                        <div class="pm-kpi-value text-danger">3.4%</div>
+                    </div>
+                    <div class="pm-card">
+                        <div class="pm-kpi-label">Impacted</div>
+                        <div class="pm-kpi-value">18,420</div>
+                    </div>
+                    <div class="pm-card">
+                        <div class="pm-kpi-label">Auto recovered</div>
+                        <div class="pm-kpi-value text-success">74%</div>
+                    </div>
+                </div>
+                <div class="timeline mt-16">
+                    <div class="timeline-item done">
+                        <h5>Detected</h5>
+                        <p>08:12 · refresh token endpoint elevated 500s</p>
+                    </div>
+                    <div class="timeline-item done">
+                        <h5>Failover</h5>
+                        <p>08:24 · moved to cached balances for eligible accounts</p>
+                    </div>
+                    <div class="timeline-item">
+                        <h5>Partner escalation</h5>
+                        <p>09:10 · Equity Open Banking team engaged</p>
+                    </div>
+                </div>
+            </div>
+            <div class="pm-modal-foot"><button class="pm-btn" onclick="pmToast('Customers notified','info')">Notify
+                    users</button><button class="pm-btn pm-btn-primary"
+                    onclick="closeModal('modal-incident');pmToast('Incident marked mitigated','success')">Mark
+                    mitigated</button></div>
+        </div>
+    </div>
+
+    <!-- Additional small operational modals -->
+    <div class="pm-backdrop" id="modal-consent-renewal">
+        <div class="pm-modal pm-modal-sm">
+            <div class="pm-modal-head">
+                <div>
+                    <h3 class="pm-modal-title">Renew Consent</h3>
+                    <p class="pm-modal-sub">Send customer renewal request.</p>
+                </div><button class="pm-modal-close" onclick="closeModal('modal-consent-renewal')">×</button>
+            </div>
+            <div class="pm-modal-body">
+                <div class="pm-form-group"><label class="pm-form-label">Channel</label><select class="pm-form-select">
+                        <option>Push + WhatsApp</option>
+                        <option>Email only</option>
+                        <option>SMS + USSD</option>
+                    </select></div>
+                <div class="pm-metric-row"><span class="pm-metric-label">Eligible consents</span><span
+                        class="pm-metric-value">7,842</span></div>
+                <div class="pm-metric-row"><span class="pm-metric-label">Expected renewal</span><span
+                        class="pm-metric-value text-success">68%</span></div>
+            </div>
+            <div class="pm-modal-foot"><button class="pm-btn"
+                    onclick="closeModal('modal-consent-renewal')">Cancel</button><button class="pm-btn pm-btn-primary"
+                    onclick="closeModal('modal-consent-renewal');pmToast('Renewal campaign sent','success')">Send</button>
+            </div>
+        </div>
+    </div>
+    <div class="pm-backdrop" id="modal-risk-review">
+        <div class="pm-modal pm-modal-lg">
+            <div class="pm-modal-head">
+                <div>
+                    <h3 class="pm-modal-title">PIS Risk Review</h3>
+                    <p class="pm-modal-sub">12 high-value attempts requiring review.</p>
+                </div><button class="pm-modal-close" onclick="closeModal('modal-risk-review')">×</button>
+            </div>
+            <div class="pm-modal-body">
+                <div class="pm-table-wrap">
+                    <table class="pm-table">
+                        <thead>
+                            <tr>
+                                <th>Ref</th>
+                                <th>Customer</th>
+                                <th>Amount</th>
+                                <th>Signal</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>PIS-884217</td>
+                                <td>Acme Ltd</td>
+                                <td>KES 820K</td>
+                                <td>New beneficiary + high value</td>
+                                <td><button class="pm-btn pm-btn-sm"
+                                        onclick="pmToast('Approved with hardware token','success')">Approve</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>PIS-884219</td>
+                                <td>Retail Group</td>
+                                <td>KES 940K</td>
+                                <td>Velocity limit</td>
+                                <td><button class="pm-btn pm-btn-sm"
+                                        onclick="pmToast('Challenge sent','info')">Challenge</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="pm-modal-foot"><button class="pm-btn pm-btn-primary"
+                    onclick="closeModal('modal-risk-review')">Close</button></div>
+        </div>
+    </div>
+    <div class="pm-backdrop" id="modal-sync-center">
+        <div class="pm-modal pm-modal-lg">
+            <div class="pm-modal-head">
+                <div>
+                    <h3 class="pm-modal-title">Sync Center</h3>
+                    <p class="pm-modal-sub">Institution and account sync controls.</p>
+                </div><button class="pm-modal-close" onclick="closeModal('modal-sync-center')">×</button>
+            </div>
+            <div class="pm-modal-body">
+                <div class="queue-row">
+                    <div class="queue-icon">EQ</div>
+                    <div class="queue-body">
+                        <p class="queue-title">Equity Bank</p>
+                        <p class="queue-sub">18,420 pending refreshes · retrying</p>
+                    </div><button class="pm-btn pm-btn-sm"
+                        onclick="pmToast('Manual sync started','success')">Sync</button>
+                </div>
+                <div class="queue-row">
+                    <div class="queue-icon">KC</div>
+                    <div class="queue-body">
+                        <p class="queue-title">KCB Bank</p>
+                        <p class="queue-sub">All accounts current</p>
+                    </div><span class="pm-chip pm-chip-success">Healthy</span>
+                </div>
+            </div>
+            <div class="pm-modal-foot"><button class="pm-btn pm-btn-primary"
+                    onclick="closeModal('modal-sync-center')">Close</button></div>
+        </div>
+    </div>
+    <div class="pm-backdrop" id="modal-filter">
+        <div class="pm-modal pm-modal-sm">
+            <div class="pm-modal-head">
+                <div>
+                    <h3 class="pm-modal-title">Filter Transactions</h3>
+                    <p class="pm-modal-sub">Narrow the aggregated feed.</p>
+                </div><button class="pm-modal-close" onclick="closeModal('modal-filter')">×</button>
+            </div>
+            <div class="pm-modal-body">
+                <div class="pm-form-group"><label class="pm-form-label">Category</label><select class="pm-form-select">
+                        <option>All categories</option>
+                        <option>Income</option>
+                        <option>Utilities</option>
+                        <option>Transfers</option>
+                    </select></div>
+                <div class="pm-form-row">
+                    <div class="pm-form-group"><label class="pm-form-label">From</label><input class="pm-form-input"
+                            type="date" value="2026-06-01"></div>
+                    <div class="pm-form-group"><label class="pm-form-label">To</label><input class="pm-form-input"
+                            type="date" value="2026-06-12"></div>
+                </div>
+            </div>
+            <div class="pm-modal-foot"><button class="pm-btn" onclick="closeModal('modal-filter')">Clear</button><button
+                    class="pm-btn pm-btn-primary"
+                    onclick="closeModal('modal-filter');pmToast('Filters applied','success')">Apply</button></div>
+        </div>
+    </div>
+    <div class="pm-backdrop" id="modal-consent-detail">
+        <div class="pm-modal pm-modal-sm">
+            <div class="pm-modal-head">
+                <div>
+                    <h3 class="pm-modal-title">Consent Detail</h3>
+                    <p class="pm-modal-sub">Acme Ltd · KCB Bank</p>
+                </div><button class="pm-modal-close" onclick="closeModal('modal-consent-detail')">×</button>
+            </div>
+            <div class="pm-modal-body">
+                <div class="pm-metric-row"><span class="pm-metric-label">Consent ID</span><span
+                        class="pm-metric-value">CNS-884216</span></div>
+                <div class="pm-metric-row"><span class="pm-metric-label">Created</span><span
+                        class="pm-metric-value">2026-05-14</span></div>
+                <div class="pm-metric-row"><span class="pm-metric-label">Expires</span><span class="pm-metric-value">84
+                        days</span></div><button class="pm-btn pm-btn-danger w-full mt-12"
+                    onclick="openModal('modal-revoke')">Revoke consent</button>
+            </div>
+            <div class="pm-modal-foot"><button class="pm-btn pm-btn-primary"
+                    onclick="closeModal('modal-consent-detail')">Done</button></div>
+        </div>
+    </div>
+    <div class="pm-backdrop" id="modal-revoke">
+        <div class="pm-modal pm-modal-sm">
+            <div class="pm-modal-head">
+                <div>
+                    <h3 class="pm-modal-title" style="color:var(--pm-danger)">Revoke Consent</h3>
+                    <p class="pm-modal-sub">This stops future access and webhooks.</p>
+                </div><button class="pm-modal-close" onclick="closeModal('modal-revoke')">×</button>
+            </div>
+            <div class="pm-modal-body">
+                <div class="pm-card" style="background:var(--pm-danger-soft);border-color:#FCA5A5"><b>Confirm
+                        revocation</b>
+                    <p class="ob-sub">Historic data already processed remains in audit logs according to retention
+                        policy.</p>
+                </div>
+                <div class="pm-form-group mt-12"><label class="pm-form-label">Reason</label><select
+                        class="pm-form-select">
+                        <option>Customer requested</option>
+                        <option>Security issue</option>
+                        <option>Expired relationship</option>
+                    </select></div>
+            </div>
+            <div class="pm-modal-foot"><button class="pm-btn"
+                    onclick="closeModal('modal-revoke')">Cancel</button><button class="pm-btn pm-btn-danger"
+                    onclick="closeModal('modal-revoke');pmToast('Consent revoked and customer notified','danger')">Revoke</button>
+            </div>
+        </div>
+    </div>
+    <div class="pm-backdrop" id="modal-bulk-consent-nudge">
+        <div class="pm-modal pm-modal-sm">
+            <div class="pm-modal-head">
+                <div>
+                    <h3 class="pm-modal-title">Bulk Consent Renewal</h3>
+                    <p class="pm-modal-sub">7,842 expiring consents.</p>
+                </div><button class="pm-modal-close" onclick="closeModal('modal-bulk-consent-nudge')">×</button>
+            </div>
+            <div class="pm-modal-body">
+                <div class="pm-form-group"><label class="pm-form-label">Audience</label><select class="pm-form-select">
+                        <option>Expiring within 7 days</option>
+                        <option>Expiring within 30 days</option>
+                    </select></div>
+                <div class="pm-form-group"><label class="pm-form-label">Message</label><textarea
+                        class="pm-form-textarea">Keep your linked accounts active to continue receiving insights and faster payments.</textarea>
+                </div>
+            </div>
+            <div class="pm-modal-foot"><button class="pm-btn" onclick="pmToast('Test sent','info')">Send
+                    test</button><button class="pm-btn pm-btn-primary"
+                    onclick="closeModal('modal-bulk-consent-nudge');pmToast('Campaign scheduled','success')">Schedule</button>
+            </div>
+        </div>
+    </div>
+    <div class="pm-backdrop" id="modal-pis-detail">
+        <div class="pm-modal pm-modal-sm">
+            <div class="pm-modal-head">
+                <div>
+                    <h3 class="pm-modal-title">PIS Detail</h3>
+                    <p class="pm-modal-sub">PIS-884216</p>
+                </div><button class="pm-modal-close" onclick="closeModal('modal-pis-detail')">×</button>
+            </div>
+            <div class="pm-modal-body">
+                <div class="timeline">
+                    <div class="timeline-item done">
+                        <h5>Created</h5>
+                        <p>10:42 · request received</p>
+                    </div>
+                    <div class="timeline-item done">
+                        <h5>Authorized</h5>
+                        <p>10:43 · bank app push approved</p>
+                    </div>
+                    <div class="timeline-item done">
+                        <h5>Completed</h5>
+                        <p>10:43 · PesaLink PLK92184</p>
+                    </div>
+                </div>
+            </div>
+            <div class="pm-modal-foot"><button class="pm-btn"
+                    onclick="pmToast('Receipt downloaded','success')">Receipt</button><button
+                    class="pm-btn pm-btn-primary" onclick="closeModal('modal-pis-detail')">Close</button></div>
+        </div>
+    </div>
+    <div class="pm-backdrop" id="modal-pis-rules">
+        <div class="pm-modal pm-modal-sm">
+            <div class="pm-modal-head">
+                <div>
+                    <h3 class="pm-modal-title">PIS Rules</h3>
+                    <p class="pm-modal-sub">Limits, SCA and risk settings.</p>
+                </div><button class="pm-modal-close" onclick="closeModal('modal-pis-rules')">×</button>
+            </div>
+            <div class="pm-modal-body">
+                <div class="pm-form-group"><label class="pm-form-label">Max single amount</label><input
+                        class="pm-form-input" value="999999"></div><label class="flex items-center gap-8"><span
+                        class="pm-switch"><input type="checkbox" checked><span class="pm-switch-slider"></span></span>
+                    Require hardware token above KES 500K</label><label class="flex items-center gap-8 mt-8"><span
+                        class="pm-switch"><input type="checkbox" checked><span class="pm-switch-slider"></span></span>
+                    Velocity checks</label>
+            </div>
+            <div class="pm-modal-foot"><button class="pm-btn pm-btn-primary"
+                    onclick="closeModal('modal-pis-rules');pmToast('PIS rules saved','success')">Save</button></div>
+        </div>
+    </div>
+    <div class="pm-backdrop" id="modal-pis-monitor">
+        <div class="pm-modal pm-modal-lg">
+            <div class="pm-modal-head">
+                <div>
+                    <h3 class="pm-modal-title">PIS Monitor</h3>
+                    <p class="pm-modal-sub">Live statuses and settlement tracking.</p>
+                </div><button class="pm-modal-close" onclick="closeModal('modal-pis-monitor')">×</button>
+            </div>
+            <div class="pm-modal-body">
+                <div class="pm-grid pm-grid-4">
+                    <div class="pm-card">
+                        <div class="pm-kpi-label">Pending auth</div>
+                        <div class="pm-kpi-value">42</div>
+                    </div>
+                    <div class="pm-card">
+                        <div class="pm-kpi-label">Processing</div>
+                        <div class="pm-kpi-value">18</div>
+                    </div>
+                    <div class="pm-card">
+                        <div class="pm-kpi-label">Completed 24h</div>
+                        <div class="pm-kpi-value">28K</div>
+                    </div>
+                    <div class="pm-card">
+                        <div class="pm-kpi-label">Failed 24h</div>
+                        <div class="pm-kpi-value text-danger">84</div>
+                    </div>
+                </div>
+            </div>
+            <div class="pm-modal-foot"><button class="pm-btn pm-btn-primary"
+                    onclick="closeModal('modal-pis-monitor')">Close</button></div>
+        </div>
+    </div>
+    <div class="pm-backdrop" id="modal-model-performance">
+        <div class="pm-modal pm-modal-lg">
+            <div class="pm-modal-head">
+                <div>
+                    <h3 class="pm-modal-title">Categorization Model Performance</h3>
+                    <p class="pm-modal-sub">PayMo-Cat-v6 metrics.</p>
+                </div><button class="pm-modal-close" onclick="closeModal('modal-model-performance')">×</button>
+            </div>
+            <div class="pm-modal-body">
+                <div class="pm-metric-row"><span class="pm-metric-label">Accuracy</span><span
+                        class="pm-metric-value text-success">96.8%</span></div>
+                <div class="pm-metric-row"><span class="pm-metric-label">Training set</span><span
+                        class="pm-metric-value">480M transactions</span></div>
+                <div class="pm-metric-row"><span class="pm-metric-label">Next retrain</span><span
+                        class="pm-metric-value">Tonight 02:00</span></div>
+            </div>
+            <div class="pm-modal-foot"><button class="pm-btn" onclick="pmToast('Retraining queued','info')">Retrain
+                    now</button><button class="pm-btn pm-btn-primary"
+                    onclick="closeModal('modal-model-performance')">Close</button></div>
+        </div>
+    </div>
+    <div class="pm-backdrop" id="modal-cashflow">
+        <div class="pm-modal pm-modal-sm">
+            <div class="pm-modal-head">
+                <div>
+                    <h3 class="pm-modal-title">Cash Flow Forecast</h3>
+                    <p class="pm-modal-sub">30-day projection.</p>
+                </div><button class="pm-modal-close" onclick="closeModal('modal-cashflow')">×</button>
+            </div>
+            <div class="pm-modal-body">
+                <div class="pm-metric-row"><span class="pm-metric-label">Expected inflows</span><span
+                        class="pm-metric-value text-success">KES 842K</span></div>
+                <div class="pm-metric-row"><span class="pm-metric-label">Expected outflows</span><span
+                        class="pm-metric-value text-danger">KES 558K</span></div>
+                <div class="pm-metric-row"><span class="pm-metric-label">Net position</span><span
+                        class="pm-metric-value text-primary">KES +284K</span></div>
+            </div>
+            <div class="pm-modal-foot"><button class="pm-btn pm-btn-primary"
+                    onclick="closeModal('modal-cashflow')">Close</button></div>
+        </div>
+    </div>
+    <div class="pm-backdrop" id="modal-affordability">
+        <div class="pm-modal pm-modal-sm">
+            <div class="pm-modal-head">
+                <div>
+                    <h3 class="pm-modal-title">Affordability Review</h3>
+                    <p class="pm-modal-sub">Debt service and responsible lending.</p>
+                </div><button class="pm-modal-close" onclick="closeModal('modal-affordability')">×</button>
+            </div>
+            <div class="pm-modal-body">
+                <div class="pm-metric-row"><span class="pm-metric-label">High DSR customers</span><span
+                        class="pm-metric-value text-warning">14.2%</span></div>
+                <div class="pm-metric-row"><span class="pm-metric-label">Avg DSR</span><span
+                        class="pm-metric-value">38%</span></div><button class="pm-btn w-full mt-12"
+                    onclick="pmToast('Lending policy export generated','success')">Export policy list</button>
+            </div>
+            <div class="pm-modal-foot"><button class="pm-btn pm-btn-primary"
+                    onclick="closeModal('modal-affordability')">Close</button></div>
+        </div>
+    </div>
+    <div class="pm-backdrop" id="modal-income">
+        <div class="pm-modal pm-modal-sm">
+            <div class="pm-modal-head">
+                <div>
+                    <h3 class="pm-modal-title">Income Verification</h3>
+                    <p class="pm-modal-sub">Salary and business revenue patterns.</p>
+                </div><button class="pm-modal-close" onclick="closeModal('modal-income')">×</button>
+            </div>
+            <div class="pm-modal-body">
+                <div class="pm-metric-row"><span class="pm-metric-label">Verified salary streams</span><span
+                        class="pm-metric-value">942K</span></div>
+                <div class="pm-metric-row"><span class="pm-metric-label">Confidence</span><span
+                        class="pm-metric-value text-success">93%</span></div>
+            </div>
+            <div class="pm-modal-foot"><button class="pm-btn pm-btn-primary"
+                    onclick="closeModal('modal-income')">Close</button></div>
+        </div>
+    </div>
+    <div class="pm-backdrop" id="modal-fraud">
+        <div class="pm-modal pm-modal-sm">
+            <div class="pm-modal-head">
+                <div>
+                    <h3 class="pm-modal-title">Fraud Signals</h3>
+                    <p class="pm-modal-sub">Suspicious account activity.</p>
+                </div><button class="pm-modal-close" onclick="closeModal('modal-fraud')">×</button>
+            </div>
+            <div class="pm-modal-body">
+                <div class="pm-metric-row"><span class="pm-metric-label">New beneficiary spikes</span><span
+                        class="pm-metric-value text-warning">420</span></div>
+                <div class="pm-metric-row"><span class="pm-metric-label">Account takeover signals</span><span
+                        class="pm-metric-value text-danger">18</span></div><button class="pm-btn w-full mt-12"
+                    onclick="openModal('modal-risk-review')">Open risk queue</button>
+            </div>
+            <div class="pm-modal-foot"><button class="pm-btn pm-btn-primary"
+                    onclick="closeModal('modal-fraud')">Close</button></div>
+        </div>
+    </div>
+    <div class="pm-backdrop" id="modal-sandbox">
+        <div class="pm-modal pm-modal-lg">
+            <div class="pm-modal-head">
+                <div>
+                    <h3 class="pm-modal-title">Sandbox Console</h3>
+                    <p class="pm-modal-sub">Test accounts, mock events and simulated bank responses.</p>
+                </div><button class="pm-modal-close" onclick="closeModal('modal-sandbox')">×</button>
+            </div>
+            <div class="pm-modal-body">
+                <div class="pm-grid pm-grid-3"><button class="pm-card"
+                        onclick="pmToast('Mock KYC user created','success')">Create test user</button><button
+                        class="pm-card" onclick="pmToast('payment.success webhook sent','success')">Send
+                        webhook</button><button class="pm-card"
+                        onclick="pmToast('M-Pesa callback simulated','success')">Simulate callback</button></div>
+                <div class="api-code mt-12">Test bank account: 0110000001
+                    Test M-Pesa: 254708374149
+                    Test OTP: 123456</div>
+            </div>
+            <div class="pm-modal-foot"><button class="pm-btn pm-btn-primary"
+                    onclick="closeModal('modal-sandbox')">Close</button></div>
+        </div>
+    </div>
+    <div class="pm-backdrop" id="modal-security-center">
+        <div class="pm-modal pm-modal-lg">
+            <div class="pm-modal-head">
+                <div>
+                    <h3 class="pm-modal-title">Security Center</h3>
+                    <p class="pm-modal-sub">SCA, keys, encryption, fraud and audit controls.</p>
+                </div><button class="pm-modal-close" onclick="closeModal('modal-security-center')">×</button>
+            </div>
+            <div class="pm-modal-body">
+                <div class="pm-grid pm-grid-2">
+                    <div class="pm-card">
+                        <h3 class="pm-card-title">SCA Policy</h3><label class="flex items-center gap-8"><span
+                                class="pm-switch"><input type="checkbox" checked><span
+                                    class="pm-switch-slider"></span></span> Require SCA for PIS</label><label
+                            class="flex items-center gap-8 mt-8"><span class="pm-switch"><input type="checkbox"
+                                    checked><span class="pm-switch-slider"></span></span> Step-up for new device</label>
+                    </div>
+                    <div class="pm-card">
+                        <h3 class="pm-card-title">Data Protection</h3>
+                        <div class="pm-metric-row"><span class="pm-metric-label">Retention</span><span
+                                class="pm-metric-value">7 years</span></div>
+                        <div class="pm-metric-row"><span class="pm-metric-label">Encryption</span><span
+                                class="pm-metric-value">AES-256</span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="pm-modal-foot"><button class="pm-btn pm-btn-primary"
+                    onclick="closeModal('modal-security-center');pmToast('Security policy saved','success')">Save</button>
+            </div>
+        </div>
+    </div>
+    <div class="pm-backdrop" id="modal-compliance">
+        <div class="pm-modal pm-modal-lg">
+            <div class="pm-modal-head">
+                <div>
+                    <h3 class="pm-modal-title">Compliance Queue</h3>
+                    <p class="pm-modal-sub">ODPC, CBK and internal open banking controls.</p>
+                </div><button class="pm-modal-close" onclick="closeModal('modal-compliance')">×</button>
+            </div>
+            <div class="pm-modal-body">
+                <div class="queue-row">
+                    <div class="queue-icon">OD</div>
+                    <div class="queue-body">
+                        <p class="queue-title">DSAR requests</p>
+                        <p class="queue-sub">18 open · SLA 30 days</p>
+                    </div><button class="pm-btn pm-btn-sm" onclick="openModal('modal-privacy')">Open</button>
+                </div>
+                <div class="queue-row">
+                    <div class="queue-icon">CB</div>
+                    <div class="queue-body">
+                        <p class="queue-title">CBK open banking return</p>
+                        <p class="queue-sub">Due end of quarter</p>
+                    </div><button class="pm-btn pm-btn-sm"
+                        onclick="pmToast('Return generated','success')">Generate</button>
+                </div>
+            </div>
+            <div class="pm-modal-foot"><button class="pm-btn pm-btn-primary"
+                    onclick="closeModal('modal-compliance')">Close</button></div>
+        </div>
+    </div>
+    <div class="pm-backdrop" id="modal-privacy">
+        <div class="pm-modal pm-modal-sm">
+            <div class="pm-modal-head">
+                <div>
+                    <h3 class="pm-modal-title">Privacy Center</h3>
+                    <p class="pm-modal-sub">Data subject rights and consent transparency.</p>
+                </div><button class="pm-modal-close" onclick="closeModal('modal-privacy')">×</button>
+            </div>
+            <div class="pm-modal-body">
+                <div class="pm-metric-row"><span class="pm-metric-label">DSAR open</span><span
+                        class="pm-metric-value">18</span></div>
+                <div class="pm-metric-row"><span class="pm-metric-label">Deletion requests</span><span
+                        class="pm-metric-value">4</span></div>
+                <div class="pm-metric-row"><span class="pm-metric-label">Avg completion</span><span
+                        class="pm-metric-value text-success">4.2 days</span></div>
+            </div>
+            <div class="pm-modal-foot"><button class="pm-btn pm-btn-primary"
+                    onclick="closeModal('modal-privacy')">Close</button></div>
+        </div>
+    </div>
+
+    <script>
+        function tickClock() { const d = new Date(), p = n => String(n).padStart(2, '0'); document.getElementById('pm-now').textContent = d.toLocaleDateString('en-KE', { weekday: 'short', day: '2-digit', month: 'short' }) + ' · ' + p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds()) + ' EAT · 122 institutions'; } setInterval(tickClock, 1000); tickClock();
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('expanded') }
+        const openModal = id => { const m = document.getElementById(id); if (m) m.classList.add('open'); document.body.style.overflow = 'hidden' }; const closeModal = id => { const m = document.getElementById(id); if (m) m.classList.remove('open'); document.body.style.overflow = '' }; document.addEventListener('click', e => { if (e.target.classList && e.target.classList.contains('pm-backdrop')) { e.target.classList.remove('open'); document.body.style.overflow = '' } }); document.addEventListener('keydown', e => { if (e.key === 'Escape') { document.querySelectorAll('.pm-backdrop.open').forEach(m => m.classList.remove('open')); document.body.style.overflow = '' } });
+        function pmToast(msg, kind = 'success') { const wrap = document.getElementById('toast-wrap') || (() => { const d = document.createElement('div'); d.id = 'toast-wrap'; d.className = 'pm-toast-wrap'; document.body.appendChild(d); return d })(); const el = document.createElement('div'); el.className = 'pm-toast ' + (kind === 'success' ? '' : kind); el.textContent = msg; wrap.appendChild(el); setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 300) }, 3200) }
+        function initTabs(tabsEl) { const key = tabsEl.dataset.tabs; tabsEl.querySelectorAll('.pm-tab').forEach(btn => btn.addEventListener('click', () => { tabsEl.querySelectorAll('.pm-tab').forEach(b => b.classList.remove('active')); btn.classList.add('active'); const c = tabsEl.parentElement; c.querySelectorAll('[data-' + key + '-pane]').forEach(p => p.classList.add('hidden')); const tgt = btn.dataset[key + 'Tab']; const pane = c.querySelector('[data-' + key + '-pane="' + tgt + '"]'); if (pane) pane.classList.remove('hidden') })) } document.querySelectorAll('[data-tabs]').forEach(initTabs);
+        const stepsState = { link: 1, pis: 1 }; function stepNext(key) { const id = { link: 'modal-link-bank', pis: 'modal-pis-wizard' }[key], modal = document.getElementById(id); if (!modal) return; const panes = modal.querySelectorAll('.step-pane'), steps = modal.querySelectorAll('.pm-steps .pm-step'); if (stepsState[key] >= panes.length) { closeModal(id); pmToast(key === 'link' ? 'Institution linked' : 'Payment completed', 'success'); stepsState[key] = 1; updateStepUI(modal, 1); togglePanes(panes, 1); return } stepsState[key]++; updateStepUI(modal, stepsState[key]); togglePanes(panes, stepsState[key]) } function stepBack(key) { const id = { link: 'modal-link-bank', pis: 'modal-pis-wizard' }[key], modal = document.getElementById(id); if (!modal) return; const panes = modal.querySelectorAll('.step-pane'); if (stepsState[key] > 1) { stepsState[key]--; updateStepUI(modal, stepsState[key]); togglePanes(panes, stepsState[key]) } else closeModal(id) } function updateStepUI(modal, active) { modal.querySelectorAll('.pm-steps .pm-step').forEach((el, i) => { el.classList.remove('active', 'done'); if (i + 1 < active) el.classList.add('done'); else if (i + 1 === active) el.classList.add('active') }) } function togglePanes(panes, active) { panes.forEach((p, i) => p.classList.toggle('hidden', i + 1 !== active)) }
+        let pins = { pis: '' }; function pressPin(key, n) { pins[key] = (pins[key] || ''); if (pins[key].length >= 4) return; pins[key] += n; renderPin(key); if (pins[key].length === 4) setTimeout(() => { stepNext(key); pins[key] = ''; renderPin(key) }, 250) } function clearPin(key) { pins[key] = pins[key].slice(0, -1); renderPin(key) } function renderPin(key) { document.querySelectorAll('#' + key + '-dots .pin-dot').forEach((d, i) => d.classList.toggle('filled', i < (pins[key] || '').length)) }
+        function filterOpenBanking(q) { if (q.length > 2) pmToast('Search applied: ' + q, 'info') }
+        const institutions = [['Equity Bank', 'EQ', 'KES accounts, PesaLink, PIS', '99.92%', 'success'], ['KCB Bank', 'KC', 'Bank app push, OAuth', '99.94%', 'success'], ['Co-operative Bank', 'CO', 'AISP + PISP', '99.90%', 'success'], ['Absa Kenya', 'AB', 'OAuth + token', '99.91%', 'success'], ['NCBA', 'NC', 'Loop + accounts', '99.88%', 'success'], ['I&M Bank', 'IM', 'SME banking', '99.86%', 'success'], ['DTB Kenya', 'DT', 'Retail + corporate', '99.84%', 'success'], ['M-Pesa Daraja 3.0', 'MP', 'Wallet AIS + STK', '99.99%', 'success'], ['Airtel Money', 'AM', 'Mobile wallet', '99.90%', 'success'], ['Stima SACCO', 'ST', 'SACCO aggregation', '99.82%', 'warning'], ['Mwalimu SACCO', 'MW', 'Member accounts', '99.86%', 'success'], ['Pesapal Wallet', 'PP', 'Fintech wallet', '99.88%', 'success']];
+        document.getElementById('institution-grid').innerHTML = institutions.map(i => `<div class="bank-tile" onclick="openModal('modal-link-bank')"><div class="ob-head"><div class="ob-logo" style="background:var(--pm-gradient-hero)">${i[1]}</div><span class="pm-chip pm-chip-${i[4]}">${i[3]}</span></div><h4 class="ob-name">${i[0]}</h4><p class="ob-sub">${i[2]}</p><div class="pm-metric-row mt-8"><span class="pm-metric-label">Connections</span><span class="pm-metric-value">${Math.floor(10000 + Math.random() * 90000).toLocaleString()}</span></div></div>`).join('');
+        const accounts = [['Equity Current', 'KES 8.42M', '****2214', 'Equity Bank', 'success'], ['KCB Business', 'KES 4.20M', '****8842', 'KCB Bank', 'success'], ['M-Pesa Till', 'KES 842K', 'Till 884216', 'M-Pesa', 'success'], ['USD Nostro', 'USD 42K', '****7001', 'I&M Bank', 'warning']]; document.getElementById('account-grid').innerHTML = accounts.map(a => `<div class="ob-card" onclick="openModal('modal-account-detail')"><div class="ob-head"><div><h4 class="ob-name">${a[0]}</h4><p class="ob-sub">${a[3]} · ${a[2]}</p></div><span class="pm-chip pm-chip-${a[4]}">Synced</span></div><div class="ob-balance">${a[1]}</div><div class="pm-metric-row mt-12"><span class="pm-metric-label">Last sync</span><span class="pm-metric-value text-success">2 min ago</span></div></div>`).join('');
+        const txs = [['SA', 'Safaricom Home Fibre', 'Mobile & Internet', '-KES 3,499', '98%'], ['KR', 'KRA PAYE Payment', 'Tax', '-KES 184,000', '99%'], ['EQ', 'Salary from Acme Ltd', 'Income', '+KES 220,000', '97%'], ['JU', 'Java House Nairobi', 'Restaurants', '-KES 2,840', '94%'], ['MP', 'M-Pesa Transfer', 'Peer Transfer', '-KES 12,000', '88%']]; document.getElementById('tx-feed').innerHTML = txs.map(t => `<div class="tx-row" onclick="openModal('modal-transaction-detail')"><div class="tx-icon">${t[0]}</div><div><p class="queue-title">${t[1]}</p><p class="queue-sub">${t[2]} · confidence ${t[4]}</p></div><span class="pm-chip pm-chip-info">Enriched</span><b class="${t[3][0] == '+' ? 'text-success' : 'text-danger'}">${t[3]}</b><button class="pm-btn pm-btn-sm">View</button></div>`).join(''); document.getElementById('acct-tx-mini').innerHTML = document.getElementById('tx-feed').innerHTML;
+        const cats = [['Income', 96, '#10B981'], ['Transfers', 95, '#4F46E5'], ['Utilities', 98, '#3B82F6'], ['Airtime/Data', 97, '#8B5CF6'], ['Restaurants', 92, '#F59E0B'], ['Loan repayments', 91, '#EF4444'], ['Shopping', 89, '#EC4899']]; document.getElementById('category-bars').innerHTML = cats.map(c => `<div style="display:grid;grid-template-columns:140px 1fr 70px;align-items:center;gap:10px;padding:8px 0;border-bottom:1px dashed var(--pm-border)"><span style="font-size:12px;font-weight:600">${c[0]}</span><div class="health-bar"><span style="width:${c[1]}%;background:${c[2]}"></span></div><b style="font-size:12px;text-align:right">${c[1]}%</b></div>`).join('');
+        const status = [['Institution APIs', 'OAuth + token endpoints', 99.95, 'success'], ['Account sync', 'Balances + transactions', 99.90, 'success'], ['PIS engine', 'Payment initiation', 99.20, 'success'], ['Webhook delivery', 'Event callbacks', 99.40, 'success'], ['Categorization', 'ML enrichment', 99.80, 'success'], ['Equity connector', 'Refresh token endpoint', 96.60, 'danger'], ['Consent vault', 'Scopes and expiry', 99.99, 'success']]; document.getElementById('status-body').innerHTML = status.map(s => `<div style="display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:12px;padding:10px 12px;background:var(--pm-surface-2);border-radius:var(--pm-r-md);margin-bottom:8px"><div><div style="font-size:13px;font-weight:600"><span class="pm-dot pm-dot-${s[3]}" style="margin-right:8px"></span>${s[0]}</div><div style="font-size:11px;color:var(--pm-muted)">${s[1]}</div></div><div style="width:180px"><div class="health-bar"><span style="width:${s[2]}%;background:var(--pm-${s[3] === 'danger' ? 'danger' : 'accent'})"></span></div></div><span class="pm-chip pm-chip-${s[3]}">${s[2]}%</span></div>`).join('');
+        setTimeout(() => pmToast('Open Banking synced · 122 institutions online', 'success'), 600);
+    </script>
+</body>
+
+</html>
