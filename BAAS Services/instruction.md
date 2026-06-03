@@ -29,6 +29,9 @@ Kimi: I'll research the latest Kenyan and African banking landscape to ensure th
 ## **Complete 17-Page Comprehensive Outline (Africa-First, Globally-Ready)**
 
 **Architecture Principle:** PayMo is built **Africa-first, globally-ready**. The default experience is optimized for Kenyan, East African, and broader African markets — with M-Pesa (via Daraja 3.0), PesaLink (now integrated with PAPSS for cross-border), CBK Fast Payment System (FPS), RTGS, mobile money interoperability, and local PSPs as first-class citizens. Global rails (SWIFT, SEPA, ACH, PayPal, Wise, etc.) are fully supported but layered on top of the local foundation.
+this dashboard is for the user side the user can be an individual or a user who connectes to his business and can mannage his business and operations using this paymo payment system
+so dont make it like this is form paymo admins no..
+its for users make it like the user can  switch between indiviual and business/organisation layout
 
 **Current Market Context (June 2026):**
 - PesaLink now connects 80+ Kenyan institutions to 160+ PAPSS banks across Africa for 24/7 local-currency cross-border settlements 
