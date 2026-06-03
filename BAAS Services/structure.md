@@ -1,7 +1,7 @@
 make the page very advanced designed not just two cards with and tabs like make or add other sections, in the modals dont just show modals to infoma a statement or tip or alert make the struture very relevant you are under doing the design
 the image like the ui ux be like the image add other sectionsto make the page very comprohesive
 MUST USE repo for reference:
-https://github.com/dlion4/paymo_v2/blob/main/BAAS-%20transactions/instruction.md
+https://github.com/dlion4/paymo_v2/blob/main/BAAS%20Services/instruction.md
 
 create a advanced master css add more styles modified and add extras styles for modals no empty modals
 create only one single htm file linked to master css no react env
