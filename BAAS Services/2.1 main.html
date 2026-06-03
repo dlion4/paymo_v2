@@ -1,0 +1,977 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PayMo BaaS — Services Hub | Command Center</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="master.css">
+    <style>
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .service-card {
+            border: 1px solid var(--pm-border);
+            border-radius: var(--pm-r-lg);
+            padding: 18px;
+            background: var(--pm-surface);
+            transition: all .2s;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .service-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--pm-shadow-md);
+        }
+
+        .service-card .top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .service-card .badge {
+            padding: 4px 10px;
+            font-size: 10px;
+            font-weight: 700;
+            border-radius: var(--pm-r-pill);
+        }
+
+        .service-card .name {
+            font-family: var(--pm-font-display);
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .service-card .health {
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .service-card .metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .service-card .metric {
+            font-size: 11px;
+        }
+
+        .service-card .metric .v {
+            font-family: var(--pm-font-display);
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .perf-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--pm-border);
+        }
+
+        .perf-row:last-child {
+            border-bottom: none;
+        }
+
+        .rec-card {
+            border: 1px solid var(--pm-border);
+            border-radius: var(--pm-r-md);
+            padding: 14px;
+            background: var(--pm-surface);
+            margin-bottom: 10px;
+        }
+
+        .rec-card .impact {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: var(--pm-r-pill);
+        }
+
+        .op-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto auto;
+            gap: 12px;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--pm-border);
+        }
+
+        .mini-chart {
+            height: 42px;
+            display: flex;
+            align-items: flex-end;
+            gap: 3px;
+        }
+
+        .mini-chart .bar {
+            flex: 1;
+            background: var(--pm-primary);
+            border-radius: 2px;
+        }
+
+        .multi-step {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .step {
+            flex: 1;
+            padding: 8px;
+            text-align: center;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            background: var(--pm-surface-2);
+            color: var(--pm-muted);
+        }
+
+        .step.active {
+            background: var(--pm-primary);
+            color: white;
+        }
+
+        .metric-big {
+            font-family: var(--pm-font-display);
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .section-title {
+            font-family: var(--pm-font-display);
+            font-size: 15px;
+            font-weight: 700;
+            margin: 0 0 4px;
+        }
+
+        .section-sub {
+            font-size: 12px;
+            color: var(--pm-muted);
+            margin-bottom: 14px;
+        }
+
+        .pill-group {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .pill {
+            padding: 4px 10px;
+            font-size: 11px;
+            font-weight: 600;
+            border-radius: var(--pm-r-pill);
+            background: var(--pm-surface-2);
+            border: 1px solid var(--pm-border);
+            cursor: pointer;
+        }
+
+        .pill.active {
+            background: var(--pm-primary);
+            color: white;
+            border-color: var(--pm-primary);
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+        }
+
+        .stat-box {
+            background: var(--pm-surface);
+            border: 1px solid var(--pm-border);
+            border-radius: var(--pm-r-md);
+            padding: 14px;
+        }
+
+        .stat-box .label {
+            font-size: 11px;
+            color: var(--pm-muted);
+            font-weight: 600;
+        }
+
+        .stat-box .value {
+            font-family: var(--pm-font-display);
+            font-size: 20px;
+            font-weight: 700;
+            margin-top: 4px;
+        }
+
+        .modal-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--pm-border);
+            margin-bottom: 16px;
+        }
+
+        .modal-tab {
+            padding: 10px 18px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+        }
+
+        .modal-tab.active {
+            border-color: var(--pm-primary);
+            color: var(--pm-primary);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="pm-app">
+        <!-- Sidebar -->
+        <aside class="pm-sidebar">
+            <div class="pm-sidebar-logo">P</div>
+            <nav class="pm-sidebar-nav" id="sideNav">
+                <button class="pm-nav-item active" data-nav="services"><svg viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+                    </svg></button>
+                <button class="pm-nav-item" data-nav="performance"><svg viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <path d="M3 3v18h18" />
+                        <path d="M18 17l-5-5-4 4-3-3" />
+                    </svg></button>
+                <button class="pm-nav-item" data-nav="catalog"><svg viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="18" height="18" rx="2" />
+                        <path d="M9 3v18M15 3v18" />
+                    </svg></button>
+                <button class="pm-nav-item" data-nav="ops"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <path d="M12 8v4l3 3" />
+                        <circle cx="12" cy="12" r="9" />
+                    </svg></button>
+                <button class="pm-nav-item" data-nav="recommend"><svg viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <path d="M12 2l3 7h7l-5.5 4 2 7-6.5-4-6.5 4 2-7L2 9h7z" />
+                    </svg></button>
+            </nav>
+        </aside>
+
+        <main class="pm-main">
+            <!-- Header -->
+            <header class="pm-header">
+                <div class="pm-header-title">
+                    <h1>Services Hub — Command Center</h1>
+                    <p>Manage, monitor and optimize all PayMo BaaS services across Africa</p>
+                </div>
+                <div class="pm-header-search">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8" />
+                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                    </svg>
+                    <input type="text" id="globalSearch" placeholder="Search services, customers, opportunities…">
+                </div>
+                <div class="pm-header-actions">
+                    <div class="pm-system-status"><span class="dot"></span> All services healthy</div>
+                    <button class="pm-header-btn" id="notifBtn"><svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                        </svg><span class="counter">11</span></button>
+                    <button class="pm-header-btn" id="profileBtn">
+                        <div class="pm-avatar">JM</div>
+                    </button>
+                </div>
+            </header>
+
+            <div class="pm-content">
+
+                <!-- SECTION 1: Services Catalog & Health Dashboard -->
+                <section class="pm-card">
+                    <div class="pm-card-head">
+                        <div>
+                            <h2 class="section-title">🧩 Services Catalog & Health Dashboard</h2>
+                            <p class="section-sub">24 services · 21 healthy · 2 degraded · 1 provisioning</p>
+                        </div>
+                        <div>
+                            <button class="btn-pm primary" onclick="PM.openProvisionWizard()">+ Provision New
+                                Service</button>
+                        </div>
+                    </div>
+                    <div class="services-grid" id="servicesGrid"></div>
+                </section>
+
+                <!-- SECTION 2: Product Performance Dashboard -->
+                <section class="pm-card">
+                    <div class="pm-card-head">
+                        <div>
+                            <h2 class="section-title">📊 Product Performance Dashboard</h2>
+                            <p class="section-sub">Revenue, adoption, uptime & customer satisfaction</p>
+                        </div>
+                        <div class="pill-group">
+                            <div class="pill active" data-range="7d">7d</div>
+                            <div class="pill" data-range="30d">30d</div>
+                            <div class="pill" data-range="90d">90d</div>
+                        </div>
+                    </div>
+                    <div class="stat-grid" id="perfStats"></div>
+                    <div class="perf-row" style="margin-top:16px;">
+                        <div style="flex:1">
+                            <div style="font-size:12px; font-weight:600; margin-bottom:6px;">Revenue Trend (Last 7 Days)
+                            </div>
+                            <div class="mini-chart" id="revTrend"></div>
+                        </div>
+                        <div style="flex:1">
+                            <div style="font-size:12px; font-weight:600; margin-bottom:6px;">Adoption Rate</div>
+                            <div class="mini-chart" id="adoptTrend"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SECTION 3: Active Services Summary -->
+                <section class="pm-card">
+                    <div class="pm-card-head">
+                        <div>
+                            <h2 class="section-title">✅ Active Services Summary</h2>
+                            <p class="section-sub">1,284 active service instances across 127 banks</p>
+                        </div>
+                        <button class="btn-pm" onclick="PM.openServiceSummary()">View Full Summary</button>
+                    </div>
+                    <div class="stat-grid">
+                        <div class="stat-box">
+                            <div class="label">Active Instances</div>
+                            <div class="value" style="color:#10B981">1,284</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="label">Avg Uptime</div>
+                            <div class="value">99.94%</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="label">Monthly Revenue</div>
+                            <div class="value">$487K</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="label">Avg CSAT</div>
+                            <div class="value">4.7/5</div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SECTION 4: Cross-sell & Recommendations -->
+                <section class="pm-card">
+                    <div class="pm-card-head">
+                        <div>
+                            <h2 class="section-title">💡 Cross-sell Opportunities & Recommendations Engine</h2>
+                            <p class="section-sub">AI-powered recommendations · 14 high-value opportunities</p>
+                        </div>
+                        <button class="btn-pm" onclick="PM.openRecommendations()">View All</button>
+                    </div>
+                    <div id="recList"></div>
+                </section>
+
+                <!-- SECTION 5: Service Operations Queue -->
+                <section class="pm-card">
+                    <div class="pm-card-head">
+                        <div>
+                            <h2 class="section-title">⚙️ Service Operations Queue</h2>
+                            <p class="section-sub">18 pending operations · 4 require approval</p>
+                        </div>
+                        <button class="btn-pm" onclick="PM.openOpsQueue()">Manage Queue</button>
+                    </div>
+                    <div id="opsQueue"></div>
+                </section>
+
+                <!-- SECTION 6: Quick Action Bar -->
+                <section class="pm-card">
+                    <div class="pm-card-head">
+                        <div>
+                            <h2 class="section-title">🚀 Quick Action Bar</h2>
+                            <p class="section-sub">Common service operations</p>
+                        </div>
+                    </div>
+                    <div class="action-grid" id="quickActions"></div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- ==================== MODALS ==================== -->
+    <div class="pm-modal-backdrop" id="modalBackdrop">
+        <div class="pm-modal" id="modalEl">
+            <div class="pm-modal-head">
+                <div>
+                    <h3 id="modalTitle"></h3>
+                    <p id="modalSubtitle"></p>
+                </div>
+                <button class="pm-close-btn" onclick="PM.closeModal()">×</button>
+            </div>
+            <div class="pm-modal-body" id="modalBody"></div>
+            <div class="pm-modal-foot" id="modalFoot"></div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Tailwind script for quick classes
+        tailwind.config = { theme: { extend: { colors: { primary: '#4F46E5' } } } };
+    </script>
+
+    <script>
+        // ==================== PAYMO BaaS SERVICES HUB ====================
+        const PM = {
+            services: [
+                { id: 'mpesa-b2c', name: 'M-Pesa B2C', health: 'healthy', uptime: 99.98, customers: 1240, revenue: 184000, type: 'Payout', latency: 187 },
+                { id: 'pesalink', name: 'PesaLink Instant', health: 'healthy', uptime: 99.95, customers: 892, revenue: 97000, type: 'Transfer', latency: 92 },
+                { id: 'rtgs', name: 'RTGS High Value', health: 'healthy', uptime: 99.99, customers: 412, revenue: 312000, type: 'Transfer', latency: 420 },
+                { id: 'swift-gpi', name: 'SWIFT gpi', health: 'degraded', uptime: 99.7, customers: 187, revenue: 245000, type: 'International', latency: 6200 },
+                { id: 'sepa', name: 'SEPA Instant', health: 'healthy', uptime: 99.92, customers: 94, revenue: 78000, type: 'International', latency: 320 },
+                { id: 'papss', name: 'PAPSS', health: 'healthy', uptime: 99.88, customers: 67, revenue: 124000, type: 'Cross-Border', latency: 980 },
+                { id: 'fx-engine', name: 'FX Rate Engine', health: 'healthy', uptime: 99.99, customers: 312, revenue: 89000, type: 'Core', latency: 12 },
+                { id: 'kyc-core', name: 'KYC Core', health: 'healthy', uptime: 99.94, customers: 1247, revenue: 45000, type: 'Compliance', latency: 340 },
+                { id: 'aml-engine', name: 'AML Screening', health: 'degraded', uptime: 99.4, customers: 1247, revenue: 67000, type: 'Compliance', latency: 890 },
+                { id: 'bulk-disburse', name: 'Bulk Disbursement', health: 'healthy', uptime: 99.91, customers: 284, revenue: 156000, type: 'Payout', latency: 1240 },
+                { id: 'webhooks', name: 'Webhook Gateway', health: 'healthy', uptime: 99.97, customers: 712, revenue: 32000, type: 'Core', latency: 48 },
+                { id: 'reconciliation', name: 'Reconciliation Engine', health: 'healthy', uptime: 99.89, customers: 412, revenue: 58000, type: 'Core', latency: 2100 },
+            ],
+
+            recommendations: [
+                { id: 1, title: 'Enable PAPSS for Stanbic', impact: 'High', revenue: 184000, desc: 'Stanbic has 47M monthly volume but no cross-border coverage.', action: 'Enable PAPSS' },
+                { id: 2, title: 'Add SEPA to Equity Bank', impact: 'Medium', revenue: 92000, desc: 'Equity customers request EUR payouts 340 times/month.', action: 'Add SEPA' },
+                { id: 3, title: 'Deploy Bulk Disbursement to KCB', impact: 'High', revenue: 312000, desc: 'KCB currently uses manual batch uploads. 3 competitors offer it.', action: 'Deploy Bulk' },
+                { id: 4, title: 'Enable FX Engine for Co-op', impact: 'Medium', revenue: 67000, desc: 'Co-op customers request real-time FX quotes 890 times/week.', action: 'Enable FX' },
+            ],
+
+            opsQueue: [
+                { id: 1, service: 'SWIFT gpi', type: 'Incident', title: 'High latency on EUR corridor', status: 'Critical', time: '14m ago', action: 'Investigate' },
+                { id: 2, service: 'AML Engine', type: 'Maintenance', title: 'Model retraining required', status: 'Medium', time: '2h ago', action: 'Schedule' },
+                { id: 3, service: 'PesaLink', type: 'Change', title: 'IPSL API version upgrade', status: 'Low', time: 'Yesterday', action: 'Approve' },
+                { id: 4, service: 'Bulk Disburse', type: 'Incident', title: '3 failed batches — retry queue', status: 'Medium', time: '3h ago', action: 'Retry' },
+            ],
+
+            init() {
+                this.renderServices();
+                this.renderPerfStats();
+                this.renderRecommendations();
+                this.renderOpsQueue();
+                this.renderQuickActions();
+                this.initNav();
+                this.initSearch();
+                this.initHeader();
+                this.initRangePills();
+                this.initMiniCharts();
+                this.toast('Services Hub loaded — 24 services healthy');
+            },
+
+            /* ---------- Renderers ---------- */
+            renderServices() {
+                const container = document.getElementById('servicesGrid');
+                container.innerHTML = this.services.map(s => `
+      <div class="service-card" onclick="PM.openServiceDetail('${s.id}')">
+        <div class="top">
+          <div>
+            <div class="name">${s.name}</div>
+            <div style="font-size:11px; color:#64748b;">${s.type}</div>
+          </div>
+          <div class="badge" style="background:${s.health === 'healthy' ? '#D1FAE5' : '#FEF3C7'}; color:${s.health === 'healthy' ? '#047857' : '#B45309'}">
+            ${s.health}
+          </div>
+        </div>
+        <div class="metrics">
+          <div class="metric"><div class="v">${s.uptime}%</div><div style="font-size:10px;">Uptime</div></div>
+          <div class="metric"><div class="v">${s.customers}</div><div style="font-size:10px;">Customers</div></div>
+          <div class="metric"><div class="v">$${(s.revenue / 1000).toFixed(0)}K</div><div style="font-size:10px;">Revenue</div></div>
+          <div class="metric"><div class="v">${s.latency}ms</div><div style="font-size:10px;">Latency</div></div>
+        </div>
+      </div>
+    `).join('');
+            },
+
+            renderPerfStats() {
+                const container = document.getElementById('perfStats');
+                container.innerHTML = `
+      <div class="stat-box"><div class="label">Total Revenue</div><div class="value">$1.42M</div><div style="font-size:11px; color:#10B981;">↑ 18.4%</div></div>
+      <div class="stat-box"><div class="label">Active Customers</div><div class="value">1,284</div><div style="font-size:11px; color:#10B981;">↑ 42 this week</div></div>
+      <div class="stat-box"><div class="label">Avg Uptime</div><div class="value">99.94%</div><div style="font-size:11px; color:#10B981;">↑ 0.02%</div></div>
+      <div class="stat-box"><div class="label">Avg CSAT</div><div class="value">4.7/5</div><div style="font-size:11px; color:#10B981;">↑ 0.1</div></div>
+    `;
+            },
+
+            renderRecommendations() {
+                const container = document.getElementById('recList');
+                container.innerHTML = this.recommendations.map(r => `
+      <div class="rec-card" onclick="PM.openRecommendationDetail(${r.id})">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div style="font-weight:700;">${r.title}</div>
+            <div style="font-size:12px; color:#64748b; margin-top:2px;">${r.desc}</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="impact" style="background:${r.impact === 'High' ? '#D1FAE5' : '#FEF3C7'}; color:${r.impact === 'High' ? '#047857' : '#B45309'}">${r.impact}</div>
+            <div style="font-weight:700; font-size:13px; margin-top:4px;">+$${(r.revenue / 1000).toFixed(0)}K</div>
+          </div>
+        </div>
+        <button class="btn-pm primary" style="margin-top:10px;" onclick="event.stopPropagation(); PM.startRecommendation(${r.id})">${r.action}</button>
+      </div>
+    `).join('');
+            },
+
+            renderOpsQueue() {
+                const container = document.getElementById('opsQueue');
+                container.innerHTML = this.opsQueue.map(o => `
+      <div class="op-row">
+        <div><b>${o.service}</b><div style="font-size:11px; color:#64748b;">${o.title}</div></div>
+        <div><span class="badge" style="background:${o.status === 'Critical' ? '#FEE2E2' : o.status === 'Medium' ? '#FEF3C7' : '#D1FAE5'}">${o.status}</span></div>
+        <div style="font-size:12px; color:#64748b;">${o.time}</div>
+        <button class="btn-pm" onclick="event.stopPropagation(); PM.handleOpsAction(${o.id})">${o.action}</button>
+      </div>
+    `).join('');
+            },
+
+            renderQuickActions() {
+                const container = document.getElementById('quickActions');
+                container.innerHTML = `
+      <button class="action-card" onclick="PM.openProvisionWizard()"><div class="ico" style="background:#EDE9FE; color:#6D28D9;">🆕</div><div class="txt"><div class="t">Provision Service</div><div class="d">Multi-step wizard</div></div></button>
+      <button class="action-card" onclick="PM.openBulkAction()"><div class="ico" style="background:#D1FAE5; color:#047857;">📦</div><div class="txt"><div class="t">Bulk Operation</div><div class="d">Update 100+ services</div></div></button>
+      <button class="action-card" onclick="PM.openIncidentModal()"><div class="ico" style="background:#FEE2E2; color:#B91C1C;">🚨</div><div class="txt"><div class="t">Report Incident</div><div class="d">Create & assign ticket</div></div></button>
+      <button class="action-card" onclick="PM.openAuditModal()"><div class="ico" style="background:#DBEAFE; color:#1D4ED8;">📋</div><div class="txt"><div class="t">Run Audit</div><div class="d">Compliance & health</div></div></button>
+    `;
+            },
+
+            initMiniCharts() {
+                const rev = document.getElementById('revTrend');
+                rev.innerHTML = Array.from({ length: 12 }, (_, i) => `<div class="bar" style="height:${30 + Math.random() * 70}%"></div>`).join('');
+                const adopt = document.getElementById('adoptTrend');
+                adopt.innerHTML = Array.from({ length: 12 }, (_, i) => `<div class="bar" style="height:${50 + Math.random() * 50}%; background:#3B82F6"></div>`).join('');
+            },
+
+            initRangePills() {
+                document.querySelectorAll('.pill').forEach(p => p.addEventListener('click', () => {
+                    document.querySelectorAll('.pill').forEach(x => x.classList.remove('active'));
+                    p.classList.add('active');
+                    this.toast(`Performance data updated to ${p.dataset.range}`);
+                }));
+            },
+
+            /* ---------- Modals ---------- */
+            openModal({ title, sub, body, foot, wide = false }) {
+                document.getElementById('modalTitle').textContent = title;
+                document.getElementById('modalSubtitle').textContent = sub || '';
+                document.getElementById('modalBody').innerHTML = body;
+                document.getElementById('modalFoot').innerHTML = foot || '';
+                document.getElementById('modalEl').classList.toggle('wide', wide);
+                document.getElementById('modalBackdrop').classList.add('open');
+            },
+
+            closeModal() {
+                document.getElementById('modalBackdrop').classList.remove('open');
+            },
+
+            toast(msg, type = 'success') {
+                const c = document.getElementById('toastContainer');
+                const t = document.createElement('div');
+                t.className = `toast ${type}`;
+                t.innerHTML = `<span>${type === 'success' ? '✅' : '⚠️'}</span><div>${msg}</div>`;
+                c.appendChild(t);
+                setTimeout(() => t.remove(), 3400);
+            },
+
+            /* ---------- Service Detail (Advanced Modal) ---------- */
+            openServiceDetail(id) {
+                const s = this.services.find(x => x.id === id);
+                if (!s) return;
+
+                this.openModal({
+                    title: s.name,
+                    sub: `${s.type} • ${s.health.toUpperCase()}`,
+                    wide: true,
+                    body: `
+        <div class="modal-tabs">
+          <div class="modal-tab active" onclick="PM.switchServiceTab(this,'overview')">Overview</div>
+          <div class="modal-tab" onclick="PM.switchServiceTab(this,'metrics')">Metrics</div>
+          <div class="modal-tab" onclick="PM.switchServiceTab(this,'customers')">Customers</div>
+          <div class="modal-tab" onclick="PM.switchServiceTab(this,'settings')">Settings</div>
+        </div>
+        <div id="serviceTabContent">
+          <div class="stat-grid">
+            <div class="stat-box"><div class="label">Uptime</div><div class="value">${s.uptime}%</div></div>
+            <div class="stat-box"><div class="label">Latency</div><div class="value">${s.latency}ms</div></div>
+            <div class="stat-box"><div class="label">Customers</div><div class="value">${s.customers}</div></div>
+            <div class="stat-box"><div class="label">Revenue</div><div class="value">$${(s.revenue / 1000).toFixed(0)}K</div></div>
+          </div>
+          <div style="margin-top:20px;">
+            <div class="pill-group">
+              <button class="btn-pm" onclick="PM.restartService('${s.id}')">Restart Service</button>
+              <button class="btn-pm" onclick="PM.scaleService('${s.id}')">Scale Instances</button>
+              <button class="btn-pm primary" onclick="PM.openServiceConfig('${s.id}')">Configure</button>
+            </div>
+          </div>
+        </div>
+      `,
+                    foot: `<button class="btn-pm" onclick="PM.closeModal()">Close</button>
+             <button class="btn-pm danger" onclick="PM.disableService('${s.id}')">Disable Service</button>`
+                });
+            },
+
+            switchServiceTab(el, tab) {
+                document.querySelectorAll('.modal-tab').forEach(t => t.classList.remove('active'));
+                el.classList.add('active');
+                const content = document.getElementById('serviceTabContent');
+                if (tab === 'overview') {
+                    content.innerHTML = `<div class="stat-grid"><div class="stat-box"><div class="label">Uptime</div><div class="value">99.98%</div></div><div class="stat-box"><div class="label">Latency</div><div class="value">187ms</div></div></div>`;
+                } else if (tab === 'metrics') {
+                    content.innerHTML = `<div style="height:180px; background:var(--pm-surface-2); border-radius:10px; padding:20px;">📈 Advanced performance charts would render here (Revenue, Latency, Errors, Throughput)</div>`;
+                } else if (tab === 'customers') {
+                    content.innerHTML = `<div>Showing 1,240 active customers using this service. <button class="btn-pm" onclick="PM.toast('Exporting customer list')">Export CSV</button></div>`;
+                } else {
+                    content.innerHTML = `<div class="form-grid-2"><div class="form-row"><label>Rate limit</label><input value="5000 req/min"></div><div class="form-row"><label>Timeout</label><input value="30s"></div></div>`;
+                }
+            },
+
+            restartService(id) {
+                this.closeModal();
+                this.toast(`Restarting ${id}...`);
+                setTimeout(() => this.toast(`${id} restarted successfully`), 1600);
+            },
+
+            scaleService(id) {
+                this.openModal({
+                    title: 'Scale Service',
+                    sub: id,
+                    body: `
+        <div class="form-row"><label>Current instances</label><input value="12" /></div>
+        <div class="form-row"><label>Target instances</label><input value="18" /></div>
+        <div class="form-row"><label>Auto-scale threshold</label><select><option>70% CPU</option><option>80% CPU</option></select></div>
+      `,
+                    foot: `<button class="btn-pm" onclick="PM.closeModal()">Cancel</button>
+             <button class="btn-pm primary" onclick="PM.toast('Scaling initiated'); PM.closeModal();">Scale Now</button>`
+                });
+            },
+
+            openServiceConfig(id) {
+                this.openModal({
+                    title: 'Service Configuration',
+                    sub: id,
+                    body: `
+        <div class="modal-tabs">
+          <div class="modal-tab active">General</div>
+          <div class="modal-tab">Limits</div>
+          <div class="modal-tab">Webhooks</div>
+        </div>
+        <div class="form-grid-2">
+          <div class="form-row"><label>Service Name</label><input value="${id}"></div>
+          <div class="form-row"><label>Environment</label><select><option>Production</option><option>Staging</option></select></div>
+          <div class="form-row"><label>Rate Limit</label><input value="5000"></div>
+          <div class="form-row"><label>Timeout (ms)</label><input value="30000"></div>
+        </div>
+      `,
+                    foot: `<button class="btn-pm" onclick="PM.closeModal()">Cancel</button>
+             <button class="btn-pm primary" onclick="PM.toast('Configuration saved'); PM.closeModal();">Save Changes</button>`
+                });
+            },
+
+            disableService(id) {
+                this.closeModal();
+                this.toast(`Service ${id} disabled`, 'warn');
+            },
+
+            /* ---------- Multi-step Provision Wizard ---------- */
+            openProvisionWizard() {
+                this.openModal({
+                    title: 'Provision New Service',
+                    sub: 'Step 1 of 4 — Choose service type',
+                    body: `
+        <div class="multi-step">
+          <div class="step active">1. Type</div>
+          <div class="step">2. Configure</div>
+          <div class="step">3. Customers</div>
+          <div class="step">4. Review</div>
+        </div>
+        <div class="form-row"><label>Service Category</label>
+          <select id="provType" onchange="PM.updateProvisionStep()">
+            <option value="payout">Payout Service</option>
+            <option value="transfer">Transfer Service</option>
+            <option value="compliance">Compliance Service</option>
+            <option value="core">Core Infrastructure</option>
+          </select>
+        </div>
+        <div class="form-row"><label>Service Name</label><input id="provName" value="New Payout Service"></div>
+      `,
+                    foot: `<button class="btn-pm" onclick="PM.closeModal()">Cancel</button>
+             <button class="btn-pm primary" onclick="PM.provisionStep2()">Continue →</button>`
+                });
+            },
+
+            updateProvisionStep() { },
+
+            provisionStep2() {
+                const type = document.getElementById('provType').value;
+                const name = document.getElementById('provName').value;
+                this.openModal({
+                    title: 'Configure Service',
+                    sub: 'Step 2 of 4',
+                    body: `
+        <div class="multi-step">
+          <div class="step">1. Type</div>
+          <div class="step active">2. Configure</div>
+          <div class="step">3. Customers</div>
+          <div class="step">4. Review</div>
+        </div>
+        <div class="form-grid-2">
+          <div class="form-row"><label>Rate Limit</label><input value="10000"></div>
+          <div class="form-row"><label>Timeout</label><input value="30s"></div>
+          <div class="form-row"><label>Region</label><select><option>Kenya</option><option>East Africa</option><option>Global</option></select></div>
+          <div class="form-row"><label>Environment</label><select><option>Production</option><option>Staging</option></select></div>
+        </div>
+      `,
+                    foot: `<button class="btn-pm" onclick="PM.openProvisionWizard()">Back</button>
+             <button class="btn-pm primary" onclick="PM.provisionStep3('${name}')">Continue →</button>`
+                });
+            },
+
+            provisionStep3(name) {
+                this.openModal({
+                    title: 'Select Customers',
+                    sub: 'Step 3 of 4',
+                    body: `
+        <div class="multi-step"><div class="step">1. Type</div><div class="step">2. Configure</div><div class="step active">3. Customers</div><div class="step">4. Review</div></div>
+        <div style="max-height:260px; overflow:auto;">
+          ${['KCB Bank', 'Equity Bank', 'Stanbic', 'Co-op Bank', 'MTN Uganda'].map(b => `
+            <label style="display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--pm-border);">
+              <input type="checkbox" checked> <span>${b}</span>
+            </label>`).join('')}
+        </div>
+      `,
+                    foot: `<button class="btn-pm" onclick="PM.provisionStep2()">Back</button>
+             <button class="btn-pm primary" onclick="PM.provisionStep4('${name}')">Continue →</button>`
+                });
+            },
+
+            provisionStep4(name) {
+                this.openModal({
+                    title: 'Review & Confirm',
+                    sub: 'Step 4 of 4',
+                    body: `
+        <div class="multi-step"><div class="step">1. Type</div><div class="step">2. Configure</div><div class="step">3. Customers</div><div class="step active">4. Review</div></div>
+        <div style="background:var(--pm-surface-2); padding:16px; border-radius:10px;">
+          <div><b>Service:</b> ${name}</div>
+          <div><b>Rate Limit:</b> 10,000 req/min</div>
+          <div><b>Customers:</b> 5 banks selected</div>
+          <div><b>Estimated monthly cost:</b> $12,400</div>
+        </div>
+      `,
+                    foot: `<button class="btn-pm" onclick="PM.provisionStep3('${name}')">Back</button>
+             <button class="btn-pm primary" onclick="PM.toast('Service provisioned successfully!'); PM.closeModal();">Provision Service</button>`
+                });
+            },
+
+            /* ---------- Other Modals ---------- */
+            openBulkAction() {
+                this.openModal({
+                    title: 'Bulk Service Operation',
+                    sub: 'Apply changes to multiple services',
+                    body: `
+        <div class="form-row"><label>Select services</label><select multiple style="height:120px;">
+          ${this.services.map(s => `<option>${s.name}</option>`).join('')}
+        </select></div>
+        <div class="form-row"><label>Operation</label><select><option>Update rate limit</option><option>Restart</option><option>Enable maintenance mode</option></select></div>
+      `,
+                    foot: `<button class="btn-pm" onclick="PM.closeModal()">Cancel</button>
+             <button class="btn-pm primary" onclick="PM.toast('Bulk operation queued'); PM.closeModal();">Execute</button>`
+                });
+            },
+
+            openIncidentModal() {
+                this.openModal({
+                    title: 'Report Incident',
+                    sub: 'Create new incident ticket',
+                    body: `
+        <div class="form-grid-2">
+          <div class="form-row"><label>Service</label><select>${this.services.map(s => `<option>${s.name}</option>`).join('')}</select></div>
+          <div class="form-row"><label>Severity</label><select><option>Critical</option><option>High</option><option>Medium</option></select></div>
+          <div class="form-row"><label>Title</label><input value="High latency on EUR corridor"></div>
+          <div class="form-row"><label>Assignee</label><select><option>Ops Team</option><option>Joseph Mwangi</option></select></div>
+        </div>
+        <div class="form-row"><label>Description</label><textarea rows="3">Customers reporting 8-12s latency on SWIFT EUR transfers.</textarea></div>
+      `,
+                    foot: `<button class="btn-pm" onclick="PM.closeModal()">Cancel</button>
+             <button class="btn-pm danger" onclick="PM.toast('Incident #INC-44218 created'); PM.closeModal();">Create Incident</button>`
+                });
+            },
+
+            openAuditModal() {
+                this.openModal({
+                    title: 'Run Compliance & Health Audit',
+                    sub: 'Comprehensive service audit',
+                    body: `
+        <div class="form-row"><label>Audit Type</label><select><option>Full Health + Compliance</option><option>Security Only</option><option>Performance Only</option></select></div>
+        <div class="form-row"><label>Services</label><div class="pill-group">${this.services.slice(0, 5).map(s => `<span class="pill">${s.name}</span>`).join('')}</div></div>
+        <div style="margin-top:12px; font-size:12px; color:#64748b;">Estimated duration: 4 minutes • Report will be emailed to you.</div>
+      `,
+                    foot: `<button class="btn-pm" onclick="PM.closeModal()">Cancel</button>
+             <button class="btn-pm primary" onclick="PM.toast('Audit started — results in 4 minutes'); PM.closeModal();">Start Audit</button>`
+                });
+            },
+
+            openServiceSummary() {
+                this.openModal({
+                    title: 'Active Services Summary',
+                    sub: '1,284 instances across 127 banks',
+                    wide: true,
+                    body: `
+        <div class="stat-grid">
+          <div class="stat-box"><div class="label">Total Instances</div><div class="value">1,284</div></div>
+          <div class="stat-box"><div class="label">Healthy</div><div class="value" style="color:#10B981">1,241</div></div>
+          <div class="stat-box"><div class="label">Degraded</div><div class="value" style="color:#B45309">38</div></div>
+          <div class="stat-box"><div class="label">Provisioning</div><div class="value">5</div></div>
+        </div>
+        <div style="margin-top:20px;">
+          <table class="pm-table"><thead><tr><th>Service</th><th>Instances</th><th>Revenue</th><th>Uptime</th></tr></thead>
+          <tbody>${this.services.map(s => `<tr><td>${s.name}</td><td>${Math.floor(s.customers / 3)}</td><td>$${(s.revenue / 1000).toFixed(0)}K</td><td>${s.uptime}%</td></tr>`).join('')}</tbody></table>
+        </div>
+      `,
+                    foot: `<button class="btn-pm" onclick="PM.closeModal()">Close</button>`
+                });
+            },
+
+            openRecommendationDetail(id) {
+                const r = this.recommendations.find(x => x.id === id);
+                this.openModal({
+                    title: r.title,
+                    sub: `Projected +$${(r.revenue / 1000).toFixed(0)}K monthly`,
+                    body: `
+        <div style="margin-bottom:16px;">${r.desc}</div>
+        <div class="stat-grid">
+          <div class="stat-box"><div class="label">Expected Revenue</div><div class="value">$${(r.revenue / 1000).toFixed(0)}K</div></div>
+          <div class="stat-box"><div class="label">Implementation Time</div><div class="value">3 days</div></div>
+          <div class="stat-box"><div class="label">Impact</div><div class="value">${r.impact}</div></div>
+        </div>
+      `,
+                    foot: `<button class="btn-pm" onclick="PM.closeModal()">Close</button>
+             <button class="btn-pm primary" onclick="PM.startRecommendation(${id}); PM.closeModal();">${r.action}</button>`
+                });
+            },
+
+            startRecommendation(id) {
+                const r = this.recommendations.find(x => x.id === id);
+                this.openModal({
+                    title: `Implement: ${r.title}`,
+                    sub: 'Multi-step implementation',
+                    body: `
+        <div class="multi-step"><div class="step active">1. Confirm</div><div class="step">2. Configure</div><div class="step">3. Deploy</div></div>
+        <div class="form-row"><label>Target banks</label><input value="Stanbic, Equity, KCB"></div>
+        <div class="form-row"><label>Go-live date</label><input type="date" value="2025-12-15"></div>
+      `,
+                    foot: `<button class="btn-pm" onclick="PM.closeModal()">Cancel</button>
+             <button class="btn-pm primary" onclick="PM.toast('Implementation started'); PM.closeModal();">Start Implementation</button>`
+                });
+            },
+
+            handleOpsAction(id) {
+                const op = this.opsQueue.find(o => o.id === id);
+                this.toast(`${op.action} action started for ${op.service}`);
+                if (op.action === 'Investigate') {
+                    this.openModal({
+                        title: 'Incident Investigation',
+                        sub: op.title,
+                        body: `<div>Running diagnostics... <br><br>Root cause: High load on Frankfurt node.<br>ETA to resolution: 18 minutes.</div>`,
+                        foot: `<button class="btn-pm primary" onclick="PM.toast('Ticket updated'); PM.closeModal();">Acknowledge</button>`
+                    });
+                }
+            },
+
+            openRecommendations() {
+                this.openModal({
+                    title: 'All Recommendations',
+                    sub: '14 opportunities',
+                    wide: true,
+                    body: this.recommendations.map(r => `
+        <div class="rec-card" onclick="PM.openRecommendationDetail(${r.id}); PM.closeModal();">
+          <div style="display:flex; justify-content:space-between;">
+            <div><b>${r.title}</b><div style="font-size:12px; color:#64748b;">${r.desc}</div></div>
+            <div style="text-align:right;"><div class="impact" style="background:#D1FAE5; color:#047857;">${r.impact}</div><div>+$${(r.revenue / 1000).toFixed(0)}K</div></div>
+          </div>
+        </div>
+      `).join(''),
+                    foot: `<button class="btn-pm" onclick="PM.closeModal()">Close</button>`
+                });
+            },
+
+            openOpsQueue() {
+                this.openModal({
+                    title: 'Service Operations Queue',
+                    sub: '18 pending operations',
+                    wide: true,
+                    body: this.opsQueue.map(o => `
+        <div class="op-row">
+          <div><b>${o.service}</b><div style="font-size:11px;">${o.title}</div></div>
+          <div><span class="badge" style="background:#FEF3C7">${o.status}</span></div>
+          <div>${o.time}</div>
+          <button class="btn-pm" onclick="PM.handleOpsAction(${o.id}); PM.closeModal();">${o.action}</button>
+        </div>
+      `).join(''),
+                    foot: `<button class="btn-pm" onclick="PM.closeModal()">Close</button>`
+                });
+            },
+
+            /* ---------- Navigation & Header ---------- */
+            initNav() {
+                document.getElementById('sideNav').addEventListener('click', (e) => {
+                    const btn = e.target.closest('.pm-nav-item');
+                    if (!btn) return;
+                    document.querySelectorAll('.pm-nav-item').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    const nav = btn.dataset.nav;
+                    if (nav === 'performance') this.openModal({ title: 'Performance Dashboard', sub: 'Detailed metrics', body: `<div class="stat-grid"><div class="stat-box"><div class="label">Revenue</div><div class="value">$1.42M</div></div></div>`, foot: `<button class="btn-pm" onclick="PM.closeModal()">Close</button>` });
+                    if (nav === 'catalog') document.getElementById('servicesGrid').scrollIntoView({ behavior: 'smooth' });
+                    if (nav === 'ops') document.getElementById('opsQueue').scrollIntoView({ behavior: 'smooth' });
+                    if (nav === 'recommend') document.getElementById('recList').scrollIntoView({ behavior: 'smooth' });
+                });
+            },
+
+            initSearch() {
+                const input = document.getElementById('globalSearch');
+                input.addEventListener('input', (e) => {
+                    const q = e.target.value.toLowerCase();
+                    if (!q) return;
+                    const found = this.services.find(s => s.name.toLowerCase().includes(q));
+                    if (found) this.openServiceDetail(found.id);
+                });
+            },
+
+            initHeader() {
+                document.getElementById('notifBtn').addEventListener('click', () => {
+                    this.openModal({
+                        title: 'Notifications',
+                        sub: '11 unread',
+                        body: `<div class="notif-item"><div class="ico">🚨</div><div class="body"><div class="t">SWIFT latency spike</div><div class="d">EUR corridor • 14m ago</div></div></div>`,
+                        foot: `<button class="btn-pm" onclick="PM.closeModal()">Close</button>`
+                    });
+                });
+                document.getElementById('profileBtn').addEventListener('click', () => {
+                    this.openModal({
+                        title: 'Joseph Mwangi',
+                        sub: 'Chief Operations Officer',
+                        body: `<div class="detail-grid"><div class="detail-row"><span class="l">Email</span><span class="v">j.mwangi@paymo.io</span></div></div>`,
+                        foot: `<button class="btn-pm" onclick="PM.closeModal()">Close</button>`
+                    });
+                });
+            }
+        };
+
+        // Boot
+        document.addEventListener('DOMContentLoaded', () => PM.init());
+    </script>
+</body>
+
+</html>
