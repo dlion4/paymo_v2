@@ -1,0 +1,1316 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PayMo BaaS — Fraud & Risk Management</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap"
+        rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Master CSS -->
+    <link rel="stylesheet" href="./master 2.8 copy.css">
+    <style>
+        /* Page-specific overrides & utility classes */
+        .status-pill {
+            padding: 4px 10px;
+            border-radius: 99px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .status-safe {
+            background: var(--pm-accent-soft);
+            color: var(--pm-accent);
+        }
+
+        .status-risk {
+            background: var(--pm-danger-soft);
+            color: var(--pm-danger);
+        }
+
+        .status-caution {
+            background: var(--pm-warning-soft);
+            color: var(--pm-warning);
+        }
+
+        .risk-score-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 8px solid var(--pm-border);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            position: relative;
+        }
+
+        .risk-score-circle.low {
+            border-color: var(--pm-accent);
+        }
+
+        .risk-score-circle .score {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--pm-ink);
+            font-family: var(--pm-font-display);
+        }
+
+        .risk-score-circle .label {
+            font-size: 10px;
+            color: var(--pm-muted);
+            text-transform: uppercase;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid var(--pm-border);
+            margin-bottom: 12px;
+            transition: 0.2s;
+        }
+
+        .activity-item:hover {
+            background: var(--pm-surface-2);
+            border-color: var(--pm-primary-light);
+            cursor: pointer;
+        }
+
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: var(--pm-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--pm-ink-soft);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 10px;
+            border: 1px solid var(--pm-border);
+            background: var(--pm-surface-2);
+            outline: none;
+            transition: 0.2s;
+        }
+
+        .form-input:focus {
+            border-color: var(--pm-primary);
+            background: white;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Alert Banner */
+        .alert-banner {
+            background: var(--pm-danger);
+            color: white;
+            padding: 12px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            font-weight: 600;
+        }
+
+        /* Ticker for live feed simulation */
+        .live-ticker {
+            font-size: 11px;
+            color: var(--pm-accent);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .ticker-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--pm-accent);
+            border-radius: 50%;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            50% {
+                transform: scale(1.5);
+                opacity: 0.5;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Emergency Alert (Contextual) -->
+    <div id="emergencyAlert" class="alert-banner hidden">
+        <i class="fas fa-shield-virus"></i>
+        <span>Security Alert: A new login was detected from Lagos, Nigeria. Not you? Review now.</span>
+        <button class="pm-btn pm-btn-outline"
+            style="background: white; color: var(--pm-danger); padding: 4px 12px; height: 32px;"
+            onclick="openModal('modalAlertDetail')">Review</button>
+    </div>
+
+    <div class="pm-app">
+        <!-- SIDEBAR -->
+        <aside class="pm-sidebar">
+            <div class="pm-sidebar-logo">
+                <div class="logo-box">P</div>
+                <div class="logo-text">PayMo BaaS</div>
+            </div>
+            <nav class="pm-sidebar-nav">
+                <a href="#" class="pm-nav-item"><i class="fas fa-th-large"></i> <span>Dashboard</span></a>
+                <a href="#" class="pm-nav-item"><i class="fas fa-exchange-alt"></i> <span>Payments</span></a>
+                <a href="#" class="pm-nav-item"><i class="fas fa-users"></i> <span>Recipients</span></a>
+                <a href="#" class="pm-nav-item"><i class="fas fa-file-invoice-dollar"></i> <span>Bill Pay</span></a>
+                <a href="#" class="pm-nav-item active"><i class="fas fa-user-shield"></i> <span>Fraud & Risk</span></a>
+                <a href="#" class="pm-nav-item"><i class="fas fa-university"></i> <span>Bank Services</span></a>
+                <a href="#" class="pm-nav-item"><i class="fas fa-chart-line"></i> <span>Analytics</span></a>
+            </nav>
+            <div class="pm-sidebar-bottom">
+                <a href="#" class="pm-nav-item" onclick="openModal('modalSupport')"><i class="fas fa-headset"></i>
+                    <span>Get Support</span></a>
+                <a href="#" class="pm-nav-item"><i class="fas fa-cog"></i> <span>Settings</span></a>
+            </div>
+        </aside>
+
+        <!-- MAIN -->
+        <main class="pm-main">
+            <!-- HEADER -->
+            <header class="pm-header">
+                <div class="pm-search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search transactions, claims, or security settings...">
+                </div>
+                <div class="pm-header-actions">
+                    <div class="live-ticker">
+                        <div class="ticker-dot"></div>
+                        Monitoring Active
+                    </div>
+                    <button class="icon-btn" onclick="openModal('modalNotifications')">
+                        <i class="far fa-bell"></i>
+                        <span class="badge-count">3</span>
+                    </button>
+                    <div class="user-profile" onclick="openModal('modalProfile')">
+                        <div class="user-avatar">JM</div>
+                        <div class="user-info">
+                            <span class="name">Jared M.</span>
+                            <span class="role">Business Owner</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- CONTENT -->
+            <div class="pm-content">
+                <!-- 2.8.1 Security Snapshot -->
+                <section>
+                    <div class="section-header">
+                        <h2 class="section-title">Security Snapshot</h2>
+                        <button class="pm-btn pm-btn-outline" onclick="openModal('modalSecurityReport')">
+                            <i class="fas fa-download"></i> Download Report
+                        </button>
+                    </div>
+                    <div class="pm-grid">
+                        <div class="pm-card" style="text-align: center;">
+                            <div class="risk-score-circle low">
+                                <span class="score">98</span>
+                                <span class="label">Excellent</span>
+                            </div>
+                            <h3 class="card-title" style="justify-content: center;">Safety Score</h3>
+                            <p class="card-subtitle">Your account is highly secure. 12 protocols active.</p>
+                            <button class="pm-btn pm-btn-primary" style="width: 100%;"
+                                onclick="openModal('modalScoreDetail')">Improve Score</button>
+                        </div>
+                        <div class="pm-card">
+                            <h3 class="card-title"><i class="fas fa-shield-alt text-primary"></i> Active Shields</h3>
+                            <div style="margin-top: 15px;">
+                                <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
+                                    <span>Biometric Auth</span>
+                                    <span class="status-pill status-safe">ACTIVE</span>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
+                                    <span>IP Geofencing</span>
+                                    <span class="status-pill status-safe">ACTIVE</span>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
+                                    <span>Real-time Velocity</span>
+                                    <span class="status-pill status-caution">MONITORING</span>
+                                </div>
+                            </div>
+                            <button class="pm-btn pm-btn-outline" style="width: 100%; margin-top: 10px;"
+                                onclick="openModal('modalManageShields')">Manage All Shields</button>
+                        </div>
+                        <div class="pm-card">
+                            <h3 class="card-title"><i class="fas fa-eye text-warning"></i> Recent Threats</h3>
+                            <div style="margin-top: 15px;">
+                                <div class="activity-item" style="padding: 10px; margin-bottom: 8px;"
+                                    onclick="openModal('modalThreatDetail')">
+                                    <div class="activity-icon"
+                                        style="background: var(--pm-danger-soft); color: var(--pm-danger);">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                    </div>
+                                    <div style="flex:1">
+                                        <div style="font-weight: 600; font-size: 13px;">Login Attempt: Lagos</div>
+                                        <div style="font-size: 11px; color: var(--pm-muted);">Blocked · 2h ago</div>
+                                    </div>
+                                </div>
+                                <div class="activity-item" style="padding: 10px; margin-bottom: 0;"
+                                    onclick="openModal('modalThreatDetail')">
+                                    <div class="activity-icon"
+                                        style="background: var(--pm-warning-soft); color: var(--pm-warning);">
+                                        <i class="fas fa-user-secret"></i>
+                                    </div>
+                                    <div style="flex:1">
+                                        <div style="font-weight: 600; font-size: 13px;">Suspicious API Call</div>
+                                        <div style="font-size: 11px; color: var(--pm-muted);">Flagged · 5h ago</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 2.8.2 Activity Monitor -->
+                <section>
+                    <div class="section-header">
+                        <h2 class="section-title">Transaction Activity</h2>
+                        <div class="pm-tabs">
+                            <span class="pm-tab active" onclick="switchMainTab(this, 'all')">All Activity</span>
+                            <span class="pm-tab" onclick="switchMainTab(this, 'flagged')">Flagged</span>
+                        </div>
+                    </div>
+                    <div class="pm-card" style="padding: 0; overflow: hidden;">
+                        <div id="activityFeed">
+                            <div class="activity-item"
+                                style="border:none; border-bottom:1px solid var(--pm-border); border-radius:0; margin:0;"
+                                onclick="openModal('modalTxnDetail')">
+                                <div class="activity-icon"><i class="fas fa-shopping-cart"></i></div>
+                                <div style="flex:1">
+                                    <div style="font-weight: 600;">Payment to Safaricom PLC</div>
+                                    <div style="font-size: 12px; color: var(--pm-muted);">Ref: PYM-99281 · 10:45 AM
+                                    </div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="font-weight: 700;">KES 12,450.00</div>
+                                    <div class="status-pill status-safe">VERIFIED</div>
+                                </div>
+                            </div>
+                            <div class="activity-item"
+                                style="border:none; border-bottom:1px solid var(--pm-border); border-radius:0; margin:0;"
+                                onclick="openModal('modalTxnDetail')">
+                                <div class="activity-icon"><i class="fas fa-university"></i></div>
+                                <div style="flex:1">
+                                    <div style="font-weight: 600;">Transfer to Equity Bank</div>
+                                    <div style="font-size: 12px; color: var(--pm-muted);">Ref: PYM-99275 · 09:12 AM
+                                    </div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="font-weight: 700;">KES 450,000.00</div>
+                                    <div class="status-pill status-caution">PENDING AUTH</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="padding: 16px; text-align: center; background: var(--pm-surface-2);">
+                            <button class="pm-btn pm-btn-outline" style="font-size: 12px;"
+                                onclick="openModal('modalFullActivity')">View Full History</button>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="pm-grid">
+                    <!-- 2.8.3 Alerts & 2.8.4 Claims -->
+                    <section>
+                        <h3 class="section-title" style="font-size: 18px; margin-bottom: 16px;">Action Required</h3>
+                        <div class="pm-card" onclick="openModal('modalAlertDetail')">
+                            <div style="display:flex; gap:16px; align-items:flex-start;">
+                                <div style="color: var(--pm-danger); font-size: 24px;"><i
+                                        class="fas fa-exclamation-circle"></i></div>
+                                <div style="flex:1">
+                                    <div style="font-weight: 700; font-size: 16px;">Large Transfer Detected</div>
+                                    <p style="font-size: 13px; color: var(--pm-muted); margin: 4px 0 12px;">A transfer
+                                        of KES 1,000,000 is awaiting your authorization.</p>
+                                    <button class="pm-btn pm-btn-primary pm-btn-sm"
+                                        style="height: 32px; font-size: 12px;">Approve Now</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="pm-card" style="margin-top: 16px;">
+                            <h3 class="card-title">My Disputes</h3>
+                            <div class="activity-item" style="padding: 10px; margin-top: 15px;"
+                                onclick="openModal('modalDisputeTimeline')">
+                                <div style="flex:1">
+                                    <div style="font-weight: 600; font-size: 13px;">#CLM-10029 - Unauthorized Payment
+                                    </div>
+                                    <div style="font-size: 11px; color: var(--pm-muted);">Status: Under Review · Est. 3
+                                        days</div>
+                                </div>
+                                <div class="status-pill status-caution">PROCESSING</div>
+                            </div>
+                            <button class="pm-btn pm-btn-outline" style="width: 100%; margin-top: 12px;"
+                                onclick="openModal('modalNewDispute')">Report New Fraud</button>
+                        </div>
+                    </section>
+
+                    <!-- 2.8.5 Controls & 2.8.6 Lists -->
+                    <section>
+                        <h3 class="section-title" style="font-size: 18px; margin-bottom: 16px;">Security Controls</h3>
+                        <div class="pm-card">
+                            <div
+                                style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                                <h3 class="card-title" style="margin:0;">Spending Limits</h3>
+                                <button class="pm-btn pm-btn-outline pm-btn-sm"
+                                    onclick="openModal('modalEditLimits')">Edit</button>
+                            </div>
+                            <div style="margin-bottom:15px;">
+                                <div
+                                    style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:5px;">
+                                    <span>Daily Limit Usage</span>
+                                    <span>45%</span>
+                                </div>
+                                <div style="height:6px; background:var(--pm-bg); border-radius:10px;">
+                                    <div
+                                        style="width:45%; height:100%; background:var(--pm-primary); border-radius:10px;">
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="font-size:13px; color:var(--pm-muted);">Current: KES 500,000 / day</div>
+                        </div>
+                        <div class="pm-card" style="margin-top:16px;">
+                            <h3 class="card-title">Manage Lists</h3>
+                            <div style="display:flex; gap:10px; margin-top:15px;">
+                                <button class="pm-btn pm-btn-outline"
+                                    style="flex:1; flex-direction:column; padding:15px;"
+                                    onclick="openModal('modalTrustedList')">
+                                    <i class="fas fa-check-circle text-accent"
+                                        style="font-size:20px; margin-bottom:8px;"></i>
+                                    <span>Trusted</span>
+                                </button>
+                                <button class="pm-btn pm-btn-outline"
+                                    style="flex:1; flex-direction:column; padding:15px;"
+                                    onclick="openModal('modalBlockedList')">
+                                    <i class="fas fa-ban text-danger" style="font-size:20px; margin-bottom:8px;"></i>
+                                    <span>Blocked</span>
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- 2.8.7 Identity & 2.8.8 Security Vault -->
+                <section>
+                    <div class="pm-grid">
+                        <div class="pm-card">
+                            <h3 class="card-title"><i class="fas fa-id-card text-primary"></i> Verification Status</h3>
+                            <div style="display:flex; align-items:center; gap:20px; margin-top:20px;">
+                                <div
+                                    style="width:60px; height:60px; border-radius:50%; background:var(--pm-accent-soft); display:flex; align-items:center; justify-content:center; color:var(--pm-accent); font-size:24px;">
+                                    <i class="fas fa-user-check"></i>
+                                </div>
+                                <div style="flex:1">
+                                    <div style="font-weight:700; font-size:18px;">Tier 2 Verified</div>
+                                    <div style="font-size:13px; color:var(--pm-muted);">Eligible for KES 1M transfers
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="pm-btn pm-btn-primary" style="width:100%; margin-top:20px;"
+                                onclick="openModal('modalKYCUpgrade')">Upgrade to Tier 3</button>
+                        </div>
+                        <div class="pm-card">
+                            <h3 class="card-title"><i class="fas fa-lock text-purple"></i> Security Vault</h3>
+                            <div style="margin-top:15px;">
+                                <div class="activity-item" style="padding: 10px; margin-bottom: 8px;"
+                                    onclick="openModal('modalSessionMgmt')">
+                                    <div class="activity-icon"><i class="fas fa-laptop"></i></div>
+                                    <div style="flex:1">
+                                        <div style="font-weight: 600; font-size: 13px;">Active Sessions</div>
+                                        <div style="font-size: 11px; color: var(--pm-muted);">2 Devices Connected</div>
+                                    </div>
+                                    <i class="fas fa-chevron-right text-muted"></i>
+                                </div>
+                                <div class="activity-item" style="padding: 10px; margin-bottom: 0;"
+                                    onclick="openModal('modalMFA')">
+                                    <div class="activity-icon"><i class="fas fa-key"></i></div>
+                                    <div style="flex:1">
+                                        <div style="font-weight: 600; font-size: 13px;">Multi-Factor Auth</div>
+                                        <div style="font-size: 11px; color: var(--pm-muted);">Enabled · SMS &
+                                            Authenticator</div>
+                                    </div>
+                                    <i class="fas fa-chevron-right text-muted"></i>
+                                </div>
+                            </div>
+                            <button class="pm-btn pm-btn-outline" style="width:100%; margin-top:15px;"
+                                onclick="openModal('modalSecurityAudit')">View Security Log</button>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL OVERLAYS (20+ Modals) -->
+    <div id="modal-container">
+        <!-- Template Modals (JS will fill these or display static ones) -->
+
+        <!-- 1. Score Detail -->
+        <div id="modalScoreDetail" class="pm-modal-overlay" onclick="closeModalOnOverlay(event)">
+            <div class="pm-modal">
+                <div class="pm-modal-header">
+                    <h3 class="card-title">Security Score Breakdown</h3>
+                    <button class="icon-btn" onclick="closeModal('modalScoreDetail')"><i
+                            class="fas fa-times"></i></button>
+                </div>
+                <div class="pm-modal-body">
+                    <div style="text-align:center; margin-bottom:30px;">
+                        <div class="risk-score-circle low">
+                            <span class="score">98</span>
+                            <span class="label">Excellent</span>
+                        </div>
+                        <p>Your account is among the most secure on our platform.</p>
+                    </div>
+                    <div class="pm-card" style="margin-bottom:15px; background:var(--pm-surface-2);">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span>Identity Verification</span>
+                            <span style="color:var(--pm-accent); font-weight:700;">+40 pts</span>
+                        </div>
+                    </div>
+                    <div class="pm-card" style="margin-bottom:15px; background:var(--pm-surface-2);">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span>2FA Configuration</span>
+                            <span style="color:var(--pm-accent); font-weight:700;">+30 pts</span>
+                        </div>
+                    </div>
+                    <div class="pm-card" style="margin-bottom:15px; border-color:var(--pm-warning);">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span>Password Strength</span>
+                            <span style="color:var(--pm-warning); font-weight:700;">+28 pts</span>
+                        </div>
+                        <div style="font-size:11px; margin-top:8px; color:var(--pm-warning);">Tip: Change your password
+                            to improve score by 2 points.</div>
+                    </div>
+                </div>
+                <div class="pm-modal-footer">
+                    <button class="pm-btn pm-btn-outline" onclick="closeModal('modalScoreDetail')">Close</button>
+                    <button class="pm-btn pm-btn-primary" onclick="openModal('modalChangePassword')">Update
+                        Password</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Change Password (Multi-step) -->
+        <div id="modalChangePassword" class="pm-modal-overlay" onclick="closeModalOnOverlay(event)">
+            <div class="pm-modal">
+                <div class="pm-modal-header">
+                    <h3 class="card-title">Update Password</h3>
+                    <button class="icon-btn" onclick="closeModal('modalChangePassword')"><i
+                            class="fas fa-times"></i></button>
+                </div>
+                <div class="pm-modal-body">
+                    <div class="pm-steps" id="passSteps">
+                        <div class="pm-step active"></div>
+                        <div class="pm-step"></div>
+                        <div class="pm-step"></div>
+                    </div>
+                    <div id="passStep1">
+                        <div class="form-group">
+                            <label class="form-label">Current Password</label>
+                            <input type="password" class="form-input" placeholder="••••••••">
+                        </div>
+                    </div>
+                    <div id="passStep2" class="hidden">
+                        <div class="form-group">
+                            <label class="form-label">New Password</label>
+                            <input type="password" class="form-input" placeholder="Min. 12 characters">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Confirm New Password</label>
+                            <input type="password" class="form-input" placeholder="••••••••">
+                        </div>
+                    </div>
+                    <div id="passStep3" class="hidden">
+                        <div style="text-align:center; padding:30px;">
+                            <i class="fas fa-check-circle"
+                                style="font-size:60px; color:var(--pm-accent); margin-bottom:20px;"></i>
+                            <h3>Password Updated!</h3>
+                            <p>Your security score has improved to 100.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="pm-modal-footer">
+                    <button class="pm-btn pm-btn-outline" onclick="closeModal('modalChangePassword')">Cancel</button>
+                    <button class="pm-btn pm-btn-primary" id="passNextBtn" onclick="nextPassStep()">Next Step</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Transaction Detail -->
+        <div id="modalTxnDetail" class="pm-modal-overlay" onclick="closeModalOnOverlay(event)">
+            <div class="pm-modal">
+                <div class="pm-modal-header">
+                    <h3 class="card-title">Transaction Analysis</h3>
+                    <button class="icon-btn" onclick="closeModal('modalTxnDetail')"><i
+                            class="fas fa-times"></i></button>
+                </div>
+                <div class="pm-modal-body">
+                    <div class="pm-card" style="background:var(--pm-surface-2); text-align:center; margin-bottom:24px;">
+                        <div style="font-size:12px; color:var(--pm-muted); margin-bottom:5px;">Amount</div>
+                        <div style="font-size:32px; font-weight:700;">KES 450,000.00</div>
+                        <div class="status-pill status-caution" style="display:inline-block; margin-top:10px;">AWAITING
+                            AUTH</div>
+                    </div>
+                    <div style="margin-bottom:24px;">
+                        <h4 style="font-size:14px; margin-bottom:12px;">Security Insights</h4>
+                        <div class="activity-item" style="background:white;">
+                            <i class="fas fa-map-marker-alt text-primary"></i>
+                            <div style="flex:1">
+                                <div style="font-weight:600; font-size:13px;">Location: Nairobi, KE</div>
+                                <div style="font-size:11px; color:var(--pm-muted);">Matches your usual footprint.</div>
+                            </div>
+                        </div>
+                        <div class="activity-item" style="background:white;">
+                            <i class="fas fa-mobile-alt text-primary"></i>
+                            <div style="flex:1">
+                                <div style="font-weight:600; font-size:13px;">Device: iPhone 14 Pro</div>
+                                <div style="font-size:11px; color:var(--pm-muted);">Recognized secure device.</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="pm-alert warning"
+                        style="background:var(--pm-warning-soft); color:var(--pm-warning); padding:12px; border-radius:10px; font-size:12px;">
+                        <i class="fas fa-info-circle"></i> This transaction exceeds your typical daily average by 300%.
+                        We require manual confirmation.
+                    </div>
+                </div>
+                <div class="pm-modal-footer">
+                    <button class="pm-btn pm-btn-danger" onclick="openModal('modalConfirmFraud')">Flag as Fraud</button>
+                    <button class="pm-btn pm-btn-primary" onclick="openModal('modalConfirmIdentity')">Approve
+                        Transfer</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Confirm Identity (Multi-step) -->
+        <div id="modalConfirmIdentity" class="pm-modal-overlay" onclick="closeModalOnOverlay(event)">
+            <div class="pm-modal">
+                <div class="pm-modal-header">
+                    <h3 class="card-title">Verify Identity</h3>
+                    <button class="icon-btn" onclick="closeModal('modalConfirmIdentity')"><i
+                            class="fas fa-times"></i></button>
+                </div>
+                <div class="pm-modal-body">
+                    <div id="authStep1">
+                        <p>We've sent a verification code to <strong>+254 ••• ••• 412</strong>.</p>
+                        <div class="form-group" style="margin-top:20px;">
+                            <label class="form-label">Enter 6-digit Code</label>
+                            <div style="display:flex; gap:10px; justify-content:center;">
+                                <input type="text" class="form-input" style="width:45px; text-align:center;"
+                                    maxlength="1">
+                                <input type="text" class="form-input" style="width:45px; text-align:center;"
+                                    maxlength="1">
+                                <input type="text" class="form-input" style="width:45px; text-align:center;"
+                                    maxlength="1">
+                                <input type="text" class="form-input" style="width:45px; text-align:center;"
+                                    maxlength="1">
+                                <input type="text" class="form-input" style="width:45px; text-align:center;"
+                                    maxlength="1">
+                                <input type="text" class="form-input" style="width:45px; text-align:center;"
+                                    maxlength="1">
+                            </div>
+                        </div>
+                    </div>
+                    <div id="authStep2" class="hidden">
+                        <div style="text-align:center; padding:20px;">
+                            <i class="fas fa-fingerprint"
+                                style="font-size:50px; color:var(--pm-primary); margin-bottom:20px;"></i>
+                            <p>Verify biometric data on your linked device.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="pm-modal-footer">
+                    <button class="pm-btn pm-btn-primary" onclick="completeAuth()">Verify & Complete</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. New Dispute (Multi-step) -->
+        <div id="modalNewDispute" class="pm-modal-overlay" onclick="closeModalOnOverlay(event)">
+            <div class="pm-modal">
+                <div class="pm-modal-header">
+                    <h3 class="card-title">Report Fraudulent Activity</h3>
+                    <button class="icon-btn" onclick="closeModal('modalNewDispute')"><i
+                            class="fas fa-times"></i></button>
+                </div>
+                <div class="pm-modal-body">
+                    <div class="pm-steps" id="dispSteps">
+                        <div class="pm-step active"></div>
+                        <div class="pm-step"></div>
+                        <div class="pm-step"></div>
+                    </div>
+                    <div id="dispStep1">
+                        <p>Select the transaction you want to dispute:</p>
+                        <div class="form-group">
+                            <select class="form-input">
+                                <option>PYM-99281 - Safaricom PLC - KES 12,450</option>
+                                <option>PYM-99275 - Equity Bank - KES 450,000</option>
+                                <option>Other / Account level fraud</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="dispStep2" class="hidden">
+                        <div class="form-group">
+                            <label class="form-label">What happened?</label>
+                            <textarea class="form-input" style="height:100px;"
+                                placeholder="Provide as much detail as possible..."></textarea>
+                        </div>
+                    </div>
+                    <div id="dispStep3" class="hidden">
+                        <div style="text-align:center; padding:20px;">
+                            <i class="fas fa-check-circle text-accent" style="font-size:60px; margin-bottom:20px;"></i>
+                            <h3>Dispute Filed</h3>
+                            <p>Case #CLM-10035 has been created. Our team will contact you within 24 hours.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="pm-modal-footer">
+                    <button class="pm-btn pm-btn-primary" id="dispNextBtn" onclick="nextDispStep()">Continue</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 6. Alert Detail -->
+        <div id="modalAlertDetail" class="pm-modal-overlay" onclick="closeModalOnOverlay(event)">
+            <div class="pm-modal">
+                <div class="pm-modal-header">
+                    <h3 class="card-title text-danger">High Risk Alert</h3>
+                    <button class="icon-btn" onclick="closeModal('modalAlertDetail')"><i
+                            class="fas fa-times"></i></button>
+                </div>
+                <div class="pm-modal-body">
+                    <div class="pm-card" style="border-color:var(--pm-danger); background:var(--pm-danger-soft);">
+                        <div style="display:flex; gap:15px; align-items:center;">
+                            <i class="fas fa-globe-africa" style="font-size:30px; color:var(--pm-danger);"></i>
+                            <div>
+                                <div style="font-weight:700;">Login Attempt from Nigeria</div>
+                                <div style="font-size:12px;">IP: 102.164.x.x · Location: Lagos</div>
+                            </div>
+                        </div>
+                    </div>
+                    <p style="margin-top:20px;">We blocked this attempt because it originated from a region outside your
+                        profile's usual travel pattern.</p>
+                    <div class="form-group">
+                        <label class="form-label">Was this you?</label>
+                        <div style="display:flex; gap:10px;">
+                            <button class="pm-btn pm-btn-outline" style="flex:1"
+                                onclick="closeModal('modalAlertDetail')">Yes, it was me</button>
+                            <button class="pm-btn pm-btn-danger" style="flex:1"
+                                onclick="openModal('modalEmergencyFreeze')">No, lock my account</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 7. Emergency Freeze (High-stakes) -->
+        <div id="modalEmergencyFreeze" class="pm-modal-overlay" onclick="closeModalOnOverlay(event)">
+            <div class="pm-modal" style="border: 2px solid var(--pm-danger);">
+                <div class="pm-modal-header">
+                    <h3 class="card-title text-danger">Emergency Account Freeze</h3>
+                    <button class="icon-btn" onclick="closeModal('modalEmergencyFreeze')"><i
+                            class="fas fa-times"></i></button>
+                </div>
+                <div class="pm-modal-body" style="text-align:center;">
+                    <i class="fas fa-lock" style="font-size:60px; color:var(--pm-danger); margin-bottom:20px;"></i>
+                    <h2 style="margin:0 0 10px;">Confirm Freeze</h2>
+                    <p>This will immediately suspend all outgoing payments and card activity. You will need to contact
+                        support with photo ID to unfreeze.</p>
+                </div>
+                <div class="pm-modal-footer">
+                    <button class="pm-btn pm-btn-outline" onclick="closeModal('modalEmergencyFreeze')">Cancel</button>
+                    <button class="pm-btn pm-btn-danger" onclick="executeFreeze()">FREEZE EVERYTHING</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 8. Edit Limits -->
+        <div id="modalEditLimits" class="pm-modal-overlay" onclick="closeModalOnOverlay(event)">
+            <div class="pm-modal">
+                <div class="pm-modal-header">
+                    <h3 class="card-title">Daily Spending Limits</h3>
+                    <button class="icon-btn" onclick="closeModal('modalEditLimits')"><i
+                            class="fas fa-times"></i></button>
+                </div>
+                <div class="pm-modal-body">
+                    <div class="form-group">
+                        <label class="form-label">Daily Transfer Limit (KES)</label>
+                        <input type="number" class="form-input" value="500000">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Single Transaction Limit (KES)</label>
+                        <input type="number" class="form-input" value="200000">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Card Payment Limit (KES)</label>
+                        <input type="number" class="form-input" value="100000">
+                    </div>
+                </div>
+                <div class="pm-modal-footer">
+                    <button class="pm-btn pm-btn-primary" onclick="closeModal('modalEditLimits')">Save Changes</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 9. Trusted List -->
+        <div id="modalTrustedList" class="pm-modal-overlay" onclick="closeModalOnOverlay(event)">
+            <div class="pm-modal">
+                <div class="pm-modal-header">
+                    <h3 class="card-title">Trusted Payees</h3>
+                    <button class="icon-btn" onclick="closeModal('modalTrustedList')"><i
+                            class="fas fa-times"></i></button>
+                </div>
+                <div class="pm-modal-body">
+                    <div class="activity-item">
+                        <div class="user-avatar" style="background:var(--pm-accent-soft); color:var(--pm-accent);">S
+                        </div>
+                        <div style="flex:1">
+                            <div style="font-weight:600;">Safaricom PLC</div>
+                            <div style="font-size:12px; color:var(--pm-muted);">Utility Provider</div>
+                        </div>
+                        <button class="pm-btn pm-btn-danger pm-btn-sm" style="padding:4px 8px;"><i
+                                class="fas fa-trash"></i></button>
+                    </div>
+                    <div class="activity-item">
+                        <div class="user-avatar" style="background:var(--pm-accent-soft); color:var(--pm-accent);">K
+                        </div>
+                        <div style="flex:1">
+                            <div style="font-weight:600;">KPLC Prepaid</div>
+                            <div style="font-size:12px; color:var(--pm-muted);">Utility Provider</div>
+                        </div>
+                        <button class="pm-btn pm-btn-danger pm-btn-sm" style="padding:4px 8px;"><i
+                                class="fas fa-trash"></i></button>
+                    </div>
+                    <button class="pm-btn pm-btn-outline" style="width:100%; margin-top:10px;">+ Add New Trusted
+                        Payee</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 10. Blocked List -->
+        <div id="modalBlockedList" class="pm-modal-overlay" onclick="closeModalOnOverlay(event)">
+            <div class="pm-modal">
+                <div class="pm-modal-header">
+                    <h3 class="card-title">Blocked Entities</h3>
+                    <button class="icon-btn" onclick="closeModal('modalBlockedList')"><i
+                            class="fas fa-times"></i></button>
+                </div>
+                <div class="pm-modal-body">
+                    <p class="card-subtitle">Transactions involving these entities will be auto-blocked.</p>
+                    <div class="activity-item">
+                        <div class="user-avatar" style="background:var(--pm-danger-soft); color:var(--pm-danger);">?
+                        </div>
+                        <div style="flex:1">
+                            <div style="font-weight:600;">Unknown Merchant #8812</div>
+                            <div style="font-size:12px; color:var(--pm-muted);">Flagged for spam</div>
+                        </div>
+                        <button class="pm-btn pm-btn-outline pm-btn-sm">Unblock</button>
+                    </div>
+                    <button class="pm-btn pm-btn-outline" style="width:100%; margin-top:10px;">+ Block New
+                        Entity</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 11. KYC Upgrade -->
+        <div id="modalKYCUpgrade" class="pm-modal-overlay" onclick="closeModalOnOverlay(event)">
+            <div class="pm-modal">
+                <div class="pm-modal-header">
+                    <h3 class="card-title">Upgrade to Tier 3</h3>
+                    <button class="icon-btn" onclick="closeModal('modalKYCUpgrade')"><i
+                            class="fas fa-times"></i></button>
+                </div>
+                <div class="pm-modal-body">
+                    <div class="pm-steps" id="kycSteps">
+                        <div class="pm-step active"></div>
+                        <div class="pm-step"></div>
+                    </div>
+                    <div id="kycStep1">
+                        <h4 style="margin-bottom:15px;">Required Documents</h4>
+                        <div class="pm-card" style="margin-bottom:15px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <div>
+                                    <div style="font-weight:600;">KRA PIN Certificate</div>
+                                    <div style="font-size:12px; color:var(--pm-muted);">PDF or clear image</div>
+                                </div>
+                                <button class="pm-btn pm-btn-outline pm-btn-sm">Upload</button>
+                            </div>
+                        </div>
+                        <div class="pm-card">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <div>
+                                    <div style="font-weight:600;">Business Permit (Current)</div>
+                                    <div style="font-size:12px; color:var(--pm-muted);">Valid county permit</div>
+                                </div>
+                                <button class="pm-btn pm-btn-outline pm-btn-sm">Upload</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="kycStep2" class="hidden">
+                        <div style="text-align:center; padding:20px;">
+                            <i class="fas fa-hourglass-half text-warning"
+                                style="font-size:50px; margin-bottom:20px;"></i>
+                            <h3>Documents Submitted</h3>
+                            <p>Our compliance team will review your application within 48 hours.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="pm-modal-footer">
+                    <button class="pm-btn pm-btn-primary" id="kycBtn" onclick="submitKYC()">Submit for Review</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 12. Session Mgmt -->
+        <div id="modalSessionMgmt" class="pm-modal-overlay" onclick="closeModalOnOverlay(event)">
+            <div class="pm-modal">
+                <div class="pm-modal-header">
+                    <h3 class="card-title">Active Sessions</h3>
+                    <button class="icon-btn" onclick="closeModal('modalSessionMgmt')"><i
+                            class="fas fa-times"></i></button>
+                </div>
+                <div class="pm-modal-body">
+                    <div class="activity-item">
+                        <div class="activity-icon"><i class="fas fa-laptop"></i></div>
+                        <div style="flex:1">
+                            <div style="font-weight:600;">MacBook Pro · Nairobi, KE</div>
+                            <div style="font-size:12px; color:var(--pm-accent);">Current Session</div>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-icon"><i class="fas fa-mobile-alt"></i></div>
+                        <div style="flex:1">
+                            <div style="font-weight:600;">iPhone 14 Pro · Nairobi, KE</div>
+                            <div style="font-size:12px; color:var(--pm-muted);">Last active 2h ago</div>
+                        </div>
+                        <button class="pm-btn pm-btn-danger pm-btn-sm"
+                            onclick="alert('Session Revoked')">Logout</button>
+                    </div>
+                </div>
+                <div class="pm-modal-footer">
+                    <button class="pm-btn pm-btn-danger" style="width:100%;"
+                        onclick="alert('All other sessions cleared')">Logout All Other Devices</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 13. MFA Setup -->
+        <div id="modalMFA" class="pm-modal-overlay" onclick="closeModalOnOverlay(event)">
+            <div class="pm-modal">
+                <div class="pm-modal-header">
+                    <h3 class="card-title">MFA Settings</h3>
+                    <button class="icon-btn" onclick="closeModal('modalMFA')"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="pm-modal-body">
+                    <div class="pm-card"
+                        style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <div style="font-weight:600;">SMS Authentication</div>
+                            <div style="font-size:12px; color:var(--pm-muted);">+254 ••• ••• 412</div>
+                        </div>
+                        <div class="status-pill status-safe">ENABLED</div>
+                    </div>
+                    <div class="pm-card"
+                        style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <div style="font-weight:600;">Authenticator App</div>
+                            <div style="font-size:12px; color:var(--pm-muted);">Google / Microsoft Authenticator</div>
+                        </div>
+                        <button class="pm-btn pm-btn-outline pm-btn-sm">Setup</button>
+                    </div>
+                    <div class="pm-card" style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <div style="font-weight:600;">Security Key</div>
+                            <div style="font-size:12px; color:var(--pm-muted);">Physical YubiKey support</div>
+                        </div>
+                        <button class="pm-btn pm-btn-outline pm-btn-sm">Add Key</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 14. Security Audit -->
+        <div id="modalSecurityAudit" class="pm-modal-overlay" onclick="closeModalOnOverlay(event)">
+            <div class="pm-modal">
+                <div class="pm-modal-header">
+                    <h3 class="card-title">Security Log</h3>
+                    <button class="icon-btn" onclick="closeModal('modalSecurityAudit')"><i
+                            class="fas fa-times"></i></button>
+                </div>
+                <div class="pm-modal-body">
+                    <div style="max-height:400px; overflow-y:auto;">
+                        <div class="activity-item"
+                            style="border:none; border-bottom:1px solid var(--pm-border); border-radius:0;">
+                            <div style="flex:1">
+                                <div style="font-weight:600; font-size:13px;">Password Changed</div>
+                                <div style="font-size:11px; color:var(--pm-muted);">Jan 08, 2026 · 14:20 PM</div>
+                            </div>
+                            <span class="status-pill status-safe">SUCCESS</span>
+                        </div>
+                        <div class="activity-item"
+                            style="border:none; border-bottom:1px solid var(--pm-border); border-radius:0;">
+                            <div style="flex:1">
+                                <div style="font-weight:600; font-size:13px;">Login - Nairobi, KE</div>
+                                <div style="font-size:11px; color:var(--pm-muted);">Jan 08, 2026 · 08:30 AM</div>
+                            </div>
+                            <span class="status-pill status-safe">SUCCESS</span>
+                        </div>
+                        <div class="activity-item"
+                            style="border:none; border-bottom:1px solid var(--pm-border); border-radius:0;">
+                            <div style="flex:1">
+                                <div style="font-weight:600; font-size:13px;">Login Attempt - Lagos, NG</div>
+                                <div style="font-size:11px; color:var(--pm-muted);">Jan 07, 2026 · 23:15 PM</div>
+                            </div>
+                            <span class="status-pill status-risk">BLOCKED</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 15. Notifications -->
+        <div id="modalNotifications" class="pm-modal-overlay" onclick="closeModalOnOverlay(event)">
+            <div class="pm-modal" style="position:absolute; top:80px; right:32px; max-width:350px;">
+                <div class="pm-modal-header" style="padding:15px;">
+                    <h3 class="card-title" style="font-size:16px;">Notifications</h3>
+                    <button class="pm-btn pm-btn-sm" style="font-size:11px;"
+                        onclick="closeModal('modalNotifications')">Mark Read</button>
+                </div>
+                <div class="pm-modal-body" style="padding:0;">
+                    <div class="activity-item"
+                        style="border:none; border-bottom:1px solid var(--pm-border); border-radius:0; margin:0; padding:15px;">
+                        <div style="flex:1">
+                            <div style="font-weight:600; font-size:12px;">Security Score Increased!</div>
+                            <div style="font-size:11px; color:var(--pm-muted);">You're now at 98 pts.</div>
+                        </div>
+                    </div>
+                    <div class="activity-item"
+                        style="border:none; border-bottom:1px solid var(--pm-border); border-radius:0; margin:0; padding:15px; background:var(--pm-info-soft);">
+                        <div style="flex:1">
+                            <div style="font-weight:700; font-size:12px;">New Device Detected</div>
+                            <div style="font-size:11px;">Verify iPhone 14 Pro now.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 16. Support Modal -->
+        <div id="modalSupport" class="pm-modal-overlay" onclick="closeModalOnOverlay(event)">
+            <div class="pm-modal">
+                <div class="pm-modal-header">
+                    <h3 class="card-title">Security Support</h3>
+                    <button class="icon-btn" onclick="closeModal('modalSupport')"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="pm-modal-body">
+                    <div class="pm-card" style="margin-bottom:15px; cursor:pointer;"
+                        onclick="alert('Connecting to chat...')">
+                        <div style="display:flex; align-items:center; gap:15px;">
+                            <i class="fas fa-comments text-primary" style="font-size:24px;"></i>
+                            <div>
+                                <div style="font-weight:600;">Live Chat</div>
+                                <div style="font-size:12px; color:var(--pm-muted);">Average response: 2 mins</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="pm-card" style="cursor:pointer;" onclick="alert('Calling help desk...')">
+                        <div style="display:flex; align-items:center; gap:15px;">
+                            <i class="fas fa-phone-alt text-primary" style="font-size:24px;"></i>
+                            <div>
+                                <div style="font-weight:600;">24/7 Hotline</div>
+                                <div style="font-size:12px; color:var(--pm-muted);">Call +254 700 000 000</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 17. Dispute Timeline -->
+        <div id="modalDisputeTimeline" class="pm-modal-overlay" onclick="closeModalOnOverlay(event)">
+            <div class="pm-modal">
+                <div class="pm-modal-header">
+                    <h3 class="card-title">Dispute #CLM-10029</h3>
+                    <button class="icon-btn" onclick="closeModal('modalDisputeTimeline')"><i
+                            class="fas fa-times"></i></button>
+                </div>
+                <div class="pm-modal-body">
+                    <div class="status-pill status-caution" style="margin-bottom:20px; display:inline-block;">IN
+                        PROGRESS</div>
+                    <div
+                        style="position:relative; padding-left:30px; border-left:2px solid var(--pm-border); margin-left:10px;">
+                        <div style="position:relative; margin-bottom:30px;">
+                            <div
+                                style="position:absolute; left:-36px; top:0; width:12px; height:12px; border-radius:50%; background:var(--pm-accent);">
+                            </div>
+                            <div style="font-weight:600;">Evidence Submitted</div>
+                            <div style="font-size:11px; color:var(--pm-muted);">Jan 08, 2026</div>
+                        </div>
+                        <div style="position:relative; margin-bottom:30px;">
+                            <div
+                                style="position:absolute; left:-36px; top:0; width:12px; height:12px; border-radius:50%; background:var(--pm-accent);">
+                            </div>
+                            <div style="font-weight:600;">Merchant Contacted</div>
+                            <div style="font-size:11px; color:var(--pm-muted);">Jan 09, 2026</div>
+                        </div>
+                        <div style="position:relative;">
+                            <div
+                                style="position:absolute; left:-36px; top:0; width:12px; height:12px; border-radius:50%; background:var(--pm-border);">
+                            </div>
+                            <div style="font-weight:600; color:var(--pm-muted);">Final Decision</div>
+                            <div style="font-size:11px; color:var(--pm-muted);">Expected Jan 12, 2026</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 18. Security Report -->
+        <div id="modalSecurityReport" class="pm-modal-overlay" onclick="closeModalOnOverlay(event)">
+            <div class="pm-modal">
+                <div class="pm-modal-header">
+                    <h3 class="card-title">Generate Security Audit</h3>
+                    <button class="icon-btn" onclick="closeModal('modalSecurityReport')"><i
+                            class="fas fa-times"></i></button>
+                </div>
+                <div class="pm-modal-body">
+                    <div class="form-group">
+                        <label class="form-label">Report Type</label>
+                        <select class="form-input">
+                            <option>Comprehensive Audit</option>
+                            <option>Transaction Security Only</option>
+                            <option>Access & Login Logs</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Time Period</label>
+                        <select class="form-input">
+                            <option>Last 30 Days</option>
+                            <option>Last 90 Days</option>
+                            <option>Custom Range</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="pm-modal-footer">
+                    <button class="pm-btn pm-btn-primary" onclick="alert('Generating PDF...')">Generate &
+                        Download</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 19. Profile Modal -->
+        <div id="modalProfile" class="pm-modal-overlay" onclick="closeModalOnOverlay(event)">
+            <div class="pm-modal" style="max-width:400px;">
+                <div class="pm-modal-body" style="text-align:center;">
+                    <div class="user-avatar" style="width:80px; height:80px; margin:0 auto 20px; font-size:24px;">JM
+                    </div>
+                    <h3 style="margin:0;">Jared Maina</h3>
+                    <p class="role">Verified Business Owner</p>
+                    <hr style="border:none; border-top:1px solid var(--pm-border); margin:20px 0;">
+                    <div style="text-align:left;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                            <span class="text-muted">ID Number</span>
+                            <span class="font-bold">2922•••412</span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                            <span class="text-muted">KRA PIN</span>
+                            <span class="font-bold">A012•••412X</span>
+                        </div>
+                    </div>
+                    <button class="pm-btn pm-btn-outline" style="width:100%; margin-top:20px;"
+                        onclick="closeModal('modalProfile')">Close Profile</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 20. Confirm Fraud -->
+        <div id="modalConfirmFraud" class="pm-modal-overlay" onclick="closeModalOnOverlay(event)">
+            <div class="pm-modal">
+                <div class="pm-modal-header">
+                    <h3 class="card-title text-danger">Confirm Fraudulent Transaction</h3>
+                    <button class="icon-btn" onclick="closeModal('modalConfirmFraud')"><i
+                            class="fas fa-times"></i></button>
+                </div>
+                <div class="pm-modal-body">
+                    <p>Are you sure this transaction for <strong>KES 450,000</strong> was not authorized? This will
+                        block the recipient immediately.</p>
+                </div>
+                <div class="pm-modal-footer">
+                    <button class="pm-btn pm-btn-danger"
+                        onclick="alert('Transaction Flagged as Fraud'); closeModal('modalConfirmFraud')">Yes, Flag as
+                        Fraud</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script>
+        // Modal State Mgmt
+        function openModal(id) {
+            document.getElementById(id).style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        function closeModalOnOverlay(e) {
+            if (e.target.classList.contains('pm-modal-overlay')) {
+                e.target.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+        }
+
+        // Multi-step Passwords
+        let passStep = 1;
+        function nextPassStep() {
+            if (passStep < 3) {
+                document.getElementById('passStep' + passStep).classList.add('hidden');
+                document.querySelectorAll('#passSteps .pm-step')[passStep - 1].classList.remove('active');
+                passStep++;
+                document.getElementById('passStep' + passStep).classList.remove('hidden');
+                document.querySelectorAll('#passSteps .pm-step')[passStep - 1].classList.add('active');
+
+                if (passStep === 3) {
+                    document.getElementById('passNextBtn').innerHTML = 'Finish';
+                }
+            } else {
+                closeModal('modalChangePassword');
+                // reset for next time
+                setTimeout(() => {
+                    passStep = 1;
+                    document.getElementById('passStep3').classList.add('hidden');
+                    document.getElementById('passStep1').classList.remove('hidden');
+                    document.getElementById('passNextBtn').innerHTML = 'Next Step';
+                    document.querySelectorAll('#passSteps .pm-step').forEach((s, i) => {
+                        s.classList.toggle('active', i === 0);
+                    });
+                }, 500);
+            }
+        }
+
+        // Multi-step Disputes
+        let dispStep = 1;
+        function nextDispStep() {
+            if (dispStep < 3) {
+                document.getElementById('dispStep' + dispStep).classList.add('hidden');
+                document.querySelectorAll('#dispSteps .pm-step')[dispStep - 1].classList.remove('active');
+                dispStep++;
+                document.getElementById('dispStep' + dispStep).classList.remove('hidden');
+                document.querySelectorAll('#dispSteps .pm-step')[dispStep - 1].classList.add('active');
+            } else {
+                closeModal('modalNewDispute');
+            }
+        }
+
+        // Auth Logic
+        function completeAuth() {
+            document.getElementById('authStep1').classList.add('hidden');
+            document.getElementById('authStep2').classList.remove('hidden');
+            setTimeout(() => {
+                alert('Transfer Authorized Successfully!');
+                closeModal('modalConfirmIdentity');
+                closeModal('modalTxnDetail');
+            }, 1500);
+        }
+
+        // KYC Submit
+        function submitKYC() {
+            document.getElementById('kycStep1').classList.add('hidden');
+            document.getElementById('kycStep2').classList.remove('hidden');
+            document.getElementById('kycBtn').classList.add('hidden');
+        }
+
+        // Emergency Freeze
+        function executeFreeze() {
+            alert('ACCOUNT FROZEN: All activity suspended.');
+            closeModal('modalEmergencyFreeze');
+            document.getElementById('emergencyAlert').classList.remove('hidden');
+        }
+
+        // Tab Switching
+        function switchMainTab(el, type) {
+            const tabs = el.parentElement.querySelectorAll('.pm-tab');
+            tabs.forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+
+            // Simulation of filtering
+            if (type === 'flagged') {
+                document.getElementById('activityFeed').innerHTML = `
+                    <div class="activity-item" style="border:none; border-bottom:1px solid var(--pm-border); border-radius:0; margin:0; background:var(--pm-warning-soft);" onclick="openModal('modalTxnDetail')">
+                        <div class="activity-icon"><i class="fas fa-university"></i></div>
+                        <div style="flex:1">
+                            <div style="font-weight: 600;">Transfer to Equity Bank</div>
+                            <div style="font-size: 12px; color: var(--pm-muted);">Ref: PYM-99275 · 09:12 AM</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-weight: 700;">KES 450,000.00</div>
+                            <div class="status-pill status-caution">PENDING AUTH</div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                // reset or add more items
+            }
+        }
+
+        // Simulation: Show Alert Banner after 5 seconds
+        setTimeout(() => {
+            document.getElementById('emergencyAlert').classList.remove('hidden');
+        }, 5000);
+
+        // Auto-close notifications if clicked elsewhere
+        window.onclick = function (event) {
+            if (!event.target.closest('.icon-btn') && !event.target.closest('#modalNotifications')) {
+                closeModal('modalNotifications');
+            }
+        }
+    </script>
+</body>
+
+</html>

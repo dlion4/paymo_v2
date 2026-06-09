@@ -1,0 +1,1535 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Credit Score & Financial Wellness - PayMo</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="./master.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 16px;
+        }
+
+        .score-gauge-wrap {
+            text-align: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        .gauge-svg {
+            width: 220px;
+            height: 120px;
+            margin: 0 auto;
+        }
+
+        .score-value {
+            position: absolute;
+            bottom: 25px;
+            left: 0;
+            right: 0;
+            font-size: 42px;
+            font-weight: 800;
+            letter-spacing: -1px;
+        }
+
+        .factor-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+            padding: 12px;
+            border-radius: 12px;
+            transition: background 0.2s;
+            cursor: pointer;
+        }
+
+        .factor-row:hover {
+            background: var(--surface-2);
+        }
+
+        .factor-info {
+            flex: 1;
+        }
+
+        .factor-bar {
+            height: 6px;
+            border-radius: 10px;
+            background: var(--surface-3);
+            overflow: hidden;
+            margin-top: 6px;
+        }
+
+        .factor-bar span {
+            display: block;
+            height: 100%;
+        }
+
+        .calc-card {
+            border: 1px solid var(--border-soft);
+            border-radius: 16px;
+            padding: 16px;
+            background: var(--surface);
+            transition: all 0.15s;
+            cursor: pointer;
+        }
+
+        .calc-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .edu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 14px;
+        }
+
+        .edu-card {
+            border-radius: 14px;
+            overflow: hidden;
+            border: 1px solid var(--border-soft);
+            background: var(--surface);
+        }
+
+        .edu-thumb {
+            height: 120px;
+            background: var(--primary-soft);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+        }
+
+        .edu-content {
+            padding: 14px;
+        }
+
+        .goal-progress {
+            height: 10px;
+            border-radius: 999px;
+            background: var(--surface-3);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .goal-progress span {
+            position: absolute;
+            height: 100%;
+            border-radius: 999px;
+            background: var(--success);
+        }
+
+        .mini-chart {
+            width: 100%;
+            height: 160px;
+        }
+
+        .quiz-option {
+            border: 1px solid var(--border);
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            cursor: pointer;
+        }
+
+        .quiz-option:hover {
+            border-color: var(--primary);
+            background: var(--primary-soft);
+        }
+
+        .dispute-item {
+            border-left: 3px solid var(--danger);
+            padding: 12px;
+            background: var(--danger-soft);
+            border-radius: 0 8px 8px 0;
+            margin-bottom: 8px;
+        }
+
+        .milestone {
+            position: relative;
+            padding-left: 24px;
+            border-left: 2px solid var(--border);
+            margin-left: 10px;
+            padding-bottom: 20px;
+        }
+
+        .milestone::before {
+            content: "";
+            position: absolute;
+            left: -7px;
+            top: 0;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--surface);
+            border: 2px solid var(--primary);
+        }
+
+        .milestone.done::before {
+            background: var(--success);
+            border-color: var(--success);
+        }
+
+        @media (max-width: 900px) {
+            .two-col {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-logo">P</div>
+            <nav class="sidebar-nav">
+                <button class="sidebar-item" title="Dashboard" data-modal="navDashboardModal"><svg viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                    </svg><span class="sidebar-label">Dashboard</span></button>
+                <button class="sidebar-item" title="My Loans" data-modal="navLoansModal"><svg viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"></path>
+                    </svg><span class="sidebar-label">My Loans</span></button>
+                <button class="sidebar-item" title="Payments" data-modal="navPaymentsModal"><svg viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="1" y="4" width="22" height="16" rx="2"></rect>
+                        <line x1="1" y1="10" x2="23" y2="10"></line>
+                    </svg><span class="sidebar-label">Payments</span></button>
+                <button class="sidebar-item active" title="Credit Health"><svg viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                    </svg><span class="sidebar-label">Credit Health</span></button>
+                <button class="sidebar-item" title="Wallet" data-modal="navWalletModal"><svg viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path>
+                        <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path>
+                        <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"></path>
+                    </svg><span class="sidebar-label">Wallet</span></button>
+                <button class="sidebar-item" title="Analytics" data-modal="navAnalyticsModal"><svg viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="20" x2="12" y2="10"></line>
+                        <line x1="18" y1="20" x2="18" y2="4"></line>
+                        <line x1="6" y1="20" x2="6" y2="16"></line>
+                    </svg><span class="sidebar-label">Analytics</span></button>
+            </nav>
+            <button class="sidebar-expand" id="sidebarToggle"><svg width="12" height="12" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg><span class="sidebar-label">Collapse</span></button>
+        </aside>
+
+        <main class="main">
+            <div class="topbar">
+                <div>
+                    <div class="crumb">
+                        <button class="mobile-menu-btn btn btn-light btn-sm" id="mobileMenuBtn"
+                            style="margin-right:8px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2">
+                                <line x1="3" y1="12" x2="21" y2="12"></line>
+                                <line x1="3" y1="6" x2="21" y2="6"></line>
+                                <line x1="3" y1="18" x2="21" y2="18"></line>
+                            </svg></button>
+                        <span>Borrower</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg><span>Credit Score & Wellness</span>
+                    </div>
+                    <h1 class="page-title">Credit & Financial Wellness</h1>
+                </div>
+                <div class="topbar-actions">
+                    <button class="btn btn-light" data-modal="exportReportModal"><svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>Download Report</button>
+                    <button class="btn btn-primary" data-modal="goalWizardModal">Set New Goal</button>
+                </div>
+            </div>
+
+            <!-- Stat Cards -->
+            <div class="stats-row">
+                <div class="stat-card" data-modal="scoreDetailModal">
+                    <div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                        </svg></div>
+                    <div class="stat-label">Current Score</div>
+                    <div class="stat-value">742</div>
+                    <div class="stat-trend up"><span>+12 pts vs last month</span></div>
+                </div>
+                <div class="stat-card" data-modal="utilizationModal">
+                    <div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                            <path d="M16 21V5a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16"></path>
+                        </svg></div>
+                    <div class="stat-label">Credit Utilization</div>
+                    <div class="stat-value">28%</div>
+                    <div class="stat-trend green"><span>Healthy range</span></div>
+                </div>
+                <div class="stat-card" data-modal="debtToIncomeModal">
+                    <div class="stat-icon purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"></path>
+                        </svg></div>
+                    <div class="stat-label">DTI Ratio</div>
+                    <div class="stat-value">34%</div>
+                    <div class="stat-trend amber"><span>Approaching limit</span></div>
+                </div>
+                <div class="stat-card" data-modal="emergencyFundModal">
+                    <div class="stat-icon amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                        </svg></div>
+                    <div class="stat-label">Emergency Fund</div>
+                    <div class="stat-value">3.2mo</div>
+                    <div class="stat-trend neutral"><span>Goal: 6 months</span></div>
+                </div>
+                <div class="stat-card" data-modal="inquiryModal">
+                    <div class="stat-icon red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg></div>
+                    <div class="stat-label">Recent Inquiries</div>
+                    <div class="stat-value">2</div>
+                    <div class="stat-trend neutral"><span>Last 6 months</span></div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="tabs" id="mainTabs">
+                    <button class="tab active" data-tab="score"><svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M12 6v6l4 2"></path>
+                        </svg>Credit Score</button>
+                    <button class="tab" data-tab="report"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                        </svg>Credit Report</button>
+                    <button class="tab" data-tab="wellness"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path
+                                d="M20.84 4.61a5.5 5.0 0 0 0-7.78 7.78l-1.06 1.06L6.06 4.61a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
+                            </path>
+                        </svg>Wellness Tools</button>
+                    <button class="tab" data-tab="education"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M2 3h6a4 4 0 0 1 4 4v14a4 4 0 0 0-4-4H2z"></path>
+                            <path d="M22 3h-6a4 4 0 0 0-4 4v14a4 4 0 0 1 4-4h6z"></path>
+                        </svg>Credit Education</button>
+                    <button class="tab" data-tab="goals"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <circle cx="12" cy="12" r="6"></circle>
+                            <circle cx="12" cy="12" r="2"></circle>
+                        </svg>Goal Setting</button>
+                </div>
+
+                <!-- Section 1: PayMo Credit Score -->
+                <section class="tab-panel active" data-panel="score">
+                    <div class="panel-body">
+                        <div class="two-col">
+                            <div class="uw-card">
+                                <h3 class="uw-title">Score Overview</h3>
+                                <div class="score-gauge-wrap">
+                                    <svg class="gauge-svg" viewBox="0 0 200 110">
+                                        <path d="M20,100 A80,80 0 0,1 180,100" stroke="#eef0ff" stroke-width="15"
+                                            fill="none" stroke-linecap="round" />
+                                        <path d="M20,100 A80,80 0 0,1 160,50" stroke="var(--success)" stroke-width="15"
+                                            fill="none" stroke-linecap="round" stroke-dasharray="251"
+                                            stroke-dashoffset="0" />
+                                    </svg>
+                                    <div class="score-value">742</div>
+                                    <div class="badge success" style="margin-top:10px;">Good</div>
+                                </div>
+                                <div style="margin-top:20px;">
+                                    <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+                                        <div class="kv-label">Score History</div><button class="btn btn-ghost btn-sm"
+                                            data-modal="historyDetailModal">Expand</button>
+                                    </div>
+                                    <svg class="mini-chart" viewBox="0 0 400 120" preserveAspectRatio="none">
+                                        <path
+                                            d="M0,100 L40,95 L80,98 L120,80 L160,85 L200,70 L240,75 L280,60 L320,62 L360,50 L400,45"
+                                            fill="none" stroke="var(--primary)" stroke-width="3"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="uw-card">
+                                <h3 class="uw-title">Score Factors</h3>
+                                <div class="factor-row" data-modal="paymentHistoryModal">
+                                    <div class="factor-info">
+                                        <div style="display:flex;justify-content:space-between;"><strong>Payment
+                                                History</strong><span>35%</span></div>
+                                        <div class="factor-bar"><span
+                                                style="width:98%;background:var(--success);"></span></div>
+                                    </div><span class="badge success">Excellent</span>
+                                </div>
+                                <div class="factor-row" data-modal="utilizationModal">
+                                    <div class="factor-info">
+                                        <div style="display:flex;justify-content:space-between;"><strong>Credit
+                                                Utilization</strong><span>30%</span></div>
+                                        <div class="factor-bar"><span style="width:65%;background:var(--info);"></span>
+                                        </div>
+                                    </div><span class="badge info">Good</span>
+                                </div>
+                                <div class="factor-row" data-modal="historyLengthModal">
+                                    <div class="factor-info">
+                                        <div style="display:flex;justify-content:space-between;"><strong>Length of
+                                                History</strong><span>15%</span></div>
+                                        <div class="factor-bar"><span
+                                                style="width:40%;background:var(--warning);"></span></div>
+                                    </div><span class="badge warning">Average</span>
+                                </div>
+                                <div class="factor-row" data-modal="creditMixModal">
+                                    <div class="factor-info">
+                                        <div style="display:flex;justify-content:space-between;"><strong>Credit
+                                                Mix</strong><span>10%</span></div>
+                                        <div class="factor-bar"><span
+                                                style="width:80%;background:var(--success);"></span></div>
+                                    </div><span class="badge success">Great</span>
+                                </div>
+                                <div class="factor-row" data-modal="inquiryModal">
+                                    <div class="factor-info">
+                                        <div style="display:flex;justify-content:space-between;"><strong>New
+                                                Inquiries</strong><span>10%</span></div>
+                                        <div class="factor-bar"><span
+                                                style="width:90%;background:var(--success);"></span></div>
+                                    </div><span class="badge success">Good</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section 2: Credit Report -->
+                <section class="tab-panel" data-panel="report">
+                    <div class="panel-body">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                            <h2 class="panel-title">Your Credit Accounts</h2>
+                            <div style="display:flex;gap:8px;">
+                                <button class="btn btn-danger btn-sm" data-modal="disputeModal">Dispute
+                                    Information</button>
+                                <button class="btn btn-light btn-sm" data-modal="reportDownloadModal">Full Report
+                                    PDF</button>
+                            </div>
+                        </div>
+                        <div class="table-wrap">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Account</th>
+                                        <th>Type</th>
+                                        <th>Balance</th>
+                                        <th>Status</th>
+                                        <th>Last Reported</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr data-modal="accountDetailModal">
+                                        <td>Chase Visa ****2081</td>
+                                        <td>Credit Card</td>
+                                        <td>$1,240</td>
+                                        <td><span class="badge success">Current</span></td>
+                                        <td>Feb 01, 2026</td>
+                                    </tr>
+                                    <tr data-modal="accountDetailModal">
+                                        <td>PayMo Personal Loan</td>
+                                        <td>Term Loan</td>
+                                        <td>$4,800</td>
+                                        <td><span class="badge success">Current</span></td>
+                                        <td>Feb 10, 2026</td>
+                                    </tr>
+                                    <tr data-modal="accountDetailModal">
+                                        <td>KCB Student Loan</td>
+                                        <td>Education</td>
+                                        <td>$2,100</td>
+                                        <td><span class="badge warning">Past Due (2d)</span></td>
+                                        <td>Jan 15, 2026</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div style="margin-top:20px;">
+                            <h3 class="uw-title">Recent Inquiries</h3>
+                            <div class="list-item">
+                                <div class="list-left">
+                                    <div class="list-icon gray"><svg viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2">
+                                            <path d="M3 21h18"></path>
+                                            <path d="M5 6l7-3 7 3"></path>
+                                        </svg></div>
+                                    <div>
+                                        <div class="list-title">Chase Bank</div>
+                                        <div class="list-sub">Credit Card Application · Jan 12, 2026</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="list-item">
+                                <div class="list-left">
+                                    <div class="list-icon gray"><svg viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2">
+                                            <path d="M3 21h18"></path>
+                                            <path d="M5 6l7-3 7 3"></path>
+                                        </svg></div>
+                                    <div>
+                                        <div class="list-title">PayMo Lending</div>
+                                        <div class="list-sub">Auto-limit increase review · Nov 20, 2025</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section 3: Wellness Tools -->
+                <section class="tab-panel" data-panel="wellness">
+                    <div class="panel-body">
+                        <div class="three-col">
+                            <div class="calc-card" data-modal="dtiCalculatorModal">
+                                <div class="stat-icon purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"></path>
+                                    </svg></div>
+                                <div style="font-weight:600;margin-top:10px;">DTI Calculator</div>
+                                <div class="list-sub">Check your debt-to-income ratio health.</div>
+                            </div>
+                            <div class="calc-card" data-modal="affordabilityCalculatorModal">
+                                <div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <path d="M3 3h18v18H3z"></path>
+                                        <path d="M3 9h18"></path>
+                                        <path d="M9 21V9"></path>
+                                    </svg></div>
+                                <div style="font-weight:600;margin-top:10px;">Affordability</div>
+                                <div class="list-sub">Calculate how much you can safely borrow.</div>
+                            </div>
+                            <div class="calc-card" data-modal="budgetPlannerModal">
+                                <div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path>
+                                        <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path>
+                                    </svg></div>
+                                <div style="font-weight:600;margin-top:10px;">Budget Planner</div>
+                                <div class="list-sub">Track monthly spending and surplus.</div>
+                            </div>
+                            <div class="calc-card" data-modal="savingsGoalModal">
+                                <div class="stat-icon amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <line x1="12" y1="8" x2="12" y2="16"></line>
+                                        <line x1="8" y1="12" x2="16" y2="12"></line>
+                                    </svg></div>
+                                <div style="font-weight:600;margin-top:10px;">Savings Tracker</div>
+                                <div class="list-sub">Set and monitor targets for your future.</div>
+                            </div>
+                            <div class="calc-card" data-modal="emergencyFundModal">
+                                <div class="stat-icon red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                                    </svg></div>
+                                <div style="font-weight:600;margin-top:10px;">Emergency Fund</div>
+                                <div class="list-sub">Build a safety net for unexpected costs.</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section 4: Credit Education -->
+                <section class="tab-panel" data-panel="education">
+                    <div class="panel-body">
+                        <div class="edu-grid">
+                            <div class="edu-card" data-modal="articleModal">
+                                <div class="edu-thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2" width="40" height="40">
+                                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                                    </svg></div>
+                                <div class="edu-content">
+                                    <div class="badge primary mb-2">Article</div>
+                                    <div style="font-weight:600;">How to improve your score</div>
+                                    <div class="list-sub">5 actionable steps to boost your credit.</div>
+                                </div>
+                            </div>
+                            <div class="edu-card" data-modal="videoModal">
+                                <div class="edu-thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2" width="40" height="40">
+                                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                                    </svg></div>
+                                <div class="edu-content">
+                                    <div class="badge success mb-2">Video</div>
+                                    <div style="font-weight:600;">Understanding Interest</div>
+                                    <div class="list-sub">How APR works and how to pay less.</div>
+                                </div>
+                            </div>
+                            <div class="edu-card" data-modal="tipsModal">
+                                <div class="edu-thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2" width="40" height="40">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                                    </svg></div>
+                                <div class="edu-content">
+                                    <div class="badge amber mb-2">Tips</div>
+                                    <div style="font-weight:600;">Avoid Predatory Lending</div>
+                                    <div class="list-sub">Red flags to watch for in credit offers.</div>
+                                </div>
+                            </div>
+                            <div class="edu-card" data-modal="quizModal">
+                                <div class="edu-thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2" width="40" height="40">
+                                        <path d="M9 11l3 3L22 4"></path>
+                                        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                                    </svg></div>
+                                <div class="edu-content">
+                                    <div class="badge purple mb-2">Quiz</div>
+                                    <div style="font-weight:600;">Financial Literacy Test</div>
+                                    <div class="list-sub">Test your knowledge and earn badges.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section 5: Goal Setting -->
+                <section class="tab-panel" data-panel="goals">
+                    <div class="panel-body">
+                        <div class="two-col">
+                            <div class="uw-card">
+                                <h3 class="uw-title">Active Goal</h3>
+                                <div style="font-size:18px;font-weight:700;margin-bottom:6px;">Improve Score to 800
+                                </div>
+                                <div class="list-sub mb-4">Target date: August 2026 (6 months)</div>
+                                <div class="goal-progress mb-2"><span style="width:45%;"></span></div>
+                                <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:600;">
+                                    <span>Current: 742</span><span>Target: 800</span></div>
+                                <div style="margin-top:20px;">
+                                    <button class="btn btn-light btn-sm" data-modal="goalWizardModal">Edit Goal</button>
+                                    <button class="btn btn-primary btn-sm" data-modal="milestoneModal">View
+                                        Milestones</button>
+                                </div>
+                            </div>
+                            <div class="uw-card">
+                                <h3 class="uw-title">Your Action Plan</h3>
+                                <div class="milestone done"><strong>Reduce credit utilization</strong>
+                                    <div class="list-sub">Bring total card balance below 30%.</div>
+                                </div>
+                                <div class="milestone"><strong>Pay off KCB past due</strong>
+                                    <div class="list-sub">Resolve the $2,100 delinquency.</div>
+                                </div>
+                                <div class="milestone"><strong>No new inquiries</strong>
+                                    <div class="list-sub">Avoid hard credit pulls for 3 months.</div>
+                                </div>
+                                <div class="milestone"><strong>Automate payments</strong>
+                                    <div class="list-sub">Setup autopay for all active accounts.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- ============ MODALS (20+) ============ -->
+    <div class="modal-backdrop" id="scoreDetailModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Credit Score Analysis</h3>
+                    <div class="modal-sub">Deep dive into your 742 score</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="alert info mb-4">Your score puts you in the top 15% of PayMo borrowers.</div>
+                <div class="kv-grid">
+                    <div>
+                        <div class="kv-label">Percentile</div>
+                        <div class="kv-val">84th</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Risk Level</div>
+                        <div class="kv-val">Low</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Improvement</div>
+                        <div class="kv-val">+42 pts (1yr)</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Next Update</div>
+                        <div class="kv-val">March 01</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Close</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="paymentHistoryModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Payment History (35%)</h3>
+                    <div class="modal-sub">Your most impactful factor</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">On-time payments</div>
+                        <div class="config-desc">Total across all accounts</div>
+                    </div><span class="badge success">98%</span>
+                </div>
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">Late payments</div>
+                        <div class="config-desc">1 recorded (KCB Loan)</div>
+                    </div><span class="badge danger">1</span>
+                </div>
+                <div class="alert info mt-4">Paying on time is the single best way to keep your score high.</div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Got it</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="utilizationModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Credit Utilization (30%)</h3>
+                    <div class="modal-sub">Balance vs Total Limit</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="dist-row">
+                    <div class="dist-label">Total Limit</div>
+                    <div class="dist-val">$5,000</div>
+                </div>
+                <div class="dist-row">
+                    <div class="dist-label">Current Balance</div>
+                    <div class="dist-val">$1,240</div>
+                </div>
+                <div class="dist-row">
+                    <div class="dist-label">Utilization</div>
+                    <div class="dist-bar"><span style="width:28%;background:var(--success);"></span></div>
+                    <div class="dist-val">28%</div>
+                </div>
+                <div class="alert success mt-4">Great! Keeping utilization under 30% helps your score.</div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Close</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="historyLengthModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Length of History (15%)</h3>
+                    <div class="modal-sub">Average age of accounts</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="kv-grid">
+                    <div>
+                        <div class="kv-label">Oldest Account</div>
+                        <div class="kv-val">4.2 years</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Newest Account</div>
+                        <div class="kv-val">3 months</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Average Age</div>
+                        <div class="kv-val">2.8 years</div>
+                    </div>
+                </div>
+                <p class="list-sub mt-4">A longer history shows lenders you have experience managing credit over time.
+                </p>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Close</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="creditMixModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Credit Mix (10%)</h3>
+                    <div class="modal-sub">Diversity of accounts</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-4">You have a healthy mix of revolving and installment credit.</p>
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">Revolving</div>
+                        <div class="config-desc">Credit Cards</div>
+                    </div><span class="badge info">1 Active</span>
+                </div>
+                <div class="config-row">
+                    <div>
+                        <div class="config-label">Installment</div>
+                        <div class="config-desc">Personal & Student Loans</div>
+                    </div><span class="badge info">2 Active</span>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Close</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="inquiryModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Inquiry History (10%)</h3>
+                    <div class="modal-sub">Recent credit checks</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="alert warning mb-4">Multiple "hard" inquiries in a short time can lower your score.</div>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Entity</th>
+                            <th>Type</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Chase Bank</td>
+                            <td>Hard Pull</td>
+                            <td>Jan 12, 2026</td>
+                        </tr>
+                        <tr>
+                            <td>PayMo</td>
+                            <td>Soft Pull</td>
+                            <td>Nov 20, 2025</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Close</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="disputeModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Dispute Credit Information</h3>
+                    <div class="modal-sub">Correct errors in your report</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="field"><label class="field-label">Account to Dispute</label><select class="select-field">
+                        <option>KCB Student Loan</option>
+                        <option>Chase Visa</option>
+                        <option>Other</option>
+                    </select></div>
+                <div class="field"><label class="field-label">Reason for Dispute</label><select class="select-field">
+                        <option>Payment wrongly marked late</option>
+                        <option>Account does not belong to me</option>
+                        <option>Incorrect balance</option>
+                    </select></div>
+                <div class="field"><label class="field-label">Supporting Evidence</label><input class="input"
+                        type="file"></div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button
+                    class="btn btn-danger" data-result="Dispute filed - we will contact the bureau">Submit
+                    Dispute</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="dtiCalculatorModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">DTI Calculator</h3>
+                    <div class="modal-sub">Debt-to-Income Ratio</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="field-row">
+                    <div class="field"><label class="field-label">Monthly Gross Income</label><input class="input"
+                            value="6500"></div>
+                    <div class="field"><label class="field-label">Monthly Debt</label><input class="input" value="2210">
+                    </div>
+                </div>
+                <div class="alert info mt-2">Your DTI is 34%. This is within the healthy range (&lt;36%).</div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Close</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="affordabilityCalculatorModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Affordability Calculator</h3>
+                    <div class="modal-sub">Safety check for new borrowing</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="field"><label class="field-label">Desired Loan Amount</label><input class="input"
+                        value="10000"></div>
+                <div class="field"><label class="field-label">Monthly Repayment Limit</label><input class="input"
+                        value="400"></div>
+                <p class="list-sub">Based on your profile, you can safely afford a loan of up to $12,400.</p>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Close</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="budgetPlannerModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Budget Planner</h3>
+                    <div class="modal-sub">Manage your monthly surplus</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="two-col">
+                    <div>
+                        <div class="field"><label class="field-label">Income</label><input class="input" value="6500">
+                        </div>
+                        <div class="field"><label class="field-label">Rent/Mortgage</label><input class="input"
+                                value="2000"></div>
+                        <div class="field"><label class="field-label">Expenses</label><input class="input" value="1800">
+                        </div>
+                        <div class="field"><label class="field-label">Debt</label><input class="input" value="2210">
+                        </div>
+                    </div>
+                    <div>
+                        <div style="text-align:center;padding:20px;background:var(--surface-2);border-radius:14px;">
+                            <div class="kv-label">Monthly Surplus</div>
+                            <div class="money-large">$490</div>
+                            <div class="badge primary mt-2">Save or Invest</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-result="Budget saved">Save
+                    Budget</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="emergencyFundModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Emergency Fund Calculator</h3>
+                    <div class="modal-sub">Build your 6-month buffer</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="kv-grid mb-4">
+                    <div>
+                        <div class="kv-label">Current Savings</div>
+                        <div class="kv-val">$12,140</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Monthly Expenses</div>
+                        <div class="kv-val">$3,800</div>
+                    </div>
+                </div>
+                <div class="dist-row">
+                    <div class="dist-label">Progress</div>
+                    <div class="dist-bar"><span style="width:53%;background:var(--success);"></span></div>
+                    <div class="dist-val">3.2 months</div>
+                </div>
+                <div class="alert info mt-2">You need $10,660 more to reach your 6-month goal.</div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Close</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="quizModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Financial Literacy Quiz</h3>
+                    <div class="modal-sub">Earn badges for your profile</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div><strong>Question 1 of 5</strong>
+                    <p class="mb-4 mt-2">What happens to your total interest cost if you pay extra toward your principal
+                        each month?</p>
+                    <div class="quiz-option">It stays the same.</div>
+                    <div class="quiz-option">It increases.</div>
+                    <div class="quiz-option">It decreases significantly.</div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-primary">Next Question</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="goalWizardModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Set a Financial Goal</h3>
+                    <div class="modal-sub">Choose your target and timeline</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="stepper" id="goalStepper">
+                <div class="step active">
+                    <div class="step-num">1</div>Type
+                </div>
+                <div class="step-line"></div>
+                <div class="step">
+                    <div class="step-num">2</div>Target
+                </div>
+                <div class="step-line"></div>
+                <div class="step">
+                    <div class="step-num">3</div>Action
+                </div>
+                <div class="step-line"></div>
+                <div class="step">
+                    <div class="step-num">4</div>Review
+                </div>
+            </div>
+            <div class="modal-body">
+                <div class="step-panel active" data-step="1"><label class="choice-row selected"><input type="radio"
+                            name="goalType" checked>
+                        <div>
+                            <div class="choice-title">Improve Credit Score</div>
+                            <div class="choice-desc">Target a specific score milestone</div>
+                        </div>
+                    </label><label class="choice-row"><input type="radio" name="goalType">
+                        <div>
+                            <div class="choice-title">Pay Off Debt</div>
+                            <div class="choice-desc">Clear specific credit account balances</div>
+                        </div>
+                    </label><label class="choice-row"><input type="radio" name="goalType">
+                        <div>
+                            <div class="choice-title">Build Emergency Fund</div>
+                            <div class="choice-desc">Save a 3-6 month expense buffer</div>
+                        </div>
+                    </label></div>
+                <div class="step-panel" data-step="2">
+                    <div class="field-row">
+                        <div class="field"><label class="field-label">Target Milestone</label><input class="input"
+                                value="800"></div>
+                        <div class="field"><label class="field-label">Target Date</label><input class="input"
+                                type="date" value="2026-08-30"></div>
+                    </div>
+                    <div class="field"><label class="field-label">Importance</label><select class="select-field">
+                            <option>Crucial</option>
+                            <option>High</option>
+                            <option>Medium</option>
+                        </select></div>
+                </div>
+                <div class="step-panel" data-step="3">
+                    <p class="mb-4">Select the primary actions you'll take:</p><label class="choice-row selected"><input
+                            type="checkbox" checked>
+                        <div>
+                            <div class="choice-title">Automate Payments</div>
+                            <div class="choice-desc">Enable PayMo autopay for all loans</div>
+                        </div>
+                    </label><label class="choice-row"><input type="checkbox">
+                        <div>
+                            <div class="choice-title">Decrease Spend</div>
+                            <div class="choice-desc">Reduce non-essential monthly expenses</div>
+                        </div>
+                    </label>
+                </div>
+                <div class="step-panel" data-step="4">
+                    <div class="alert success mb-4">Goal ready to track.</div>
+                    <div class="kv-grid">
+                        <div>
+                            <div class="kv-label">Type</div>
+                            <div class="kv-val">Credit Score</div>
+                        </div>
+                        <div>
+                            <div class="kv-label">Target</div>
+                            <div class="kv-val">800</div>
+                        </div>
+                        <div>
+                            <div class="kv-label">End Date</div>
+                            <div class="kv-val">Aug 30, 2026</div>
+                        </div>
+                        <div>
+                            <div class="kv-label">Strategy</div>
+                            <div class="kv-val">Automate Payments</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-light" id="goalBack" disabled>Back</button><button
+                    class="btn btn-primary" id="goalNext">Next</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="reportDownloadModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Download Full Report</h3>
+                    <div class="modal-sub">Official credit statement</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-4">Select the details you want to include in your PDF report.</p><label
+                    class="choice-row selected"><input type="checkbox" checked>
+                    <div>
+                        <div class="choice-title">Score History</div>
+                        <div class="choice-desc">6-month trend analysis</div>
+                    </div>
+                </label><label class="choice-row selected"><input type="checkbox" checked>
+                    <div>
+                        <div class="choice-title">Account Details</div>
+                        <div class="choice-desc">All open and closed accounts</div>
+                    </div>
+                </label><label class="choice-row"><input type="checkbox">
+                    <div>
+                        <div class="choice-title">Factor Breakdown</div>
+                        <div class="choice-desc">Detailed impact percentages</div>
+                    </div>
+                </label>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-primary"
+                    data-result="PDF generating - download will start shortly">Download PDF</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="historyDetailModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Score Trend Detail</h3>
+                    <div class="modal-sub">Last 24 months performance</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body"><svg class="mini-chart" viewBox="0 0 600 150" preserveAspectRatio="none">
+                    <path
+                        d="M0,120 L50,115 L100,118 L150,100 L200,105 L250,90 L300,95 L350,80 L400,82 L450,70 L500,65 L600,45"
+                        fill="none" stroke="var(--primary)" stroke-width="3"></path>
+                </svg>
+                <div class="table-wrap mt-4">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Month</th>
+                                <th>Score</th>
+                                <th>Change</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Feb 2026</td>
+                                <td>742</td>
+                                <td>+12</td>
+                            </tr>
+                            <tr>
+                                <td>Jan 2026</td>
+                                <td>730</td>
+                                <td>+4</td>
+                            </tr>
+                            <tr>
+                                <td>Dec 2025</td>
+                                <td>726</td>
+                                <td>-2</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Close</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="accountDetailModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Account Detail</h3>
+                    <div class="modal-sub">Chase Visa · ****2081</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="kv-grid mb-4">
+                    <div>
+                        <div class="kv-label">Limit</div>
+                        <div class="kv-val">$5,000</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Balance</div>
+                        <div class="kv-val">$1,240</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Opened</div>
+                        <div class="kv-val">Jun 2021</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Payment Status</div>
+                        <div class="kv-val">100% On-time</div>
+                    </div>
+                </div>
+                <h3 class="uw-title">History</h3>
+                <div class="timeline">
+                    <div class="tl-item">
+                        <div class="tl-time">Feb 01</div>
+                        <div class="tl-text">Account reported as current</div>
+                    </div>
+                    <div class="tl-item">
+                        <div class="tl-time">Jan 01</div>
+                        <div class="tl-text">Account reported as current</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Close</button></div>
+        </div>
+    </div>
+
+    <!-- Educational content modals -->
+    <div class="modal-backdrop" id="articleModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">How to Improve Your Score</h3>
+                    <div class="modal-sub">5 actionable steps</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-4">1. Pay down balances to reduce utilization.<br>2. Set up autopay to never miss a due
+                    date.<br>3. Don't close old accounts - age matters.<br>4. Limit hard inquiries by pre-checking
+                    offers.<br>5. Review your report monthly for errors.</p>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Finish
+                    Reading</button></div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="videoModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Video: Understanding Interest</h3>
+                    <div class="modal-sub">3:42 length</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div
+                    style="aspect-ratio:16/9;background:#000;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;">
+                    Video content player container</div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Close</button></div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="tipsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Predatory Lending Red Flags</h3>
+                    <div class="modal-sub">Protect your finances</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <ul class="list-disc pl-4 space-y-2">
+                    <li>Extremely high APR (>36%)</li>
+                    <li>Upfront fees required for approval</li>
+                    <li>Balloon payments that double the debt</li>
+                    <li>Offers that ignore your repayment ability</li>
+                </ul>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Close</button></div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="milestoneModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Goal Milestones</h3>
+                    <div class="modal-sub">Path to 800 score</div>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="milestone done"><strong>Score: 740</strong>
+                    <div class="list-sub">Reached Feb 2026</div>
+                </div>
+                <div class="milestone"><strong>Score: 760</strong>
+                    <div class="list-sub">Target: April 2026</div>
+                </div>
+                <div class="milestone"><strong>Score: 780</strong>
+                    <div class="list-sub">Target: June 2026</div>
+                </div>
+                <div class="milestone"><strong>Score: 800</strong>
+                    <div class="list-sub">Target: August 2026</div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Close</button></div>
+        </div>
+    </div>
+
+    <!-- Standard Admin/Nav Modals -->
+    <div class="modal-backdrop" id="navDashboardModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Dashboard Overview</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="kv-grid">
+                    <div>
+                        <div class="kv-label">Total Outstanding</div>
+                        <div class="kv-val">$6,940</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Active Loans</div>
+                        <div class="kv-val">2</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Next Payment</div>
+                        <div class="kv-val">Feb 28</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Limit Utilization</div>
+                        <div class="kv-val">28%</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Close</button></div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="notificationsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Notifications</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="list-item">
+                    <div class="list-left">
+                        <div class="list-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg></div>
+                        <div>
+                            <div class="list-title">Score updated!</div>
+                            <div class="list-sub">You gained 12 points this month.</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="list-item">
+                    <div class="list-left">
+                        <div class="list-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <path d="M12 8v4l3 3"></path>
+                            </svg></div>
+                        <div>
+                            <div class="list-title">Payment Reminder</div>
+                            <div class="list-sub">PayMo Personal Loan due in 3 days.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Close</button></div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="navLoansModal">
+        <div class="modal lg">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Active Loans</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Loan</th>
+                            <th>Principal</th>
+                            <th>Status</th>
+                            <th>Next Due</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>PayMo Personal</td>
+                            <td>$5,000</td>
+                            <td><span class="badge success">Active</span></td>
+                            <td>Feb 28</td>
+                        </tr>
+                        <tr>
+                            <td>KCB Student</td>
+                            <td>$2,500</td>
+                            <td><span class="badge warning">Past Due</span></td>
+                            <td>Overdue</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Close</button></div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="navPaymentsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Recent Payments</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="list-item">
+                    <div class="list-title">Chase Visa</div>
+                    <div class="list-sub">$400 paid on Feb 01</div>
+                </div>
+                <div class="list-item">
+                    <div class="list-title">PayMo Personal</div>
+                    <div class="list-sub">$250 paid on Jan 15</div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Close</button></div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="navWalletModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">My Wallet</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="kv-grid">
+                    <div>
+                        <div class="kv-label">Balance</div>
+                        <div class="kv-val">$12,140</div>
+                    </div>
+                    <div>
+                        <div class="kv-label">Rewards</div>
+                        <div class="kv-val">2,450 pts</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Close</button></div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="navAnalyticsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Spending Analytics</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="dist-row">
+                    <div class="dist-label">Housing</div>
+                    <div class="dist-bar"><span style="width:40%;background:var(--primary);"></span></div>
+                    <div class="dist-val">$2,000</div>
+                </div>
+                <div class="dist-row">
+                    <div class="dist-label">Debt Service</div>
+                    <div class="dist-bar"><span style="width:35%;background:var(--purple);"></span></div>
+                    <div class="dist-val">$1,850</div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Close</button></div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="resultModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Action Successful</h3>
+                </div><button class="modal-close" data-close>x</button>
+            </div>
+            <div class="modal-body">
+                <div class="alert success"><span id="resultMessage">Success!</span></div>
+            </div>
+            <div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Done</button></div>
+        </div>
+    </div>
+
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        document.getElementById('sidebarToggle').addEventListener('click', () => sidebar.classList.toggle('expanded'));
+        document.getElementById('mobileMenuBtn').addEventListener('click', () => sidebar.classList.toggle('mobile-open'));
+
+        function openModal(id) { const m = document.getElementById(id); if (m) m.classList.add('show'); }
+        function closeAll() { document.querySelectorAll('.modal-backdrop.show').forEach(m => m.classList.remove('show')); }
+
+        document.addEventListener('click', e => {
+            const close = e.target.closest('[data-close]');
+            if (close) { e.preventDefault(); e.stopPropagation(); closeAll(); return; }
+            const result = e.target.closest('[data-result]');
+            if (result) { e.preventDefault(); e.stopPropagation(); setResult(result.dataset.result); return; }
+            const opener = e.target.closest('[data-modal]');
+            if (opener) { e.preventDefault(); e.stopPropagation(); openModal(opener.dataset.modal); }
+        });
+
+        document.querySelectorAll('.modal-backdrop').forEach(b => b.addEventListener('click', e => { if (e.target === b) closeAll(); }));
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAll(); });
+
+        function setResult(message) {
+            closeAll();
+            document.getElementById('resultMessage').textContent = message;
+            openModal('resultModal');
+        }
+
+        function switchTab(name) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.dataset.panel === name));
+        }
+        document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => switchTab(tab.dataset.tab)));
+
+        document.querySelectorAll('.choice-row').forEach(row => {
+            row.addEventListener('click', () => {
+                const radio = row.querySelector('input[type="radio"]');
+                if (radio) {
+                    document.querySelectorAll(`input[name="${radio.name}"]`).forEach(i => i.closest('.choice-row')?.classList.remove('selected'));
+                    radio.checked = true;
+                    row.classList.add('selected');
+                }
+                const checkbox = row.querySelector('input[type="checkbox"]');
+                if (checkbox && !radio) {
+                    checkbox.checked = !checkbox.checked;
+                    row.classList.toggle('selected', checkbox.checked);
+                }
+            });
+        });
+
+        function setupStepper(rootId, stepperId, backId, nextId, total, doneMessage) {
+            const root = document.getElementById(rootId);
+            if (!root) return;
+            let current = 1;
+            const render = () => {
+                document.querySelectorAll(`#${stepperId} .step`).forEach((s, i) => {
+                    s.classList.toggle('active', i + 1 === current);
+                    s.classList.toggle('done', i + 1 < current);
+                });
+                root.querySelectorAll('.step-panel').forEach(p => p.classList.toggle('active', Number(p.dataset.step) === current));
+                document.getElementById(backId).disabled = current === 1;
+                document.getElementById(nextId).textContent = current === total ? 'Activate' : 'Next';
+            };
+            document.getElementById(backId).addEventListener('click', () => { if (current > 1) { current--; render(); } });
+            document.getElementById(nextId).addEventListener('click', () => { if (current < total) { current++; render(); } else { current = 1; render(); setResult(doneMessage); } });
+            render();
+        }
+        setupStepper('goalWizardModal', 'goalStepper', 'goalBack', 'goalNext', 4, 'Financial goal activated and milestones set');
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Collateral & Security - PayMo Credit</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="stylesheet" href="master.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    .asset-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .asset-card { background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius); padding: 20px; transition: all .2s; cursor: pointer; }
+    .asset-card:hover { border-color: var(--primary); box-shadow: var(--shadow-lg); transform: translateY(-2px); }
+    .asset-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; }
+    .asset-icon svg { width: 24px; height: 24px; }
+    .asset-status { position: absolute; top: 16px; right: 16px; }
+    .asset-name { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+    .asset-sub { font-size: 12px; color: var(--text-3); margin-bottom: 16px; }
+    .ltv-meter { height: 8px; border-radius: 99px; background: var(--surface-3); margin: 8px 0; overflow: hidden; }
+    .ltv-meter span { display: block; height: 100%; border-radius: 99px; transition: width 0.5s ease; }
+    .ltv-labels { display: flex; justify-content: space-between; font-size: 11px; font-weight: 500; color: var(--text-3); }
+    .re-detail { display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px; }
+    .map-placeholder { width: 100%; height: 180px; background: var(--surface-2); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--text-4); border: 1px solid var(--border-soft); }
+    .property-specs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .spec-item { border: 1px solid var(--border-soft); padding: 10px; border-radius: 10px; }
+    .spec-label { font-size: 10px; color: var(--text-4); text-transform: uppercase; letter-spacing: .05em; }
+    .spec-val { font-size: 13px; font-weight: 600; margin-top: 2px; }
+    .timeline { position: relative; padding-left: 24px; }
+    .timeline:before { content: ""; position: absolute; top: 6px; bottom: 6px; left: 8px; width: 2px; background: var(--border); }
+    .tl-item { position: relative; padding-bottom: 16px; }
+    .tl-item:before { content: ""; position: absolute; left: -20px; top: 4px; width: 10px; height: 10px; border-radius: 50%; background: var(--primary); border: 2px solid #fff; }
+    .car-tracker { background: #000; border-radius: 12px; padding: 16px; color: #fff; position: relative; overflow: hidden; }
+    .car-tracker:after { content: ""; position: absolute; top: 0; right: 0; width: 100px; height: 100px; background: radial-gradient(circle, rgba(91,91,245,0.2) 0%, transparent 70%); }
+    .tracking-dot { width: 8px; height: 8px; background: #16a34a; border-radius: 50%; display: inline-block; box-shadow: 0 0 10px #16a34a; margin-right: 6px; }
+    .cash-circle { width: 140px; height: 140px; margin: 0 auto; position: relative; }
+    .cash-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .donut { transform: rotate(-90deg); }
+    .donut circle { fill: none; stroke-width: 12; }
+    .kv-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+    .kv-label { font-size: 11px; color: var(--text-3); text-transform: uppercase; letter-spacing: .06em; }
+    .kv-val { font-size: 14px; font-weight: 600; margin-top: 2px; }
+    @media (max-width: 1024px) { .asset-grid { grid-template-columns: repeat(2, 1fr); } .re-detail { grid-template-columns: 1fr; } }
+    @media (max-width: 768px) { .asset-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">P</div>
+      <nav class="sidebar-nav">
+        <button class="sidebar-item" title="Dashboard" data-modal="navDashModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg><span class="sidebar-label">Dashboard</span></button>
+        <button class="sidebar-item" title="My Loans" data-modal="navLoansModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg><span class="sidebar-label">My Loans</span></button>
+        <button class="sidebar-item active" title="Collateral"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg><span class="sidebar-label">Collateral</span></button>
+        <button class="sidebar-item" title="Payments" data-modal="navPayModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"></path></svg><span class="sidebar-label">Payments</span></button>
+        <button class="sidebar-item" title="Statements" data-modal="navStmtModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg><span class="sidebar-label">Statements</span></button>
+        <button class="sidebar-item" title="Support" data-modal="navSupportModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg><span class="sidebar-label">Support</span></button>
+      </nav>
+      <button class="sidebar-expand" id="sidebarToggle"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg><span class="sidebar-label">Collapse</span></button>
+    </aside>
+    
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <div class="crumb">
+            <button class="mobile-menu-btn btn btn-light btn-sm" id="mobileMenuBtn" style="margin-right:8px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+            <span>Borrower Portal</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg><span>Collateral & Security</span>
+          </div>
+          <h1 class="page-title">My Collateral & Security</h1>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-light btn-icon" data-modal="notifModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg></button>
+          <button class="btn btn-light" data-modal="valuationHistoryModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="20" x2="12" y2="10"></line><line x1="18" y1="20" x2="18" y2="4"></line><line x1="6" y1="20" x2="6" y2="16"></line></svg>Valuations</button>
+          <button class="btn btn-light" data-modal="releaseWizardModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>Release Assets</button>
+          <button class="btn btn-primary" data-modal="addCollateralModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>Add Collateral</button>
+        </div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card" data-modal="portfolioModal"><div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg></div><div class="stat-label">Total Collateral Value</div><div class="stat-value">$1.42M</div><div class="stat-trend up"><span>Across 4 assets</span></div></div>
+        <div class="stat-card" data-modal="overallLtvModal"><div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4l3 2"></path></svg></div><div class="stat-label">Weighted LTV</div><div class="stat-value">52%</div><div class="stat-trend up"><span>Healthy headroom</span></div></div>
+        <div class="stat-card" data-modal="insuranceStatusModal"><div class="stat-icon purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg></div><div class="stat-label">Insurance Coverage</div><div class="stat-value">100%</div><div class="stat-trend neutral"><span>All assets covered</span></div></div>
+        <div class="stat-card" data-modal="valuationNextModal"><div class="stat-icon amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20v-6M6 20V10M18 20V4"></path></svg></div><div class="stat-label">Next Inspection</div><div class="stat-value">12d</div><div class="stat-trend neutral"><span>Residential property</span></div></div>
+        <div class="stat-card" data-modal="cashCollateralModal"><div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path></svg></div><div class="stat-label">Cash Lien</div><div class="stat-value">$45K</div><div class="stat-trend up"><span>Earning 6.5% APY</span></div></div>
+      </div>
+
+      <div class="panel">
+        <div class="tabs" id="mainTabs">
+          <button class="tab active" data-tab="summary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>My Collateral Summary</button>
+          <button class="tab" data-tab="realestate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"></path><path d="M5 21V7l7-4 7 4v14"></path></svg>Real Estate Details</button>
+          <button class="tab" data-tab="movable"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.5 2.9C2.1 11.4 2 11.7 2 12v4c0 .6.4 1 1 1h2"></path><circle cx="7" cy="17" r="2"></circle><circle cx="17" cy="17" r="2"></circle></svg>Movable Assets</button>
+          <button class="tab" data-tab="cash"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path></svg>Cash Collateral</button>
+          <button class="tab" data-tab="requests"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>Release Requests</button>
+        </div>
+
+        <section class="tab-panel active" data-panel="summary">
+          <div class="panel-body">
+            <div class="asset-grid">
+              <div class="asset-card" data-modal="propertyDetailModal">
+                <div class="asset-status"><span class="badge success">Active Lien</span></div>
+                <div class="asset-icon" style="background:var(--primary-soft);color:var(--primary);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"></path><path d="M5 21V7l7-4 7 4v14"></path></svg></div>
+                <div class="asset-name">Riverside Heights Apt 4B</div>
+                <div class="asset-sub">Real Estate · Nairobi, KE</div>
+                <div class="kv-grid">
+                  <div><div class="kv-label">Valuation</div><div class="kv-val">$480,000</div></div>
+                  <div><div class="kv-label">LTV</div><div class="kv-val">42%</div></div>
+                </div>
+                <div class="ltv-meter"><span style="width:42%;background:var(--success);"></span></div>
+                <div class="list-sub" style="margin-top:8px;">Linked to: <strong>Personal Mortgage PM-881</strong></div>
+              </div>
+
+              <div class="asset-card" data-modal="vehicleDetailModal">
+                <div class="asset-status"><span class="badge success">Active Lien</span></div>
+                <div class="asset-icon" style="background:var(--purple-soft);color:var(--purple);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.5 2.9C2.1 11.4 2 11.7 2 12v4c0 .6.4 1 1 1h2"></path><circle cx="7" cy="17" r="2"></circle><circle cx="17" cy="17" r="2"></circle></svg></div>
+                <div class="asset-name">Range Rover Sport 2024</div>
+                <div class="asset-sub">Vehicle · KDD 481X</div>
+                <div class="kv-grid">
+                  <div><div class="kv-label">Current Value</div><div class="kv-val">$120,000</div></div>
+                  <div><div class="kv-label">Tracking</div><div class="kv-val"><span style="color:var(--success);">Online</span></div></div>
+                </div>
+                <div class="ltv-meter"><span style="width:65%;background:var(--warning);"></span></div>
+                <div class="list-sub" style="margin-top:8px;">Linked to: <strong>Asset Finance AF-202</strong></div>
+              </div>
+
+              <div class="asset-card" data-modal="cashCollateralModal">
+                <div class="asset-status"><span class="badge success">Active Lien</span></div>
+                <div class="asset-icon" style="background:var(--success-soft);color:var(--success);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path></svg></div>
+                <div class="asset-name">Fixed Deposit Account</div>
+                <div class="asset-sub">Cash · Account ****4491</div>
+                <div class="kv-grid">
+                  <div><div class="kv-label">Lien Amount</div><div class="kv-val">$45,000</div></div>
+                  <div><div class="kv-label">Rate</div><div class="kv-val">6.5%</div></div>
+                </div>
+                <div class="ltv-meter"><span style="width:100%;background:var(--primary);"></span></div>
+                <div class="list-sub" style="margin-top:8px;">Linked to: <strong>Credit Line CL-104</strong></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="tab-panel" data-panel="realestate">
+          <div class="panel-body">
+            <div class="re-detail">
+              <div>
+                <div class="panel-header" style="padding:0 0 12px;border-bottom:0;"><h2 class="panel-title">Property Specifications</h2></div>
+                <div class="property-specs">
+                  <div class="spec-item"><div class="spec-label">Address</div><div class="spec-val">Unit 4B, Riverside Heights, Nairobi</div></div>
+                  <div class="spec-item"><div class="spec-label">Type</div><div class="spec-val">3 Bedroom Apartment</div></div>
+                  <div class="spec-item"><div class="spec-label">Title Number</div><div class="spec-val mono">LR. 209/1182/3</div></div>
+                  <div class="spec-item"><div class="spec-label">Area</div><div class="spec-val">2,400 sq.ft.</div></div>
+                  <div class="spec-item"><div class="spec-label">Valuation (Market)</div><div class="spec-val">$480,000</div></div>
+                  <div class="spec-item"><div class="spec-label">Forced Sale Value</div><div class="spec-val">$384,000</div></div>
+                  <div class="spec-item"><div class="spec-label">LTV Ratio</div><div class="spec-val" style="color:var(--success);">42%</div></div>
+                  <div class="spec-item"><div class="spec-label">Last Valuation</div><div class="spec-val">02 Feb 2026</div></div>
+                </div>
+                <div style="margin-top:20px;">
+                  <h3 class="uw-title">Insurance Status</h3>
+                  <div class="config-row"><div><div class="config-label">Policy · CIC General</div><div class="config-desc">Comprehensive property cover</div></div><span class="badge success">Active</span></div>
+                  <div class="config-row"><div><div class="config-label">Expiry Date</div><div class="config-desc">Expires in 214 days</div></div><div class="spec-val">12 Oct 2026</div></div>
+                </div>
+              </div>
+              <div>
+                <div class="panel-header" style="padding:0 0 12px;border-bottom:0;"><h2 class="panel-title">Location & Visuals</h2></div>
+                <div class="map-placeholder">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:32px;height:32px;margin-bottom:8px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                  <span>Property Map View</span>
+                </div>
+                <div style="margin-top:20px;">
+                  <h3 class="uw-title">Upcoming Inspections</h3>
+                  <div class="timeline">
+                    <div class="tl-item"><div class="tl-time">In 12 days</div><div class="tl-text">Annual structural inspection scheduled</div></div>
+                    <div class="tl-item"><div class="tl-time">Jan 2027</div><div class="tl-text">Desktop re-valuation due</div></div>
+                  </div>
+                  <button class="btn btn-light btn-sm" style="width:100%;margin-top:8px;" data-modal="inspectionRescheduleModal">Reschedule Inspection</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="tab-panel" data-panel="movable">
+          <div class="panel-body">
+            <div class="uw-grid">
+              <div>
+                <h3 class="uw-title">Asset Tracking & Status</h3>
+                <div class="car-tracker">
+                  <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                    <div><div style="font-size:12px;opacity:.7;">Vehicle Tracking</div><div style="font-size:18px;font-weight:600;">KDD 481X</div></div>
+                    <span class="badge success" style="background:rgba(22,163,74,0.2);color:#fff;border:none;"><span class="tracking-dot"></span>Live</span>
+                  </div>
+                  <div style="margin-top:40px;"><div style="font-size:11px;opacity:.7;">Current Location</div><div>Riverside, Nairobi, Kenya</div></div>
+                  <div style="display:flex;gap:12px;margin-top:12px;"><button class="btn btn-sm" style="background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);" data-modal="geofenceModal">Set Geofence</button><button class="btn btn-sm" style="background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);" data-modal="trackingHistoryModal">History</button></div>
+                </div>
+                <div style="margin-top:20px;">
+                  <h3 class="uw-title">Equipment & Machinery</h3>
+                  <div class="list-item" style="padding-left:0;padding-right:0;"><div class="list-left"><div class="list-icon" style="background:var(--surface-3);color:var(--text-2);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect><line x1="7" y1="2" x2="7" y2="22"></line><line x1="17" y1="2" x2="17" y2="22"></line><line x1="2" y1="12" x2="22" y2="12"></line><line x1="2" y1="7" x2="7" y2="7"></line><line x1="2" y1="17" x2="7" y2="17"></line><line x1="17" y1="17" x2="22" y2="17"></line><line x1="17" y1="7" x2="22" y2="7"></line></svg></div><div><div class="list-title">CNC Milling Machine X-500</div><div class="list-sub">Location: Savanna Warehouse A</div></div></div><button class="btn btn-light btn-sm" data-modal="equipmentDetailModal">View</button></div>
+                </div>
+              </div>
+              <div>
+                <h3 class="uw-title">Financial Securities</h3>
+                <div class="uw-card">
+                  <div class="kv-grid" style="margin-bottom:12px;">
+                    <div><div class="kv-label">Holdings</div><div class="kv-val">2,400 Shares · NSE:EQTY</div></div>
+                    <div><div class="kv-label">Market Value</div><div class="kv-val">$8,420.00</div></div>
+                  </div>
+                  <div style="background:var(--surface-2);border-radius:10px;padding:12px;"><div class="kv-label">Pledged to</div><div class="kv-val">Overdraft Facility OD-401</div></div>
+                  <button class="btn btn-light btn-sm" style="width:100%;margin-top:10px;" data-modal="securitiesModal">Update Prices</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="tab-panel" data-panel="cash">
+          <div class="panel-body">
+            <div class="two-col">
+              <div style="text-align:center;">
+                <div class="cash-circle">
+                  <svg width="140" height="140" viewBox="0 0 140 140" class="donut"><circle cx="70" cy="70" r="58" stroke="#eef0ff"></circle><circle cx="70" cy="70" r="58" stroke="#16a34a" stroke-dasharray="364" stroke-dashoffset="0"></circle></svg>
+                  <div class="cash-center"><div class="kv-label">Lien</div><div style="font-size:24px;font-weight:700;">$45K</div></div>
+                </div>
+                <div style="margin-top:16px;">
+                  <div style="font-weight:600;">Fixed Deposit ****4491</div>
+                  <div class="list-sub">Maturity: 12 Aug 2026</div>
+                </div>
+                <div style="display:flex;gap:8px;justify-content:center;margin-top:14px;"><button class="btn btn-light btn-sm" data-modal="cashConditionsModal">Release Conditions</button><button class="btn btn-primary btn-sm" data-modal="cashLienIncreaseModal">Top-up Lien</button></div>
+              </div>
+              <div class="uw-card">
+                <h3 class="uw-title">Lien Performance</h3>
+                <div class="kv-grid" style="margin-bottom:16px;">
+                  <div><div class="kv-label">Current APY</div><div class="kv-val">6.5%</div></div>
+                  <div><div class="kv-label">Interest Earned</div><div class="kv-val">$1,842.12</div></div>
+                  <div><div class="kv-label">Tax Withheld</div><div class="kv-val">-$276.32</div></div>
+                  <div><div class="kv-label">Net Return</div><div class="kv-val">$1,565.80</div></div>
+                </div>
+                <div class="alert info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg>Lien interest is credited monthly and remains locked until facility closure.</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="tab-panel" data-panel="requests">
+          <div class="panel-body">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+              <h2 class="panel-title">Asset Release Requests</h2>
+              <button class="btn btn-primary" data-modal="releaseWizardModal">+ New Request</button>
+            </div>
+            <div class="table-wrap">
+              <table class="table">
+                <thead><tr><th>Request ID</th><th>Asset</th><th>Type</th><th>Requested</th><th>Status</th><th></th></tr></thead>
+                <tbody>
+                  <tr data-modal="requestStatusModal"><td class="mono">REL-401</td><td>Range Rover Sport</td><td>Full Release</td><td>Today</td><td><span class="badge info">Under Review</span></td><td class="right"><button class="btn btn-light btn-sm">Track</button></td></tr>
+                  <tr data-modal="requestStatusModal"><td class="mono">REL-398</td><td>Cash Lien ($5k)</td><td>Partial Release</td><td>12 Feb</td><td><span class="badge success">Approved</span></td><td class="right"><button class="btn btn-light btn-sm">View</button></td></tr>
+                  <tr data-modal="requestStatusModal"><td class="mono">REL-382</td><td>NSE Shares</td><td>Substitution</td><td>02 Jan</td><td><span class="badge gray">Completed</span></td><td class="right"><button class="btn btn-light btn-sm">Archive</button></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- ============ MODALS ============ -->
+
+  <div class="modal-backdrop" id="releaseWizardModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Request Collateral Release</h3><div class="modal-sub">Submit an application to unpledge assets</div></div><button class="modal-close" data-close>x</button></div><div class="stepper" id="relStepper"><div class="step active"><div class="step-num">1</div>Asset</div><div class="step-line"></div><div class="step"><div class="step-num">2</div>Reason</div><div class="step-line"></div><div class="step"><div class="step-num">3</div>Security</div><div class="step-line"></div><div class="step"><div class="step-num">4</div>Done</div></div><div class="modal-body"><div class="step-panel active" data-step="1"><div class="field"><label class="field-label">Select asset to release</label><select class="select-field"><option>Riverside Heights Apartment</option><option>Range Rover Sport (KDD 481X)</option><option>Cash Lien ****4491</option><option>NSE Shares</option></select></div><label class="choice-row selected"><input type="radio" name="relType" checked><div><div class="choice-title">Full Release</div><div class="choice-desc">Completely unpledge the asset</div></div></label><label class="choice-row"><input type="radio" name="relType"><div><div class="choice-title">Partial Release</div><div class="choice-desc">Unpledge a portion (e.g. part of cash lien)</div></div></label></div><div class="step-panel" data-step="2"><div class="field"><label class="field-label">Reason for release</label><select class="select-field"><option>Loan fully repaid</option><option>Refinancing with another lender</option><option>Selling the asset</option><option>Substitution of collateral</option><option>Significant DSR improvement</option></select></div><div class="field"><label class="field-label">Supporting details</label><textarea class="textarea" placeholder="Explain the rationale for this release request..."></textarea></div></div><div class="step-panel" data-step="3"><div class="alert info" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg>If substituting, please select the replacement asset.</div><label class="choice-row"><input type="checkbox"><div><div class="choice-title">I am offering substitution</div><div class="choice-desc">Offer a different asset of equal/higher value</div></div></label><div class="field" style="margin-top:12px;"><label class="field-label">LTV Impact after release</label><div class="spec-val" style="color:var(--danger);">Projected LTV: 82% (Exceeds 70% threshold)</div><div class="list-sub">Approval likelihood: Low without substitution</div></div></div><div class="step-panel" data-step="4"><div class="alert success" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>Release request ready to submit.</div><div class="kv-grid"><div><div class="kv-label">Asset</div><div class="kv-val">Range Rover Sport</div></div><div><div class="kv-label">Type</div><div class="kv-val">Full Release</div></div><div><div class="kv-label">Expected turnaround</div><div class="kv-val">48 - 72 hours</div></div></div></div></div><div class="modal-footer"><button class="btn btn-light" id="relBack" disabled>Back</button><button class="btn btn-primary" id="relNext">Next</button></div></div></div>
+
+  <!-- Additional Modals -->
+  <div class="modal-backdrop" id="propertyDetailModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Property Detail - Unit 4B Riverside</h3><div class="modal-sub">View valuation, title, and insurance</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="re-detail"><div><div class="kv-grid"><div><div class="kv-label">Market Value</div><div class="kv-val">$480,000</div></div><div><div class="kv-label">Valuation Date</div><div class="kv-val">02 Feb 2026</div></div></div><div style="margin-top:20px;"><div class="spec-label">Documents</div><div class="list-item" style="padding-left:0;padding-right:0;"><div class="list-left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px;color:var(--text-3);"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg><div>Valuation_Report_KnightFrank.pdf</div></div><button class="btn btn-light btn-sm">Download</button></div><div class="list-item" style="padding-left:0;padding-right:0;"><div class="list-left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px;color:var(--text-3);"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg><div>Title_Deed_LR209_Verified.pdf</div></div><button class="btn btn-light btn-sm">Download</button></div></div></div><div><div class="map-placeholder">Map Detail</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button class="btn btn-primary" data-modal="releaseWizardModal">Request Release</button></div></div></div>
+
+  <div class="modal-backdrop" id="vehicleDetailModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Vehicle Tracking & Spec</h3><div class="modal-sub">Range Rover Sport · KDD 481X</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="car-tracker">Live Map View</div><div class="kv-grid" style="margin-top:16px;"><div><div class="kv-label">Make/Model</div><div class="kv-val">Land Rover · RR Sport</div></div><div><div class="kv-label">Year</div><div class="kv-val">2024</div></div><div><div class="kv-label">Chassis</div><div class="kv-val mono">SALWA2S...</div></div><div><div class="kv-label">Engine</div><div class="kv-val mono">306DT...</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="cashCollateralModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Cash Lien Detail</h3><div class="modal-sub">Fixed Deposit Account ****4491</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid" style="margin-bottom:16px;"><div><div class="kv-label">Principal Lien</div><div class="kv-val">$45,000.00</div></div><div><div class="kv-label">Interest Earned</div><div class="kv-val">$1,842.12</div></div></div><div class="alert info">This lien can be partially released if the underlying Credit Line utilization falls below 40% for 3 consecutive months.</div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="notifModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Collateral Alerts</h3><div class="modal-sub">3 unread notifications</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body" style="padding:0;"><div class="list-item"><div class="list-left"><div class="list-icon" style="background:var(--warning-soft);color:var(--warning);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg></div><div><div class="list-title">Inspection Scheduled</div><div class="list-sub">Riverside Heights Apt · 26 Feb</div></div></div></div><div class="list-item"><div class="list-left"><div class="list-icon" style="background:var(--success-soft);color:var(--success);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg></div><div><div class="list-title">Insurance Verified</div><div class="list-sub">Range Rover Sport policy confirmed</div></div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="portfolioModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Collateral Portfolio</h3><div class="modal-sub">Asset class breakdown</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="dist-row"><div class="dist-label">Real Estate</div><div class="dist-bar"><span style="width:78%;background:var(--primary);"></span></div><div class="dist-val">$480K</div></div><div class="dist-row"><div class="dist-label">Vehicles</div><div class="dist-bar"><span style="width:20%;background:var(--purple);"></span></div><div class="dist-val">$120K</div></div><div class="dist-row"><div class="dist-label">Cash</div><div class="dist-bar"><span style="width:7%;background:var(--success);"></span></div><div class="dist-val">$45K</div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="overallLtvModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">LTV Health</h3><div class="modal-sub">Borrowing capacity vs collateral</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">Total Debt</div><div class="kv-val">$738K</div></div><div><div class="kv-label">Total Collateral</div><div class="kv-val">$1.42M</div></div></div><div class="ltv-meter" style="height:12px;margin:20px 0;"><span style="width:52%;background:var(--success);"></span></div><div class="alert success">You have $250k in remaining collateral headroom.</div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="addCollateralModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Add New Collateral</h3><div class="modal-sub">Pledge additional assets</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Asset Category</label><select class="select-field"><option>Real Estate</option><option>Movable Assets (Vehicle/Equipment)</option><option>Securities (Shares/Bonds)</option><option>Cash / Deposits</option></select></div><div class="field"><label class="field-label">Estimated Value</label><input class="input" placeholder="Amount in USD"></div><button class="btn btn-primary" style="width:100%;" data-result="Collateral onboarding started">Next: Upload Docs</button></div></div></div>
+
+  <div class="modal-backdrop" id="valuationHistoryModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Valuation History</h3><div class="modal-sub">Historical asset price appraisals</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><table class="table"><thead><tr><th>Asset</th><th>Date</th><th>Value</th><th>Change</th></tr></thead><tbody><tr><td>Riverside Heights</td><td>02 Feb 2026</td><td>$480,000</td><td><span style="color:var(--success);">+4.2%</span></td></tr><tr><td>Riverside Heights</td><td>01 Feb 2025</td><td>$460,500</td><td>-</td></tr><tr><td>Range Rover</td><td>12 Dec 2025</td><td>$120,000</td><td><span style="color:var(--danger);">-15% (Depr)</span></td></tr></tbody></table></div></div></div>
+
+  <div class="modal-backdrop" id="insuranceStatusModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Insurance Coverage</h3><div class="modal-sub">Status of all asset policies</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="config-row"><div><div class="config-label">Riverside Heights</div><div class="config-desc">Policy #488219 - CIC</div></div><span class="badge success">Active</span></div><div class="config-row"><div><div class="config-label">Range Rover</div><div class="config-desc">Policy #V-9901 - Jubilee</div></div><span class="badge success">Active</span></div></div></div></div>
+
+  <div class="modal-backdrop" id="valuationNextModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Upcoming Appraisals</h3><div class="modal-sub">Scheduled site visits and valuations</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="tl-item"><div class="tl-time">26 Feb 2026</div><div class="tl-text">Riverside Heights - Physical Valuation</div></div><div class="tl-item"><div class="tl-time">12 Mar 2026</div><div class="tl-text">Milling Machine X-500 - Inventory Audit</div></div></div></div></div>
+
+  <div class="modal-backdrop" id="requestStatusModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Request Status</h3><div class="modal-sub">REL-401 · Full Release</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="timeline"><div class="tl-item"><div class="tl-time">Today 09:00</div><div class="tl-text">Request submitted by borrower</div></div><div class="tl-item"><div class="tl-time">In Progress</div><div class="tl-text">LTV impact analysis by Credit Officer</div></div></div></div></div></div>
+
+  <div class="modal-backdrop" id="resultModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Action Complete</h3><div class="modal-sub">PayMo operation completed</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="alert success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px;"><polyline points="20 6 9 17 4 12"></polyline></svg><span id="resultMessage">Action completed successfully.</span></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Done</button></div></div></div>
+
+  <!-- Nav Modals -->
+  <div class="modal-backdrop" id="navDashModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Home Dashboard</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">Navigate to borrower main overview.</div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Go Home</button></div></div></div>
+  <div class="modal-backdrop" id="navLoansModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">My Loans</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">View active and historical credit facilities.</div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>View Loans</button></div></div></div>
+  <div class="modal-backdrop" id="navPayModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Repayments</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">Make payments or schedule auto-debits.</div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Pay Now</button></div></div></div>
+  <div class="modal-backdrop" id="navStmtModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Statements</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">Download tax certificates and statements.</div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Download</button></div></div></div>
+  <div class="modal-backdrop" id="navSupportModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Help & Support</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">Connect with your dedicated relationship manager.</div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Chat</button></div></div></div>
+
+  <div class="modal-backdrop" id="inspectionRescheduleModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Reschedule Inspection</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">New Date</label><input type="date" class="input"></div><div class="field"><label class="field-label">Time Slot</label><select class="select-field"><option>Morning (08:00 - 12:00)</option><option>Afternoon (13:00 - 17:00)</option></select></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-result="Inspection rescheduled. Vendor notified.">Confirm</button></div></div></div>
+  <div class="modal-backdrop" id="geofenceModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Tracking Alerts</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">Configure geofence alerts for pledged vehicles.</div></div></div>
+  <div class="modal-backdrop" id="trackingHistoryModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Tracking Logs</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">Historical location data for security compliance.</div></div></div>
+  <div class="modal-backdrop" id="equipmentDetailModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Asset Spec</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">Technical specifications for CNC Milling Machine.</div></div></div>
+  <div class="modal-backdrop" id="securitiesModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Market Update</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">Fetch latest NSE share prices for securities collateral.</div></div></div>
+  <div class="modal-backdrop" id="cashConditionsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Release T&Cs</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">Conditions for partial cash release.</div></div></div>
+  <div class="modal-backdrop" id="cashLienIncreaseModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Increase Lien</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">Add funds to cash collateral to increase credit limit.</div></div></div>
+
+  <script>
+    const sidebar = document.getElementById('sidebar');
+    document.getElementById('sidebarToggle').addEventListener('click', () => sidebar.classList.toggle('expanded'));
+    document.getElementById('mobileMenuBtn').addEventListener('click', () => sidebar.classList.toggle('mobile-open'));
+
+    function openModal(id) { const m = document.getElementById(id); if (m) m.classList.add('show'); }
+    function closeAll() { document.querySelectorAll('.modal-backdrop.show').forEach(m => m.classList.remove('show')); }
+    
+    document.addEventListener('click', e => {
+      const close = e.target.closest('[data-close]');
+      if (close) { e.preventDefault(); e.stopPropagation(); closeAll(); return; }
+      
+      const result = e.target.closest('[data-result]');
+      if (result) {
+        e.preventDefault(); e.stopPropagation();
+        closeAll();
+        document.getElementById('resultMessage').textContent = result.dataset.result;
+        openModal('resultModal');
+        return;
+      }
+      
+      const opener = e.target.closest('[data-modal]');
+      if (opener) { e.preventDefault(); e.stopPropagation(); openModal(opener.dataset.modal); }
+    });
+    
+    document.querySelectorAll('.modal-backdrop').forEach(b => b.addEventListener('click', e => { if (e.target === b) closeAll(); }));
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAll(); });
+
+    function switchTab(name) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.dataset.panel === name));
+    }
+    document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => switchTab(tab.dataset.tab)));
+
+    document.querySelectorAll('.choice-row').forEach(row => {
+      row.addEventListener('click', () => {
+        const radio = row.querySelector('input[type="radio"]');
+        if (radio) {
+          document.querySelectorAll(`input[name="${radio.name}"]`).forEach(i => i.closest('.choice-row')?.classList.remove('selected'));
+          radio.checked = true;
+          row.classList.add('selected');
+        }
+        const checkbox = row.querySelector('input[type="checkbox"]');
+        if (checkbox && !radio) row.classList.toggle('selected', checkbox.checked);
+      });
+    });
+
+    function setupStepper(rootId, stepperId, backId, nextId, total, doneMessage) {
+      const root = document.getElementById(rootId);
+      if (!root) return;
+      let current = 1;
+      const render = () => {
+        document.querySelectorAll(`#${stepperId} .step`).forEach((s, i) => { 
+          s.classList.toggle('active', i + 1 === current); 
+          s.classList.toggle('done', i + 1 < current); 
+        });
+        root.querySelectorAll('.step-panel').forEach(p => p.classList.toggle('active', Number(p.dataset.step) === current));
+        document.getElementById(backId).disabled = current === 1;
+        document.getElementById(nextId).textContent = current === total ? 'Submit Request' : 'Next';
+      };
+      document.getElementById(backId).addEventListener('click', () => { if (current > 1) { current--; render(); } });
+      document.getElementById(nextId).addEventListener('click', () => { 
+        if (current < total) { current++; render(); } 
+        else { 
+          current = 1; render(); 
+          closeAll();
+          document.getElementById('resultMessage').textContent = doneMessage;
+          openModal('resultModal');
+        } 
+      });
+      render();
+    }
+    setupStepper('releaseWizardModal', 'relStepper', 'relBack', 'relNext', 4, 'Release request submitted for review.');
+  </script>
+</body>
+</html>

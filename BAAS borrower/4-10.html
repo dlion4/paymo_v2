@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings & Account Management - PayMo Borrower</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="stylesheet" href="master.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    .two-col { display: grid; grid-template-columns: 1fr 1.2fr; gap: 20px; }
+    .three-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .settings-panel { display: flex; flex-direction: column; gap: 20px; }
+    .settings-group { background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius); overflow: hidden; }
+    .settings-group-header { padding: 18px 22px; border-bottom: 1px solid var(--border-soft); display: flex; align-items: center; justify-content: space-between; }
+    .settings-group-title { font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+    .settings-group-title svg { width: 18px; height: 18px; color: var(--text-3); }
+    .settings-row { padding: 16px 22px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-soft); }
+    .settings-row:last-child { border-bottom: 0; }
+    .settings-info { flex: 1; }
+    .settings-label { font-size: 13px; font-weight: 500; color: var(--text); }
+    .settings-desc { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+    .profile-card { text-align: center; padding: 24px; background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius); }
+    .profile-avatar { width: 80px; height: 80px; border-radius: 50%; background: var(--primary-soft); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 700; margin: 0 auto 16px; border: 4px solid #fff; box-shadow: var(--shadow); position: relative; }
+    .avatar-edit { position: absolute; bottom: 0; right: 0; width: 24px; height: 24px; background: var(--surface); border: 1px solid var(--border); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--text-2); cursor: pointer; }
+    .avatar-edit svg { width: 12px; height: 12px; }
+    .bank-card { border: 1px solid var(--border); border-radius: 12px; padding: 14px; display: flex; align-items: center; gap: 14px; background: var(--surface); cursor: pointer; transition: all .15s; }
+    .bank-card:hover { border-color: var(--primary); box-shadow: var(--shadow-sm); }
+    .bank-card.active { border-color: var(--primary); background: var(--primary-soft); }
+    .bank-icon { width: 40px; height: 40px; border-radius: 8px; background: var(--surface-2); display: flex; align-items: center; justify-content: center; font-weight: 700; border: 1px solid var(--border-soft); }
+    .security-badge { padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 600; text-transform: uppercase; }
+    .security-badge.high { background: var(--success-soft); color: var(--success); }
+    .security-badge.med { background: var(--warning-soft); color: var(--warning); }
+    .kv-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px 18px; }
+    .kv-label { font-size: 10px; color: var(--text-4); text-transform: uppercase; letter-spacing: .06em; }
+    .kv-val { font-size: 13px; font-weight: 500; margin-top: 2px; }
+    @media (max-width: 900px) { .two-col { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">P</div>
+      <nav class="sidebar-nav">
+        <button class="sidebar-item" title="Borrower Home" data-modal="navHomeModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg><span class="sidebar-label">Home</span></button>
+        <button class="sidebar-item" title="Loans" data-modal="navLoansModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"></path></svg><span class="sidebar-label">Loans</span></button>
+        <button class="sidebar-item" title="Payments" data-modal="navPayModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg><span class="sidebar-label">Payments</span></button>
+        <button class="sidebar-item" title="Credit Score" data-modal="navCreditModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg><span class="sidebar-label">Score</span></button>
+        <button class="sidebar-item active" title="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg><span class="sidebar-label">Settings</span></button>
+      </nav>
+      <button class="sidebar-expand" id="sidebarToggle"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg><span class="sidebar-label">Collapse</span></button>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <div class="crumb">
+            <button class="mobile-menu-btn btn btn-light btn-sm" id="mobileMenuBtn" style="margin-right:8px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+            <span>Account</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg><span>Settings & Management</span>
+          </div>
+          <h1 class="page-title">Settings & Account Management</h1>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-light btn-icon" data-modal="notificationsModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg></button>
+          <button class="btn btn-danger" data-modal="suspendModal">Suspend Account</button>
+          <button class="btn btn-primary" data-modal="downloadDataModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>Download Data</button>
+        </div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card" data-modal="profileProgressModal"><div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"></path></svg></div><div class="stat-label">Profile Completion</div><div class="stat-value">92%</div><div class="stat-trend up"><span>Almost complete</span></div></div>
+        <div class="stat-card" data-modal="bankAccountsModal"><div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"></path><path d="M3 10h18"></path><path d="M5 6l7-3 7 3"></path></svg></div><div class="stat-label">Linked Banks</div><div class="stat-value">2</div><div class="stat-trend neutral"><span>1 primary account</span></div></div>
+        <div class="stat-card" data-modal="securitySummaryModal"><div class="stat-icon purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></div><div class="stat-label">Security Strength</div><div class="stat-value">High</div><div class="stat-trend up"><span>MFA Enabled</span></div></div>
+        <div class="stat-card" data-modal="privacySummaryModal"><div class="stat-icon amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg></div><div class="stat-label">Privacy Consents</div><div class="stat-value">4</div><div class="stat-trend neutral"><span>GDPR Compliant</span></div></div>
+        <div class="stat-card" data-modal="loginHistoryModal"><div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div><div class="stat-label">Last Login</div><div class="stat-value">2h ago</div><div class="stat-trend neutral"><span>from Nairobi, KE</span></div></div>
+      </div>
+
+      <div class="panel">
+        <div class="tabs" id="mainTabs">
+          <button class="tab active" data-tab="profile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>Profile</button>
+          <button class="tab" data-tab="payments"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>Banks & Cards</button>
+          <button class="tab" data-tab="notifications"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>Notifications</button>
+          <button class="tab" data-tab="security"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>Security</button>
+          <button class="tab" data-tab="privacy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>Privacy & Data</button>
+        </div>
+
+        <section class="tab-panel active" data-panel="profile">
+          <div class="panel-body">
+            <div class="two-col">
+              <div>
+                <div class="profile-card">
+                  <div class="profile-avatar">JW<div class="avatar-edit" data-modal="editAvatarModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg></div></div>
+                  <h2 style="font-size:18px;font-weight:700;">Jane Wanjiru</h2>
+                  <p class="list-sub">Member since Jan 2024 · Premium Borrower</p>
+                  <div style="display:flex;gap:8px;justify-content:center;margin-top:16px;">
+                    <button class="btn btn-light btn-sm" data-modal="editContactModal">Edit Contact</button>
+                    <button class="btn btn-primary btn-sm" data-modal="updateIncomeModal">Update Income</button>
+                  </div>
+                </div>
+                <div class="settings-group" style="margin-top:20px;">
+                  <div class="settings-group-header"><div class="settings-group-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"></path><path d="M5 6l7-3 7 3"></path><path d="M3 10h18"></path></svg>Employment Info</div><button class="btn btn-ghost btn-sm" data-modal="editEmploymentModal">Edit</button></div>
+                  <div class="panel-body no-pad">
+                    <div class="settings-row"><div class="settings-info"><div class="settings-label">Employer</div><div class="settings-desc">Safaricom PLC</div></div></div>
+                    <div class="settings-row"><div class="settings-info"><div class="settings-label">Job Title</div><div class="settings-desc">Senior Product Manager</div></div></div>
+                    <div class="settings-row"><div class="settings-info"><div class="settings-label">Employment Type</div><div class="settings-desc">Full-time Permanent</div></div></div>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <div class="settings-group">
+                  <div class="settings-group-header"><div class="settings-group-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>Contact Details</div><button class="btn btn-ghost btn-sm" data-modal="editContactModal">Edit</button></div>
+                  <div class="panel-body no-pad">
+                    <div class="settings-row"><div class="settings-info"><div class="settings-label">Email Address</div><div class="settings-desc">jane.wanjiru@example.com</div></div><span class="badge success">Verified</span></div>
+                    <div class="settings-row"><div class="settings-info"><div class="settings-label">Phone Number</div><div class="settings-desc">+254 712 345 678</div></div><span class="badge success">Verified</span></div>
+                    <div class="settings-row"><div class="settings-info"><div class="settings-label">Residential Address</div><div class="settings-desc">Apt 4B, Riverside Heights, Nairobi, KE</div></div></div>
+                  </div>
+                </div>
+                <div class="settings-group" style="margin-top:20px;">
+                  <div class="settings-group-header"><div class="settings-group-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"></path></svg>Financial Profile</div><button class="btn btn-ghost btn-sm" data-modal="updateIncomeModal">Update</button></div>
+                  <div class="panel-body no-pad">
+                    <div class="settings-row"><div class="settings-info"><div class="settings-label">Monthly Gross Income</div><div class="settings-desc">KES 245,000</div></div></div>
+                    <div class="settings-row"><div class="settings-info"><div class="settings-label">Net Disposable Income</div><div class="settings-desc">KES 92,400</div></div></div>
+                    <div class="settings-row"><div class="settings-info" style="color:var(--warning);"><div class="settings-label">Last Updated</div><div class="settings-desc">12 Feb 2026 · Re-evaluation due in 3 months</div></div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="tab-panel" data-panel="payments">
+          <div class="panel-body">
+            <div class="two-col">
+              <div>
+                <h2 class="panel-title" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"></path><path d="M3 10h18"></path><path d="M5 6l7-3 7 3"></path></svg>Linked Bank Accounts</h2>
+                <div style="display:flex;flex-direction:column;gap:12px;">
+                  <div class="bank-card active" data-modal="bankAccountDetailModal"><div class="bank-icon">EQ</div><div style="flex:1;"><strong>Equity Bank</strong><div class="settings-desc">Checking · **** 4190</div></div><span class="badge primary">Default</span></div>
+                  <div class="bank-card" data-modal="bankAccountDetailModal"><div class="bank-icon">KC</div><div style="flex:1;"><strong>KCB Bank</strong><div class="settings-desc">Savings · **** 9271</div></div></div>
+                  <button class="btn btn-light btn-sm" style="width:100%;border-style:dashed;padding:12px;" data-modal="addBankWizardModal">+ Link New Bank Account</button>
+                </div>
+                <div class="alert info" style="margin-top:16px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg>Linked accounts are used for automated loan repayments and disbursements.</div>
+              </div>
+              <div>
+                <h2 class="panel-title" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>Saved Cards</h2>
+                <div style="display:flex;flex-direction:column;gap:12px;">
+                  <div class="bank-card" data-modal="cardDetailModal"><div class="bank-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg></div><div style="flex:1;"><strong>Visa Corporate</strong><div class="settings-desc">Exp 09/27 · **** 5501</div></div></div>
+                  <button class="btn btn-light btn-sm" style="width:100%;border-style:dashed;padding:12px;" data-modal="addCardModal">+ Add New Card</button>
+                </div>
+                <h2 class="panel-title" style="margin:24px 0 14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>Payment Preferences</h2>
+                <div class="settings-group">
+                  <div class="settings-row"><div class="settings-info"><div class="settings-label">Auto-Debit Repayments</div><div class="settings-desc">Automatically pull funds on due date</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+                  <div class="settings-row"><div class="settings-info"><div class="settings-label">Primary Repayment Method</div><div class="settings-desc">Equity Bank (**** 4190)</div></div><button class="btn btn-ghost btn-sm" data-modal="changeDefaultPaymentModal">Change</button></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="tab-panel" data-panel="notifications">
+          <div class="panel-body">
+            <div class="two-col">
+              <div class="settings-panel">
+                <div class="settings-group">
+                  <div class="settings-group-header"><div class="settings-group-title">Payment Reminders</div></div>
+                  <div class="settings-row"><div class="settings-info"><div class="settings-label">Push Notifications</div><div class="settings-desc">Instant alerts on your device</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+                  <div class="settings-row"><div class="settings-info"><div class="settings-label">Email Alerts</div><div class="settings-desc">Detailed summaries to inbox</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+                  <div class="settings-row"><div class="settings-info"><div class="settings-label">SMS Reminders</div><div class="settings-desc">Critical alerts via carrier</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+                  <div class="settings-row"><div class="settings-info"><div class="settings-label">WhatsApp Updates</div><div class="settings-desc">Receive notifications on WhatsApp</div></div><label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label></div>
+                </div>
+                <div class="settings-group">
+                  <div class="settings-group-header"><div class="settings-group-title">Frequency & Timing</div></div>
+                  <div class="settings-row"><div class="settings-info"><div class="settings-label">Upcoming Due Date</div><div class="settings-desc">3 days before payment is due</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+                  <div class="settings-row"><div class="settings-info"><div class="settings-label">Day Before Reminder</div><div class="settings-desc">Final alert before auto-debit</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+                  <div class="settings-row"><div class="settings-info"><div class="settings-label">Same Day Confirmation</div><div class="settings-desc">Alert once payment is initiated</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+                </div>
+              </div>
+              <div class="settings-panel">
+                <div class="settings-group">
+                  <div class="settings-group-header"><div class="settings-group-title">Document Delivery</div></div>
+                  <div class="settings-row"><div class="settings-info"><div class="settings-label">Monthly Statements</div><div class="settings-desc">App download only (recommended)</div></div><button class="btn btn-ghost btn-sm" data-modal="deliveryPrefModal">Change</button></div>
+                  <div class="settings-row"><div class="settings-info"><div class="settings-label">Paperless Billing</div><div class="settings-desc">Opt-out of physical mail</div></div><span class="badge success">Enabled</span></div>
+                </div>
+                <div class="settings-group">
+                  <div class="settings-group-header"><div class="settings-group-title">Marketing & Offers</div></div>
+                  <div class="settings-row"><div class="settings-info"><div class="settings-label">Product Announcements</div><div class="settings-desc">New loan products and features</div></div><label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label></div>
+                  <div class="settings-row"><div class="settings-info"><div class="settings-label">Personalized Offers</div><div class="settings-desc">Pre-approved limits and rate drops</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="tab-panel" data-panel="security">
+          <div class="panel-body">
+            <div class="two-col">
+              <div class="settings-panel">
+                <div class="settings-group">
+                  <div class="settings-group-header"><div class="settings-group-title">Authentication</div></div>
+                  <div class="settings-row"><div class="settings-info"><div class="settings-label">Account Password</div><div class="settings-desc">Last changed 42 days ago</div></div><button class="btn btn-light btn-sm" data-modal="changePasswordModal">Update</button></div>
+                  <div class="settings-row"><div class="settings-info"><div class="settings-label">Transaction PIN</div><div class="settings-desc">Used for sensitive actions</div></div><button class="btn btn-light btn-sm" data-modal="changePinModal">Reset PIN</button></div>
+                  <div class="settings-row"><div class="settings-info"><div class="settings-label">Two-Factor Auth (2FA)</div><div class="settings-desc">App-based authenticator</div></div><span class="security-badge high">High Strength</span><button class="btn btn-ghost btn-sm" data-modal="manage2faModal">Manage</button></div>
+                  <div class="settings-row"><div class="settings-info"><div class="settings-label">Biometric Login</div><div class="settings-desc">FaceID / Fingerprint</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+                </div>
+              </div>
+              <div class="settings-panel">
+                <div class="settings-group">
+                  <div class="settings-group-header"><div class="settings-group-title">Device Management</div><button class="btn btn-ghost btn-sm" data-modal="loginHistoryModal">View All</button></div>
+                  <div class="panel-body no-pad">
+                    <div class="settings-row"><div class="settings-info"><div class="settings-label">iPhone 15 Pro (Current)</div><div class="settings-desc">Nairobi, KE · Active now</div></div><span class="badge success">This Device</span></div>
+                    <div class="settings-row"><div class="settings-info"><div class="settings-label">MacBook Pro 14"</div><div class="settings-desc">Nairobi, KE · 2h ago</div></div><button class="btn btn-ghost btn-sm" data-modal="logoutDeviceModal">Logout</button></div>
+                    <div class="settings-row"><div class="settings-info" style="color:var(--danger);"><div class="settings-label">Unrecognized Device?</div><div class="settings-desc">Logout of all other sessions</div></div><button class="btn btn-danger btn-sm" data-modal="logoutAllModal">Global Logout</button></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="tab-panel" data-panel="privacy">
+          <div class="panel-body">
+            <div class="two-col">
+              <div class="settings-panel">
+                <div class="settings-group">
+                  <div class="settings-group-header"><div class="settings-group-title">Data Sharing & Consent</div></div>
+                  <div class="settings-row"><div class="settings-info"><div class="settings-label">Credit Bureau Updates</div><div class="settings-desc">Share repayment history to build score</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+                  <div class="settings-row"><div class="settings-info"><div class="settings-label">Open Banking Access</div><div class="settings-desc">Allow PayMo to read transaction data</div></div><button class="btn btn-ghost btn-sm" data-modal="manageObConsentModal">Manage</button></div>
+                  <div class="settings-row"><div class="settings-info"><div class="settings-label">Third-party Partners</div><div class="settings-desc">Share data with insurance partners</div></div><label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label></div>
+                </div>
+              </div>
+              <div class="settings-panel">
+                <div class="settings-group">
+                  <div class="settings-group-header"><div class="settings-group-title">Your Rights</div></div>
+                  <div class="settings-row"><div class="settings-info"><div class="settings-label">Download Personal Data</div><div class="settings-desc">Get a copy of all your records in JSON/PDF</div></div><button class="btn btn-light btn-sm" data-modal="downloadDataModal">Download</button></div>
+                  <div class="settings-row"><div class="settings-info"><div class="settings-label">Marketing Opt-out</div><div class="settings-desc">Stop all promotional communications</div></div><button class="btn btn-ghost btn-sm" data-modal="optOutModal">Opt-out</button></div>
+                  <div class="settings-row"><div class="settings-info" style="color:var(--danger);"><div class="settings-label">Delete Account</div><div class="settings-desc">Permanently close and delete data</div></div><button class="btn btn-light btn-sm" style="color:var(--danger);" data-modal="deleteAccountModal">Request Deletion</button></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- ============ MODALS (20+) ============ -->
+
+  <div class="modal-backdrop" id="editAvatarModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Change Profile Picture</h3><div class="modal-sub">Update your public identity</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div style="border:2px dashed var(--border);border-radius:14px;padding:32px;text-align:center;background:var(--surface-2);"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5" style="margin-bottom:12px;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg><div>Drop photo here or click to upload</div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Profile picture updated">Save Photo</button></div></div></div>
+
+  <div class="modal-backdrop" id="editContactModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Edit Contact Details</h3><div class="modal-sub">Keep your information up to date</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field-row"><div class="field"><label class="field-label">First Name</label><input class="input" value="Jane"></div><div class="field"><label class="field-label">Last Name</label><input class="input" value="Wanjiru"></div></div><div class="field"><label class="field-label">Email Address</label><input class="input" value="jane.wanjiru@example.com"></div><div class="field"><label class="field-label">Phone Number</label><input class="input" value="+254 712 345 678"></div><div class="field"><label class="field-label">Residential Address</label><textarea class="textarea">Apt 4B, Riverside Heights, Nairobi, KE</textarea></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Contact details updated successfully">Save Changes</button></div></div></div>
+
+  <div class="modal-backdrop" id="updateIncomeModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Update Financial Profile</h3><div class="modal-sub">Changes will trigger a limit re-evaluation</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="alert info" style="margin-bottom:16px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg>Updating your income may increase your pre-approved loan limits.</div><div class="field-row"><div class="field"><label class="field-label">Monthly Gross Income</label><input class="input" value="245000"></div><div class="field"><label class="field-label">Currency</label><select class="select-field"><option>KES - Shilling</option><option>USD - Dollar</option></select></div></div><div class="field"><label class="field-label">Source of Income</label><select class="select-field"><option>Employment</option><option>Business</option><option>Investment</option></select></div><div class="field"><label class="field-label">Upload Proof (Recent Payslip/Bank Statement)</label><input class="input" type="file"></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Financial profile submitted for review">Update & Re-evaluate</button></div></div></div>
+
+  <div class="modal-backdrop" id="editEmploymentModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Employment Information</h3><div class="modal-sub">Verify your work status</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Employer Name</label><input class="input" value="Safaricom PLC"></div><div class="field"><label class="field-label">Job Title</label><input class="input" value="Senior Product Manager"></div><div class="field"><label class="field-label">Industry</label><select class="select-field"><option>Telecommunications</option><option>Technology</option><option>Finance</option></select></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Employment information updated">Save</button></div></div></div>
+
+  <div class="modal-backdrop" id="bankAccountsModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Linked Bank Accounts</h3><div class="modal-sub">Manage your funding sources</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="table-wrap"><table class="table"><thead><tr><th>Bank</th><th>Account</th><th>Status</th><th>Action</th></tr></thead><tbody><tr><td>Equity Bank</td><td>**** 4190</td><td><span class="badge success">Primary</span></td><td><button class="btn btn-light btn-sm" data-modal="bankAccountDetailModal">Manage</button></td></tr><tr><td>KCB Bank</td><td>**** 9271</td><td><span class="badge success">Verified</span></td><td><button class="btn btn-light btn-sm" data-modal="bankAccountDetailModal">Manage</button></td></tr></tbody></table></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button class="btn btn-primary" data-modal="addBankWizardModal">+ Link Bank</button></div></div></div>
+
+  <div class="modal-backdrop" id="addBankWizardModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Link New Bank Account</h3><div class="modal-sub">Secure connection via Open Banking</div></div><button class="modal-close" data-close>x</button></div><div class="stepper" id="bankStepper"><div class="step active"><div class="step-num">1</div>Bank</div><div class="step-line"></div><div class="step"><div class="step-num">2</div>Auth</div><div class="step-line"></div><div class="step"><div class="step-num">3</div>Verify</div><div class="step-line"></div><div class="step"><div class="step-num">4</div>Done</div></div><div class="modal-body"><div class="step-panel active" data-step="1"><div class="field"><label class="field-label">Search your bank</label><input class="input" placeholder="e.g. Absa, Stanbic..."></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;"><div class="bank-card"><div class="bank-icon">AB</div><strong>Absa Bank</strong></div><div class="bank-card"><div class="bank-icon">SB</div><strong>Stanbic Bank</strong></div></div></div><div class="step-panel" data-step="2"><div class="alert info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg>We'll redirect you to your bank's secure portal to authorize access.</div></div><div class="step-panel" data-step="3"><div class="field"><label class="field-label">Verify micro-deposit amount</label><div style="display:flex;gap:10px;"><input class="input" style="width:80px;" placeholder="0.00"><span style="margin-top:10px;">KES</span></div></div><div class="settings-desc">Check your statement for a small deposit from PayMo.</div></div><div class="step-panel" data-step="4"><div class="alert success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>Bank account linked and verified successfully!</div></div></div><div class="modal-footer"><button class="btn btn-light" id="bankBack" disabled>Back</button><button class="btn btn-primary" id="bankNext">Next</button></div></div></div>
+
+  <div class="modal-backdrop" id="bankAccountDetailModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Bank Account Details</h3><div class="modal-sub">Equity Bank · **** 4190</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">Account Name</div><div class="kv-val">JANE WANJIRU</div></div><div><div class="kv-label">Status</div><div class="kv-val"><span class="badge success">Verified</span></div></div><div><div class="kv-label">Auto-Debit</div><div class="kv-val">Enabled</div></div><div><div class="kv-label">Added On</div><div class="kv-val">12 Jan 2024</div></div></div></div><div class="modal-footer"><button class="btn btn-danger" data-result="Bank account unlinked">Unlink Account</button><div style="display:flex;gap:8px;"><button class="btn btn-light" data-close>Close</button><button class="btn btn-primary" data-result="Account set as primary">Set as Primary</button></div></div></div></div>
+
+  <div class="modal-backdrop" id="addCardModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Add New Card</h3><div class="modal-sub">Securely store for payments</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Card Number</label><input class="input" placeholder="0000 0000 0000 0000"></div><div class="field-row"><div class="field"><label class="field-label">Expiry</label><input class="input" placeholder="MM/YY"></div><div class="field"><label class="field-label">CVV</label><input class="input" type="password" placeholder="***"></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Card added successfully">Add Card</button></div></div></div>
+
+  <div class="modal-backdrop" id="cardDetailModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Card Details</h3><div class="modal-sub">Visa Corporate · **** 5501</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">Brand</div><div class="kv-val">Visa</div></div><div><div class="kv-label">Last 4</div><div class="kv-val">5501</div></div><div><div class="kv-label">Expiry</div><div class="kv-val">09/2027</div></div><div><div class="kv-label">Origin</div><div class="kv-val">Kenya</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-danger" data-result="Card removed">Remove Card</button><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="deliveryPrefModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Statement Delivery</h3><div class="modal-sub">Choose how you receive your documents</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><label class="choice-row selected"><input type="radio" name="deliv" checked><div><div class="choice-title">In-app Only</div><div class="choice-desc">Download from your dashboard</div></div></label><label class="choice-row"><input type="radio" name="deliv"><div><div class="choice-title">Email Attachment</div><div class="choice-desc">Encrypted PDF to your inbox</div></div></label><label class="choice-row"><input type="radio" name="deliv"><div><div class="choice-title">Postal Mail</div><div class="choice-desc">Physical copy (KES 500 fee)</div></div></label></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Delivery preferences updated">Save Prefs</button></div></div></div>
+
+  <div class="modal-backdrop" id="changePasswordModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Change Password</h3><div class="modal-sub">Use a strong, unique password</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Current Password</label><input class="input" type="password"></div><div class="field"><label class="field-label">New Password</label><input class="input" type="password"></div><div class="field"><label class="field-label">Confirm New Password</label><input class="input" type="password"></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Password changed successfully">Update Password</button></div></div></div>
+
+  <div class="modal-backdrop" id="changePinModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Update Transaction PIN</h3><div class="modal-sub">Required for loan disbursements</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">New 4-Digit PIN</label><div style="display:flex;gap:10px;justify-content:center;"><input class="input" style="width:50px;text-align:center;" maxlength="1" type="password"><input class="input" style="width:50px;text-align:center;" maxlength="1" type="password"><input class="input" style="width:50px;text-align:center;" maxlength="1" type="password"><input class="input" style="width:50px;text-align:center;" maxlength="1" type="password"></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="PIN updated successfully">Set PIN</button></div></div></div>
+
+  <div class="modal-backdrop" id="manage2faModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Manage 2FA</h3><div class="modal-sub">Add an extra layer of security</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="alert success" style="margin-bottom:14px;">App-based Authenticator is currently ACTIVE.</div><button class="btn btn-light" style="width:100%;" data-result="2FA recovery codes generated">Download Recovery Codes</button><button class="btn btn-danger" style="width:100%;margin-top:10px;" data-result="2FA disabled">Disable 2FA</button></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="logoutDeviceModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Logout Device?</h3><div class="modal-sub">Terminate session for MacBook Pro 14"</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><p>This will log the user out of this device immediately. They will need to re-authenticate to gain access.</p></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-danger" data-result="Device logged out">Logout Device</button></div></div></div>
+
+  <div class="modal-backdrop" id="loginHistoryModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Login History</h3><div class="modal-sub">Recent account access events</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><table class="table"><thead><tr><th>Device</th><th>Location</th><th>IP Address</th><th>Time</th></tr></thead><tbody><tr><td>iPhone 15 Pro</td><td>Nairobi, KE</td><td>197.248.x.x</td><td>Active now</td></tr><tr><td>MacBook Pro 14"</td><td>Nairobi, KE</td><td>197.248.x.x</td><td>Today 09:12</td></tr><tr><td>Chrome / Windows</td><td>Mombasa, KE</td><td>41.212.x.x</td><td>12 Feb 2026</td></tr></tbody></table></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button class="btn btn-danger" data-modal="logoutAllModal">Logout All Devices</button></div></div></div>
+
+  <div class="modal-backdrop" id="logoutAllModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Logout All Sessions?</h3><div class="modal-sub">Security global reset</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="alert danger">This will end every active session including your current one. Useful if you suspect account compromise.</div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-danger" data-result="All sessions terminated">Logout All</button></div></div></div>
+
+  <div class="modal-backdrop" id="suspendModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Suspend Account</h3><div class="modal-sub">Temporary pause on activity</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Duration</label><select class="select-field"><option>Until I log back in</option><option>24 Hours</option><option>7 Days</option><option>Indefinite</option></select></div><div class="field"><label class="field-label">Reason</label><textarea class="textarea" placeholder="Why are you suspending?"></textarea></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-danger" data-result="Account suspended. Log in to reactivate.">Confirm Suspension</button></div></div></div>
+
+  <div class="modal-backdrop" id="manageObConsentModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Open Banking Consent</h3><div class="modal-sub">Manage data shared with PayMo</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><table class="table"><thead><tr><th>Bank</th><th>Scope</th><th>Expires</th><th>Action</th></tr></thead><tbody><tr><td>Equity Bank</td><td>Read-only Balances</td><td>12 May 2026</td><td><button class="btn btn-ghost btn-sm" style="color:var(--danger);" data-result="Consent revoked">Revoke</button></td></tr><tr><td>KCB Bank</td><td>Full Transaction Hist</td><td>01 Apr 2026</td><td><button class="btn btn-ghost btn-sm" style="color:var(--danger);" data-result="Consent revoked">Revoke</button></td></tr></tbody></table></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="downloadDataModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Download My Data</h3><div class="modal-sub">Export your borrower record</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Format</label><select class="select-field"><option>JSON (Standard)</option><option>PDF Summary</option><option>CSV Ledger</option></select></div><label class="choice-row selected"><input type="checkbox" checked><div><div class="choice-title">Include loan documents</div><div class="choice-desc">Aggregated contracts and memos</div></div></label></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Data bundle generation started. You will be emailed.">Generate Export</button></div></div></div>
+
+  <div class="modal-backdrop" id="optOutModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Marketing Opt-out</h3><div class="modal-sub">We're sorry to see you go</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><p>Are you sure you want to stop receiving all promotional offers, rate drops, and pre-approval alerts?</p></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Marketing opt-out confirmed">Confirm Opt-out</button></div></div></div>
+
+  <div class="modal-backdrop" id="deleteAccountModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Delete Account?</h3><div class="modal-sub">This action is permanent</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="alert danger">Account deletion requires all active loans to be settled. Currently you have 1 active loan.</div><p style="margin-top:14px;">Once settled, deletion will permanently remove your profile and history from PayMo servers (except where legal retention is required).</p></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-danger" disabled>Request Deletion</button></div></div></div>
+
+  <div class="modal-backdrop" id="resultModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title" id="resultTitle">Success</h3><div class="modal-sub">PayMo Borrower Operations</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="alert success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg><span id="resultMessage">Action completed.</span></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Done</button></div></div></div>
+
+  <!-- Sidebar Nav Simple Modals -->
+  <div class="modal-backdrop" id="navHomeModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Borrower Home</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">Navigate to your dashboard to view active loans and repayments.</div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Go Home</button></div></div></div>
+  <div class="modal-backdrop" id="navLoansModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Your Loans</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">View active, pending, and settled loan facilities.</div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>View Loans</button></div></div></div>
+  <div class="modal-backdrop" id="navPayModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Payments</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">Make a repayment or view payment history.</div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Go to Payments</button></div></div></div>
+  <div class="modal-backdrop" id="navCreditModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Credit Score</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">Check your latest score and insights.</div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>View Score</button></div></div></div>
+  <div class="modal-backdrop" id="notificationsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Notifications</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">No unread notifications.</div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <script>
+    const sidebar = document.getElementById('sidebar');
+    document.getElementById('sidebarToggle').addEventListener('click', () => sidebar.classList.toggle('expanded'));
+    document.getElementById('mobileMenuBtn').addEventListener('click', () => sidebar.classList.toggle('mobile-open'));
+
+    function openModal(id) { const m = document.getElementById(id); if (m) m.classList.add('show'); }
+    function closeAll() { document.querySelectorAll('.modal-backdrop.show').forEach(m => m.classList.remove('show')); }
+    
+    document.addEventListener('click', e => {
+      if (e.target.closest('.toggle')) return;
+      const close = e.target.closest('[data-close]');
+      if (close) { e.preventDefault(); closeAll(); return; }
+      const result = e.target.closest('[data-result]');
+      if (result) { e.preventDefault(); setResult(result.dataset.result); return; }
+      const opener = e.target.closest('[data-modal]');
+      if (opener) { e.preventDefault(); openModal(opener.dataset.modal); }
+    });
+    
+    document.querySelectorAll('.modal-backdrop').forEach(b => b.addEventListener('click', e => { if (e.target === b) closeAll(); }));
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAll(); });
+
+    function setResult(message) {
+      closeAll();
+      document.getElementById('resultMessage').textContent = message;
+      openModal('resultModal');
+    }
+
+    function switchTab(name) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.dataset.panel === name));
+    }
+    document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => switchTab(tab.dataset.tab)));
+
+    document.querySelectorAll('.choice-row').forEach(row => {
+      row.addEventListener('click', () => {
+        const radio = row.querySelector('input[type="radio"]');
+        if (radio) {
+          document.querySelectorAll(`input[name="${radio.name}"]`).forEach(i => i.closest('.choice-row')?.classList.remove('selected'));
+          radio.checked = true;
+          row.classList.add('selected');
+        }
+        const checkbox = row.querySelector('input[type="checkbox"]');
+        if (checkbox && !radio) row.classList.toggle('selected', checkbox.checked);
+      });
+    });
+
+    function setupStepper(rootId, stepperId, backId, nextId, total, doneMessage) {
+      const root = document.getElementById(rootId);
+      if (!root) return;
+      let current = 1;
+      const render = () => {
+        document.querySelectorAll(`#${stepperId} .step`).forEach((s, i) => { s.classList.toggle('active', i + 1 === current); s.classList.toggle('done', i + 1 < current); });
+        root.querySelectorAll('.step-panel').forEach(p => p.classList.toggle('active', Number(p.dataset.step) === current));
+        document.getElementById(backId).disabled = current === 1;
+        document.getElementById(nextId).textContent = current === total ? 'Finish' : 'Next';
+      };
+      document.getElementById(backId).addEventListener('click', () => { if (current > 1) { current--; render(); } });
+      document.getElementById(nextId).addEventListener('click', () => { if (current < total) { current++; render(); } else { current = 1; render(); setResult(doneMessage); } });
+      render();
+    }
+    setupStepper('bankAddModal', 'bankStepper', 'bankBack', 'bankNext', 4, 'Bank account successfully linked');
+    setupStepper('bankAddWizardModal', 'bankStepper', 'bankBack', 'bankNext', 4, 'Bank account linked and verified');
+    setupStepper('addBankWizardModal', 'bankStepper', 'bankBack', 'bankNext', 4, 'Bank account linked and verified');
+
+  </script>
+</body>
+</html>

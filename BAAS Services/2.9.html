@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PayMo - Multi-Currency Treasury & Forex Operations</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="./master 2.8 copy.css">
+    <style>
+        .fx-anchor-nav {
+            position: sticky;
+            top: 86px;
+            background: #fff;
+            border: 1px solid var(--pm-border);
+            border-radius: var(--pm-r-md);
+            padding: 8px;
+            display: flex;
+            gap: 4px;
+            overflow-x: auto;
+            z-index: 40
+        }
+
+        .fx-anchor {
+            padding: 8px 13px;
+            border: 0;
+            background: transparent;
+            color: var(--pm-ink-soft);
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+            border-radius: 9px;
+            cursor: pointer;
+            font-family: var(--pm-font-sans)
+        }
+
+        .fx-anchor.active,
+        .fx-anchor:hover {
+            background: var(--pm-primary);
+            color: #fff
+        }
+
+        .fx-section {
+            scroll-margin-top: 170px
+        }
+
+        .fx-card-plane {
+            background: linear-gradient(135deg, #fff 0%, #faf7f3 100%);
+            border: 1px solid var(--pm-border);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: var(--pm-shadow-sm)
+        }
+
+        .fx-currency {
+            display: flex;
+            align-items: center;
+            gap: 12px
+        }
+
+        .fx-flag {
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 800;
+            font-family: var(--pm-font-display);
+            font-size: 12px;
+            box-shadow: var(--pm-shadow-md)
+        }
+
+        .fx-rate-tile {
+            padding: 14px;
+            border: 1px solid var(--pm-border);
+            border-radius: 14px;
+            background: #fff;
+            cursor: pointer;
+            transition: .2s
+        }
+
+        .fx-rate-tile:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--pm-shadow-md);
+            border-color: var(--pm-primary-light)
+        }
+
+        .fx-mini-chart {
+            height: 42px;
+            display: flex;
+            gap: 3px;
+            align-items: flex-end;
+            margin-top: 10px
+        }
+
+        .fx-mini-chart span {
+            flex: 1;
+            border-radius: 3px 3px 0 0;
+            background: var(--pm-primary);
+            opacity: .78
+        }
+
+        .fx-mini-chart.green span {
+            background: var(--pm-accent)
+        }
+
+        .fx-mini-chart.orange span {
+            background: var(--pm-warning)
+        }
+
+        .fx-hero-ledger {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-top: 18px
+        }
+
+        .fx-hero-ledger div {
+            padding: 12px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, .16);
+            border: 1px solid rgba(255, 255, 255, .22)
+        }
+
+        .fx-market-depth {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px
+        }
+
+        .fx-depth-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 7px 10px;
+            border-radius: 9px;
+            background: var(--pm-surface-2);
+            font-size: 12px;
+            margin-bottom: 5px
+        }
+
+        .fx-depth-row.bid {
+            border-left: 3px solid var(--pm-accent)
+        }
+
+        .fx-depth-row.ask {
+            border-left: 3px solid var(--pm-danger)
+        }
+
+        @media(max-width:900px) {
+
+            .fx-hero-ledger,
+            .fx-market-depth {
+                grid-template-columns: 1fr
+            }
+
+            .pm-4col {
+                grid-template-columns: 1fr !important
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="pm-app">
+        <aside class="pm-sidebar">
+            <div class="pm-sidebar-logo" onclick="openModal('about')">P</div>
+            <nav class="pm-sidebar-nav">
+                <button class="pm-nav-item" onclick="openModal('nav')" title="Home">H</button><button
+                    class="pm-nav-item" onclick="openModal('nav')" title="Transfers">T</button><button
+                    class="pm-nav-item active" title="Treasury">FX<span class="badge-dot"></span></button><button
+                    class="pm-nav-item" onclick="openModal('accounts')" title="Accounts">A</button><button
+                    class="pm-nav-item" onclick="openModal('beneficiary')" title="Payees">P</button><button
+                    class="pm-nav-item" onclick="openModal('cards')" title="Cards">C</button><button class="pm-nav-item"
+                    onclick="openModal('statements')" title="Statements">S</button><button class="pm-nav-item"
+                    onclick="openModal('limits')" title="Limits">L</button><button class="pm-nav-item"
+                    onclick="openModal('support')" title="Support">?</button>
+            </nav>
+        </aside>
+        <main class="pm-main">
+            <header class="pm-header">
+                <div class="pm-header-title">
+                    <h1>Multi-Currency Treasury & Forex</h1>
+                    <p>Thu, 09 Jan - 03:31 EAT - Kilimani Cafe Ltd - Business treasury workspace</p>
+                </div>
+                <div class="pm-header-search"><span class="pm-search-icon">/</span><input
+                        placeholder="Search currency, beneficiary, invoice, hedge, statement, alert..." /></div>
+                <div class="pm-header-actions"><button class="pm-header-btn" onclick="openModal('rateAlerts')">R<span
+                            class="counter">4</span></button><button class="pm-header-btn"
+                        onclick="openModal('approvals')">A<span class="counter">2</span></button><button
+                        class="pm-header-btn" onclick="openModal('marketWatch')">M</button><button
+                        class="pm-profile-btn" onclick="openModal('profile')">
+                        <div class="pm-avatar">KC</div>
+                        <div>
+                            <div class="pm-name">Kilimani Cafe</div>
+                            <div class="pm-role">Business owner</div>
+                        </div>
+                    </button></div>
+            </header>
+            <div class="pm-page-bar">
+                <div>
+                    <div class="pm-breadcrumb"><a href="#">My Business</a> / <a href="#">Treasury</a> / <strong>Forex
+                            Operations</strong></div>
+                    <h2 class="pm-page-title">Multi-Currency Treasury Command</h2>
+                    <p class="pm-page-subtitle">Hold, convert, hedge, pay overseas suppliers, reconcile FX gains, and
+                        protect your business from currency swings.</p>
+                </div>
+                <div class="pm-actions-group">
+                    <div class="pm-segmented"><button class="active" onclick="selectSegment(this)">Kilimani
+                            Cafe</button><button onclick="selectSegment(this)">Personal</button></div><button
+                        class="pm-btn" onclick="openModal('rateAlertWizard')">Create rate alert</button><button
+                        class="pm-btn" onclick="openModal('beneficiaryWizard')">Add beneficiary</button><button
+                        class="pm-btn pm-btn-primary" onclick="openModal('convertWizard')">Convert currency</button>
+                </div>
+            </div>
+            <div style="padding:0 32px;margin-top:12px">
+                <div class="fx-anchor-nav"><button class="fx-anchor active" onclick="goSec('s291')">2.9.1
+                        Snapshot</button><button class="fx-anchor" onclick="goSec('s292')">2.9.2
+                        Balances</button><button class="fx-anchor" onclick="goSec('s293')">2.9.3 Convert</button><button
+                        class="fx-anchor" onclick="goSec('s294')">2.9.4 Rates</button><button class="fx-anchor"
+                        onclick="goSec('s295')">2.9.5 Hedge</button><button class="fx-anchor"
+                        onclick="goSec('s296')">2.9.6 Pay Overseas</button><button class="fx-anchor"
+                        onclick="goSec('s297')">2.9.7 Reconcile</button><button class="fx-anchor"
+                        onclick="goSec('s298')">2.9.8 Controls</button><button class="fx-anchor"
+                        onclick="goSec('s299')">2.9.9 Forecast</button></div>
+            </div>
+            <section class="pm-content">
+                <div class="pm-hero">
+                    <div class="pm-hero-content">
+                        <div>
+                            <h2>Treasury for Kilimani Cafe <span class="pm-badge"
+                                    style="background:rgba(255,255,255,.18);color:#fff">Live FX - protected</span></h2>
+                            <p>Manage KES, USD, EUR, GBP, UGX, TZS, RWF, NGN and ZAR from one workspace. Rates are live,
+                                fees are shown before you click, and every foreign payment has a clear status.</p>
+                            <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap"><button class="pm-btn"
+                                    onclick="openModal('cashPosition')">View cash position</button><button
+                                    class="pm-btn" onclick="openModal('marketWatch')">Market watch</button><button
+                                    class="pm-btn pm-btn-primary" onclick="openModal('sendFxWizard')">Send overseas
+                                    payment</button></div>
+                        </div>
+                        <div class="pm-hero-metrics">
+                            <div class="pm-hero-metric">
+                                <div class="value">KES 5.84M</div>
+                                <div class="label">total equivalent</div>
+                            </div>
+                            <div class="pm-hero-metric">
+                                <div class="value">9</div>
+                                <div class="label">currencies</div>
+                            </div>
+                            <div class="pm-hero-metric">
+                                <div class="value">KES 42K</div>
+                                <div class="label">saved this month</div>
+                            </div>
+                            <div class="pm-hero-metric">
+                                <div class="value">3</div>
+                                <div class="label">hedges active</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="fx-hero-ledger">
+                        <div><strong>Next FX need</strong><br><span class="tiny" style="color:#fff">USD 4,800 coffee
+                                beans - Jan 16</span></div>
+                        <div><strong>Best rate now</strong><br><span class="tiny" style="color:#fff">USD/KES 156.42 -
+                                lock 20 min</span></div>
+                        <div><strong>Exposure</strong><br><span class="tiny" style="color:#fff">USD liability 61%, EUR
+                                22%</span></div>
+                        <div><strong>Protection</strong><br><span class="tiny" style="color:#fff">3 forwards cover 72%
+                                of known imports</span></div>
+                    </div>
+                </div>
+                <div id="s291" class="fx-section pm-card">
+                    <div class="pm-card-header">
+                        <div>
+                            <h3 class="pm-card-title">2.9.1 - Treasury Snapshot</h3>
+                            <p class="pm-card-subtitle">A user-friendly view of your balances, FX savings, upcoming
+                                needs, and exposure.</p>
+                        </div>
+                        <div class="pm-actions-group"><button class="pm-btn pm-btn-sm"
+                                onclick="openModal('cashPosition')">Full cash view</button><button
+                                class="pm-btn pm-btn-sm" onclick="openModal('treasuryHealth')">Treasury health</button>
+                        </div>
+                    </div>
+                    <div class="pm-kpi-grid">
+                        <div class="pm-kpi success">
+                            <div class="pm-kpi-header">
+                                <div class="pm-kpi-label">Total treasury value</div>
+                                <div class="pm-kpi-icon">KES</div>
+                            </div>
+                            <div class="pm-kpi-value">KES 5.84M</div>
+                            <div class="pm-kpi-change up">+6.8% vs last month</div>
+                            <div class="pm-kpi-meta">All currencies at live mid-market</div>
+                        </div>
+                        <div class="pm-kpi">
+                            <div class="pm-kpi-header">
+                                <div class="pm-kpi-label">Foreign currency held</div>
+                                <div class="pm-kpi-icon">FX</div>
+                            </div>
+                            <div class="pm-kpi-value">USD 18.4K</div>
+                            <div class="pm-kpi-change up">covers 39 days of imports</div>
+                            <div class="pm-kpi-meta">USD, EUR, GBP, TZS</div>
+                        </div>
+                        <div class="pm-kpi warning">
+                            <div class="pm-kpi-header">
+                                <div class="pm-kpi-label">Upcoming FX bills</div>
+                                <div class="pm-kpi-icon">INV</div>
+                            </div>
+                            <div class="pm-kpi-value">KES 1.12M</div>
+                            <div class="pm-kpi-change up">5 invoices due 30d</div>
+                            <div class="pm-kpi-meta">Coffee, equipment, software</div>
+                        </div>
+                        <div class="pm-kpi success">
+                            <div class="pm-kpi-header">
+                                <div class="pm-kpi-label">FX saved this month</div>
+                                <div class="pm-kpi-icon">SAVE</div>
+                            </div>
+                            <div class="pm-kpi-value">KES 42,180</div>
+                            <div class="pm-kpi-change up">by waiting for alerts</div>
+                            <div class="pm-kpi-meta">Compared to instant bank rates</div>
+                        </div>
+                        <div class="pm-kpi purple">
+                            <div class="pm-kpi-header">
+                                <div class="pm-kpi-label">Hedge coverage</div>
+                                <div class="pm-kpi-icon">H</div>
+                            </div>
+                            <div class="pm-kpi-value">72%</div>
+                            <div class="pm-kpi-change up">known import needs</div>
+                            <div class="pm-kpi-meta">3 active forward locks</div>
+                        </div>
+                        <div class="pm-kpi info">
+                            <div class="pm-kpi-header">
+                                <div class="pm-kpi-label">Avg conversion fee</div>
+                                <div class="pm-kpi-icon">%</div>
+                            </div>
+                            <div class="pm-kpi-value">0.62%</div>
+                            <div class="pm-kpi-change down">0.18% cheaper than last month</div>
+                            <div class="pm-kpi-meta">Transparent before approval</div>
+                        </div>
+                    </div>
+                </div>
+                <div id="s292" class="fx-section pm-card">
+                    <div class="pm-card-header">
+                        <div>
+                            <h3 class="pm-card-title">2.9.2 - Multi-Currency Balances & Wallets</h3>
+                            <p class="pm-card-subtitle">Hold balances by currency for imports, subscriptions, travel,
+                                and cross-border supplier payments.</p>
+                        </div>
+                        <div class="pm-actions-group"><button class="pm-btn pm-btn-sm"
+                                onclick="openModal('accountWizard')">Open currency wallet</button><button
+                                class="pm-btn pm-btn-sm" onclick="openModal('fundWallet')">Fund wallet</button></div>
+                    </div>
+                    <div class="pm-rule-grid">
+                        <div class="fx-card-plane" onclick="openModal('walletDetail')">
+                            <div class="fx-currency">
+                                <div class="fx-flag" style="background:#10b981">KES</div>
+                                <div><strong>Kenyan Shilling</strong>
+                                    <div class="tiny">Main operating wallet</div>
+                                </div>
+                            </div>
+                            <h2>KES 2,482,140</h2>
+                            <div class="pm-detail-row"><span class="pm-detail-key">30d inflow</span><span
+                                    class="pm-detail-val">KES 4.8M</span></div><button
+                                class="pm-btn pm-btn-sm">Manage</button>
+                        </div>
+                        <div class="fx-card-plane" onclick="openModal('walletDetail')">
+                            <div class="fx-currency">
+                                <div class="fx-flag" style="background:#4f46e5">USD</div>
+                                <div><strong>US Dollar</strong>
+                                    <div class="tiny">Coffee imports and SaaS</div>
+                                </div>
+                            </div>
+                            <h2>USD 18,420</h2>
+                            <div class="pm-detail-row"><span class="pm-detail-key">KES value</span><span
+                                    class="pm-detail-val">2.88M</span></div><button
+                                class="pm-btn pm-btn-sm">Manage</button>
+                        </div>
+                        <div class="fx-card-plane" onclick="openModal('walletDetail')">
+                            <div class="fx-currency">
+                                <div class="fx-flag" style="background:#8b5cf6">EUR</div>
+                                <div><strong>Euro</strong>
+                                    <div class="tiny">Equipment supplier</div>
+                                </div>
+                            </div>
+                            <h2>EUR 2,180</h2>
+                            <div class="pm-detail-row"><span class="pm-detail-key">KES value</span><span
+                                    class="pm-detail-val">371K</span></div><button
+                                class="pm-btn pm-btn-sm">Manage</button>
+                        </div>
+                        <div class="fx-card-plane" onclick="openModal('walletDetail')">
+                            <div class="fx-currency">
+                                <div class="fx-flag" style="background:#f59e0b">GBP</div>
+                                <div><strong>British Pound</strong>
+                                    <div class="tiny">Domain and training</div>
+                                </div>
+                            </div>
+                            <h2>GBP 640</h2>
+                            <div class="pm-detail-row"><span class="pm-detail-key">KES value</span><span
+                                    class="pm-detail-val">127K</span></div><button
+                                class="pm-btn pm-btn-sm">Manage</button>
+                        </div>
+                        <div class="fx-card-plane" onclick="openModal('walletDetail')">
+                            <div class="fx-currency">
+                                <div class="fx-flag" style="background:#ef4444">TZS</div>
+                                <div><strong>Tanzanian Shilling</strong>
+                                    <div class="tiny">Dar supplier</div>
+                                </div>
+                            </div>
+                            <h2>TZS 1.8M</h2>
+                            <div class="pm-detail-row"><span class="pm-detail-key">KES value</span><span
+                                    class="pm-detail-val">96K</span></div><button
+                                class="pm-btn pm-btn-sm">Manage</button>
+                        </div>
+                        <div class="fx-card-plane" onclick="openModal('accountWizard')">
+                            <div class="fx-currency">
+                                <div class="fx-flag" style="background:#64748b">+</div>
+                                <div><strong>Open another currency</strong>
+                                    <div class="tiny">UGX, RWF, NGN, ZAR, AED, CNY</div>
+                                </div>
+                            </div>
+                            <p class="tiny" style="margin-top:18px">Create a virtual currency wallet in seconds and
+                                receive local currency instructions.</p><button
+                                class="pm-btn pm-btn-primary pm-btn-sm">Open wallet</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="s293" class="fx-section pm-card">
+                    <div class="pm-card-header">
+                        <div>
+                            <h3 class="pm-card-title">2.9.3 - Convert Currency & Lock Quotes</h3>
+                            <p class="pm-card-subtitle">Transparent quotes, live spreads, fees, and a 20-minute lock
+                                before you approve.</p>
+                        </div>
+                        <div class="pm-actions-group"><button class="pm-btn pm-btn-sm"
+                                onclick="openModal('quoteCompare')">Compare rates</button><button
+                                class="pm-btn pm-btn-sm pm-btn-primary" onclick="openModal('convertWizard')">New
+                                conversion</button></div>
+                    </div>
+                    <div class="pm-2col">
+                        <div class="fx-card-plane">
+                            <h4 class="pm-section-title">Quick conversion</h4>
+                            <div class="pm-input-row">
+                                <div class="pm-form-group"><label class="pm-label">You sell</label><input
+                                        class="pm-input" value="KES 500,000"></div>
+                                <div class="pm-form-group"><label class="pm-label">You receive</label><input
+                                        class="pm-input" value="USD 3,190.39"></div>
+                            </div>
+                            <div class="pm-detail-row"><span class="pm-detail-key">Live rate</span><span
+                                    class="pm-detail-val">USD/KES 156.42</span></div>
+                            <div class="pm-detail-row"><span class="pm-detail-key">PayMo fee</span><span
+                                    class="pm-detail-val">KES 3,100 (0.62%)</span></div>
+                            <div class="pm-detail-row"><span class="pm-detail-key">Quote expiry</span><span
+                                    class="pm-detail-val"><span class="pm-badge warning"
+                                        id="quoteTimer">19:58</span></span></div><button class="pm-btn pm-btn-primary"
+                                onclick="openModal('convertWizard')"
+                                style="width:100%;justify-content:center;margin-top:12px">Lock and convert</button>
+                        </div>
+                        <div class="fx-card-plane">
+                            <h4 class="pm-section-title">Market depth for USD/KES</h4>
+                            <div class="fx-market-depth">
+                                <div><strong class="tiny">You sell USD</strong>
+                                    <div class="fx-depth-row bid"><span>156.36</span><span>USD 8K</span></div>
+                                    <div class="fx-depth-row bid"><span>156.32</span><span>USD 16K</span></div>
+                                    <div class="fx-depth-row bid"><span>156.25</span><span>USD 28K</span></div>
+                                </div>
+                                <div><strong class="tiny">You buy USD</strong>
+                                    <div class="fx-depth-row ask"><span>156.42</span><span>USD 12K</span></div>
+                                    <div class="fx-depth-row ask"><span>156.48</span><span>USD 20K</span></div>
+                                    <div class="fx-depth-row ask"><span>156.55</span><span>USD 40K</span></div>
+                                </div>
+                            </div>
+                            <div class="pm-alert" style="margin-top:12px">Tip: Your invoice is due in 7 days. PayMo
+                                suggests converting 60% now and leaving 40% on alert at 155.80.</div>
+                        </div>
+                    </div>
+                </div>
+                <div id="s294" class="fx-section pm-card">
+                    <div class="pm-card-header">
+                        <div>
+                            <h3 class="pm-card-title">2.9.4 - Live Rates, Alerts & Market Watch</h3>
+                            <p class="pm-card-subtitle">Monitor your most-used corridors and get alerts when a target
+                                rate arrives.</p>
+                        </div>
+                        <div class="pm-actions-group"><button class="pm-btn pm-btn-sm"
+                                onclick="openModal('rateAlertWizard')">New alert</button><button
+                                class="pm-btn pm-btn-sm" onclick="openModal('marketWatch')">Market notes</button></div>
+                    </div>
+                    <div class="pm-rule-grid">
+                        <div class="fx-rate-tile" onclick="openModal('ratePair')">
+                            <div class="pm-detail-row"><span class="pm-detail-key">USD/KES</span><span
+                                    class="pm-detail-val"><strong>156.42</strong></span></div><span
+                                class="pm-badge success">target 155.80 active</span>
+                            <div class="fx-mini-chart green"><span style="height:40%"></span><span
+                                    style="height:48%"></span><span style="height:38%"></span><span
+                                    style="height:62%"></span><span style="height:74%"></span><span
+                                    style="height:69%"></span><span style="height:86%"></span></div>
+                        </div>
+                        <div class="fx-rate-tile" onclick="openModal('ratePair')">
+                            <div class="pm-detail-row"><span class="pm-detail-key">EUR/KES</span><span
+                                    class="pm-detail-val"><strong>170.18</strong></span></div><span
+                                class="pm-badge warning">watching</span>
+                            <div class="fx-mini-chart orange"><span style="height:62%"></span><span
+                                    style="height:58%"></span><span style="height:70%"></span><span
+                                    style="height:50%"></span><span style="height:44%"></span><span
+                                    style="height:48%"></span><span style="height:52%"></span></div>
+                        </div>
+                        <div class="fx-rate-tile" onclick="openModal('ratePair')">
+                            <div class="pm-detail-row"><span class="pm-detail-key">GBP/KES</span><span
+                                    class="pm-detail-val"><strong>198.44</strong></span></div><span
+                                class="pm-badge success">below avg</span>
+                            <div class="fx-mini-chart green"><span style="height:80%"></span><span
+                                    style="height:65%"></span><span style="height:58%"></span><span
+                                    style="height:49%"></span><span style="height:44%"></span><span
+                                    style="height:38%"></span><span style="height:34%"></span></div>
+                        </div>
+                        <div class="fx-rate-tile" onclick="openModal('ratePair')">
+                            <div class="pm-detail-row"><span class="pm-detail-key">TZS/KES</span><span
+                                    class="pm-detail-val"><strong>0.0534</strong></span></div><span
+                                class="pm-badge">stable</span>
+                            <div class="fx-mini-chart"><span style="height:50%"></span><span
+                                    style="height:48%"></span><span style="height:49%"></span><span
+                                    style="height:52%"></span><span style="height:51%"></span><span
+                                    style="height:50%"></span><span style="height:50%"></span></div>
+                        </div>
+                        <div class="fx-rate-tile" onclick="openModal('ratePair')">
+                            <div class="pm-detail-row"><span class="pm-detail-key">UGX/KES</span><span
+                                    class="pm-detail-val"><strong>0.0421</strong></span></div><span
+                                class="pm-badge">stable</span>
+                            <div class="fx-mini-chart"><span style="height:42%"></span><span
+                                    style="height:44%"></span><span style="height:45%"></span><span
+                                    style="height:43%"></span><span style="height:47%"></span><span
+                                    style="height:45%"></span><span style="height:46%"></span></div>
+                        </div>
+                        <div class="fx-rate-tile" onclick="openModal('rateAlertWizard')">
+                            <div class="pm-detail-row"><span class="pm-detail-key">Create custom watch</span><span
+                                    class="pm-detail-val">+</span></div>
+                            <p class="tiny">Set alerts for RWF, ZAR, AED, CNY or your next invoice currency.</p><button
+                                class="pm-btn pm-btn-sm">Create alert</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="s295" class="fx-section pm-card">
+                    <div class="pm-card-header">
+                        <div>
+                            <h3 class="pm-card-title">2.9.5 - Hedge Upcoming Supplier Costs</h3>
+                            <p class="pm-card-subtitle">Lock future exchange rates for coffee imports, equipment,
+                                subscriptions, and travel.</p>
+                        </div>
+                        <div class="pm-actions-group"><button class="pm-btn pm-btn-sm"
+                                onclick="openModal('hedgeWizard')">Create hedge</button><button class="pm-btn pm-btn-sm"
+                                onclick="openModal('hedgeAdvisor')">Hedge advisor</button></div>
+                    </div>
+                    <div class="pm-table-wrap">
+                        <table class="pm-table">
+                            <thead>
+                                <tr>
+                                    <th>Need</th>
+                                    <th>Currency</th>
+                                    <th>Due</th>
+                                    <th>Amount</th>
+                                    <th>Locked rate</th>
+                                    <th>Coverage</th>
+                                    <th>Projected saving</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Coffee beans - Rwanda lot</td>
+                                    <td>USD</td>
+                                    <td>Jan 16</td>
+                                    <td><strong>USD 4,800</strong></td>
+                                    <td>155.90</td>
+                                    <td><span class="pm-badge success">80% hedged</span></td>
+                                    <td>KES 18,400</td>
+                                    <td><button class="pm-btn pm-btn-sm"
+                                            onclick="openModal('hedgeDetail')">Manage</button></td>
+                                </tr>
+                                <tr>
+                                    <td>Espresso machine spare parts</td>
+                                    <td>EUR</td>
+                                    <td>Jan 28</td>
+                                    <td><strong>EUR 2,100</strong></td>
+                                    <td>169.80</td>
+                                    <td><span class="pm-badge warning">50% hedged</span></td>
+                                    <td>KES 6,200</td>
+                                    <td><button class="pm-btn pm-btn-sm"
+                                            onclick="openModal('hedgeDetail')">Manage</button></td>
+                                </tr>
+                                <tr>
+                                    <td>POS software</td>
+                                    <td>GBP</td>
+                                    <td>Feb 05</td>
+                                    <td><strong>GBP 640</strong></td>
+                                    <td>none</td>
+                                    <td><span class="pm-badge ghost">open exposure</span></td>
+                                    <td>-</td>
+                                    <td><button class="pm-btn pm-btn-sm"
+                                            onclick="openModal('hedgeWizard')">Protect</button></td>
+                                </tr>
+                                <tr>
+                                    <td>Dar packaging supplier</td>
+                                    <td>TZS</td>
+                                    <td>Feb 11</td>
+                                    <td><strong>TZS 3.2M</strong></td>
+                                    <td>0.0531</td>
+                                    <td><span class="pm-badge success">100% hedged</span></td>
+                                    <td>KES 3,800</td>
+                                    <td><button class="pm-btn pm-btn-sm"
+                                            onclick="openModal('hedgeDetail')">Manage</button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div id="s296" class="fx-section pm-card">
+                    <div class="pm-card-header">
+                        <div>
+                            <h3 class="pm-card-title">2.9.6 - Cross-Border Payments & Beneficiaries</h3>
+                            <p class="pm-card-subtitle">Pay suppliers in their local currency with fee visibility,
+                                delivery timing, and compliance checks shown upfront.</p>
+                        </div>
+                        <div class="pm-actions-group"><button class="pm-btn pm-btn-sm"
+                                onclick="openModal('beneficiaryWizard')">Add beneficiary</button><button
+                                class="pm-btn pm-btn-sm pm-btn-primary" onclick="openModal('sendFxWizard')">Send
+                                payment</button></div>
+                    </div>
+                    <div class="pm-tabs"><button class="pm-tab active" onclick="tab(this)">Suppliers <span
+                                class="pm-tab-count">8</span></button><button class="pm-tab"
+                            onclick="tab(this)">Subscriptions <span class="pm-tab-count">4</span></button><button
+                            class="pm-tab" onclick="tab(this)">Travel <span
+                                class="pm-tab-count">2</span></button><button class="pm-tab" onclick="tab(this)">Pending
+                            review <span class="pm-tab-count">1</span></button></div>
+                    <div class="pm-table-wrap">
+                        <table class="pm-table">
+                            <thead>
+                                <tr>
+                                    <th>Beneficiary</th>
+                                    <th>Country</th>
+                                    <th>Currency</th>
+                                    <th>Method</th>
+                                    <th>Last paid</th>
+                                    <th>Typical amount</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <div class="pm-entity">
+                                            <div class="pm-entity-avatar" style="background:#4f46e5">RC</div>
+                                            <div>
+                                                <div class="pm-entity-name">Rwanda Coffee Collective</div>
+                                                <div class="pm-entity-sub">Green beans supplier</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>Rwanda</td>
+                                    <td>USD / RWF</td>
+                                    <td>PAPSS / SWIFT</td>
+                                    <td>Dec 19</td>
+                                    <td>USD 4,800</td>
+                                    <td><span class="pm-badge success">Verified</span></td>
+                                    <td><button class="pm-btn pm-btn-sm"
+                                            onclick="openModal('sendFxWizard')">Pay</button></td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="pm-entity">
+                                            <div class="pm-entity-avatar" style="background:#10b981">DC</div>
+                                            <div>
+                                                <div class="pm-entity-name">Dar Cup Packaging</div>
+                                                <div class="pm-entity-sub">Cups and bags</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>Tanzania</td>
+                                    <td>TZS</td>
+                                    <td>Mobile money</td>
+                                    <td>Jan 02</td>
+                                    <td>TZS 3.2M</td>
+                                    <td><span class="pm-badge success">Verified</span></td>
+                                    <td><button class="pm-btn pm-btn-sm"
+                                            onclick="openModal('sendFxWizard')">Pay</button></td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="pm-entity">
+                                            <div class="pm-entity-avatar" style="background:#8b5cf6">EM</div>
+                                            <div>
+                                                <div class="pm-entity-name">Espresso Milano SRL</div>
+                                                <div class="pm-entity-sub">Parts supplier</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>Italy</td>
+                                    <td>EUR</td>
+                                    <td>SWIFT</td>
+                                    <td>Nov 28</td>
+                                    <td>EUR 2,100</td>
+                                    <td><span class="pm-badge success">Verified</span></td>
+                                    <td><button class="pm-btn pm-btn-sm"
+                                            onclick="openModal('sendFxWizard')">Pay</button></td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="pm-entity">
+                                            <div class="pm-entity-avatar" style="background:#f59e0b">LH</div>
+                                            <div>
+                                                <div class="pm-entity-name">London Hospitality Training</div>
+                                                <div class="pm-entity-sub">Barista course</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>UK</td>
+                                    <td>GBP</td>
+                                    <td>Card / SWIFT</td>
+                                    <td>Never</td>
+                                    <td>GBP 640</td>
+                                    <td><span class="pm-badge warning">Review</span></td>
+                                    <td><button class="pm-btn pm-btn-sm"
+                                            onclick="openModal('beneficiaryReview')">Review</button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div id="s297" class="fx-section pm-card">
+                    <div class="pm-card-header">
+                        <div>
+                            <h3 class="pm-card-title">2.9.7 - Reconciliation, FX Gains & Statements</h3>
+                            <p class="pm-card-subtitle">Match invoices to payments, see realized FX gains/losses, and
+                                download accountant-ready reports.</p>
+                        </div>
+                        <div class="pm-actions-group"><button class="pm-btn pm-btn-sm"
+                                onclick="openModal('reconcileWizard')">Reconcile invoice</button><button
+                                class="pm-btn pm-btn-sm" onclick="openModal('statements')">Download statements</button>
+                        </div>
+                    </div>
+                    <div class="pm-2col">
+                        <div class="fx-card-plane">
+                            <h4 class="pm-section-title">FX result this month</h4>
+                            <div class="pm-detail-row"><span class="pm-detail-key">Realized FX gain</span><span
+                                    class="pm-detail-val" style="color:var(--pm-accent)">KES 28,420</span></div>
+                            <div class="pm-detail-row"><span class="pm-detail-key">Unrealized FX movement</span><span
+                                    class="pm-detail-val" style="color:var(--pm-warning)">KES -6,280</span></div>
+                            <div class="pm-detail-row"><span class="pm-detail-key">Fees paid</span><span
+                                    class="pm-detail-val">KES 14,810</span></div>
+                            <div class="pm-detail-row"><span class="pm-detail-key">Net benefit vs bank quote</span><span
+                                    class="pm-detail-val" style="color:var(--pm-accent)">KES 42,180</span></div>
+                        </div>
+                        <div class="fx-card-plane">
+                            <h4 class="pm-section-title">Invoice matching</h4>
+                            <div class="pm-bar-row">
+                                <div class="pm-bar-label"><span class="pm-bar-name">Matched automatically</span><span
+                                        class="pm-bar-val">82%</span></div>
+                                <div class="pm-bar-bg">
+                                    <div class="pm-bar-fill success" style="width:82%"></div>
+                                </div>
+                            </div>
+                            <div class="pm-bar-row">
+                                <div class="pm-bar-label"><span class="pm-bar-name">Needs your review</span><span
+                                        class="pm-bar-val">4 invoices</span></div>
+                                <div class="pm-bar-bg">
+                                    <div class="pm-bar-fill warning" style="width:18%"></div>
+                                </div>
+                            </div><button class="pm-btn pm-btn-primary" onclick="openModal('reconcileWizard')">Resolve
+                                unmatched</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="s298" class="fx-section pm-card">
+                    <div class="pm-card-header">
+                        <div>
+                            <h3 class="pm-card-title">2.9.8 - User Controls, Approval Rules & Compliance Documents</h3>
+                            <p class="pm-card-subtitle">Business-friendly controls: who can convert, who can send
+                                overseas, and what documents suppliers need.</p>
+                        </div>
+                        <div class="pm-actions-group"><button class="pm-btn pm-btn-sm"
+                                onclick="openModal('approvalRules')">Edit approval rules</button><button
+                                class="pm-btn pm-btn-sm" onclick="openModal('documents')">Documents</button></div>
+                    </div>
+                    <div class="pm-rule-grid">
+                        <div class="pm-rule-card" onclick="openModal('approvalRules')">
+                            <div class="pm-rule-header">
+                                <div class="pm-rule-name">Conversion approvals</div><span
+                                    class="pm-badge success">Active</span>
+                            </div>
+                            <div class="pm-rule-desc">Nadia can convert up to KES 250,000. Anything above requires
+                                Peter's approval.</div>
+                            <div class="pm-rule-meta"><span>2 approvers</span><span>Edit</span></div>
+                        </div>
+                        <div class="pm-rule-card" onclick="openModal('limits')">
+                            <div class="pm-rule-header">
+                                <div class="pm-rule-name">Cross-border limits</div><span
+                                    class="pm-badge warning">Review</span>
+                            </div>
+                            <div class="pm-rule-desc">USD equivalent 10,000/month before extra source-of-funds document
+                                is requested.</div>
+                            <div class="pm-rule-meta"><span>Used 48%</span><span>Change</span></div>
+                        </div>
+                        <div class="pm-rule-card" onclick="openModal('documents')">
+                            <div class="pm-rule-header">
+                                <div class="pm-rule-name">Supplier documents</div><span
+                                    class="pm-badge success">Complete</span>
+                            </div>
+                            <div class="pm-rule-desc">4 verified overseas suppliers have invoices, contracts, and
+                                beneficiary proof on file.</div>
+                            <div class="pm-rule-meta"><span>8 files</span><span>Open</span></div>
+                        </div>
+                        <div class="pm-rule-card" onclick="openModal('travelMode')">
+                            <div class="pm-rule-header">
+                                <div class="pm-rule-name">Travel mode</div><span class="pm-badge ghost">Off</span>
+                            </div>
+                            <div class="pm-rule-desc">Pre-approve card and FX usage when you travel for sourcing or
+                                conferences.</div>
+                            <div class="pm-rule-meta"><span>Next trip: none</span><span>Set</span></div>
+                        </div>
+                    </div>
+                </div>
+                <div id="s299" class="fx-section pm-card">
+                    <div class="pm-card-header">
+                        <div>
+                            <h3 class="pm-card-title">2.9.9 - Forecasts, Recommendations & Treasury Calendar</h3>
+                            <p class="pm-card-subtitle">PayMo learns your business cycles and suggests when to convert,
+                                hold, hedge, or pay.</p>
+                        </div>
+                        <div class="pm-actions-group"><button class="pm-btn pm-btn-sm"
+                                onclick="openModal('advisor')">Open advisor</button><button class="pm-btn pm-btn-sm"
+                                onclick="openModal('calendar')">Calendar</button></div>
+                    </div>
+                    <div class="pm-table-wrap">
+                        <table class="pm-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Need</th>
+                                    <th>Currency</th>
+                                    <th>Expected amount</th>
+                                    <th>Recommendation</th>
+                                    <th>Savings estimate</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Jan 16</td>
+                                    <td>Rwanda coffee beans</td>
+                                    <td>USD</td>
+                                    <td>USD 4,800</td>
+                                    <td>Convert 60% today, keep 40% alert at 155.80</td>
+                                    <td>KES 12K-22K</td>
+                                    <td><button class="pm-btn pm-btn-sm" onclick="openModal('advisor')">Act</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Jan 28</td>
+                                    <td>Espresso spare parts</td>
+                                    <td>EUR</td>
+                                    <td>EUR 2,100</td>
+                                    <td>Top up EUR wallet when rate dips below 169.40</td>
+                                    <td>KES 4K-8K</td>
+                                    <td><button class="pm-btn pm-btn-sm"
+                                            onclick="openModal('rateAlertWizard')">Alert</button></td>
+                                </tr>
+                                <tr>
+                                    <td>Feb 05</td>
+                                    <td>POS software renewal</td>
+                                    <td>GBP</td>
+                                    <td>GBP 640</td>
+                                    <td>Buy GBP now; below 60-day average</td>
+                                    <td>KES 2K</td>
+                                    <td><button class="pm-btn pm-btn-sm"
+                                            onclick="openModal('convertWizard')">Convert</button></td>
+                                </tr>
+                                <tr>
+                                    <td>Feb 11</td>
+                                    <td>Dar packaging</td>
+                                    <td>TZS</td>
+                                    <td>TZS 3.2M</td>
+                                    <td>Already covered by forward lock</td>
+                                    <td>KES 3.8K</td>
+                                    <td><button class="pm-btn pm-btn-sm"
+                                            onclick="openModal('hedgeDetail')">View</button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="pm-card" style="padding:20px;background:var(--pm-surface-2);margin-top:20px">
+                        <div style="display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap">
+                            <div class="tiny">PayMo Treasury for Kilimani Cafe - live rates, wallet balances, supplier
+                                payments, hedges, and accountant-ready FX reporting.</div>
+                            <div class="tiny">Support: treasury@paymo.co.ke - 24/7 FX desk - Nairobi, Kenya</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script>
+        const modalData = { convertWizard: { title: 'Convert currency - 4 step quote lock', sub: 'Lock a transparent quote before you convert. You see the rate, fee, delivery wallet, and final amount first.', size: 'lg', steps: ['Amount', 'Quote', 'Approval', 'Done'], body: `<div class="pm-2col"><div><h4 class="pm-section-title">Step 1 - Amount</h4><div class="pm-form-group"><label class="pm-label">From wallet</label><select class="pm-select"><option>KES operating wallet - KES 2,482,140</option><option>USD wallet - USD 18,420</option><option>EUR wallet - EUR 2,180</option></select></div><div class="pm-form-group"><label class="pm-label">You sell</label><input class="pm-input" value="KES 500,000"></div><div class="pm-form-group"><label class="pm-label">You receive</label><input class="pm-input" value="USD 3,190.39"></div></div><div><h4 class="pm-section-title">Step 2 - Quote</h4><div class="pm-detail-row"><span class="pm-detail-key">Live rate</span><span class="pm-detail-val">156.42 USD/KES</span></div><div class="pm-detail-row"><span class="pm-detail-key">PayMo fee</span><span class="pm-detail-val">KES 3,100 (0.62%)</span></div><div class="pm-detail-row"><span class="pm-detail-key">Bank comparison</span><span class="pm-detail-val" style="color:var(--pm-accent)">Save approx KES 5,840</span></div><div class="pm-detail-row"><span class="pm-detail-key">Quote lock</span><span class="pm-detail-val"><span class="pm-badge warning">20 minutes</span></span></div><div class="pm-alert success">The USD will arrive in your USD wallet instantly after approval.</div></div></div><h4 class="pm-section-title" style="margin-top:16px">Step 3 - Approval</h4><div class="pm-check-row selected"><input type="checkbox" checked><span class="pm-label">I understand this conversion is final once executed.</span></div><div class="pm-check-row selected"><input type="checkbox" checked><span class="pm-label">Notify Peter if this conversion exceeds KES 250,000.</span></div>`, footer: `<button class="pm-btn" onclick="openModal('quoteCompare')">Compare rates</button><div class="pm-modal-footer-right"><button class="pm-btn" onclick="closeAllModals()">Cancel</button><button class="pm-btn pm-btn-primary" onclick="doAction()">Lock and convert</button></div>` }, sendFxWizard: { title: 'Send overseas payment - supplier flow', sub: 'Pay a foreign supplier from your currency wallet or convert on the way.', size: 'lg', steps: ['Beneficiary', 'Amount', 'Documents', 'Review', 'Send'], body: `<h4 class="pm-section-title">Step 1 - Beneficiary</h4><div class="pm-form-group"><label class="pm-label">Supplier</label><select class="pm-select"><option>Rwanda Coffee Collective - Rwanda - verified</option><option>Dar Cup Packaging - Tanzania - verified</option><option>Espresso Milano SRL - Italy - verified</option></select></div><h4 class="pm-section-title">Step 2 - Amount and route</h4><div class="pm-input-row"><div class="pm-form-group"><label class="pm-label">Send</label><input class="pm-input" value="USD 4,800"></div><div class="pm-form-group"><label class="pm-label">Source</label><select class="pm-select"><option>USD wallet - no conversion</option><option>KES wallet - convert now</option></select></div></div><div class="pm-detail-row"><span class="pm-detail-key">Route</span><span class="pm-detail-val">PAPSS if local RWF accepted, otherwise SWIFT same day</span></div><div class="pm-detail-row"><span class="pm-detail-key">PayMo fee</span><span class="pm-detail-val">USD 8.00</span></div><div class="pm-detail-row"><span class="pm-detail-key">Expected delivery</span><span class="pm-detail-val">Today before 17:00 EAT</span></div><h4 class="pm-section-title">Step 3 - Documents</h4><div class="pm-check-row selected"><input type="checkbox" checked><span class="pm-label">Invoice RCC-2026-011 uploaded and matched.</span></div><div class="pm-check-row selected"><input type="checkbox" checked><span class="pm-label">Beneficiary proof on file.</span></div><div class="pm-alert success">Everything needed is complete. This payment is ready to send.</div>`, footer: `<button class="pm-btn" onclick="openModal('beneficiary')">View beneficiary</button><div class="pm-modal-footer-right"><button class="pm-btn" onclick="closeAllModals()">Save draft</button><button class="pm-btn pm-btn-primary" onclick="doAction()">Send payment</button></div>` }, rateAlertWizard: { title: 'Create rate alert', sub: 'Tell PayMo your ideal rate and we will notify you instantly when the market reaches it.', size: 'sm', steps: ['Pair', 'Target', 'Action'], body: `<div class="pm-form-group"><label class="pm-label">Currency pair</label><select class="pm-select"><option>USD/KES</option><option>EUR/KES</option><option>GBP/KES</option><option>TZS/KES</option></select></div><div class="pm-form-group"><label class="pm-label">Target rate</label><input class="pm-input" value="155.80"></div><div class="pm-form-group"><label class="pm-label">When target is hit</label><select class="pm-select"><option>Notify me only</option><option>Reserve quote for 20 minutes</option><option>Auto-convert up to KES 250,000</option></select></div><div class="pm-check-row selected"><input type="checkbox" checked><span class="pm-label">SMS + push notification to Nadia.</span></div>`, footer: `<div class="pm-modal-footer-right"><button class="pm-btn" onclick="closeAllModals()">Cancel</button><button class="pm-btn pm-btn-primary" onclick="doAction()">Create alert</button></div>` }, hedgeWizard: { title: 'Create a hedge for future FX bills', sub: 'Lock a rate for a known upcoming supplier invoice, without converting all your cash today.', size: 'lg', steps: ['Invoice', 'Coverage', 'Rate', 'Confirm'], body: `<div class="pm-2col"><div><h4 class="pm-section-title">Invoice</h4><div class="pm-form-group"><label class="pm-label">Upcoming need</label><select class="pm-select"><option>GBP 640 - POS software - Feb 05</option><option>EUR 2,100 - Espresso parts - Jan 28</option><option>USD 4,800 - coffee beans - Jan 16</option></select></div><div class="pm-form-group"><label class="pm-label">Protect amount</label><input class="pm-input" value="GBP 640"></div><div class="pm-form-group"><label class="pm-label">Due date</label><input class="pm-input" value="Feb 05, 2026"></div></div><div><h4 class="pm-section-title">Suggested lock</h4><div class="pm-detail-row"><span class="pm-detail-key">Spot rate</span><span class="pm-detail-val">198.44</span></div><div class="pm-detail-row"><span class="pm-detail-key">Forward rate</span><span class="pm-detail-val">198.82</span></div><div class="pm-detail-row"><span class="pm-detail-key">Coverage</span><span class="pm-detail-val">100%</span></div><div class="pm-detail-row"><span class="pm-detail-key">Deposit needed</span><span class="pm-detail-val">KES 12,700</span></div><div class="pm-alert">This protects you if GBP gets more expensive before Feb 05.</div></div></div>`, footer: `<button class="pm-btn" onclick="openModal('hedgeAdvisor')">Get advice</button><div class="pm-modal-footer-right"><button class="pm-btn" onclick="closeAllModals()">Cancel</button><button class="pm-btn pm-btn-primary" onclick="doAction()">Lock hedge</button></div>` }, accountWizard: { title: 'Open a new currency wallet', sub: 'Create a virtual wallet for a new currency.', size: 'sm', steps: ['Currency', 'Purpose', 'Open'], body: `<div class="pm-form-group"><label class="pm-label">Currency</label><select class="pm-select"><option>UGX - Ugandan Shilling</option><option>RWF - Rwandan Franc</option><option>NGN - Nigerian Naira</option><option>ZAR - South African Rand</option><option>AED - UAE Dirham</option><option>CNY - Chinese Yuan</option></select></div><div class="pm-form-group"><label class="pm-label">Purpose</label><select class="pm-select"><option>Pay overseas suppliers</option><option>Receive foreign payments</option><option>Travel and card spend</option><option>Hold savings in currency</option></select></div><div class="pm-alert success">This wallet will appear on your dashboard instantly.</div>`, footer: `<div class="pm-modal-footer-right"><button class="pm-btn" onclick="closeAllModals()">Cancel</button><button class="pm-btn pm-btn-primary" onclick="doAction()">Open wallet</button></div>` }, reconcileWizard: { title: 'Reconcile an FX invoice', sub: 'Match a supplier invoice to a payment and record FX gains or losses.', size: 'lg', steps: ['Invoice', 'Payment', 'FX result', 'Export'], body: `<div class="pm-table-wrap"><table class="pm-table"><thead><tr><th>Invoice</th><th>Supplier</th><th>Expected</th><th>Payment</th><th>Difference</th></tr></thead><tbody><tr><td>RCC-2026-011</td><td>Rwanda Coffee Collective</td><td>USD 4,800</td><td>USD 4,800</td><td><span class="pm-badge success">Matched</span></td></tr><tr><td>EM-2214</td><td>Espresso Milano</td><td>EUR 2,100</td><td>EUR 2,097.50</td><td><span class="pm-badge warning">EUR 2.50 short</span></td></tr></tbody></table></div><h4 class="pm-section-title" style="margin-top:16px">Accounting result</h4><div class="pm-detail-row"><span class="pm-detail-key">Rate at invoice date</span><span class="pm-detail-val">USD/KES 157.10</span></div><div class="pm-detail-row"><span class="pm-detail-key">Rate at payment date</span><span class="pm-detail-val">USD/KES 155.90</span></div><div class="pm-detail-row"><span class="pm-detail-key">Realized FX gain</span><span class="pm-detail-val" style="color:var(--pm-accent)">KES 5,760</span></div>`, footer: `<button class="pm-btn" onclick="openModal('statements')">Download report</button><div class="pm-modal-footer-right"><button class="pm-btn" onclick="closeAllModals()">Close</button><button class="pm-btn pm-btn-primary" onclick="doAction()">Mark reconciled</button></div>` }, beneficiaryWizard: { title: 'Add overseas beneficiary', sub: 'Save verified supplier bank or mobile wallet details for repeat payments.', size: 'lg', steps: ['Identity', 'Bank details', 'Documents', 'Verify'], body: `<div class="pm-2col"><div><div class="pm-form-group"><label class="pm-label">Supplier name</label><input class="pm-input" value="London Hospitality Training"></div><div class="pm-form-group"><label class="pm-label">Country</label><select class="pm-select"><option>United Kingdom</option><option>Rwanda</option><option>Tanzania</option><option>Italy</option></select></div><div class="pm-form-group"><label class="pm-label">Currency</label><select class="pm-select"><option>GBP</option><option>USD</option><option>EUR</option></select></div></div><div><div class="pm-form-group"><label class="pm-label">Bank / method</label><input class="pm-input" value="Barclays UK - SWIFT BARCGB22"></div><div class="pm-form-group"><label class="pm-label">IBAN / account</label><input class="pm-input" value="GB29 BARC 2004 5155 1234 56"></div><div class="pm-form-group"><label class="pm-label">Purpose</label><select class="pm-select"><option>Training services</option><option>Goods import</option><option>Software subscription</option></select></div></div></div><div class="pm-alert">Upload invoice or contract if this supplier will receive over USD 10,000 equivalent per month.</div>`, footer: `<div class="pm-modal-footer-right"><button class="pm-btn" onclick="closeAllModals()">Save draft</button><button class="pm-btn pm-btn-primary" onclick="doAction()">Verify beneficiary</button></div>` } };
+        Object.assign(modalData, { cashPosition: { title: 'Full cash position', sub: 'All wallets converted to KES at the current live rate.', size: 'lg', body: `<div class="pm-table-wrap"><table class="pm-table"><thead><tr><th>Currency</th><th>Balance</th><th>KES value</th><th>30d change</th><th>Best use</th></tr></thead><tbody><tr><td>KES</td><td>KES 2,482,140</td><td>KES 2,482,140</td><td>+8%</td><td>Payroll, rent, utilities</td></tr><tr><td>USD</td><td>USD 18,420</td><td>KES 2,881,256</td><td>+12%</td><td>Coffee imports, SaaS</td></tr><tr><td>EUR</td><td>EUR 2,180</td><td>KES 370,992</td><td>-4%</td><td>Machine parts</td></tr><tr><td>GBP</td><td>GBP 640</td><td>KES 127,002</td><td>+2%</td><td>Training, domains</td></tr><tr><td>TZS</td><td>TZS 1,800,000</td><td>KES 96,120</td><td>+0%</td><td>Dar packaging</td></tr></tbody></table></div>`, footer: `<div class="pm-modal-footer-right"><button class="pm-btn" onclick="openModal('statements')">Download</button><button class="pm-btn pm-btn-primary" onclick="closeAllModals()">Close</button></div>` }, walletDetail: { title: 'Currency wallet detail', sub: 'Wallet balance, statement, virtual account details, and funding options.', size: 'lg', body: `<div class="pm-2col"><div><h4 class="pm-section-title">USD wallet</h4><div class="pm-detail-row"><span class="pm-detail-key">Balance</span><span class="pm-detail-val">USD 18,420.00</span></div><div class="pm-detail-row"><span class="pm-detail-key">Available now</span><span class="pm-detail-val">USD 18,120.00</span></div><div class="pm-detail-row"><span class="pm-detail-key">Reserved for upcoming payments</span><span class="pm-detail-val">USD 300.00</span></div><div class="pm-detail-row"><span class="pm-detail-key">Virtual account</span><span class="pm-detail-val">PM-USD-KC-104882</span></div><div class="pm-detail-row"><span class="pm-detail-key">Monthly fee</span><span class="pm-detail-val">KES 0</span></div></div><div><h4 class="pm-section-title">Recent activity</h4><div class="pm-timeline"><div class="pm-tl-item success"><div class="pm-tl-title">USD 4,800 received</div><div class="pm-tl-meta">From KES conversion - Jan 04</div></div><div class="pm-tl-item"><div class="pm-tl-title">USD 2,200 sent</div><div class="pm-tl-meta">Rwanda Coffee Collective - Dec 19</div></div><div class="pm-tl-item warning"><div class="pm-tl-title">USD 300 reserved</div><div class="pm-tl-meta">Subscription renewal Feb 02</div></div></div></div></div>`, footer: `<button class="pm-btn" onclick="openModal('fundWallet')">Fund</button><button class="pm-btn" onclick="openModal('statements')">Statement</button><div class="pm-modal-footer-right"><button class="pm-btn pm-btn-primary" onclick="closeAllModals()">Close</button></div>` }, quoteCompare: { title: 'Rate comparison', sub: 'PayMo compares live liquidity providers and shows your all-in cost.', body: `<div class="pm-table-wrap"><table class="pm-table"><thead><tr><th>Provider</th><th>Rate</th><th>Fee</th><th>You receive on KES 500,000</th><th>Status</th></tr></thead><tbody><tr><td>PayMo Treasury</td><td>156.42</td><td>0.62%</td><td>USD 3,190.39</td><td><span class="pm-badge success">Best all-in</span></td></tr><tr><td>Your bank card quote</td><td>158.10</td><td>1.25%</td><td>USD 3,151.44</td><td><span class="pm-badge warning">Higher cost</span></td></tr><tr><td>Branch counter</td><td>159.20</td><td>0.00%</td><td>USD 3,140.70</td><td><span class="pm-badge ghost">Slower</span></td></tr></tbody></table></div>`, footer: `<div class="pm-modal-footer-right"><button class="pm-btn" onclick="closeAllModals()">Close</button><button class="pm-btn pm-btn-primary" onclick="openModal('convertWizard')">Use PayMo quote</button></div>` }, marketWatch: { title: 'Market watch for your business', sub: 'Plain-language FX notes, focused only on currencies you use.', size: 'lg', body: `<div class="pm-alert">Today: USD/KES is slightly stronger after importer demand at market open. EUR/KES is range-bound. GBP/KES is below its 60-day average, useful for your Feb software renewal.</div><div class="pm-2col"><div class="fx-card-plane"><strong>USD/KES recommendation</strong><p class="tiny">Convert 60% of Jan 16 invoice now, keep 40% on target alert at 155.80.</p><button class="pm-btn pm-btn-sm" onclick="openModal('convertWizard')">Act</button></div><div class="fx-card-plane"><strong>GBP/KES recommendation</strong><p class="tiny">Buy GBP 640 now; current rate is favorable against your 60-day average.</p><button class="pm-btn pm-btn-sm" onclick="openModal('convertWizard')">Buy GBP</button></div></div>`, footer: `<div class="pm-modal-footer-right"><button class="pm-btn pm-btn-primary" onclick="closeAllModals()">Close</button></div>` }, ratePair: { title: 'Currency pair detail', sub: 'Live rate, trend, alert, and conversion tools.', body: `<div class="pm-detail-row"><span class="pm-detail-key">Pair</span><span class="pm-detail-val">USD/KES</span></div><div class="pm-detail-row"><span class="pm-detail-key">Current rate</span><span class="pm-detail-val">156.42</span></div><div class="pm-detail-row"><span class="pm-detail-key">7-day range</span><span class="pm-detail-val">155.70 - 157.20</span></div><div class="pm-detail-row"><span class="pm-detail-key">Your alert</span><span class="pm-detail-val">155.80 - SMS + push</span></div><div class="pm-detail-row"><span class="pm-detail-key">Business exposure</span><span class="pm-detail-val">USD 4,800 due Jan 16</span></div>`, footer: `<button class="pm-btn" onclick="openModal('rateAlertWizard')">Edit alert</button><div class="pm-modal-footer-right"><button class="pm-btn pm-btn-primary" onclick="openModal('convertWizard')">Convert</button></div>` }, hedgeAdvisor: { title: 'Hedge advisor', sub: 'A simple recommendation engine for small business FX risk.', body: `<div class="pm-alert success">PayMo suggests you hedge 70-80% of known foreign invoices due within 45 days. Keep 20-30% open for potential favorable market movement.</div><div class="pm-detail-row"><span class="pm-detail-key">Known foreign bills 45d</span><span class="pm-detail-val">KES 1.12M equivalent</span></div><div class="pm-detail-row"><span class="pm-detail-key">Already protected</span><span class="pm-detail-val">KES 806K (72%)</span></div><div class="pm-detail-row"><span class="pm-detail-key">Suggested additional hedge</span><span class="pm-detail-val">GBP 640 for Feb 05</span></div>`, footer: `<div class="pm-modal-footer-right"><button class="pm-btn" onclick="closeAllModals()">Close</button><button class="pm-btn pm-btn-primary" onclick="openModal('hedgeWizard')">Create hedge</button></div>` }, hedgeDetail: { title: 'Hedge detail - Rwanda coffee invoice', sub: 'Forward lock, coverage, drawdown schedule, and outcome.', body: `<div class="pm-detail-row"><span class="pm-detail-key">Invoice</span><span class="pm-detail-val">RCC-2026-011</span></div><div class="pm-detail-row"><span class="pm-detail-key">Covered amount</span><span class="pm-detail-val">USD 3,840 of USD 4,800</span></div><div class="pm-detail-row"><span class="pm-detail-key">Locked rate</span><span class="pm-detail-val">155.90</span></div><div class="pm-detail-row"><span class="pm-detail-key">Expiry</span><span class="pm-detail-val">Jan 16, 2026</span></div><div class="pm-detail-row"><span class="pm-detail-key">Expected saving</span><span class="pm-detail-val" style="color:var(--pm-accent)">KES 18,400</span></div>`, footer: `<button class="pm-btn" onclick="openModal('sendFxWizard')">Use for payment</button><div class="pm-modal-footer-right"><button class="pm-btn" onclick="closeAllModals()">Close</button><button class="pm-btn pm-btn-primary" onclick="doAction()">Roll forward</button></div>` }, beneficiary: { title: 'Beneficiary detail', sub: 'Verified overseas beneficiary with payment history.', body: `<div class="pm-detail-row"><span class="pm-detail-key">Name</span><span class="pm-detail-val">Rwanda Coffee Collective</span></div><div class="pm-detail-row"><span class="pm-detail-key">Country</span><span class="pm-detail-val">Rwanda</span></div><div class="pm-detail-row"><span class="pm-detail-key">Preferred currency</span><span class="pm-detail-val">USD / RWF</span></div><div class="pm-detail-row"><span class="pm-detail-key">Route</span><span class="pm-detail-val">PAPSS or SWIFT</span></div><div class="pm-detail-row"><span class="pm-detail-key">Payments sent</span><span class="pm-detail-val">7 - total USD 28,400</span></div>`, footer: `<div class="pm-modal-footer-right"><button class="pm-btn" onclick="closeAllModals()">Close</button><button class="pm-btn pm-btn-primary" onclick="openModal('sendFxWizard')">Pay beneficiary</button></div>` }, beneficiaryReview: { title: 'Review new beneficiary', sub: 'Approve a supplier before first cross-border payment.', body: `<div class="pm-alert warning">London Hospitality Training is new. PayMo found a matching company website and bank details, but you have not paid them before.</div><div class="pm-detail-row"><span class="pm-detail-key">Country</span><span class="pm-detail-val">United Kingdom</span></div><div class="pm-detail-row"><span class="pm-detail-key">Amount planned</span><span class="pm-detail-val">GBP 640</span></div><div class="pm-check-row selected"><input type="checkbox" checked><span class="pm-label">I recognize this supplier and want to trust them for training payments.</span></div>`, footer: `<div class="pm-modal-footer-right"><button class="pm-btn" onclick="closeAllModals()">Cancel</button><button class="pm-btn pm-btn-primary" onclick="doAction()">Approve supplier</button></div>` }, statements: { title: 'Download treasury statements', sub: 'Accountant-ready statements with FX gain/loss and fees separated.', body: `<div class="pm-check-row selected"><input type="radio" name="st" checked><span class="pm-label">Monthly treasury pack - PDF + Excel</span></div><div class="pm-check-row"><input type="radio" name="st"><span class="pm-label">Currency wallet statements only</span></div><div class="pm-check-row"><input type="radio" name="st"><span class="pm-label">FX gains/losses journal entries</span></div><div class="pm-check-row"><input type="radio" name="st"><span class="pm-label">Cross-border payment receipts</span></div><div class="pm-form-group"><label class="pm-label">Period</label><select class="pm-select"><option>January 2026 to date</option><option>December 2025</option><option>Last 90 days</option></select></div>`, footer: `<div class="pm-modal-footer-right"><button class="pm-btn" onclick="closeAllModals()">Cancel</button><button class="pm-btn pm-btn-primary" onclick="doAction()">Email to accountant</button></div>` }, approvalRules: { title: 'Approval rules for your business', sub: 'Choose who can convert currencies and send overseas payments.', body: `<div class="pm-detail-row"><span class="pm-detail-key">Nadia Omondi</span><span class="pm-detail-val">Convert up to KES 250,000; send up to USD 1,500</span></div><div class="pm-detail-row"><span class="pm-detail-key">Peter Mwangi</span><span class="pm-detail-val">Approve over KES 250,000; send up to USD 10,000</span></div><div class="pm-detail-row"><span class="pm-detail-key">Grace Kanyi</span><span class="pm-detail-val">View only; can prepare drafts</span></div><div class="pm-form-group" style="margin-top:12px"><label class="pm-label">Require two approvals above</label><input class="pm-input" value="KES 1,000,000"></div>`, footer: `<div class="pm-modal-footer-right"><button class="pm-btn" onclick="closeAllModals()">Cancel</button><button class="pm-btn pm-btn-primary" onclick="doAction()">Save rules</button></div>` }, documents: { title: 'Treasury documents', sub: 'Invoices, beneficiary proofs, contracts, and receipts organized by supplier.', body: `<div class="pm-table-wrap"><table class="pm-table"><thead><tr><th>File</th><th>Supplier</th><th>Type</th><th>Status</th><th>Action</th></tr></thead><tbody><tr><td>RCC-2026-011.pdf</td><td>Rwanda Coffee Collective</td><td>Invoice</td><td><span class="pm-badge success">Accepted</span></td><td><button class="pm-btn pm-btn-sm" onclick="doAction()">Download</button></td></tr><tr><td>EM-2214.pdf</td><td>Espresso Milano</td><td>Invoice</td><td><span class="pm-badge success">Accepted</span></td><td><button class="pm-btn pm-btn-sm" onclick="doAction()">Download</button></td></tr><tr><td>LHT-training.pdf</td><td>London Hospitality Training</td><td>Invoice</td><td><span class="pm-badge warning">Review</span></td><td><button class="pm-btn pm-btn-sm" onclick="openModal('beneficiaryReview')">Review</button></td></tr></tbody></table></div>`, footer: `<div class="pm-modal-footer-right"><button class="pm-btn" onclick="closeAllModals()">Close</button><button class="pm-btn pm-btn-primary" onclick="doAction()">Upload new</button></div>` }, travelMode: { title: 'Travel mode', sub: 'Pre-approve card and FX behavior when you are away sourcing or attending events.', body: `<div class="pm-form-group"><label class="pm-label">Destination</label><input class="pm-input" value="Kigali, Rwanda"></div><div class="pm-input-row"><div class="pm-form-group"><label class="pm-label">From</label><input class="pm-input" value="Feb 18, 2026"></div><div class="pm-form-group"><label class="pm-label">To</label><input class="pm-input" value="Feb 22, 2026"></div></div><div class="pm-check-row selected"><input type="checkbox" checked><span class="pm-label">Allow card spend in Rwanda up to USD 1,000 equivalent.</span></div><div class="pm-check-row selected"><input type="checkbox" checked><span class="pm-label">Hold RWF 500,000 for local expenses.</span></div>`, footer: `<div class="pm-modal-footer-right"><button class="pm-btn" onclick="closeAllModals()">Cancel</button><button class="pm-btn pm-btn-primary" onclick="doAction()">Enable travel mode</button></div>` }, advisor: { title: 'Treasury advisor recommendation', sub: 'Actionable suggestions based on your invoices and currency behavior.', body: `<div class="pm-alert success">Top recommendation: Convert KES 300,000 to USD today and keep the rest on a rate alert.</div><div class="pm-detail-row"><span class="pm-detail-key">Why</span><span class="pm-detail-val">USD invoice due Jan 16 and current rate is below your 14-day average.</span></div><div class="pm-detail-row"><span class="pm-detail-key">Risk if you wait</span><span class="pm-detail-val">Potential extra cost KES 12K-22K if USD rises.</span></div><div class="pm-detail-row"><span class="pm-detail-key">Risk if you convert all now</span><span class="pm-detail-val">You may miss a better target rate later this week.</span></div>`, footer: `<button class="pm-btn" onclick="openModal('rateAlertWizard')">Set alert</button><div class="pm-modal-footer-right"><button class="pm-btn pm-btn-primary" onclick="openModal('convertWizard')">Convert 60% now</button></div>` }, calendar: { title: 'Treasury calendar', sub: 'Upcoming FX events and invoice due dates.', body: `<div class="pm-timeline"><div class="pm-tl-item warning"><div class="pm-tl-title">Jan 16 - USD 4,800 due</div><div class="pm-tl-meta">Rwanda Coffee Collective - 80% hedged</div></div><div class="pm-tl-item"><div class="pm-tl-title">Jan 28 - EUR 2,100 due</div><div class="pm-tl-meta">Espresso Milano - 50% hedged</div></div><div class="pm-tl-item success"><div class="pm-tl-title">Feb 05 - GBP 640 renewal</div><div class="pm-tl-meta">Rate favorable - convert recommended</div></div><div class="pm-tl-item"><div class="pm-tl-title">Feb 11 - TZS 3.2M due</div><div class="pm-tl-meta">Dar Cup Packaging - fully hedged</div></div></div>`, footer: `<div class="pm-modal-footer-right"><button class="pm-btn" onclick="closeAllModals()">Close</button><button class="pm-btn pm-btn-primary" onclick="doAction()">Add to calendar</button></div>` }, fundWallet: { title: 'Fund currency wallet', sub: 'Move money from KES or receive directly into a foreign wallet.', body: `<div class="pm-check-row selected"><input type="radio" name="fund" checked><span class="pm-label">Convert from KES wallet now</span></div><div class="pm-check-row"><input type="radio" name="fund"><span class="pm-label">Receive inbound USD via virtual account</span></div><div class="pm-check-row"><input type="radio" name="fund"><span class="pm-label">Transfer from another PayMo wallet</span></div><div class="pm-form-group"><label class="pm-label">Amount</label><input class="pm-input" value="KES 500,000"></div>`, footer: `<div class="pm-modal-footer-right"><button class="pm-btn" onclick="closeAllModals()">Cancel</button><button class="pm-btn pm-btn-primary" onclick="openModal('convertWizard')">Continue</button></div>` }, rateAlerts: { title: 'Your active rate alerts', sub: 'Alerts currently watching the market for you.', body: `<div class="pm-table-wrap"><table class="pm-table"><thead><tr><th>Pair</th><th>Target</th><th>Current</th><th>Action</th><th>Status</th></tr></thead><tbody><tr><td>USD/KES</td><td>155.80</td><td>156.42</td><td>Notify + hold quote</td><td><span class="pm-badge success">Active</span></td></tr><tr><td>EUR/KES</td><td>169.40</td><td>170.18</td><td>Notify</td><td><span class="pm-badge success">Active</span></td></tr><tr><td>GBP/KES</td><td>198.50</td><td>198.44</td><td>Convert GBP 640</td><td><span class="pm-badge warning">Hit now</span></td></tr></tbody></table></div>`, footer: `<div class="pm-modal-footer-right"><button class="pm-btn" onclick="closeAllModals()">Close</button><button class="pm-btn pm-btn-primary" onclick="openModal('rateAlertWizard')">New alert</button></div>` }, approvals: { title: 'Treasury approvals waiting', sub: 'Payments and conversions that need a second person in your business to approve.', body: `<div class="pm-table-wrap"><table class="pm-table"><thead><tr><th>Item</th><th>Prepared by</th><th>Amount</th><th>Needs</th><th>Action</th></tr></thead><tbody><tr><td>USD conversion for coffee</td><td>Nadia</td><td>KES 500,000</td><td>Peter approval</td><td><button class="pm-btn pm-btn-sm" onclick="openModal('convertWizard')">Review</button></td></tr><tr><td>GBP payment to LHT</td><td>Grace</td><td>GBP 640</td><td>Nadia approval</td><td><button class="pm-btn pm-btn-sm" onclick="openModal('sendFxWizard')">Review</button></td></tr></tbody></table></div>`, footer: `<div class="pm-modal-footer-right"><button class="pm-btn pm-btn-primary" onclick="closeAllModals()">Close</button></div>` }, treasuryHealth: { title: 'Treasury health score', sub: 'A simple score for your currency readiness.', body: `<div class="pm-detail-row"><span class="pm-detail-key">Score</span><span class="pm-detail-val"><span class="pm-risk-score low">88 - Healthy</span></span></div><div class="pm-bar-row"><div class="pm-bar-label"><span class="pm-bar-name">Enough USD for next bill</span><span class="pm-bar-val">100%</span></div><div class="pm-bar-bg"><div class="pm-bar-fill success" style="width:100%"></div></div></div><div class="pm-bar-row"><div class="pm-bar-label"><span class="pm-bar-name">Hedge coverage</span><span class="pm-bar-val">72%</span></div><div class="pm-bar-bg"><div class="pm-bar-fill warning" style="width:72%"></div></div></div>`, footer: `<div class="pm-modal-footer-right"><button class="pm-btn pm-btn-primary" onclick="closeAllModals()">Close</button></div>` }, profile: { title: 'Kilimani Cafe treasury profile', sub: 'Your business profile for currency and overseas payments.', body: `<div class="pm-detail-row"><span class="pm-detail-key">Business</span><span class="pm-detail-val">Kilimani Cafe Ltd</span></div><div class="pm-detail-row"><span class="pm-detail-key">Primary user</span><span class="pm-detail-val">Nadia Omondi</span></div><div class="pm-detail-row"><span class="pm-detail-key">Treasury plan</span><span class="pm-detail-val">Business Treasury - Tier 3</span></div><div class="pm-detail-row"><span class="pm-detail-key">Monthly cross-border limit</span><span class="pm-detail-val">USD 10,000 equivalent</span></div>`, footer: `<div class="pm-modal-footer-right"><button class="pm-btn pm-btn-primary" onclick="closeAllModals()">Close</button></div>` }, cards: { title: 'Cards and travel FX', sub: 'Currency-aware cards connected to your wallets.', body: `<div class="pm-detail-row"><span class="pm-detail-key">Business debit card</span><span class="pm-detail-val">KES wallet, fallback USD</span></div><div class="pm-detail-row"><span class="pm-detail-key">Virtual card</span><span class="pm-detail-val">USD wallet for subscriptions</span></div><div class="pm-detail-row"><span class="pm-detail-key">Foreign card markup</span><span class="pm-detail-val">0.9% for unsupported currency, 0% if wallet currency matches</span></div>`, footer: `<div class="pm-modal-footer-right"><button class="pm-btn" onclick="openModal('travelMode')">Travel mode</button><button class="pm-btn pm-btn-primary" onclick="closeAllModals()">Close</button></div>` }, support: { title: 'Treasury support', sub: 'Real people for FX, supplier payments, and statements.', body: `<div class="pm-detail-row"><span class="pm-detail-key">FX desk</span><span class="pm-detail-val">+254 700 TREASURY</span></div><div class="pm-detail-row"><span class="pm-detail-key">Email</span><span class="pm-detail-val">treasury@paymo.co.ke</span></div><div class="pm-detail-row"><span class="pm-detail-key">Response</span><span class="pm-detail-val">Under 10 minutes for business treasury customers</span></div>`, footer: `<div class="pm-modal-footer-right"><button class="pm-btn pm-btn-primary" onclick="closeAllModals()">Close</button></div>` }, about: { title: 'About this treasury workspace', sub: 'User-facing page 2.9 for PayMo BaaS services.', body: `<div class="pm-alert success">This page is built for the PayMo customer and their business, not for PayMo administrators. It helps the business hold, convert, hedge, pay, reconcile, and forecast multiple currencies.</div>`, footer: `<div class="pm-modal-footer-right"><button class="pm-btn pm-btn-primary" onclick="closeAllModals()">Close</button></div>` }, nav: { title: 'PayMo navigation', sub: 'Single-page demo note.', body: `<div class="pm-alert">In the live PayMo product, this icon opens another customer workspace. This single HTML file focuses on Page 2.9 - Multi-Currency Treasury & Forex Operations.</div>`, footer: `<div class="pm-modal-footer-right"><button class="pm-btn pm-btn-primary" onclick="closeAllModals()">Close</button></div>` }, accounts: { title: 'All accounts', sub: 'Your KES and foreign currency wallets.', body: `<div class="pm-alert">Open the Balances section to manage each currency wallet, statement, funding method and virtual account instructions.</div>`, footer: `<div class="pm-modal-footer-right"><button class="pm-btn pm-btn-primary" onclick="closeAllModals()">Close</button></div>` }, limits: { title: 'Treasury limits', sub: 'Limits for conversions, overseas payments and cross-border card spend.', body: `<div class="pm-detail-row"><span class="pm-detail-key">Daily conversion</span><span class="pm-detail-val">KES 2,000,000</span></div><div class="pm-detail-row"><span class="pm-detail-key">Monthly cross-border</span><span class="pm-detail-val">USD 10,000 equivalent</span></div><div class="pm-detail-row"><span class="pm-detail-key">Two approvals above</span><span class="pm-detail-val">KES 1,000,000</span></div>`, footer: `<div class="pm-modal-footer-right"><button class="pm-btn pm-btn-primary" onclick="closeAllModals()">Close</button></div>` } });
+        function openModal(id) { const d = modalData[id] || modalData.about; let tabs = ''; if (d.tabs) { tabs = '<div class="pm-tabs">' + d.tabs.map((t, i) => `<button class="pm-tab ${i ? '' : 'active'}" onclick="tab(this)">${t}</button>`).join('') + '</div>' } let steps = ''; if (d.steps) { steps = '<div class="pm-stepper">' + d.steps.map((s, i) => `<div class="pm-step ${i ? '' : 'active'}"><div class="pm-step-num">${i + 1}</div><div class="pm-step-label">${s}</div></div>${i < d.steps.length - 1 ? '<div class="pm-step-line"></div>' : ''}`).join('') + '</div>' } const o = document.createElement('div'); o.className = 'pm-modal-overlay open'; o.innerHTML = `<div class="pm-modal ${d.size === 'lg' ? 'pm-modal-lg' : d.size === 'sm' ? 'pm-modal-sm' : ''}"><div class="pm-modal-header"><div><h3 class="pm-modal-title">${d.title}</h3><p class="pm-modal-sub">${d.sub || ''}</p></div><button class="pm-modal-close" onclick="closeAllModals()">x</button></div><div class="pm-modal-body">${steps}${tabs}${d.body}</div><div class="pm-modal-footer">${d.footer || '<div class="pm-modal-footer-right"><button class="pm-btn pm-btn-primary" onclick="closeAllModals()">Close</button></div>'}</div></div>`; document.body.appendChild(o); document.body.style.overflow = 'hidden' }
+        function closeAllModals() { document.querySelectorAll('.pm-modal-overlay').forEach(x => x.remove()); document.body.style.overflow = '' } function tab(b) { b.parentElement.querySelectorAll('button').forEach(x => x.classList.remove('active')); b.classList.add('active') } function selectSegment(b) { b.parentElement.querySelectorAll('button').forEach(x => x.classList.remove('active')); b.classList.add('active') } function goSec(id) { document.getElementById(id).scrollIntoView({ behavior: 'smooth', block: 'start' }); document.querySelectorAll('.fx-anchor').forEach(x => x.classList.remove('active')); event.target.classList.add('active') } function doAction() { const b = event && event.target; if (b) { b.innerHTML = '<span class="pm-spinner"></span> Processing'; b.disabled = true } setTimeout(closeAllModals, 750) } document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAllModals() }); document.addEventListener('click', e => { if (e.target.classList && e.target.classList.contains('pm-modal-overlay')) closeAllModals() }); let seconds = 1198; setInterval(() => { const el = document.getElementById('quoteTimer'); if (!el) return; seconds = Math.max(0, seconds - 1); const m = String(Math.floor(seconds / 60)).padStart(2, '0'); const s = String(seconds % 60).padStart(2, '0'); el.textContent = m + ':' + s }, 1000); const secs = ['s291', 's292', 's293', 's294', 's295', 's296', 's297', 's298', 's299']; window.addEventListener('scroll', () => { let c = secs[0]; secs.forEach(id => { const e = document.getElementById(id); if (e && e.getBoundingClientRect().top < 240) c = id }); document.querySelectorAll('.fx-anchor').forEach((b, i) => b.classList.toggle('active', secs[i] === c)) }, { passive: true });
+    </script>
+</body>
+
+</html>

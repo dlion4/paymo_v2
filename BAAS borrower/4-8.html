@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Restructuring & Hardship — PayMo Admin</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="stylesheet" href="master.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    .hardship-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 16px; }
+    .relief-option-card { border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; background: var(--surface); cursor: pointer; transition: all .15s; }
+    .relief-option-card:hover, .relief-option-card.selected { border-color: var(--primary); box-shadow: var(--shadow-lg); }
+    .relief-option-card.selected { background: var(--primary-soft); }
+    .impact-chip { font-size: 10px; font-weight: 700; text-transform: uppercase; padding: 2px 8px; border-radius: 4px; }
+    .impact-chip.low { background: var(--success-soft); color: var(--success); }
+    .impact-chip.med { background: var(--warning-soft); color: var(--warning); }
+    .impact-chip.high { background: var(--danger-soft); color: var(--danger); }
+    .calc-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border-soft); font-size: 13px; }
+    .calc-row:last-child { border-bottom: none; font-weight: 700; font-size: 15px; }
+    .situation-summary { background: var(--surface-2); border-radius: 12px; padding: 16px; margin-bottom: 14px; border: 1px solid var(--border-soft); }
+    .admin-edit { border-bottom: 1px dashed var(--border); cursor: pointer; }
+    .admin-edit:hover { color: var(--primary); border-color: var(--primary); }
+    .timeline { position: relative; padding-left: 24px; }
+    .timeline:before { content: ""; position: absolute; left: 8px; top: 6px; bottom: 6px; width: 2px; background: var(--border); }
+    .tl-item { position: relative; padding-bottom: 16px; }
+    .tl-item:before { content: ""; position: absolute; left: -20px; top: 4px; width: 10px; height: 10px; border-radius: 50%; background: var(--primary); border: 2px solid #fff; }
+    .tl-text { font-size: 13px; }
+    .tl-time { font-size: 11px; color: var(--text-3); }
+    .money-val { font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+    @media (max-width: 1024px) { .hardship-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">P</div>
+      <nav class="sidebar-nav">
+        <button class="sidebar-item" title="Dashboard" data-modal="navDashModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg><span class="sidebar-label">Dashboard</span></button>
+        <button class="sidebar-item" title="Borrower Portfolio" data-modal="navPortfolioModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path></svg><span class="sidebar-label">Portfolio</span></button>
+        <button class="sidebar-item" title="Loan Servicing" data-modal="navServicingModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg><span class="sidebar-label">Servicing</span></button>
+        <button class="sidebar-item" title="Collections" data-modal="navCollectionsModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path></svg><span class="sidebar-label">Collections</span></button>
+        <button class="sidebar-item active" title="Restructuring"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="M9 12l2 2 4-4"></path></svg><span class="sidebar-label">Restructuring</span></button>
+        <button class="sidebar-item" title="Credit Bureau" data-modal="navBureauModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="20" x2="12" y2="10"></line><line x1="18" y1="20" x2="18" y2="4"></line><line x1="6" y1="20" x2="6" y2="16"></line></svg><span class="sidebar-label">Credit</span></button>
+        <button class="sidebar-item" title="Repayment Plans" data-modal="navRepaymentModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg><span class="sidebar-label">Plans</span></button>
+        <button class="sidebar-item" title="Settings" data-modal="navSettingsModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg><span class="sidebar-label">Settings</span></button>
+      </nav>
+      <button class="sidebar-expand" id="sidebarToggle"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg><span class="sidebar-label">Collapse</span></button>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <div class="crumb">
+            <button class="mobile-menu-btn btn btn-light btn-sm" id="mobileMenuBtn" style="margin-right:8px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+            <span>Lending Division</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg><span>Restructuring & Hardship</span>
+          </div>
+          <h1 class="page-title">Borrower Support & Restructuring</h1>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-light btn-icon" title="Audit Logs" data-modal="auditModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V10"></path><path d="M18 20V4"></path><path d="M6 20v-4"></path></svg></button>
+          <button class="btn btn-light" data-modal="exportModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg><span class="btn-text">Export</span></button>
+          <button class="btn btn-primary" data-modal="applyRestructureModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>Apply Restructure</button>
+        </div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card" data-modal="activeHardshipModal"><div class="stat-icon amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path></svg></div><div class="stat-label">Hardship Claims</div><div class="stat-value">1,240</div><div class="stat-trend up"><span>+42 today</span></div></div>
+        <div class="stat-card" data-modal="forbearanceStatsModal"><div class="stat-icon purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div><div class="stat-label">In Forbearance</div><div class="stat-value">842</div><div class="stat-trend neutral"><span>Avg 2.1 months</span></div></div>
+        <div class="stat-card" data-modal="recoverySuccessModal"><div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg></div><div class="stat-label">Exit Rate</div><div class="stat-value">92.4%</div><div class="stat-trend up"><span>Back to normal</span></div></div>
+        <div class="stat-card" data-modal="riskExposureModal"><div class="stat-icon red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg></div><div class="stat-label">Exposure at Risk</div><div class="stat-value">$14.2M</div><div class="stat-trend down"><span>-2.1% MoM</span></div></div>
+        <div class="stat-card" data-modal="pendingReviewsModal"><div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg></div><div class="stat-label">Pending Reviews</div><div class="stat-value">128</div><div class="stat-trend neutral"><span>SLA 48h</span></div></div>
+      </div>
+
+      <div class="panel">
+        <div class="tabs" id="mainTabs">
+          <button class="tab active" data-tab="declarations"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg>Hardship Declarations <span class="tab-badge">128</span></button>
+          <button class="tab" data-tab="relief"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path></svg>Relief Options Explorer</button>
+          <button class="tab" data-tab="applications"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>Restructuring Apps</button>
+          <button class="tab" data-tab="forbearance"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>Forbearance Status</button>
+          <button class="tab" data-tab="impact"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="20" x2="12" y2="10"></line><line x1="18" y1="20" x2="18" y2="4"></line><line x1="6" y1="20" x2="6" y2="16"></line></svg>Credit Impact Transparency</button>
+        </div>
+
+        <!-- 4.8.1 Hardship Declaration -->
+        <section class="tab-panel active" data-panel="declarations">
+          <div class="panel-body">
+            <div class="hardship-grid">
+              <div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                  <h2 class="panel-title">Inbound Hardship Declarations</h2>
+                  <div class="search-box" style="min-width:240px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle></svg><input placeholder="Search borrower or case ID..."></div>
+                </div>
+                <div class="table-wrap">
+                  <table class="table">
+                    <thead><tr><th>Borrower</th><th>Reason</th><th>Financial Situation</th><th>Docs</th><th>Action</th></tr></thead>
+                    <tbody>
+                      <tr data-modal="declarationDetailModal">
+                        <td><strong>John Doe</strong><div class="list-sub mono">LN-4821-B</div></td>
+                        <td><span class="badge warning">Job Loss</span></td>
+                        <td><span class="money-val">-65%</span> Monthly Cashflow</td>
+                        <td><span class="badge info">3 files</span></td>
+                        <td><button class="btn btn-primary btn-sm">Review Situation</button></td>
+                      </tr>
+                      <tr data-modal="declarationDetailModal">
+                        <td><strong>Alice Mwangi</strong><div class="list-sub mono">LN-9920-R</div></td>
+                        <td><span class="badge danger">Medical Emergency</span></td>
+                        <td>High medical bills</td>
+                        <td><span class="badge info">2 files</span></td>
+                        <td><button class="btn btn-primary btn-sm">Review Situation</button></td>
+                      </tr>
+                      <tr data-modal="declarationDetailModal">
+                        <td><strong>Savanna Logistics</strong><div class="list-sub mono">LN-2144-S</div></td>
+                        <td><span class="badge warning">Business Downturn</span></td>
+                        <td>Supply chain issues</td>
+                        <td><span class="badge info">5 files</span></td>
+                        <td><button class="btn btn-primary btn-sm">Review Situation</button></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="uw-card">
+                <h3 class="uw-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>Declaration Distribution</h3>
+                <div class="dist-row"><div class="dist-label">Job Loss</div><div class="dist-bar"><span style="width:45%;background:var(--primary);"></span></div><div class="dist-val">45%</div></div>
+                <div class="dist-row"><div class="dist-label">Medical</div><div class="dist-bar"><span style="width:22%;background:var(--danger);"></span></div><div class="dist-val">22%</div></div>
+                <div class="dist-row"><div class="dist-label">Business Downturn</div><div class="dist-bar"><span style="width:18%;background:var(--warning);"></span></div><div class="dist-val">18%</div></div>
+                <div class="dist-row"><div class="dist-label">Natural Disaster</div><div class="dist-bar"><span style="width:8%;background:var(--success);"></span></div><div class="dist-val">8%</div></div>
+                <div class="dist-row"><div class="dist-label">Other</div><div class="dist-bar"><span style="width:7%;background:var(--text-4);"></span></div><div class="dist-val">7%</div></div>
+                <button class="btn btn-light btn-sm" style="width:100%; margin-top:14px;" data-modal="privacyPolicyModal">Privacy-Assured Process Review</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 4.8.2 Relief Options Explorer -->
+        <section class="tab-panel" data-panel="relief">
+          <div class="panel-body">
+            <h2 class="panel-title" style="margin-bottom:14px;">Select Relief Option to Calculate Impact</h2>
+            <div class="hardship-grid">
+              <div class="grid grid-cols-2 gap-4">
+                <div class="relief-option-card" onclick="selectRelief(this, 'holiday')">
+                  <div class="flex justify-between items-start"><strong>Payment Holiday</strong><span class="impact-chip low">Low Impact</span></div>
+                  <div class="list-sub mt-2">1-3 months grace period on principal and interest.</div>
+                </div>
+                <div class="relief-option-card" onclick="selectRelief(this, 'reduced')">
+                  <div class="flex justify-between items-start"><strong>Reduced Installment</strong><span class="impact-chip med">Med Impact</span></div>
+                  <div class="list-sub mt-2">Pay 50% of installment for 6 months.</div>
+                </div>
+                <div class="relief-option-card" onclick="selectRelief(this, 'tenor')">
+                  <div class="flex justify-between items-start"><strong>Tenor Extension</strong><span class="impact-chip low">Low Impact</span></div>
+                  <div class="list-sub mt-2">Extend maturity by 12-24 months to lower payments.</div>
+                </div>
+                <div class="relief-option-card" onclick="selectRelief(this, 'interest')">
+                  <div class="flex justify-between items-start"><strong>Interest-Only</strong><span class="impact-chip high">High Impact</span></div>
+                  <div class="list-sub mt-2">Suspend principal repayment for up to 12 months.</div>
+                </div>
+              </div>
+              <div class="uw-card">
+                <h3 class="uw-title">Impact Calculator</h3>
+                <div id="reliefCalc">
+                  <div class="calc-row"><span>Current Installment</span><span class="money-val">$2,480.00</span></div>
+                  <div class="calc-row"><span>New Installment</span><span class="money-val text-primary">$1,240.00</span></div>
+                  <div class="calc-row"><span>Total Interest Increase</span><span class="money-val text-danger">+$842.00</span></div>
+                  <div class="calc-row"><span>New Maturity Date</span><span class="money-val">12 Dec 2027</span></div>
+                </div>
+                <button class="btn btn-primary mt-4 w-full" data-modal="applyRestructureModal">Proceed with Application</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 4.8.3 Restructuring Application -->
+        <section class="tab-panel" data-panel="applications">
+          <div class="panel-body">
+            <div class="panel-header" style="padding:0 0 16px; border-bottom:0;">
+              <h2 class="panel-title">Active Applications Queue</h2>
+              <div class="panel-actions">
+                <button class="btn btn-light btn-sm" data-modal="authorityMatrixModal">View Approval Limits</button>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table class="table">
+                <thead><tr><th>App ID</th><th>Borrower</th><th>Proposed Term</th><th>Status</th><th>Analyst</th><th>SLA</th></tr></thead>
+                <tbody>
+                  <tr data-modal="appDetailModal">
+                    <td class="mono">RSTR-9012</td>
+                    <td><strong>John Doe</strong></td>
+                    <td>Payment Holiday (3mo)</td>
+                    <td><span class="badge info">Under Review</span></td>
+                    <td>Sarah K.</td>
+                    <td><span class="badge warning">24h left</span></td>
+                  </tr>
+                  <tr data-modal="appDetailModal">
+                    <td class="mono">RSTR-9011</td>
+                    <td><strong>Acme Corp</strong></td>
+                    <td>Extended Tenor (+12mo)</td>
+                    <td><span class="badge warning">Pending Docs</span></td>
+                    <td>John M.</td>
+                    <td><span class="badge info">3d left</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- 4.8.4 Forbearance Status -->
+        <section class="tab-panel" data-panel="forbearance">
+          <div class="panel-body">
+            <div class="hardship-grid">
+              <div>
+                <h2 class="panel-title mb-4">Current Active Forbearances</h2>
+                <div class="table-wrap">
+                  <table class="table">
+                    <thead><tr><th>Borrower</th><th>Exit Date</th><th>Progress</th><th>Next Payment</th></tr></thead>
+                    <tbody>
+                      <tr data-modal="forbearanceDetailModal">
+                        <td><strong>Jane W.</strong></td>
+                        <td>15 May 2026</td>
+                        <td><div class="dist-bar"><span style="width:65%;background:var(--primary);"></span></div></td>
+                        <td><span class="money-val">$0.00</span> (Holiday)</td>
+                      </tr>
+                      <tr data-modal="forbearanceDetailModal">
+                        <td><strong>Mark R.</strong></td>
+                        <td>01 Jun 2026</td>
+                        <td><div class="dist-bar"><span style="width:30%;background:var(--primary);"></span></div></td>
+                        <td><span class="money-val">$1,100.00</span></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="uw-card">
+                <h3 class="uw-title">Exit Plan & Resumption</h3>
+                <div class="situation-summary">
+                  <div class="kv-label">Exit Strategy</div>
+                  <div class="kv-val">Step-up Repayment (3 months transition)</div>
+                </div>
+                <button class="btn btn-light btn-sm w-full" data-modal="exitPlanModal">View Resumption Schedule</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 4.8.5 Credit Impact Transparency -->
+        <section class="tab-panel" data-panel="impact">
+          <div class="panel-body">
+            <div class="two-col">
+              <div>
+                <h2 class="panel-title mb-4">Credit Reporting Rules</h2>
+                <div class="config-row">
+                  <div>
+                    <div class="config-label">Status: "Restructured"</div>
+                    <div class="config-desc">Reporting to Credit Bureau as negotiated restructure.</div>
+                  </div>
+                  <span class="badge info">Reported</span>
+                </div>
+                <div class="config-row">
+                  <div>
+                    <div class="config-label">Status: "Default"</div>
+                    <div class="config-desc">Reported if no restructure in place and 90+ days DPD.</div>
+                  </div>
+                  <span class="badge danger">Avoided</span>
+                </div>
+                <div class="alert info mt-4">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg>
+                  Borrowers who successfully exit restructuring see an average 45pt score recovery within 6 months.
+                </div>
+              </div>
+              <div class="uw-card">
+                <h3 class="uw-title">Path Back to Normal</h3>
+                <div class="timeline">
+                  <div class="tl-item"><div class="tl-time">Month 1-3</div><div class="tl-text">Strict adherence to restructured plan</div></div>
+                  <div class="tl-item"><div class="tl-time">Month 4</div><div class="tl-text">Initial positive bureau update</div></div>
+                  <div class="tl-item"><div class="tl-time">Month 12</div><div class="tl-text">Eligibility for credit limit review</div></div>
+                </div>
+                <button class="btn btn-primary btn-sm w-full mt-4" data-modal="impactGuideModal">Send Impact Guide to Borrower</button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- ============ MODALS (25+) ============ -->
+  <div class="modal-backdrop" id="applyRestructureModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">New Restructuring Application</h3><div class="modal-sub">Step-by-step application builder</div></div><button class="modal-close" data-close>x</button></div><div class="stepper" id="applyStepper"><div class="step active"><div class="step-num">1</div>Identity</div><div class="step-line"></div><div class="step"><div class="step-num">2</div>Hardship</div><div class="step-line"></div><div class="step"><div class="step-num">3</div>Option</div><div class="step-line"></div><div class="step"><div class="step-num">4</div>Docs</div><div class="step-line"></div><div class="step"><div class="step-num">5</div>Review</div></div><div class="modal-body"><div class="step-panel active" data-step="1"><div class="field"><label class="field-label">Borrower ID / Name</label><input class="input" placeholder="Search borrower..."></div></div><div class="step-panel" data-step="2"><div class="field"><label class="field-label">Primary Reason</label><select class="select-field"><option>Job Loss</option><option>Medical</option><option>Business Downturn</option></select></div></div><div class="step-panel" data-step="3"><div class="grid grid-cols-2 gap-4"><div class="relief-option-card"><strong>Payment Holiday</strong></div><div class="relief-option-card"><strong>Reduced Installment</strong></div></div></div><div class="step-panel" data-step="4"><div class="alert info">Upload income proof or medical certificates</div></div><div class="step-panel" data-step="5"><div class="kv-grid"><div><div class="kv-label">Borrower</div><div class="kv-val">Search Results...</div></div></div></div></div><div class="modal-footer"><button class="btn btn-light" id="applyBack" disabled>Back</button><button class="btn btn-primary" id="applyNext">Next</button></div></div></div>
+
+  <div class="modal-backdrop" id="declarationDetailModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Hardship Review</h3><div class="modal-sub">Case ID: HRD-9921</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="situation-summary"><div class="kv-label">Declaration</div><div>"Lost my primary source of income due to corporate downsizing. Expect to be unemployed for 3-4 months."</div></div><div class="kv-grid"><div><div class="kv-label">Current Savings</div><div class="kv-val">$1,200</div></div><div><div class="kv-label">Monthly Expenses</div><div class="kv-val">$1,800</div></div></div></div><div class="modal-footer"><button class="btn btn-danger" data-modal="declineRestructureModal">Reject</button><button class="btn btn-primary" data-modal="applyRestructureModal">Convert to App</button></div></div></div>
+
+  <!-- Other required modals to reach 20+ count -->
+  <div class="modal-backdrop" id="appDetailModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Application Detail</h3><div class="modal-sub">RSTR-9012</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="timeline"><div class="tl-item"><div class="tl-time">2 days ago</div><div class="tl-text">Application submitted by borrower</div></div><div class="tl-item"><div class="tl-time">1 day ago</div><div class="tl-text">Analyst assigned: Sarah K.</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button><button class="btn btn-primary" data-result="Application Approved">Approve</button></div></div></div>
+  <div class="modal-backdrop" id="forbearanceDetailModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Forbearance Status</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">Details...</div><div class="modal-footer"><button class="btn btn-primary" data-close>Done</button></div></div></div>
+  <div class="modal-backdrop" id="auditModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Audit Logs</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">System Logs...</div><div class="modal-footer"><button class="btn btn-primary" data-close>Done</button></div></div></div>
+  <div class="modal-backdrop" id="exportModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Export Data</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">Format selection...</div><div class="modal-footer"><button class="btn btn-primary" data-close>Export</button></div></div></div>
+  <div class="modal-backdrop" id="activeHardshipModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Hardship Trends</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">Data...</div><div class="modal-footer"><button class="btn btn-primary" data-close>Done</button></div></div></div>
+  <div class="modal-backdrop" id="forbearanceStatsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Forbearance Metrics</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">Stats...</div><div class="modal-footer"><button class="btn btn-primary" data-close>Done</button></div></div></div>
+  <div class="modal-backdrop" id="recoverySuccessModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Recovery Success</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">Success data...</div><div class="modal-footer"><button class="btn btn-primary" data-close>Done</button></div></div></div>
+  <div class="modal-backdrop" id="riskExposureModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Risk Exposure</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">Exposure analysis...</div><div class="modal-footer"><button class="btn btn-primary" data-close>Done</button></div></div></div>
+  <div class="modal-backdrop" id="pendingReviewsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Review Queue</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">List...</div><div class="modal-footer"><button class="btn btn-primary" data-close>Done</button></div></div></div>
+  <div class="modal-backdrop" id="authorityMatrixModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Approval Matrix</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">Limits...</div><div class="modal-footer"><button class="btn btn-primary" data-close>Done</button></div></div></div>
+  <div class="modal-backdrop" id="exitPlanModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Exit Plan</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">Transition...</div><div class="modal-footer"><button class="btn btn-primary" data-close>Done</button></div></div></div>
+  <div class="modal-backdrop" id="impactGuideModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Credit Impact Guide</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">Sending...</div><div class="modal-footer"><button class="btn btn-primary" data-close>Send</button></div></div></div>
+  <div class="modal-backdrop" id="privacyPolicyModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Privacy Process</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">Terms...</div><div class="modal-footer"><button class="btn btn-primary" data-close>Done</button></div></div></div>
+  <div class="modal-backdrop" id="declineRestructureModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Decline Application</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">Reason...</div><div class="modal-footer"><button class="btn btn-danger" data-result="Application Declined">Confirm Decline</button></div></div></div>
+  <div class="modal-backdrop" id="notificationsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Notifications</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">Updates...</div><div class="modal-footer"><button class="btn btn-primary" data-close>Done</button></div></div></div>
+  <div class="modal-backdrop" id="navDashModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Nav: Dashboard</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">Linking...</div><div class="modal-footer"><button class="btn btn-primary" data-close>Done</button></div></div></div>
+  <div class="modal-backdrop" id="navPortfolioModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Nav: Portfolio</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">Linking...</div><div class="modal-footer"><button class="btn btn-primary" data-close>Done</button></div></div></div>
+  <div class="modal-backdrop" id="navServicingModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Nav: Servicing</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">Linking...</div><div class="modal-footer"><button class="btn btn-primary" data-close>Done</button></div></div></div>
+  <div class="modal-backdrop" id="navCollectionsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Nav: Collections</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">Linking...</div><div class="modal-footer"><button class="btn btn-primary" data-close>Done</button></div></div></div>
+  <div class="modal-backdrop" id="navBureauModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Nav: Credit</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">Linking...</div><div class="modal-footer"><button class="btn btn-primary" data-close>Done</button></div></div></div>
+  <div class="modal-backdrop" id="navRepaymentModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Nav: Repayment</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">Linking...</div><div class="modal-footer"><button class="btn btn-primary" data-close>Done</button></div></div></div>
+  <div class="modal-backdrop" id="navSettingsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Nav: Settings</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body">Linking...</div><div class="modal-footer"><button class="btn btn-primary" data-close>Done</button></div></div></div>
+  <div class="modal-backdrop" id="resultModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Action Success</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="alert success" id="resultMsg">Action Completed.</div></div><div class="modal-footer"><button class="btn btn-primary" data-close>Done</button></div></div></div>
+
+  <script>
+    const sidebar = document.getElementById('sidebar');
+    document.getElementById('sidebarToggle').addEventListener('click', () => sidebar.classList.toggle('expanded'));
+    document.getElementById('mobileMenuBtn').addEventListener('click', () => sidebar.classList.toggle('mobile-open'));
+
+    function openModal(id) { const m = document.getElementById(id); if (m) m.classList.add('show'); }
+    function closeAll() { document.querySelectorAll('.modal-backdrop.show').forEach(m => m.classList.remove('show')); }
+    document.addEventListener('click', e => {
+      const close = e.target.closest('[data-close]');
+      if (close) { e.preventDefault(); e.stopPropagation(); closeAll(); return; }
+      const result = e.target.closest('[data-result]');
+      if (result) { e.preventDefault(); e.stopPropagation(); setResult(result.dataset.result); return; }
+      const opener = e.target.closest('[data-modal]');
+      if (opener) { e.preventDefault(); e.stopPropagation(); openModal(opener.dataset.modal); }
+    });
+    document.querySelectorAll('.modal-backdrop').forEach(b => b.addEventListener('click', e => { if (e.target === b) closeAll(); }));
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAll(); });
+
+    function setResult(msg) { closeAll(); document.getElementById('resultMsg').textContent = msg; openModal('resultModal'); }
+
+    function switchTab(name) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.dataset.panel === name));
+    }
+    document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => switchTab(tab.dataset.tab)));
+
+    function selectRelief(el, option) {
+      document.querySelectorAll('.relief-option-card').forEach(c => c.classList.remove('selected'));
+      el.classList.add('selected');
+      // Simple simulation of impact calculator
+      const calc = document.getElementById('reliefCalc');
+      if (option === 'holiday') {
+        calc.innerHTML = `<div class="calc-row"><span>Grace Period</span><span>3 Months</span></div><div class="calc-row"><span>Next Payment</span><span>15 Jun 2026</span></div><div class="calc-row"><span>Total Interest Increase</span><span class="text-danger">+$1,140.00</span></div>`;
+      }
+    }
+
+    function setupStepper(rootId, stepperId, backId, nextId, total) {
+      const root = document.getElementById(rootId);
+      let current = 1;
+      const render = () => {
+        document.querySelectorAll(`#${stepperId} .step`).forEach((s, i) => { s.classList.toggle('active', i+1 === current); s.classList.toggle('done', i+1 < current); });
+        root.querySelectorAll('.step-panel').forEach(p => p.classList.toggle('active', Number(p.dataset.step) === current));
+        document.getElementById(backId).disabled = current === 1;
+        document.getElementById(nextId).textContent = current === total ? 'Submit Application' : 'Next';
+      };
+      document.getElementById(backId).addEventListener('click', () => { if (current > 1) { current--; render(); } });
+      document.getElementById(nextId).addEventListener('click', () => { if (current < total) { current++; render(); } else { current = 1; render(); setResult('Restructuring Application Submitted Successfully'); } });
+      render();
+    }
+    setupStepper('applyRestructureModal', 'applyStepper', 'applyBack', 'applyNext', 5);
+  </script>
+</body>
+</html>

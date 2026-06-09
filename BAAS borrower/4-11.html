@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Support & Disputes - PayMo Borrower</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="stylesheet" href="master.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    .two-col { display: grid; grid-template-columns: 1.6fr 1fr; gap: 16px; }
+    .three-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .help-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+    .help-card { background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius); padding: 18px; cursor: pointer; transition: all .15s; }
+    .help-card:hover { border-color: var(--primary); box-shadow: var(--shadow-lg); }
+    .chat-bubble { padding: 10px 14px; border-radius: 14px; max-width: 80%; font-size: 13px; margin-bottom: 8px; }
+    .chat-bubble.bot { background: var(--surface-2); border: 1px solid var(--border-soft); align-self: flex-start; }
+    .chat-bubble.user { background: var(--primary); color: #fff; align-self: flex-end; }
+    .chat-window { height: 300px; overflow-y: auto; display: flex; flex-direction: column; padding: 12px; background: var(--surface); border: 1px solid var(--border-soft); border-radius: 12px; }
+    .map-container { background: var(--bg-soft); border: 1px solid var(--border); border-radius: 14px; height: 320px; position: relative; overflow: hidden; }
+    .map-marker { position: absolute; width: 24px; height: 24px; background: var(--primary); border: 3px solid #fff; border-radius: 50%; box-shadow: var(--shadow); cursor: pointer; }
+    .map-marker:hover { transform: scale(1.2); z-index: 10; }
+    .video-preview { aspect-ratio: 16/9; background: #000; border-radius: 10px; display: flex; align-items: center; justify-content: center; position: relative; }
+    .play-btn { width: 48px; height: 48px; background: rgba(255,255,255,0.2); backdrop-filter: blur(4px); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; }
+    .faq-item { border-bottom: 1px solid var(--border-soft); padding: 12px 0; cursor: pointer; }
+    .faq-item:last-child { border-bottom: 0; }
+    .faq-q { font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
+    .faq-a { font-size: 13px; color: var(--text-3); margin-top: 6px; display: none; }
+    .faq-item.active .faq-a { display: block; }
+    .timeline { position: relative; padding-left: 24px; }
+    .timeline:before { content: ""; position: absolute; top: 6px; bottom: 6px; left: 8px; width: 2px; background: var(--border); }
+    .tl-item { position: relative; padding-bottom: 14px; }
+    .tl-item:before { content: ""; position: absolute; left: -20px; top: 4px; width: 10px; height: 10px; border-radius: 50%; background: var(--primary); border: 2px solid #fff; }
+    .tl-time { font-size: 10px; color: var(--text-4); }
+    .tl-text { font-size: 12px; margin-top: 2px; }
+    @media (max-width: 1024px) { .two-col { grid-template-columns: 1fr; } }
+    @media (max-width: 640px) { .three-col { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">P</div>
+      <nav class="sidebar-nav">
+        <button class="sidebar-item" title="Dashboard" data-modal="navDashModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg><span class="sidebar-label">Dashboard</span></button>
+        <button class="sidebar-item" title="My Loans" data-modal="navLoansModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"></path></svg><span class="sidebar-label">My Loans</span></button>
+        <button class="sidebar-item" title="Payments" data-modal="navPayModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg><span class="sidebar-label">Payments</span></button>
+        <button class="sidebar-item" title="Statements" data-modal="navStatModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg><span class="sidebar-label">Statements</span></button>
+        <button class="sidebar-item active" title="Support"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 1 1-7.6-10.6 8.38 8.38 0 0 1 3.8.9L21 3.5Z"></path></svg><span class="sidebar-label">Support</span></button>
+      </nav>
+      <button class="sidebar-expand" id="sidebarToggle"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg><span class="sidebar-label">Collapse</span></button>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <div class="crumb">
+            <button class="mobile-menu-btn btn btn-light btn-sm" id="mobileMenuBtn" style="margin-right:8px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+            <span>Borrower Portal</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg><span>Support & Disputes</span>
+          </div>
+          <h1 class="page-title">Support & Disputes</h1>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-light" data-modal="notificationsModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg></button>
+          <button class="btn btn-primary" data-modal="raiseDisputeModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>Raise Dispute</button>
+        </div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card" data-modal="disputeListModal"><div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></div><div class="stat-label">Active Disputes</div><div class="stat-value">2</div><div class="stat-trend neutral"><span>Last update 2h ago</span></div></div>
+        <div class="stat-card" data-modal="complaintListModal"><div class="stat-icon amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path></svg></div><div class="stat-label">Complaints</div><div class="stat-value">0</div><div class="stat-trend up"><span>All resolved</span></div></div>
+        <div class="stat-card" data-modal="slaModal"><div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div><div class="stat-label">Avg Resolution</div><div class="stat-value">4.2d</div><div class="stat-trend up"><span>Within 10d SLA</span></div></div>
+        <div class="stat-card" data-modal="chatHistoryModal"><div class="stat-icon purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 1 1-7.6-10.6 8.38 8.38 0 0 1 3.8.9L21 3.5Z"></path></svg></div><div class="stat-label">Chat History</div><div class="stat-value">12</div><div class="stat-trend up"><span>Last chat Yesterday</span></div></div>
+        <div class="stat-card" data-modal="agentListModal"><div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg></div><div class="stat-label">Nearby Agents</div><div class="stat-value">8</div><div class="stat-trend up"><span>Within 5km</span></div></div>
+      </div>
+
+      <div class="panel">
+        <div class="tabs" id="mainTabs">
+          <button class="tab active" data-tab="help"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>Help Center</button>
+          <button class="tab" data-tab="live"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>Live Chat & Call</button>
+          <button class="tab" data-tab="disputes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path></svg>My Disputes <span class="tab-badge">2</span></button>
+          <button class="tab" data-tab="escalation"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"></polyline></svg>Complaints</button>
+          <button class="tab" data-tab="locator"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>Branch & Agent Locator</button>
+        </div>
+
+        <section class="tab-panel active" data-panel="help">
+          <div class="panel-body">
+            <div class="search-box" style="width:100%;max-width:600px;margin: 0 auto 24px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg><input placeholder="Search help topics, FAQs, and guides..."></div>
+            <div class="help-grid">
+              <div class="help-card" data-modal="faqPaymentsModal"><div class="stat-icon green" style="margin:0 0 12px 0;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg></div><strong>Payments</strong><div class="list-sub">Repayments, early settlement, methods</div></div>
+              <div class="help-card" data-modal="faqStatementsModal"><div class="stat-icon blue" style="margin:0 0 12px 0;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></div><strong>Statements</strong><div class="list-sub">Tax certificates, balance, history</div></div>
+              <div class="help-card" data-modal="faqAppsModal"><div class="stat-icon purple" style="margin:0 0 12px 0;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle></svg></div><strong>Applications</strong><div class="list-sub">Eligibility, status, requirements</div></div>
+              <div class="help-card" data-modal="faqCollateralModal"><div class="stat-icon amber" style="margin:0 0 12px 0;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"></path><path d="M3 10h18"></path><path d="M5 6l7-3 7 3"></path></svg></div><strong>Collateral</strong><div class="list-sub">Security, valuation, release</div></div>
+              <div class="help-card" data-modal="faqHardshipModal"><div class="stat-icon red" style="margin:0 0 12px 0;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg></div><strong>Hardship</strong><div class="list-sub">Repayment plans, deferral, assistance</div></div>
+            </div>
+            <div style="margin-top:24px;">
+              <h3 class="panel-title" style="margin-bottom:14px;">Video Tutorials</h3>
+              <div class="three-col">
+                <div class="video-preview" data-modal="videoPlayerModal"><div class="play-btn"><svg viewBox="0 0 24 24" fill="currentColor" width="20"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg></div><div style="position:absolute;bottom:10px;left:10px;color:#fff;font-size:11px;font-weight:600;">How to make a payment</div></div>
+                <div class="video-preview" data-modal="videoPlayerModal"><div class="play-btn"><svg viewBox="0 0 24 24" fill="currentColor" width="20"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg></div><div style="position:absolute;bottom:10px;left:10px;color:#fff;font-size:11px;font-weight:600;">Understanding your statement</div></div>
+                <div class="video-preview" data-modal="videoPlayerModal"><div class="play-btn"><svg viewBox="0 0 24 24" fill="currentColor" width="20"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg></div><div style="position:absolute;bottom:10px;left:10px;color:#fff;font-size:11px;font-weight:600;">Managing collateral</div></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="tab-panel" data-panel="live">
+          <div class="panel-body">
+            <div class="two-col">
+              <div>
+                <h3 class="panel-title" style="margin-bottom:14px;">PayMo SmartBot</h3>
+                <div class="chat-window" id="chatWindow">
+                  <div class="chat-bubble bot">Hello! I'm your PayMo assistant. How can I help you today?</div>
+                  <div class="chat-bubble bot">You can ask me about your current loan balance or how to update your bank details.</div>
+                  <div class="chat-bubble user">I want to check my next payment date.</div>
+                  <div class="chat-bubble bot">Your next repayment of KES 24,800 is due on 01 March 2026.</div>
+                </div>
+                <div style="display:flex;gap:10px;margin-top:10px;">
+                  <input class="input" placeholder="Type your message..." id="chatInput">
+                  <button class="btn btn-primary" id="chatSendBtn">Send</button>
+                </div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:12px;">
+                <div style="background:var(--primary-soft);padding:18px;border-radius:14px;">
+                  <h3 style="font-weight:700;color:var(--primary);margin-bottom:4px;">Talk to a Human</h3>
+                  <p style="font-size:13px;color:var(--text-2);margin-bottom:12px;">Agents are available Mon-Fri, 8am - 6pm.</p>
+                  <button class="btn btn-primary" style="width:100%;" data-modal="liveAgentModal">Connect Now</button>
+                </div>
+                <div style="background:var(--surface-2);padding:18px;border-radius:14px;border:1px solid var(--border-soft);">
+                  <h3 style="font-weight:700;margin-bottom:4px;">Schedule a Callback</h3>
+                  <p style="font-size:13px;color:var(--text-2);margin-bottom:12px;">We'll call you at your preferred time.</p>
+                  <button class="btn btn-light" style="width:100%;" data-modal="callbackModal">Schedule Call</button>
+                </div>
+                <div class="alert info" style="background:var(--info-soft);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg>Priority queue active for accounts with outstanding payments.</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="tab-panel" data-panel="disputes">
+          <div class="panel-body">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+              <h3 class="panel-title">Active Disputes</h3>
+              <button class="btn btn-primary btn-sm" data-modal="raiseDisputeModal">+ Raise New Dispute</button>
+            </div>
+            <div class="table-wrap">
+              <table class="table">
+                <thead><tr><th>Ref ID</th><th>Type</th><th>Raised</th><th>SLA Status</th><th>Status</th><th></th></tr></thead>
+                <tbody>
+                  <tr data-modal="disputeDetailModal"><td class="mono">DIS-9982</td><td>Incorrect Charge</td><td>10 Feb</td><td><span class="badge success">5 days left</span></td><td><span class="badge warning">Investigating</span></td><td class="right"><button class="btn btn-light btn-sm">Track</button></td></tr>
+                  <tr data-modal="disputeDetailModal"><td class="mono">DIS-9941</td><td>Payment Not Reflected</td><td>05 Feb</td><td><span class="badge warning">1 day left</span></td><td><span class="badge info">Awaiting Evidence</span></td><td class="right"><button class="btn btn-light btn-sm">Track</button></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="tab-panel" data-panel="escalation">
+          <div class="panel-body">
+            <div class="two-col">
+              <div>
+                <h3 class="panel-title" style="margin-bottom:14px;">Internal Complaint Register</h3>
+                <div class="list-item" style="border:1px solid var(--border-soft);border-radius:12px;margin-bottom:10px;padding:14px;">
+                  <div class="list-left">
+                    <div class="list-icon" style="background:var(--success-soft);color:var(--success);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+                    <div><div class="list-title">CMP-1022 - Collateral Valuation</div><div class="list-sub">Resolved 14 Jan 2026</div></div>
+                  </div>
+                  <button class="btn btn-light btn-sm" data-modal="complaintDetailModal">View Outcome</button>
+                </div>
+                <button class="btn btn-primary" style="margin-top:10px;" data-modal="raiseComplaintModal">File a Formal Complaint</button>
+              </div>
+              <div>
+                <div style="background:var(--danger-soft);padding:18px;border-radius:14px;">
+                  <h3 style="font-weight:700;color:var(--danger);margin-bottom:4px;">Regulator Escalation</h3>
+                  <p style="font-size:13px;color:#991b1b;margin-bottom:12px;">If your complaint remains unresolved after 30 days, you have the right to escalate to the Central Bank Ombudsman.</p>
+                  <button class="btn btn-danger" style="width:100%;" data-modal="regulatorEscalationModal">Escalate to Regulator</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="tab-panel" data-panel="locator">
+          <div class="panel-body">
+            <div class="two-col">
+              <div>
+                <h3 class="panel-title" style="margin-bottom:14px;">PayMo Agent Map</h3>
+                <div class="map-container">
+                  <div class="map-marker" style="top:40%;left:30%;" data-modal="agentDetailModal"></div>
+                  <div class="map-marker" style="top:60%;left:50%;" data-modal="agentDetailModal"></div>
+                  <div class="map-marker" style="top:20%;left:70%;" data-modal="agentDetailModal"></div>
+                  <div style="position:absolute;bottom:10px;right:10px;background:#fff;padding:6px 12px;border-radius:8px;font-size:11px;font-weight:600;box-shadow:var(--shadow);">Map data: Westlands, Nairobi</div>
+                </div>
+              </div>
+              <div>
+                <h3 class="panel-title" style="margin-bottom:12px;">Nearby Locations</h3>
+                <div class="list-item" style="padding-left:0;padding-right:0;"><div class="list-left"><div class="list-icon blue" style="background:var(--info-soft);color:var(--info);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path></svg></div><div><div class="list-title">Sarit Center Agent</div><div class="list-sub">0.8km · Open until 8pm</div></div></div><button class="btn btn-light btn-sm" data-modal="agentDetailModal">Details</button></div>
+                <div class="list-item" style="padding-left:0;padding-right:0;"><div class="list-left"><div class="list-icon blue" style="background:var(--info-soft);color:var(--info);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path></svg></div><div><div class="list-title">Westlands Branch</div><div class="list-sub">1.2km · Open until 5pm</div></div></div><button class="btn btn-light btn-sm" data-modal="agentDetailModal">Details</button></div>
+                <div class="list-item" style="padding-left:0;padding-right:0;"><div class="list-left"><div class="list-icon blue" style="background:var(--info-soft);color:var(--info);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path></svg></div><div><div class="list-title">ABC Place Kiosk</div><div class="list-sub">2.4km · 24/7 self-service</div></div></div><button class="btn btn-light btn-sm" data-modal="agentDetailModal">Details</button></div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- ============ MODALS (20+) ============ -->
+
+  <div class="modal-backdrop" id="faqPaymentsModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Payments FAQ</h3><div class="modal-sub">Common questions about loan repayments</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="faq-item"><div class="faq-q">How do I make an early settlement? <svg viewBox="0 0 24 24" width="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg></div><div class="faq-a">You can pay off your loan early via the 'My Loans' dashboard. Select 'Pay Off Total' to see the exact amount including any interest adjustments.</div></div><div class="faq-item"><div class="faq-q">Which payment methods are accepted? <svg viewBox="0 0 24 24" width="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg></div><div class="faq-a">We accept M-Pesa, Bank Transfer (PesaLink), and Direct Debit from linked accounts.</div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="faqStatementsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Statements Help</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="faq-item"><div class="faq-q">Where can I find my tax certificate?</div><div class="faq-a">Go to the Statements tab and filter by 'Annual Tax Certificate' to download.</div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="faqAppsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Application Help</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><p class="list-sub">Application status typically updates within 24 hours of submission.</p></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="faqCollateralModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Collateral Help</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><p class="list-sub">Collateral is released within 7 business days of full loan settlement.</p></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="faqHardshipModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Hardship & Assistance</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><p class="list-sub">If you are facing financial difficulty, we offer repayment deferrals. Please connect with an agent to discuss.</p><button class="btn btn-primary" style="width:100%;margin-top:14px;" data-modal="liveAgentModal">Talk to Agent</button></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="videoPlayerModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Video Tutorial</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="video-preview"><div class="play-btn"><svg viewBox="0 0 24 24" fill="currentColor" width="24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg></div></div><div style="margin-top:14px;"><h4 style="font-weight:600;">How to use the PayMo App</h4><p class="list-sub">A step-by-step guide to managing your loans on the go.</p></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="liveAgentModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Connect to Agent</h3><div class="modal-sub">Estimated wait: 2 minutes</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div style="text-align:center;padding:24px;"><div class="svc-icon purple" style="margin:0 auto 16px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 1 1-7.6-10.6 8.38 8.38 0 0 1 3.8.9L21 3.5Z"></path></svg></div><p style="font-weight:600;">Searching for an available agent...</p><div class="dist-bar" style="margin-top:12px;max-width:200px;margin-left:auto;margin-right:auto;"><span style="width:40%;background:var(--primary);"></span></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button></div></div></div>
+
+  <div class="modal-backdrop" id="callbackModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Schedule Callback</h3><div class="modal-sub">We'll call you back at your convenience</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Phone Number</label><input class="input" value="+254 712 345 678"></div><div class="field"><label class="field-label">Preferred Date</label><input class="input" type="date" value="2026-02-21"></div><div class="field"><label class="field-label">Preferred Time</label><select class="select-field"><option>Morning (8am - 12pm)</option><option>Afternoon (12pm - 4pm)</option><option>Evening (4pm - 6pm)</option></select></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Callback scheduled successfully">Confirm Schedule</button></div></div></div>
+
+  <div class="modal-backdrop" id="raiseDisputeModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Raise a Dispute</h3><div class="modal-sub">SLA: Resolution within 10 business days</div></div><button class="modal-close" data-close>x</button></div><div class="stepper" id="disputeStepper"><div class="step active"><div class="step-num">1</div>Type</div><div class="step-line"></div><div class="step"><div class="step-num">2</div>Details</div><div class="step-line"></div><div class="step"><div class="step-num">3</div>Evidence</div><div class="step-line"></div><div class="step"><div class="step-num">4</div>Review</div></div><div class="modal-body"><div class="step-panel active" data-step="1"><label class="choice-row selected"><input type="radio" name="dType" checked><div><div class="choice-title">Incorrect Charge</div><div class="choice-desc">Charge amount differs from invoice</div></div></label><label class="choice-row"><input type="radio" name="dType"><div><div class="choice-title">Payment Not Reflected</div><div class="choice-desc">I paid but balance hasn't updated</div></div></label><label class="choice-row"><input type="radio" name="dType"><div><div class="choice-title">Statement Error</div><div class="choice-desc">Incorrect calculation on my statement</div></div></label><label class="choice-row"><input type="radio" name="dType"><div><div class="choice-title">Insurance Issue</div><div class="choice-desc">Related to collateral insurance premiums</div></div></label></div><div class="step-panel" data-step="2"><div class="field"><label class="field-label">Select Related Loan</label><select class="select-field"><option>Personal Loan - KES 480K</option></select></div><div class="field"><label class="field-label">Description</label><textarea class="textarea" placeholder="Describe the issue in detail..."></textarea></div></div><div class="step-panel" data-step="3"><div style="border:2px dashed var(--border);border-radius:12px;padding:32px;text-align:center;background:var(--surface-2);"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5" style="margin-bottom:8px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><div style="font-weight:600;">Upload Evidence</div><p class="list-sub">Receipts, screenshots, documents</p></div></div><div class="step-panel" data-step="4"><div class="alert info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg>Your dispute will be assigned to a specialist. Ref ID will be generated.</div></div></div><div class="modal-footer"><button class="btn btn-light" id="dispBack" disabled>Back</button><button class="btn btn-primary" id="dispNext">Next</button></div></div></div>
+
+  <div class="modal-backdrop" id="disputeDetailModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Dispute DIS-9982</h3><div class="modal-sub">Incorrect Charge · Investigating</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid" style="margin-bottom:18px;"><div><div class="kv-label">Raised on</div><div class="kv-val">10 Feb 2026</div></div><div><div class="kv-label">SLA Resolution</div><div class="kv-val">24 Feb 2026</div></div><div><div class="kv-label">Loan</div><div class="kv-val">Personal Loan #8821</div></div><div><div class="kv-label">Evidence</div><div class="kv-val">1 file attached</div></div></div><div class="timeline"><div class="tl-item"><div class="tl-time">10 Feb</div><div class="tl-text">Dispute raised via portal</div></div><div class="tl-item"><div class="tl-time">11 Feb</div><div class="tl-text">Assigned to Dispute Specialist (Mark S.)</div></div><div class="tl-item"><div class="tl-time">Yesterday</div><div class="tl-text">Investigation started · checking payment logs</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="raiseComplaintModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">File a Formal Complaint</h3><div class="modal-sub">For unresolved issues or poor service</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Subject</label><input class="input" placeholder="e.g. Unprofessional agent conduct"></div><div class="field"><label class="field-label">Details</label><textarea class="textarea" placeholder="Please provide full details for our compliance team..."></textarea></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Complaint registered. Reference CMP-1044">Submit Complaint</button></div></div></div>
+
+  <div class="modal-backdrop" id="complaintDetailModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Complaint CMP-1022 Outcome</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><p style="font-size:13px;line-height:1.6;">Following our investigation into your complaint regarding the valuation of your vehicle, we have adjusted the valuation to KES 1.2M as per the second appraiser's report. We apologize for the initial error.</p></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="regulatorEscalationModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Regulator Escalation</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="alert danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg>Please ensure you have first completed our internal 30-day complaint process.</div><p class="list-sub" style="margin-top:12px;">Redirecting you to the CBK Consumer Protection Portal...</p></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-danger" data-result="Redirecting to regulator portal">Proceed</button></div></div></div>
+
+  <div class="modal-backdrop" id="agentDetailModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Sarit Center Agent</h3><div class="modal-sub">Shop LG-42, Sarit Center, Westlands</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid" style="margin-bottom:14px;"><div><div class="kv-label">Operating Hours</div><div class="kv-val">08:00 - 20:00</div></div><div><div class="kv-label">Phone</div><div class="kv-val">+254 711 000 111</div></div></div><div class="config-row"><div><div class="config-label">Services</div><div class="config-desc">Payment intake, KYC docs, statement print</div></div><span class="badge success">Full Service</span></div><button class="btn btn-primary" style="width:100%;margin-top:14px;" data-result="Directions opened in maps">Get Directions</button></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="slaModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Resolution SLA</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><p class="list-sub">We aim to resolve all disputes within 10 business days. Complaints may take up to 30 days for a final response.</p></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="chatHistoryModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Chat History</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><table class="table"><thead><tr><th>Date</th><th>Topic</th><th>Agent</th><th>Status</th></tr></thead><tbody><tr><td>18 Feb</td><td>Payment check</td><td>Bot</td><td><span class="badge success">Ended</span></td></tr><tr><td>12 Jan</td><td>Valuation query</td><td>Mark S.</td><td><span class="badge success">Ended</span></td></tr></tbody></table></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="agentListModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Nearby Agents</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><table class="table"><thead><tr><th>Name</th><th>Distance</th><th>Status</th></tr></thead><tbody><tr><td>Sarit Center</td><td>0.8km</td><td><span class="badge success">Open</span></td></tr><tr><td>Westlands Branch</td><td>1.2km</td><td><span class="badge success">Open</span></td></tr></tbody></table></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="disputeListModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">My Active Disputes</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><table class="table"><thead><tr><th>ID</th><th>Raised</th><th>Status</th></tr></thead><tbody><tr><td>DIS-9982</td><td>10 Feb</td><td>Investigating</td></tr><tr><td>DIS-9941</td><td>05 Feb</td><td>Awaiting Evidence</td></tr></tbody></table></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="complaintListModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Complaints Status</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><p class="list-sub">No active complaints at this time.</p></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="notificationsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Notifications</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="list-item"><div><div class="list-title">Dispute update</div><div class="list-sub">DIS-9982 is under review.</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <div class="modal-backdrop" id="resultModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Request Processed</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="alert success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg><span id="resultMessage">Success</span></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Done</button></div></div></div>
+
+  <!-- Nav Modals -->
+  <div class="modal-backdrop" id="navDashModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Borrower Dashboard</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><p class="list-sub">Redirecting to main dashboard...</p></div></div></div>
+  <div class="modal-backdrop" id="navLoansModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">My Loans</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><p class="list-sub">View active and closed loans...</p></div></div></div>
+  <div class="modal-backdrop" id="navPayModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Payments</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><p class="list-sub">Manage repayments...</p></div></div></div>
+  <div class="modal-backdrop" id="navStatModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Statements</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><p class="list-sub">Download records...</p></div></div></div>
+
+  <script>
+    const sidebar = document.getElementById('sidebar');
+    document.getElementById('sidebarToggle').addEventListener('click', () => sidebar.classList.toggle('expanded'));
+    document.getElementById('mobileMenuBtn').addEventListener('click', () => sidebar.classList.toggle('mobile-open'));
+
+    function openModal(id) { const m = document.getElementById(id); if (m) m.classList.add('show'); }
+    function closeAll() { document.querySelectorAll('.modal-backdrop.show').forEach(m => m.classList.remove('show')); }
+    document.addEventListener('click', e => {
+      const close = e.target.closest('[data-close]');
+      if (close) { e.preventDefault(); e.stopPropagation(); closeAll(); return; }
+      const result = e.target.closest('[data-result]');
+      if (result) { e.preventDefault(); e.stopPropagation(); setResult(result.dataset.result); return; }
+      const opener = e.target.closest('[data-modal]');
+      if (opener) { e.preventDefault(); e.stopPropagation(); openModal(opener.dataset.modal); }
+    });
+    document.querySelectorAll('.modal-backdrop').forEach(b => b.addEventListener('click', e => { if (e.target === b) closeAll(); }));
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAll(); });
+
+    function setResult(message) {
+      closeAll();
+      document.getElementById('resultMessage').textContent = message;
+      openModal('resultModal');
+    }
+
+    function switchTab(name) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.dataset.panel === name));
+    }
+    document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => switchTab(tab.dataset.tab)));
+
+    document.querySelectorAll('.faq-item').forEach(item => {
+      item.addEventListener('click', () => item.classList.toggle('active'));
+    });
+
+    document.querySelectorAll('.choice-row').forEach(row => {
+      row.addEventListener('click', () => {
+        const radio = row.querySelector('input[type="radio"]');
+        if (radio) {
+          document.querySelectorAll(`input[name="${radio.name}"]`).forEach(i => i.closest('.choice-row')?.classList.remove('selected'));
+          radio.checked = true;
+          row.classList.add('selected');
+        }
+      });
+    });
+
+    function setupStepper(rootId, stepperId, backId, nextId, total, doneMessage) {
+      const root = document.getElementById(rootId);
+      if (!root) return;
+      let current = 1;
+      const render = () => {
+        document.querySelectorAll(`#${stepperId} .step`).forEach((s, i) => { s.classList.toggle('active', i + 1 === current); s.classList.toggle('done', i + 1 < current); });
+        root.querySelectorAll('.step-panel').forEach(p => p.classList.toggle('active', Number(p.dataset.step) === current));
+        document.getElementById(backId).disabled = current === 1;
+        document.getElementById(nextId).textContent = current === total ? 'Submit Dispute' : 'Next';
+      };
+      document.getElementById(backId).addEventListener('click', () => { if (current > 1) { current--; render(); } });
+      document.getElementById(nextId).addEventListener('click', () => { if (current < total) { current++; render(); } else { current = 1; render(); setResult(doneMessage); } });
+      render();
+    }
+    setupStepper('raiseDisputeModal', 'disputeStepper', 'dispBack', 'dispNext', 4, 'Dispute raised successfully. Tracking ID: DIS-1044');
+
+    const chatWindow = document.getElementById('chatWindow');
+    const chatInput = document.getElementById('chatInput');
+    document.getElementById('chatSendBtn').addEventListener('click', () => {
+      if (!chatInput.value.trim()) return;
+      const userMsg = document.createElement('div');
+      userMsg.className = 'chat-bubble user';
+      userMsg.textContent = chatInput.value;
+      chatWindow.appendChild(userMsg);
+      chatInput.value = '';
+      chatWindow.scrollTop = chatWindow.scrollHeight;
+      setTimeout(() => {
+        const botMsg = document.createElement('div');
+        botMsg.className = 'chat-bubble bot';
+        botMsg.textContent = "I've passed that to our team. An agent will follow up if needed.";
+        chatWindow.appendChild(botMsg);
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+      }, 1000);
+    });
+  </script>
+</body>
+</html>

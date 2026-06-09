@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Make a Payment - PayMo Borrower</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="stylesheet" href="master.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    .two-col { display: grid; grid-template-columns: 1.4fr 1fr; gap: 20px; }
+    .three-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .method-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .money-hero { font-size: 36px; font-weight: 700; letter-spacing: -.04em; color: var(--text); }
+    .amount-btn { border: 1px solid var(--border); border-radius: 12px; padding: 16px; text-align: center; cursor: pointer; transition: all .15s; background: var(--surface); }
+    .amount-btn:hover { border-color: var(--primary); background: var(--primary-soft); }
+    .amount-btn.selected { border-color: var(--primary); background: var(--primary); color: #fff; }
+    .amount-btn .lbl { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; opacity: .8; display: block; margin-bottom: 4px; }
+    .amount-btn .val { font-size: 18px; font-weight: 700; }
+    .method-card { border: 1px solid var(--border); border-radius: 14px; padding: 16px; display: flex; gap: 14px; align-items: center; cursor: pointer; transition: all .15s; background: var(--surface); }
+    .method-card:hover, .method-card.selected { border-color: var(--primary); box-shadow: var(--shadow-lg); }
+    .method-card.selected { background: var(--primary-soft); }
+    .method-icon { width: 40px; height: 40px; border-radius: 10px; background: var(--surface-2); display: flex; align-items: center; justify-content: center; }
+    .method-icon svg { width: 20px; height: 20px; }
+    .kv-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px 18px; }
+    .kv-label { font-size: 10px; color: var(--text-4); text-transform: uppercase; letter-spacing: .07em; }
+    .kv-val { font-size: 13px; font-weight: 600; margin-top: 2px; }
+    .timeline { position: relative; padding-left: 24px; }
+    .timeline:before { content: ""; position: absolute; top: 6px; bottom: 6px; left: 8px; width: 2px; background: var(--border); }
+    .tl-item { position: relative; padding-bottom: 16px; }
+    .tl-item:before { content: ""; position: absolute; left: -20px; top: 4px; width: 10px; height: 10px; border-radius: 50%; background: var(--primary); border: 2px solid #fff; }
+    .tl-time { font-size: 11px; color: var(--text-3); }
+    .tl-text { font-size: 13px; margin-top: 2px; }
+    .receipt-box { border: 2px dashed var(--border); border-radius: 16px; padding: 24px; background: #fff; position: relative; }
+    .receipt-box:after { content: ""; position: absolute; bottom: -10px; left: 10px; right: 10px; height: 20px; background: radial-gradient(circle, #fff 5px, transparent 5px) repeat-x; background-size: 15px 20px; }
+    .map-placeholder { height: 200px; background: var(--surface-3); border-radius: 12px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); }
+    .penalty-box { background: var(--danger-soft); color: #991b1b; padding: 12px; border-radius: 10px; font-size: 12px; display: flex; gap: 10px; align-items: flex-start; }
+    .penalty-box svg { width: 16px; height: 16px; flex-shrink: 0; }
+    @media (max-width: 1024px) { .two-col { grid-template-columns: 1fr; } }
+    @media (max-width: 768px) { .three-col, .method-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">P</div>
+      <nav class="sidebar-nav">
+        <button class="sidebar-item" title="Dashboard" data-modal="navDashModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg><span class="sidebar-label">Dashboard</span></button>
+        <button class="sidebar-item" title="My Loans" data-modal="navLoansModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg><span class="sidebar-label">Loans</span></button>
+        <button class="sidebar-item active" title="Repay"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"></path></svg><span class="sidebar-label">Repay</span></button>
+        <button class="sidebar-item" title="Statements" data-modal="navStatementsModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M16 13H8"></path><path d="M16 17H8"></path><path d="M10 9H8"></path></svg><span class="sidebar-label">Statements</span></button>
+        <button class="sidebar-item" title="Support" data-modal="navSupportModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg><span class="sidebar-label">Support</span></button>
+      </nav>
+      <button class="sidebar-expand" id="sidebarToggle"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg><span class="sidebar-label">Collapse</span></button>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <div class="crumb">
+            <button class="mobile-menu-btn btn btn-light btn-sm" id="mobileMenuBtn" style="margin-right:8px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+            <span>Borrower Portal</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg><span>Make a Payment</span>
+          </div>
+          <h1 class="page-title">Repay Your Loan</h1>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-light" data-modal="calculatorModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line><line x1="16" y1="14" x2="16" y2="18"></line><path d="M16 10h.01"></path><path d="M12 10h.01"></path><path d="M8 10h.01"></path><path d="M12 14h.01"></path><path d="M8 14h.01"></path><path d="M12 18h.01"></path><path d="M8 18h.01"></path></svg>Repayment Calculator</button>
+          <button class="btn btn-primary" data-modal="autoPayModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>Set Auto-Pay</button>
+        </div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card" data-modal="paymentOverviewModal"><div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div><div class="stat-label">Minimum Due</div><div class="stat-value">KES 12,450</div><div class="stat-trend up"><span>Due in 4 days</span></div></div>
+        <div class="stat-card" data-modal="fullBalanceModal"><div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22"></path><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"></path></svg></div><div class="stat-label">Full Balance</div><div class="stat-value">KES 482,900</div><div class="stat-trend neutral"><span>Pay off to save interest</span></div></div>
+        <div class="stat-card" data-modal="overdueModal"><div class="stat-icon red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg></div><div class="stat-label">Overdue Amount</div><div class="stat-value">KES 0</div><div class="stat-trend success"><span>No penalties</span></div></div>
+        <div class="stat-card" data-modal="pointsModal"><div class="stat-icon purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4-6.3-4.6L5.7 21.4 8 14 2 9.4h7.6z"></path></svg></div><div class="stat-label">Reward Points</div><div class="stat-value">2,840</div><div class="stat-trend up"><span>Redeemable for credit</span></div></div>
+        <div class="stat-card" data-modal="creditLimitModal"><div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg></div><div class="stat-label">Available Credit</div><div class="stat-value">KES 150K</div><div class="stat-trend up"><span>Good standing</span></div></div>
+      </div>
+
+      <div class="two-col">
+        <!-- PAYMENT INTERFACE -->
+        <section class="panel">
+          <div class="panel-header"><h2 class="panel-title">1. Configure Payment</h2></div>
+          <div class="panel-body">
+            <div class="field"><label class="field-label">Select Loan Facility</label><select class="select-field"><option>Personal Loan #8841 (KES 480K)</option><option>Salary Advance #2201 (KES 25K)</option></select></div>
+            
+            <div class="kv-label" style="margin-bottom:10px;">Select Amount</div>
+            <div class="three-col" style="margin-bottom:20px;">
+              <div class="amount-btn selected" onclick="selectAmount(this, 12450)"><span class="lbl">Min Due</span><span class="val">KES 12,450</span></div>
+              <div class="amount-btn" onclick="selectAmount(this, 482900)"><span class="lbl">Full Balance</span><span class="val">KES 482,900</span></div>
+              <div class="amount-btn" onclick="openModal('customAmountModal')"><span class="lbl">Custom</span><span class="val">Other</span></div>
+            </div>
+
+            <div class="field"><label class="field-label">Payment Amount</label><input type="text" class="input money-hero" value="KES 12,450" id="paymentInput"></div>
+
+            <div class="kv-label" style="margin:20px 0 10px;">Payment Method</div>
+            <div class="method-grid">
+              <div class="method-card selected" onclick="selectMethod(this)"><div class="method-icon" style="color:var(--primary);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"></path></svg></div><div><div style="font-weight:600;">PayMo Wallet</div><div class="list-sub">Balance: KES 45,200</div></div></div>
+              <div class="method-card" onclick="selectMethod(this)"><div class="method-icon" style="color:var(--success);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"></path><path d="M5 6l7-3 7 3"></path><path d="M3 10h18"></path></svg></div><div><div style="font-weight:600;">Bank Transfer</div><div class="list-sub">Equity Bank •••• 9210</div></div></div>
+              <div class="method-card" onclick="selectMethod(this)"><div class="method-icon" style="color:var(--info);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path></svg></div><div><div style="font-weight:600;">M-Pesa</div><div class="list-sub">254712 •••• 88</div></div></div>
+              <div class="method-card" onclick="openModal('addMethodModal')"><div class="method-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></div><div><div style="font-weight:600;">Add Method</div><div class="list-sub">Card, Cash, or Bank</div></div></div>
+            </div>
+
+            <button class="btn btn-primary" style="width:100%; margin-top:24px; padding:16px;" data-modal="confirmPaymentModal">Review & Confirm Payment</button>
+          </div>
+        </section>
+
+        <!-- HISTORY & SCHEDULING -->
+        <div style="display:flex; flex-direction:column; gap:20px;">
+          <section class="panel">
+            <div class="panel-header"><h2 class="panel-title">Scheduling</h2></div>
+            <div class="panel-body">
+              <label class="choice-row selected"><input type="radio" name="sched" checked><div><div class="choice-title">Pay Now</div><div class="choice-desc">Instant processing</div></div></label>
+              <label class="choice-row"><input type="radio" name="sched"><div><div class="choice-title">Schedule for Future</div><div class="choice-desc">Choose a date before maturity</div></div></label>
+              <label class="choice-row"><input type="radio" name="sched"><div><div class="choice-title">Setup Auto-Pay</div><div class="choice-desc">Recurring on due date</div></div></label>
+              <div class="config-row" style="margin-top:10px;"><div><div class="config-label">Salary Deduction</div><div class="config-desc">Partnered with Acme Logistics</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-header">
+              <h2 class="panel-title">Payment History</h2>
+              <button class="btn btn-light btn-sm" data-modal="historyFilterModal">Filter</button>
+            </div>
+            <div class="panel-body no-pad">
+              <div class="list-item" data-modal="receiptModal"><div class="list-left"><div class="list-icon green" style="background:var(--success-soft); color:var(--success);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg></div><div><div class="list-title">KES 12,450.00</div><div class="list-sub">12 Jan 2026 • M-Pesa</div></div></div><button class="btn btn-light btn-sm">Receipt</button></div>
+              <div class="list-item" data-modal="receiptModal"><div class="list-left"><div class="list-icon green" style="background:var(--success-soft); color:var(--success);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg></div><div><div class="list-title">KES 12,450.00</div><div class="list-sub">12 Dec 2025 • Wallet</div></div></div><button class="btn btn-light btn-sm">Receipt</button></div>
+              <div class="list-item" data-modal="receiptModal"><div class="list-left"><div class="list-icon green" style="background:var(--success-soft); color:var(--success);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg></div><div><div class="list-title">KES 12,450.00</div><div class="list-sub">12 Nov 2025 • Bank</div></div></div><button class="btn btn-light btn-sm">Receipt</button></div>
+            </div>
+            <div class="panel-footer" style="padding:12px; border-top:1px solid var(--border-soft); text-align:center;">
+              <button class="btn btn-ghost btn-sm" data-modal="fullHistoryModal">View all 14 payments</button>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- ============ MODALS (20+) ============ -->
+
+  <div class="modal-backdrop" id="confirmPaymentModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Confirm Repayment</h3><div class="modal-sub">Final review before deduction</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid" style="margin-bottom:20px;"><div><div class="kv-label">Total Payment</div><div class="kv-val" style="font-size:18px;">KES 12,450.00</div></div><div><div class="kv-label">Payment Method</div><div class="kv-val">PayMo Wallet</div></div><div><div class="kv-label">Facility</div><div class="kv-val">Personal Loan #8841</div></div><div><div class="kv-label">Remaining Balance</div><div class="kv-val">KES 470,450.00</div></div></div><div class="alert info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg>Payments are processed instantly. You will receive a digital receipt.</div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-modal="successModal">Authorize Payment</button></div></div></div>
+
+  <div class="modal-backdrop" id="successModal"><div class="modal"><div class="modal-body" style="text-align:center; padding:40px 24px;"><div class="stat-icon green" style="width:64px; height:64px; margin:0 auto 20px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg></div><h3 class="modal-title" style="font-size:20px;">Payment Successful</h3><p class="list-sub" style="margin:8px 0 24px;">Reference: PAY-99827-0182<br>KES 12,450.00 has been deducted from your wallet.</p><div style="display:flex; flex-direction:column; gap:10px;"><button class="btn btn-primary" data-modal="receiptModal">View Digital Receipt</button><button class="btn btn-light" data-close>Back to Dashboard</button></div></div></div></div>
+
+  <div class="modal-backdrop" id="receiptModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Payment Receipt</h3><div class="modal-sub">Transaction PAY-99827-0182</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="receipt-box"><div style="text-align:center; margin-bottom:20px;"><div style="font-weight:700; font-size:18px;">PayMo Lending</div><div class="list-sub">Official Repayment Receipt</div></div><div class="kv-grid"><div><div class="kv-label">Date</div><div class="kv-val">12 Feb 2026</div></div><div><div class="kv-label">Amount</div><div class="kv-val">KES 12,450.00</div></div><div><div class="kv-label">Method</div><div class="kv-val">PayMo Wallet</div></div><div><div class="kv-label">Loan #</div><div class="kv-val">LOAN-8841</div></div></div><div style="margin-top:20px; border-top:1px dashed var(--border); padding-top:20px;"><div style="display:flex; justify-content:space-between; margin-bottom:8px;"><span class="list-sub">Principal</span><span>KES 8,240.00</span></div><div style="display:flex; justify-content:space-between; margin-bottom:8px;"><span class="list-sub">Interest</span><span>KES 4,210.00</span></div><div style="display:flex; justify-content:space-between; font-weight:700;"><span>Total</span><span>KES 12,450.00</span></div></div></div></div><div class="modal-footer"><button class="btn btn-light" data-result="Receipt shared via WhatsApp">Share Receipt</button><div style="display:flex; gap:8px;"><button class="btn btn-light" data-result="Receipt PDF downloading">Download</button><button class="btn btn-primary" data-close>Done</button></div></div></div></div>
+
+  <div class="modal-backdrop" id="customAmountModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Custom Payment Amount</h3><div class="modal-sub">Pay any amount to reduce your balance</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Enter Amount</label><input type="number" class="input" placeholder="0.00" id="customAmtInput"></div><div class="alert info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg>Payments above the minimum due will be applied directly to the principal, reducing future interest.</div><label class="choice-row selected" style="margin-top:14px;"><input type="checkbox" checked><div><div class="choice-title">Apply extra to principal</div><div class="choice-desc">Reduces loan tenor</div></div></label></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" onclick="setCustomAmount()">Confirm Amount</button></div></div></div>
+
+  <div class="modal-backdrop" id="addMethodModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Add Payment Method</h3><div class="modal-sub">Securely link a new way to pay</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="method-grid"><div class="method-card" data-modal="addCardModal"><div class="method-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg></div><div><div style="font-weight:600;">Credit/Debit Card</div><div class="list-sub">Visa, Mastercard</div></div></div><div class="method-card" data-modal="linkBankModal"><div class="method-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"></path><path d="M5 6l7-3 7 3"></path></svg></div><div><div style="font-weight:600;">Bank Account</div><div class="list-sub">Direct Debit</div></div></div><div class="method-card" data-modal="mobileMoneyModal"><div class="method-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.79 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg></div><div><div style="font-weight:600;">Mobile Money</div><div class="list-sub">M-Pesa, Airtel</div></div></div><div class="method-card" data-modal="cashAgentModal"><div class="method-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg></div><div><div style="font-weight:600;">Cash Agent</div><div class="list-sub">Nearby locator</div></div></div></div></div></div></div>
+
+  <div class="modal-backdrop" id="overdueModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Overdue Details</h3><div class="modal-sub">Account health status</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="penalty-box" style="background:var(--success-soft); color:var(--success);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>Your account is current. No overdue payments found.</div><div class="kv-grid" style="margin-top:20px;"><div><div class="kv-label">Days Overdue</div><div class="kv-val">0</div></div><div><div class="kv-label">Late Penalties</div><div class="kv-val">KES 0.00</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Great!</button></div></div></div>
+
+  <div class="modal-backdrop" id="autoPayModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Setup Auto-Pay</h3><div class="modal-sub">Never miss a payment again</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Payment Method</label><select class="select-field"><option>PayMo Wallet</option><option>Equity Bank Transfer</option></select></div><div class="field"><label class="field-label">Payment Day</label><select class="select-field"><option>On due date</option><option>2 days before due date</option><option>Monthly (1st of month)</option></select></div><div class="field"><label class="field-label">Payment Amount</label><select class="select-field"><option>Minimum amount due</option><option>Full balance</option><option>Fixed amount...</option></select></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Cancel</button><button class="btn btn-primary" data-result="Auto-pay setup successfully">Enable Auto-Pay</button></div></div></div>
+
+  <div class="modal-backdrop" id="calculatorModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Repayment Calculator</h3><div class="modal-sub">See how extra payments save you money</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="two-col"><div><div class="field"><label class="field-label">Extra Monthly Payment</label><input type="number" class="input" value="5000"></div><div class="field"><label class="field-label">Lump Sum Payment</label><input type="number" class="input" value="0"></div></div><div style="background:var(--surface-2); padding:20px; border-radius:14px;"><div class="kv-label">Estimated Savings</div><div class="money-hero" style="color:var(--success); font-size:28px;">KES 42,800</div><div class="list-sub" style="margin-top:4px;">Interest saved over loan term</div><div class="kv-label" style="margin-top:14px;">Tenor Reduction</div><div class="kv-val" style="font-size:18px;">4 Months Sooner</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-light" data-close>Close</button></div></div></div>
+
+  <!-- Additional Nav & Feature Modals -->
+  <div class="modal-backdrop" id="navDashModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Dashboard</h3><div class="modal-sub">Switching to overview</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><p class="list-sub">Taking you back to your borrower command center...</p></div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Go</button></div></div></div>
+  <div class="modal-backdrop" id="navLoansModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">My Loans</h3><div class="modal-sub">Facility list</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="list-item"><div class="list-left"><div><div class="list-title">Personal Loan #8841</div><div class="list-sub">KES 480,000 • Active</div></div></div><button class="btn btn-light btn-sm">Select</button></div></div></div></div>
+  <div class="modal-backdrop" id="cashAgentModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Cash Deposit Agents</h3><div class="modal-sub">Find a nearby PayMo partner</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Search Location</label><input class="input" placeholder="Enter neighborhood or city"></div><div class="map-placeholder"><span>[ Interactive Agent Map ]</span></div><div class="list-item"><div class="list-left"><div><div class="list-title">Riverside Supermarket</div><div class="list-sub">0.4km away • Open until 10PM</div></div></div><button class="btn btn-primary btn-sm">Get Directions</button></div></div></div></div>
+  <div class="modal-backdrop" id="addCardModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Add Card</h3><div class="modal-sub">Safe & Secure tokenization</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Card Number</label><input class="input" placeholder="•••• •••• •••• ••••"></div><div class="field-row"><div class="field"><label class="field-label">Expiry</label><input class="input" placeholder="MM/YY"></div><div class="field"><label class="field-label">CVV</label><input class="input" placeholder="•••"></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-result="Card added successfully">Link Card</button></div></div></div>
+  <div class="modal-backdrop" id="paymentOverviewModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Payment Breakdown</h3><div class="modal-sub">What makes up your KES 12,450</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="config-row"><div class="config-label">Principal</div><span>KES 8,240.00</span></div><div class="config-row"><div class="config-label">Interest</div><span>KES 4,110.00</span></div><div class="config-row"><div class="config-label">Maintenance Fee</div><span>KES 100.00</span></div></div></div></div>
+  <div class="modal-backdrop" id="pointsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">PayMo Rewards</h3><div class="modal-sub">Repay on time to earn more</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div style="text-align:center;"><div style="font-size:32px; font-weight:700; color:var(--purple);">2,840</div><div class="list-sub">Available Points</div></div><div class="choice-row" style="margin-top:20px;"><div><div class="choice-title">Redeem for Cashback</div><div class="choice-desc">Convert 1000 pts to KES 500 credit</div></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-result="Points redeemed for credit">Redeem Now</button></div></div></div>
+  <div class="modal-backdrop" id="historyFilterModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Filter History</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Date Range</label><select class="select-field"><option>Last 3 months</option><option>Last 6 months</option><option>All time</option></select></div><div class="field"><label class="field-label">Method</label><div style="display:flex; gap:10px;"><label><input type="checkbox" checked> Wallet</label><label><input type="checkbox" checked> Mobile</label></div></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Apply</button></div></div></div>
+  <div class="modal-backdrop" id="disputeModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Dispute Payment</h3><div class="modal-sub">Let us investigate a discrepancy</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Reason for Dispute</label><select class="select-field"><option>Duplicate charge</option><option>Incorrect amount</option><option>Payment not reflected</option></select></div><div class="field"><label class="field-label">Reference Number</label><input class="input" placeholder="PAY-XXXX"></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-danger" data-result="Dispute filed. Case #DISP-991">Submit Dispute</button></div></div></div>
+  <div class="modal-backdrop" id="fullHistoryModal"><div class="modal lg"><div class="modal-header"><div><h3 class="modal-title">Full Payment History</h3><div class="modal-sub">All repayment records</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><table class="table"><thead><tr><th>Date</th><th>Method</th><th>Ref</th><th>Amount</th><th>Status</th></tr></thead><tbody><tr><td>12 Jan 2026</td><td>M-Pesa</td><td>PAY-991</td><td>KES 12,450</td><td><span class="badge success">Paid</span></td></tr><tr><td>12 Dec 2025</td><td>Wallet</td><td>PAY-882</td><td>KES 12,450</td><td><span class="badge success">Paid</span></td></tr></tbody></table></div></div></div>
+  <div class="modal-backdrop" id="certificateModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Payment Certificate</h3><div class="modal-sub">Official clearance document</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="alert info">Certificates can only be generated for fully settled loans. This facility is active.</div></div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Close</button></div></div></div>
+  <div class="modal-backdrop" id="navStatementsModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Loan Statements</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><button class="btn btn-light" style="width:100%;" data-result="Statement generated">Download Jan 2026 Statement</button></div></div></div>
+  <div class="modal-backdrop" id="navSupportModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Customer Support</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><button class="btn btn-primary" style="width:100%;" data-result="Chat started">Live Chat with Agent</button></div></div></div>
+  <div class="modal-backdrop" id="fullBalanceModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Full Balance Payoff</h3><div class="modal-sub">Close your loan today</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="kv-grid"><div><div class="kv-label">Principal</div><div class="kv-val">KES 470,450</div></div><div><div class="kv-label">Accrued Interest</div><div class="kv-val">KES 12,450</div></div></div><div class="alert success" style="margin-top:14px;">Paying off now saves you <strong>KES 92,100</strong> in future interest.</div></div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Pay Full Balance</button></div></div></div>
+  <div class="modal-backdrop" id="creditLimitModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Credit Limit</h3><div class="modal-sub">Your available borrowing power</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="dist-row"><div class="dist-label">Utilized</div><div class="dist-bar"><span style="width:76%;background:var(--primary);"></span></div><div class="dist-val">KES 482K</div></div><div class="dist-row"><div class="dist-label">Available</div><div class="dist-bar"><span style="width:24%;background:var(--success);"></span></div><div class="dist-val">KES 150K</div></div></div></div></div>
+  <div class="modal-backdrop" id="mobileMoneyModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Link Mobile Money</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Phone Number</label><input class="input" value="+254 712 345 678"></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-result="Mobile money linked">Link</button></div></div></div>
+  <div class="modal-backdrop" id="linkBankModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title">Link Bank Account</h3></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="field"><label class="field-label">Select Bank</label><select class="select-field"><option>KCB Bank</option><option>Equity Bank</option><option>Standard Chartered</option></select></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-result="Bank account linked">Authorize</button></div></div></div>
+  
+  <div class="modal-backdrop" id="resultModal"><div class="modal"><div class="modal-header"><div><h3 class="modal-title" id="resultTitle">Action Complete</h3><div class="modal-sub">PayMo operation completed</div></div><button class="modal-close" data-close>x</button></div><div class="modal-body"><div class="alert success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg><span id="resultMessage">Action completed.</span></div></div><div class="modal-footer modal-footer-end"><button class="btn btn-primary" data-close>Done</button></div></div></div>
+
+  <script>
+    const sidebar = document.getElementById('sidebar');
+    document.getElementById('sidebarToggle').addEventListener('click', () => sidebar.classList.toggle('expanded'));
+    document.getElementById('mobileMenuBtn').addEventListener('click', () => sidebar.classList.toggle('mobile-open'));
+
+    function openModal(id) { const m = document.getElementById(id); if (m) m.classList.add('show'); }
+    function closeAll() { document.querySelectorAll('.modal-backdrop.show').forEach(m => m.classList.remove('show')); }
+    
+    document.addEventListener('click', e => {
+      if (e.target.closest('.toggle') || e.target.closest('.verdict')) { return; }
+      const close = e.target.closest('[data-close]');
+      if (close) { e.preventDefault(); e.stopPropagation(); closeAll(); return; }
+      const result = e.target.closest('[data-result]');
+      if (result) { e.preventDefault(); e.stopPropagation(); setResult(result.dataset.result); return; }
+      const opener = e.target.closest('[data-modal]');
+      if (opener) { e.preventDefault(); e.stopPropagation(); openModal(opener.dataset.modal); }
+    });
+    
+    document.querySelectorAll('.modal-backdrop').forEach(b => b.addEventListener('click', e => { if (e.target === b) closeAll(); }));
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAll(); });
+
+    function setResult(message) {
+      closeAll();
+      document.getElementById('resultMessage').textContent = message;
+      openModal('resultModal');
+    }
+
+    window.selectAmount = function(el, val) {
+      document.querySelectorAll('.amount-btn').forEach(b => b.classList.remove('selected'));
+      el.classList.add('selected');
+      document.getElementById('paymentInput').value = 'KES ' + val.toLocaleString();
+    };
+
+    window.setCustomAmount = function() {
+      const val = document.getElementById('customAmtInput').value;
+      if(val) {
+        document.getElementById('paymentInput').value = 'KES ' + Number(val).toLocaleString();
+        closeAll();
+      }
+    };
+
+    window.selectMethod = function(el) {
+      document.querySelectorAll('.method-card').forEach(c => c.classList.remove('selected'));
+      el.classList.add('selected');
+    };
+
+    document.querySelectorAll('.choice-row').forEach(row => {
+      row.addEventListener('click', () => {
+        const radio = row.querySelector('input[type="radio"]');
+        if (radio) {
+          document.querySelectorAll(`input[name="${radio.name}"]`).forEach(i => i.closest('.choice-row')?.classList.remove('selected'));
+          radio.checked = true;
+          row.classList.add('selected');
+        }
+        const checkbox = row.querySelector('input[type="checkbox"]');
+        if (checkbox && !radio) row.classList.toggle('selected', checkbox.checked);
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,1555 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PayMo - Reconciliation, Settlement & Clearing Operations</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="./master 2.8 copy.css">
+    <style>
+        .pm-anchor-nav {
+            position: sticky;
+            top: 88px;
+            background: #fff;
+            border: 1px solid var(--pm-border);
+            border-radius: var(--pm-r-md);
+            padding: 8px;
+            display: flex;
+            gap: 4px;
+            overflow-x: auto;
+            z-index: 40
+        }
+
+        .pm-anchor-btn {
+            padding: 8px 14px;
+            border: 0;
+            background: transparent;
+            color: var(--pm-ink-soft);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 8px;
+            white-space: nowrap;
+            font-family: var(--pm-font-sans)
+        }
+
+        .pm-anchor-btn:hover {
+            background: var(--pm-bg-2);
+            color: var(--pm-ink)
+        }
+
+        .pm-anchor-btn.active {
+            background: var(--pm-primary);
+            color: #fff
+        }
+
+        .pm-anchor-section {
+            scroll-margin-top: 170px
+        }
+
+        .pm-ledger-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 16px
+        }
+
+        .span-4 {
+            grid-column: span 4
+        }
+
+        .span-5 {
+            grid-column: span 5
+        }
+
+        .span-6 {
+            grid-column: span 6
+        }
+
+        .span-7 {
+            grid-column: span 7
+        }
+
+        .span-8 {
+            grid-column: span 8
+        }
+
+        .span-12 {
+            grid-column: span 12
+        }
+
+        .pm-day-strip {
+            display: flex;
+            gap: 8px;
+            overflow: auto;
+            padding-bottom: 4px
+        }
+
+        .pm-day-pill {
+            min-width: 96px;
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid var(--pm-border);
+            background: #fff;
+            cursor: pointer;
+            transition: .2s
+        }
+
+        .pm-day-pill:hover {
+            border-color: var(--pm-primary-light);
+            transform: translateY(-1px)
+        }
+
+        .pm-day-pill.active {
+            background: var(--pm-primary);
+            border-color: var(--pm-primary);
+            color: #fff
+        }
+
+        .pm-rail-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 700
+        }
+
+        .pm-rail-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%
+        }
+
+        .pm-match-card {
+            padding: 16px;
+            border: 1px solid var(--pm-border);
+            border-radius: 16px;
+            background: var(--pm-surface-2)
+        }
+
+        .pm-match-score {
+            font-family: var(--pm-font-display);
+            font-size: 20px;
+            font-weight: 700
+        }
+
+        .pm-waterfall {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+            height: 180px;
+            padding: 8px 0
+        }
+
+        .pm-waterfall-bar {
+            flex: 1;
+            border-radius: 12px 12px 4px 4px;
+            background: var(--pm-gradient-hero);
+            position: relative;
+            min-width: 42px
+        }
+
+        .pm-waterfall-bar.alt {
+            background: var(--pm-gradient-blue)
+        }
+
+        .pm-waterfall-bar.warn {
+            background: var(--pm-gradient-warm)
+        }
+
+        .pm-waterfall-bar.good {
+            background: var(--pm-gradient-mint)
+        }
+
+        .pm-waterfall-bar span {
+            position: absolute;
+            bottom: -24px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 11px;
+            color: var(--pm-muted);
+            white-space: nowrap
+        }
+
+        .pm-waterfall-bar strong {
+            position: absolute;
+            top: -22px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 11px;
+            white-space: nowrap
+        }
+
+        .pm-clearing-stage {
+            padding: 14px;
+            border: 1px solid var(--pm-border);
+            border-radius: 14px;
+            background: #fff
+        }
+
+        .pm-clearing-arrow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--pm-muted);
+            font-weight: 700
+        }
+
+        .pm-switch-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            padding: 12px 0;
+            border-bottom: 1px dashed var(--pm-border)
+        }
+
+        .pm-switch-row:last-child {
+            border-bottom: 0
+        }
+
+        .pm-tab-panel {
+            display: none
+        }
+
+        .pm-tab-panel.active {
+            display: block
+        }
+
+        .pm-dropzone {
+            padding: 26px;
+            border: 2px dashed var(--pm-border-2);
+            border-radius: 18px;
+            background: var(--pm-surface-2);
+            text-align: center
+        }
+
+        .pm-matrix {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 6px
+        }
+
+        .pm-matrix-cell {
+            aspect-ratio: 1;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: .15s;
+            background: var(--pm-bg-2)
+        }
+
+        .pm-matrix-cell.hot {
+            background: var(--pm-danger-soft);
+            color: #991B1B
+        }
+
+        .pm-matrix-cell.warn {
+            background: var(--pm-warning-soft);
+            color: #92400E
+        }
+
+        .pm-matrix-cell.good {
+            background: var(--pm-accent-soft);
+            color: #065F46
+        }
+
+        .pm-matrix-cell:hover {
+            transform: scale(1.15);
+            box-shadow: var(--pm-shadow-md)
+        }
+
+        .pm-mini-ledger {
+            padding: 14px;
+            border: 1px solid var(--pm-border);
+            border-radius: 14px;
+            background: #fff
+        }
+
+        .pm-filter-bar {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center
+        }
+
+        .pm-pin-pad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            max-width: 280px;
+            margin: 0 auto
+        }
+
+        .pm-pin-key {
+            height: 56px;
+            border: 1px solid var(--pm-border);
+            background: #fff;
+            border-radius: 12px;
+            font-size: 20px;
+            font-family: var(--pm-font-display);
+            font-weight: 700;
+            cursor: pointer
+        }
+
+        .pm-pin-key:hover {
+            background: var(--pm-primary);
+            color: #fff
+        }
+
+        .pm-pin-dots {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin: 12px 0 20px
+        }
+
+        .pm-pin-dots span {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 2px solid var(--pm-border-2)
+        }
+
+        .pm-pin-dots span.filled {
+            background: var(--pm-primary);
+            border-color: var(--pm-primary)
+        }
+
+        .pm-reco-row {
+            animation: pmRow .35s ease-out
+        }
+
+        @keyframes pmRow {
+            from {
+                opacity: 0;
+                transform: translateY(-8px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        .crumb {
+            border: 0;
+            background: transparent;
+            color: var(--pm-primary);
+            font-size: 12px;
+            cursor: pointer;
+            padding: 0
+        }
+
+        .crumb:hover {
+            text-decoration: underline
+        }
+
+        @media(max-width:1100px) {
+            .pm-ledger-grid {
+                grid-template-columns: repeat(6, 1fr)
+            }
+
+            .span-7,
+            .span-8,
+            .span-6,
+            .span-5,
+            .span-4 {
+                grid-column: span 6
+            }
+        }
+
+        @media(max-width:768px) {
+            .pm-ledger-grid {
+                grid-template-columns: 1fr
+            }
+
+            .span-7,
+            .span-8,
+            .span-6,
+            .span-5,
+            .span-4,
+            .span-12 {
+                grid-column: span 1
+            }
+
+            .pm-matrix {
+                grid-template-columns: repeat(4, 1fr)
+            }
+        }
+    </style>
+    <base target="_blank">
+</head>
+
+<body>
+    <div class="pm-app">
+        <aside class="pm-sidebar">
+            <div class="pm-sidebar-logo" onclick="openModal('about')">P</div>
+            <nav class="pm-sidebar-nav">
+                <button class="pm-nav-item" onclick="openModal('homeNav')" title="Home">H</button>
+                <button class="pm-nav-item" onclick="openModal('workspaceSwitch')" title="Workspace">W</button>
+                <button class="pm-nav-item" onclick="openModal('collectionsNav')" title="Collections">C</button>
+                <button class="pm-nav-item active" title="Reconciliation">R<span class="badge-dot"></span></button>
+                <button class="pm-nav-item" onclick="openModal('settlementCalendar')" title="Settlement">S</button>
+                <button class="pm-nav-item" onclick="openModal('exceptionsWorkbench')" title="Exceptions">E</button>
+                <button class="pm-nav-item" onclick="openModal('reportsCenter')" title="Reports">P</button>
+                <button class="pm-nav-item" onclick="openModal('closeBooks')" title="Close books">CB</button>
+                <button class="pm-nav-item" onclick="openModal('preferences')" title="Preferences">T</button>
+            </nav>
+            <button class="pm-nav-item" onclick="openModal('help')" style="margin-top:auto;">?</button>
+        </aside>
+
+        <main class="pm-main">
+            <header class="pm-header">
+                <div class="pm-header-title">
+                    <h1>Reconciliation, Settlement &amp; Clearing Operations</h1>
+                    <p>Thu, 04 Jun · 00:05 EAT · Kilimani Cafe Ltd · Business workspace</p>
+                </div>
+                <div class="pm-header-search">
+                    <span class="pm-search-icon">/</span>
+                    <input
+                        placeholder="Search receipt, order, invoice, batch, bank statement line, terminal, customer, till..." />
+                </div>
+                <div class="pm-header-actions">
+                    <button class="pm-header-btn" onclick="openModal('notifications')">NT<span
+                            class="counter">8</span></button>
+                    <button class="pm-header-btn" onclick="openModal('statusCenter')">ST</button>
+                    <button class="pm-header-btn" onclick="openModal('closeBooks')">CB</button>
+                    <button class="pm-profile-btn" onclick="openModal('profile')">
+                        <div class="pm-avatar">KC</div>
+                        <div>
+                            <div class="pm-name">Kilimani Cafe</div>
+                            <div class="pm-role">Owner workspace</div>
+                        </div>
+                    </button>
+                </div>
+            </header>
+
+            <div class="pm-page-bar">
+                <div>
+                    <div class="pm-breadcrumb"><button class="crumb" onclick="openModal('homeNav')">Home</button> /
+                        <button class="crumb" onclick="openModal('workspaceSwitch')">Business</button> / Reconciliation
+                        & settlement
+                    </div>
+                    <h2 class="pm-page-title">PAGE 2.11 - Reconciliation, Settlement &amp; Clearing Operations</h2>
+                    <p class="pm-page-subtitle">Match every collection, payout, refund, QR scan, card authorization, and
+                        wallet movement to the right order, invoice, staff shift, supplier, and bank statement line —
+                        without dead ends.</p>
+                </div>
+                <div class="pm-actions-group">
+                    <div class="pm-segmented"><button class="active"
+                            onclick="switchSegment(this)">Business</button><button
+                            onclick="switchSegment(this)">Personal</button></div>
+                    <button class="pm-btn" onclick="openModal('reconcileNow')">Reconcile now</button>
+                    <button class="pm-btn" onclick="openModal('uploadFiles')">Upload files</button>
+                    <button class="pm-btn pm-btn-primary" onclick="openModal('closeBooks')">Close today</button>
+                </div>
+            </div>
+
+            <div style="padding:0 32px;margin-top:12px">
+                <div class="pm-anchor-nav">
+                    <button class="pm-anchor-btn active" onclick="scrollToSection('s2111', event)">2.11.1
+                        Overview</button>
+                    <button class="pm-anchor-btn" onclick="scrollToSection('s2112', event)">2.11.2 Match engine</button>
+                    <button class="pm-anchor-btn" onclick="scrollToSection('s2113', event)">2.11.3 Settlement
+                        queue</button>
+                    <button class="pm-anchor-btn" onclick="scrollToSection('s2114', event)">2.11.4 Exceptions</button>
+                    <button class="pm-anchor-btn" onclick="scrollToSection('s2115', event)">2.11.5 Clearing
+                        timelines</button>
+                    <button class="pm-anchor-btn" onclick="scrollToSection('s2116', event)">2.11.6 Allocations</button>
+                    <button class="pm-anchor-btn" onclick="scrollToSection('s2117', event)">2.11.7 Statements &
+                        exports</button>
+                    <button class="pm-anchor-btn" onclick="scrollToSection('s2118', event)">2.11.8 Controls &
+                        close</button>
+                </div>
+            </div>
+
+            <section class="pm-content">
+                <div class="pm-hero">
+                    <div class="pm-hero-content">
+                        <div>
+                            <h2>Close your day with confidence</h2>
+                            <p>See which payments matched automatically, which settlements are still pending, what
+                                exceptions need your eye, and whether today's books are ready for handoff to your
+                                accountant.</p>
+                            <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
+                                <button class="pm-btn" onclick="openModal('reconcileNow')">Run matching</button>
+                                <button class="pm-btn" onclick="openModal('exceptionsWorkbench')">Review
+                                    exceptions</button>
+                                <button class="pm-btn pm-btn-primary" onclick="openModal('closeBooks')">Close
+                                    today</button>
+                            </div>
+                        </div>
+                        <div class="pm-hero-metrics">
+                            <div class="pm-hero-metric">
+                                <div class="value">96.8%</div>
+                                <div class="label">Auto-matched</div>
+                            </div>
+                            <div class="pm-hero-metric">
+                                <div class="value">KES 214.9k</div>
+                                <div class="label">Settling tonight</div>
+                            </div>
+                            <div class="pm-hero-metric">
+                                <div class="value">7</div>
+                                <div class="label">Open exceptions</div>
+                            </div>
+                            <div class="pm-hero-metric">
+                                <div class="value">22:00</div>
+                                <div class="label">Next sweep</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pm-anchor-section" id="s2111">
+                    <div class="pm-card">
+                        <div class="pm-card-header">
+                            <div>
+                                <h3 class="pm-card-title">2.11.1 - Reconciliation Overview & Close Status</h3>
+                                <p class="pm-card-subtitle">A single operational view across mobile money, cards, bank
+                                    transfers, QR, payment links, refunds, tips, and end-of-day settlement.</p>
+                            </div>
+                            <div class="pm-actions-group">
+                                <button class="pm-btn pm-btn-sm" onclick="openModal('statusCenter')">Channel
+                                    health</button>
+                                <button class="pm-btn pm-btn-sm" onclick="openModal('settlementCalendar')">Settlement
+                                    calendar</button>
+                            </div>
+                        </div>
+
+                        <div class="pm-kpi-grid" style="margin-bottom:20px">
+                            <div class="pm-kpi success">
+                                <div class="pm-kpi-header">
+                                    <div class="pm-kpi-label">Collected today</div>
+                                    <div class="pm-kpi-icon">KES</div>
+                                </div>
+                                <div class="pm-kpi-value">KES 184,200</div>
+                                <div class="pm-kpi-change up">+14.8% vs daily average</div>
+                                <div class="pm-kpi-meta">213 customer payments across all rails</div>
+                            </div>
+                            <div class="pm-kpi info">
+                                <div class="pm-kpi-header">
+                                    <div class="pm-kpi-label">Matched automatically</div>
+                                    <div class="pm-kpi-icon">MT</div>
+                                </div>
+                                <div class="pm-kpi-value">206</div>
+                                <div class="pm-kpi-change up">96.8% match rate</div>
+                                <div class="pm-kpi-meta">Receipts linked to orders and invoices</div>
+                            </div>
+                            <div class="pm-kpi warning">
+                                <div class="pm-kpi-header">
+                                    <div class="pm-kpi-label">Open exceptions</div>
+                                    <div class="pm-kpi-icon">EX</div>
+                                </div>
+                                <div class="pm-kpi-value">7</div>
+                                <div class="pm-kpi-change up">4 need action before close</div>
+                                <div class="pm-kpi-meta">Duplicates, missing orders, retry items</div>
+                            </div>
+                            <div class="pm-kpi">
+                                <div class="pm-kpi-header">
+                                    <div class="pm-kpi-label">Pending settlement</div>
+                                    <div class="pm-kpi-icon">ST</div>
+                                </div>
+                                <div class="pm-kpi-value">KES 214,880</div>
+                                <div class="pm-kpi-change up">Auto-sweep 22:00</div>
+                                <div class="pm-kpi-meta">M-Pesa, cards, QR and PayMo wallet</div>
+                            </div>
+                            <div class="pm-kpi purple">
+                                <div class="pm-kpi-header">
+                                    <div class="pm-kpi-label">Refunds today</div>
+                                    <div class="pm-kpi-icon">RF</div>
+                                </div>
+                                <div class="pm-kpi-value">KES 1,240</div>
+                                <div class="pm-kpi-change down">1 duplicate charge</div>
+                                <div class="pm-kpi-meta">Mary Wanjiku paid twice</div>
+                            </div>
+                            <div class="pm-kpi danger">
+                                <div class="pm-kpi-header">
+                                    <div class="pm-kpi-label">Books readiness</div>
+                                    <div class="pm-kpi-icon">OK</div>
+                                </div>
+                                <div class="pm-kpi-value">91%</div>
+                                <div class="pm-kpi-change up">Close possible after 4 fixes</div>
+                                <div class="pm-kpi-meta">Expected close time 14 minutes</div>
+                            </div>
+                        </div>
+
+                        <div class="pm-ledger-grid">
+                            <div class="pm-card span-7" style="padding:20px">
+                                <div class="pm-card-header" style="margin-bottom:10px">
+                                    <div>
+                                        <h4 class="pm-section-title">This week - collected vs settled vs refunded</h4>
+                                    </div>
+                                    <div class="pm-filter-bar"><button class="pm-btn pm-btn-sm"
+                                            onclick="openModal('reportsCenter')">Export weekly</button></div>
+                                </div>
+                                <div class="pm-waterfall">
+                                    <div class="pm-waterfall-bar good" style="height:78%"><strong>KES
+                                            812k</strong><span>Collected</span></div>
+                                    <div class="pm-waterfall-bar" style="height:66%"><strong>KES
+                                            688k</strong><span>Settled</span></div>
+                                    <div class="pm-waterfall-bar warn" style="height:10%"><strong>KES
+                                            28k</strong><span>Pending</span></div>
+                                    <div class="pm-waterfall-bar alt" style="height:8%"><strong>KES
+                                            6k</strong><span>Fees</span></div>
+                                    <div class="pm-waterfall-bar warn" style="height:5%"><strong>KES
+                                            1.2k</strong><span>Refunds</span></div>
+                                    <div class="pm-waterfall-bar good" style="height:60%"><strong>KES
+                                            776.8k</strong><span>Net</span></div>
+                                </div>
+                                <div class="pm-alert success" style="margin-top:18px">Your net settled position for the
+                                    week is healthy. Only one duplicated customer payment and two same-day reversals
+                                    reduced net collections.</div>
+                            </div>
+                            <div class="pm-card span-5" style="padding:20px">
+                                <h4 class="pm-section-title">Close status by day</h4>
+                                <div class="pm-day-strip">
+                                    <button class="pm-day-pill"
+                                        onclick="openModal('dayCloseDetail')"><strong>Mon</strong>
+                                        <div class="tiny">Closed 22:14</div>
+                                    </button>
+                                    <button class="pm-day-pill"
+                                        onclick="openModal('dayCloseDetail')"><strong>Tue</strong>
+                                        <div class="tiny">Closed 22:09</div>
+                                    </button>
+                                    <button class="pm-day-pill"
+                                        onclick="openModal('dayCloseDetail')"><strong>Wed</strong>
+                                        <div class="tiny">Closed 22:18</div>
+                                    </button>
+                                    <button class="pm-day-pill active"
+                                        onclick="openModal('dayCloseDetail')"><strong>Thu</strong>
+                                        <div class="tiny">Open - 91%</div>
+                                    </button>
+                                    <button class="pm-day-pill"
+                                        onclick="openModal('dayCloseDetail')"><strong>Fri</strong>
+                                        <div class="tiny">Forecast</div>
+                                    </button>
+                                </div>
+                                <div style="margin-top:14px">
+                                    <div class="pm-detail-row"><span class="pm-detail-key">Today's open bank
+                                            lines</span><span class="pm-detail-val">3 lines</span></div>
+                                    <div class="pm-detail-row"><span class="pm-detail-key">Unmatched QR
+                                            payments</span><span class="pm-detail-val">2 items</span></div>
+                                    <div class="pm-detail-row"><span class="pm-detail-key">Pending card settlement
+                                            batch</span><span class="pm-detail-val">1 batch</span></div>
+                                    <div class="pm-detail-row"><span class="pm-detail-key">Duplicate receipt under
+                                            review</span><span class="pm-detail-val">1 item</span></div>
+                                </div>
+                                <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap"><button
+                                        class="pm-btn pm-btn-sm" onclick="openModal('exceptionsWorkbench')">Open
+                                        exceptions</button><button class="pm-btn pm-btn-sm pm-btn-primary"
+                                        onclick="openModal('closeBooks')">Continue close</button></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pm-anchor-section" id="s2112">
+                    <div class="pm-card">
+                        <div class="pm-card-header">
+                            <div>
+                                <h3 class="pm-card-title">2.11.2 - Smart Match Engine & Receipt Linking</h3>
+                                <p class="pm-card-subtitle">PayMo auto-matches M-Pesa receipts, QR payments, cards,
+                                    wallet movements, refunds, and bank credits to the right sale or invoice.</p>
+                            </div>
+                            <div class="pm-actions-group">
+                                <button class="pm-btn pm-btn-sm" onclick="openModal('reconcileNow')">Run
+                                    matcher</button>
+                                <button class="pm-btn pm-btn-sm" onclick="openModal('matchingRules')">Matching
+                                    rules</button>
+                            </div>
+                        </div>
+
+                        <div class="pm-tabs">
+                            <button class="pm-tab active" onclick="switchPanel(this,'match','auto')">Auto matched <span
+                                    class="pm-tab-count">206</span></button>
+                            <button class="pm-tab" onclick="switchPanel(this,'match','review')">Needs review <span
+                                    class="pm-tab-count">7</span></button>
+                            <button class="pm-tab" onclick="switchPanel(this,'match','manual')">Manual tools <span
+                                    class="pm-tab-count">5</span></button>
+                            <button class="pm-tab" onclick="switchPanel(this,'match','rules')">Rules <span
+                                    class="pm-tab-count">12</span></button>
+                        </div>
+
+                        <div id="match-auto" class="pm-tab-panel active">
+                            <div class="pm-ledger-grid">
+                                <div class="pm-match-card span-4">
+                                    <div style="display:flex;justify-content:space-between;align-items:start;gap:12px">
+                                        <div><strong>Receipt QJ14X882</strong>
+                                            <div class="tiny">M-Pesa STK · Mary Wanjiku · 11:28</div>
+                                        </div><span class="pm-badge success">Matched</span>
+                                    </div>
+                                    <div class="pm-match-score" style="color:var(--pm-accent);margin-top:8px">99%</div>
+                                    <div class="tiny">Matched to order KC-8829 using amount, time window, table token,
+                                        and customer phone.</div>
+                                    <div style="display:flex;gap:8px;margin-top:12px"><button class="pm-btn pm-btn-sm"
+                                            onclick="openModal('transactionDetail')">Open</button><button
+                                            class="pm-btn pm-btn-sm" onclick="openModal('matchExplainer')">Why
+                                            matched</button></div>
+                                </div>
+                                <div class="pm-match-card span-4">
+                                    <div style="display:flex;justify-content:space-between;align-items:start;gap:12px">
+                                        <div><strong>Receipt QR7729</strong>
+                                            <div class="tiny">Dynamic QR · Table 7 · 11:22</div>
+                                        </div><span class="pm-badge success">Matched</span>
+                                    </div>
+                                    <div class="pm-match-score" style="color:var(--pm-accent);margin-top:8px">98%</div>
+                                    <div class="tiny">Matched to table order KC-8842 from QR token, order reference, and
+                                        exact total.</div>
+                                    <div style="display:flex;gap:8px;margin-top:12px"><button class="pm-btn pm-btn-sm"
+                                            onclick="openModal('transactionDetail')">Open</button><button
+                                            class="pm-btn pm-btn-sm" onclick="openModal('matchExplainer')">Why
+                                            matched</button></div>
+                                </div>
+                                <div class="pm-match-card span-4">
+                                    <div style="display:flex;justify-content:space-between;align-items:start;gap:12px">
+                                        <div><strong>Receipt PB9018</strong>
+                                            <div class="tiny">PayBill · Corporate invoice · 10:54</div>
+                                        </div><span class="pm-badge success">Matched</span>
+                                    </div>
+                                    <div class="pm-match-score" style="color:var(--pm-accent);margin-top:8px">97%</div>
+                                    <div class="tiny">Matched to invoice INV-8821 by invoice code in account field and
+                                        exact amount KES 24,800.</div>
+                                    <div style="display:flex;gap:8px;margin-top:12px"><button class="pm-btn pm-btn-sm"
+                                            onclick="openModal('transactionDetail')">Open</button><button
+                                            class="pm-btn pm-btn-sm" onclick="openModal('matchExplainer')">Why
+                                            matched</button></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="match-review" class="pm-tab-panel">
+                            <div class="pm-table-wrap">
+                                <table class="pm-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Receipt / line</th>
+                                            <th>Amount</th>
+                                            <th>Suggested match</th>
+                                            <th>Confidence</th>
+                                            <th>Reason</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>AM1842 · Airtel Money</td>
+                                            <td><strong>KES 840</strong></td>
+                                            <td>Rider pickup KC-8834</td>
+                                            <td><span class="pm-badge warning">72%</span></td>
+                                            <td class="tiny">Customer phone missing, but amount and time align</td>
+                                            <td><button class="pm-btn pm-btn-sm"
+                                                    onclick="openModal('matchReceipt')">Review</button></td>
+                                        </tr>
+                                        <tr>
+                                            <td>CARD-B7-2211</td>
+                                            <td><strong>KES 1,650</strong></td>
+                                            <td>Walk-in breakfast ticket</td>
+                                            <td><span class="pm-badge warning">68%</span></td>
+                                            <td class="tiny">Two possible orders in same minute</td>
+                                            <td><button class="pm-btn pm-btn-sm"
+                                                    onclick="openModal('matchReceipt')">Review</button></td>
+                                        </tr>
+                                        <tr>
+                                            <td>QJ14X889</td>
+                                            <td><strong>KES 1,240</strong></td>
+                                            <td>Duplicate of Mary Wanjiku</td>
+                                            <td><span class="pm-badge danger">91%</span></td>
+                                            <td class="tiny">Same customer, same amount, 2 minutes later</td>
+                                            <td><button class="pm-btn pm-btn-sm"
+                                                    onclick="openModal('refundFlow')">Refund</button></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div id="match-manual" class="pm-tab-panel">
+                            <div class="pm-2col">
+                                <div class="pm-card" style="padding:20px">
+                                    <h4 class="pm-section-title">Manual tools</h4>
+                                    <div class="pm-numbered-item">
+                                        <div class="pm-numbered-num">1</div>
+                                        <div><strong>Match by receipt code</strong>
+                                            <div class="tiny">Paste a Safaricom, Airtel, card, or PayMo receipt and
+                                                search all open sales.</div>
+                                        </div>
+                                    </div>
+                                    <div class="pm-numbered-item">
+                                        <div class="pm-numbered-num">2</div>
+                                        <div><strong>Match by amount and time</strong>
+                                            <div class="tiny">Useful for walk-ins where phone or invoice wasn't
+                                                captured.</div>
+                                        </div>
+                                    </div>
+                                    <div class="pm-numbered-item">
+                                        <div class="pm-numbered-num">3</div>
+                                        <div><strong>Create manual sales line</strong>
+                                            <div class="tiny">For off-POS transactions like staff tea, rider cash swap,
+                                                or informal delivery settlement.</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="pm-card" style="padding:20px">
+                                    <h4 class="pm-section-title">Quick manual match</h4>
+                                    <div class="pm-form-group"><label class="pm-label">Receipt</label><input
+                                            class="pm-input" value="AM1842"></div>
+                                    <div class="pm-form-group"><label class="pm-label">Open order</label><select
+                                            class="pm-select">
+                                            <option>KC-8834 · Rider pickup · KES 840</option>
+                                            <option>KC-8835 · Walk-in juice · KES 840</option>
+                                            <option>Create manual sale</option>
+                                        </select></div><button class="pm-btn pm-btn-primary"
+                                        onclick="openModal('matchReceipt')">Continue</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="match-rules" class="pm-tab-panel">
+                            <div class="pm-rule-grid">
+                                <div class="pm-rule-card" onclick="openModal('matchingRules')">
+                                    <div class="pm-rule-header">
+                                        <div class="pm-rule-name">Exact amount + 15 minute window</div><span
+                                            class="pm-badge success">Active</span>
+                                    </div>
+                                    <div class="pm-rule-desc">Primary rule for walk-in STK and Till payments.</div>
+                                    <div class="pm-rule-meta"><span>Used 148 times today</span><span>Edit</span></div>
+                                </div>
+                                <div class="pm-rule-card" onclick="openModal('matchingRules')">
+                                    <div class="pm-rule-header">
+                                        <div class="pm-rule-name">Invoice code in account field</div><span
+                                            class="pm-badge success">Active</span>
+                                    </div>
+                                    <div class="pm-rule-desc">Best for corporate catering and scheduled accounts.</div>
+                                    <div class="pm-rule-meta"><span>Used 22 times today</span><span>Edit</span></div>
+                                </div>
+                                <div class="pm-rule-card" onclick="openModal('matchingRules')">
+                                    <div class="pm-rule-header">
+                                        <div class="pm-rule-name">QR token and cart hash</div><span
+                                            class="pm-badge success">Active</span>
+                                    </div>
+                                    <div class="pm-rule-desc">For dynamic QR and table service orders.</div>
+                                    <div class="pm-rule-meta"><span>Used 31 times today</span><span>Edit</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pm-anchor-section" id="s2113">
+                    <div class="pm-card">
+                        <div class="pm-card-header">
+                            <div>
+                                <h3 class="pm-card-title">2.11.3 - Settlement Queue, Sweep Calendar & Bank Credits</h3>
+                                <p class="pm-card-subtitle">See what will settle, when it will land, which bank account
+                                    receives it, and how much fee will be deducted.</p>
+                            </div>
+                            <div class="pm-actions-group">
+                                <button class="pm-btn pm-btn-sm" onclick="openModal('settlementCalendar')">Open
+                                    calendar</button>
+                                <button class="pm-btn pm-btn-sm"
+                                    onclick="openModal('rescheduleSettlement')">Reschedule</button>
+                            </div>
+                        </div>
+                        <div class="pm-ledger-grid">
+                            <div class="pm-card span-8" style="padding:20px">
+                                <h4 class="pm-section-title">Tonight's settlement queue</h4>
+                                <div class="pm-table-wrap">
+                                    <table class="pm-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Batch</th>
+                                                <th>Channel</th>
+                                                <th>Gross</th>
+                                                <th>Fees</th>
+                                                <th>Net</th>
+                                                <th>ETA</th>
+                                                <th>Destination</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>SET-2200-01</td>
+                                                <td><span class="pm-rail-chip"
+                                                        style="background:#D1FAE5;color:#065F46"><span
+                                                            class="pm-rail-dot" style="background:#10B981"></span>M-Pesa
+                                                        Till</span></td>
+                                                <td>KES 214,880</td>
+                                                <td>KES 4,420</td>
+                                                <td><strong>KES 210,460</strong></td>
+                                                <td>22:00 - 22:08</td>
+                                                <td>Equity Business 0110-2214-001</td>
+                                                <td><button class="pm-btn pm-btn-sm"
+                                                        onclick="openModal('settlementDetail')">Open</button></td>
+                                            </tr>
+                                            <tr>
+                                                <td>SET-2300-03</td>
+                                                <td><span class="pm-rail-chip"
+                                                        style="background:#DBEAFE;color:#1E3A8A"><span
+                                                            class="pm-rail-dot"
+                                                            style="background:#3B82F6"></span>Cards</span></td>
+                                                <td>KES 46,280</td>
+                                                <td>KES 1,110</td>
+                                                <td><strong>KES 45,170</strong></td>
+                                                <td>23:00 - T+1</td>
+                                                <td>PayMo Wallet</td>
+                                                <td><button class="pm-btn pm-btn-sm"
+                                                        onclick="openModal('settlementDetail')">Open</button></td>
+                                            </tr>
+                                            <tr>
+                                                <td>SET-2245-02</td>
+                                                <td><span class="pm-rail-chip"
+                                                        style="background:#FEE2E2;color:#991B1B"><span
+                                                            class="pm-rail-dot" style="background:#EF4444"></span>Airtel
+                                                        Money</span></td>
+                                                <td>KES 38,400</td>
+                                                <td>KES 860</td>
+                                                <td><strong>KES 37,540</strong></td>
+                                                <td>22:45 - 23:10</td>
+                                                <td>PayMo Wallet</td>
+                                                <td><button class="pm-btn pm-btn-sm"
+                                                        onclick="openModal('settlementDetail')">Open</button></td>
+                                            </tr>
+                                            <tr>
+                                                <td>SET-1700-UG</td>
+                                                <td><span class="pm-rail-chip"
+                                                        style="background:#FEF3C7;color:#92400E"><span
+                                                            class="pm-rail-dot" style="background:#F59E0B"></span>MTN
+                                                        MoMo UG</span></td>
+                                                <td>UGX 2.1M</td>
+                                                <td>UGX 42k</td>
+                                                <td><strong>UGX 2.058M</strong></td>
+                                                <td>17:00 daily</td>
+                                                <td>MTN MoMo supplier float</td>
+                                                <td><button class="pm-btn pm-btn-sm"
+                                                        onclick="openModal('settlementDetail')">Open</button></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="pm-card span-4" style="padding:20px">
+                                <h4 class="pm-section-title">Settlement snapshot</h4>
+                                <div class="pm-detail-row"><span class="pm-detail-key">Gross pending</span><span
+                                        class="pm-detail-val">KES 299,560</span></div>
+                                <div class="pm-detail-row"><span class="pm-detail-key">Fees pending</span><span
+                                        class="pm-detail-val">KES 6,390</span></div>
+                                <div class="pm-detail-row"><span class="pm-detail-key">Net expected</span><span
+                                        class="pm-detail-val"><strong>KES 293,170</strong></span></div>
+                                <div class="pm-detail-row"><span class="pm-detail-key">Earliest credit</span><span
+                                        class="pm-detail-val">22:08 today</span></div>
+                                <div class="pm-detail-row"><span class="pm-detail-key">Latest credit</span><span
+                                        class="pm-detail-val">Tomorrow 09:30</span></div>
+                                <div class="pm-detail-row"><span class="pm-detail-key">Unsettled older than 1
+                                        day</span><span class="pm-detail-val"><span class="pm-badge warning">1
+                                            batch</span></span></div>
+                                <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap"><button
+                                        class="pm-btn pm-btn-sm" onclick="openModal('requestBankStatement')">Request
+                                        bank lines</button><button class="pm-btn pm-btn-sm pm-btn-primary"
+                                        onclick="openModal('rescheduleSettlement')">Adjust sweep</button></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pm-anchor-section" id="s2114">
+                    <div class="pm-card">
+                        <div class="pm-card-header">
+                            <div>
+                                <h3 class="pm-card-title">2.11.4 - Exception Queue, Duplicates, Reversals & Manual
+                                    Repairs</h3>
+                                <p class="pm-card-subtitle">Every unmatched or suspicious accounting event lands here:
+                                    duplicates, wrong amounts, failed STK, chargebacks, missing POS orders, and
+                                    reversals.</p>
+                            </div>
+                            <div class="pm-actions-group">
+                                <button class="pm-btn pm-btn-sm" onclick="openModal('exceptionsWorkbench')">Open
+                                    workbench</button>
+                                <button class="pm-btn pm-btn-sm" onclick="openModal('bulkResolve')">Bulk
+                                    resolve</button>
+                            </div>
+                        </div>
+                        <div class="pm-table-wrap">
+                            <table class="pm-table">
+                                <thead>
+                                    <tr>
+                                        <th>Issue</th>
+                                        <th>Amount</th>
+                                        <th>Category</th>
+                                        <th>Why it happened</th>
+                                        <th>Suggested fix</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Duplicate M-Pesa receipt QJ14X889</td>
+                                        <td><strong>KES 1,240</strong></td>
+                                        <td><span class="pm-badge warning">Duplicate payment</span></td>
+                                        <td class="tiny">Customer paid twice within 2 minutes for same order KC-8829
+                                        </td>
+                                        <td class="tiny">Refund one receipt to customer phone</td>
+                                        <td><button class="pm-btn pm-btn-sm"
+                                                onclick="openModal('refundFlow')">Refund</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Airtel receipt AM1842</td>
+                                        <td><strong>KES 840</strong></td>
+                                        <td><span class="pm-badge">Unmatched</span></td>
+                                        <td class="tiny">No phone recorded in POS at checkout</td>
+                                        <td class="tiny">Manual match to rider pickup KC-8834</td>
+                                        <td><button class="pm-btn pm-btn-sm"
+                                                onclick="openModal('matchReceipt')">Match</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Card batch B7 line 2211</td>
+                                        <td><strong>KES 1,650</strong></td>
+                                        <td><span class="pm-badge warning">Ambiguous</span></td>
+                                        <td class="tiny">Two breakfast tickets with same amount in same minute</td>
+                                        <td class="tiny">Pick correct order using cashier and terminal ID</td>
+                                        <td><button class="pm-btn pm-btn-sm"
+                                                onclick="openModal('exceptionDetail')">Review</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Chargeback notice CB-2026-18</td>
+                                        <td><strong>KES 2,800</strong></td>
+                                        <td><span class="pm-badge danger">Chargeback</span></td>
+                                        <td class="tiny">Customer disputes yesterday's online payment link</td>
+                                        <td class="tiny">Upload proof and customer communication</td>
+                                        <td><button class="pm-btn pm-btn-sm"
+                                                onclick="openModal('chargebackResponse')">Respond</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Settlement batch SET-2300-03</td>
+                                        <td><strong>KES 46,280</strong></td>
+                                        <td><span class="pm-badge warning">Delayed</span></td>
+                                        <td class="tiny">Card acquirer marked T+1 due to cutoff window</td>
+                                        <td class="tiny">No action unless still missing tomorrow 10:00</td>
+                                        <td><button class="pm-btn pm-btn-sm"
+                                                onclick="openModal('settlementDetail')">Track</button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pm-anchor-section" id="s2115">
+                    <div class="pm-card">
+                        <div class="pm-card-header">
+                            <div>
+                                <h3 class="pm-card-title">2.11.5 - Clearing Timelines by Channel</h3>
+                                <p class="pm-card-subtitle">Understand how each collection rail moves from authorization
+                                    to settlement and what can delay the cash landing in your bank.</p>
+                            </div>
+                            <div class="pm-actions-group"><button class="pm-btn pm-btn-sm"
+                                    onclick="openModal('channelTimeline')">Open full timeline</button></div>
+                        </div>
+                        <div class="pm-ledger-grid">
+                            <div class="pm-clearing-stage span-12">
+                                <div class="pm-ledger-grid" style="gap:12px">
+                                    <div class="pm-clearing-stage span-4"><strong>Customer pays</strong>
+                                        <div class="tiny">M-Pesa STK, Till, card, QR, link, Airtel, wallet</div>
+                                    </div>
+                                    <div class="pm-clearing-arrow span-4">-></div>
+                                    <div class="pm-clearing-stage span-4"><strong>Authorization</strong>
+                                        <div class="tiny">Receipt issued, success or failure recorded instantly</div>
+                                    </div>
+                                    <div class="pm-clearing-arrow span-4">-></div>
+                                    <div class="pm-clearing-stage span-4"><strong>PayMo matching</strong>
+                                        <div class="tiny">Linked to order, invoice, shift, cashier, or branch</div>
+                                    </div>
+                                    <div class="pm-clearing-arrow span-4">-></div>
+                                    <div class="pm-clearing-stage span-4"><strong>Channel clearing</strong>
+                                        <div class="tiny">M-Pesa same day, cards T+1, some cross-border variable</div>
+                                    </div>
+                                    <div class="pm-clearing-arrow span-4">-></div>
+                                    <div class="pm-clearing-stage span-4"><strong>Settlement & bank credit</strong>
+                                        <div class="tiny">Wallet sweep or direct bank settlement with fees separated
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="pm-card span-6" style="padding:20px">
+                                <h4 class="pm-section-title">Typical clearing times</h4>
+                                <div class="pm-bar-row">
+                                    <div class="pm-bar-label"><span class="pm-bar-name">M-Pesa Till / STK</span><span
+                                            class="pm-bar-val">same day - 22:00 sweep</span></div>
+                                    <div class="pm-bar-bg">
+                                        <div class="pm-bar-fill success pm-bar-anim" style="width:88%"></div>
+                                    </div>
+                                </div>
+                                <div class="pm-bar-row">
+                                    <div class="pm-bar-label"><span class="pm-bar-name">Airtel Money</span><span
+                                            class="pm-bar-val">same day to next day</span></div>
+                                    <div class="pm-bar-bg">
+                                        <div class="pm-bar-fill warning pm-bar-anim" style="width:72%"></div>
+                                    </div>
+                                </div>
+                                <div class="pm-bar-row">
+                                    <div class="pm-bar-label"><span class="pm-bar-name">Cards</span><span
+                                            class="pm-bar-val">T+1 business day</span></div>
+                                    <div class="pm-bar-bg">
+                                        <div class="pm-bar-fill pm-bar-anim" style="width:58%"></div>
+                                    </div>
+                                </div>
+                                <div class="pm-bar-row">
+                                    <div class="pm-bar-label"><span class="pm-bar-name">PayMo wallet to
+                                            wallet</span><span class="pm-bar-val">instant</span></div>
+                                    <div class="pm-bar-bg">
+                                        <div class="pm-bar-fill success pm-bar-anim" style="width:100%"></div>
+                                    </div>
+                                </div>
+                                <div class="pm-bar-row">
+                                    <div class="pm-bar-label"><span class="pm-bar-name">Regional mobile
+                                            money</span><span class="pm-bar-val">5 min to T+1</span></div>
+                                    <div class="pm-bar-bg">
+                                        <div class="pm-bar-fill warning pm-bar-anim" style="width:64%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="pm-card span-6" style="padding:20px">
+                                <h4 class="pm-section-title">Most common reasons for delay</h4>
+                                <div class="pm-numbered-item">
+                                    <div class="pm-numbered-num">1</div>
+                                    <div><strong>Acquirer cutoff reached</strong>
+                                        <div class="tiny">Card batches after cutoff move to next business day.</div>
+                                    </div>
+                                </div>
+                                <div class="pm-numbered-item">
+                                    <div class="pm-numbered-num">2</div>
+                                    <div><strong>Bank statement not yet posted</strong>
+                                        <div class="tiny">You may see settlement in PayMo before your bank app updates.
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="pm-numbered-item">
+                                    <div class="pm-numbered-num">3</div>
+                                    <div><strong>Manual exception holds</strong>
+                                        <div class="tiny">Duplicates, chargebacks, or ambiguous receipts can pause a
+                                            settlement line.</div>
+                                    </div>
+                                </div>
+                                <div class="pm-numbered-item">
+                                    <div class="pm-numbered-num">4</div>
+                                    <div><strong>Weekend or holiday calendars</strong>
+                                        <div class="tiny">Some card and bank rails settle next working day.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pm-anchor-section" id="s2116">
+                    <div class="pm-card">
+                        <div class="pm-card-header">
+                            <div>
+                                <h3 class="pm-card-title">2.11.6 - Allocations: Branches, Cashiers, Staff Tips &
+                                    Supplier Splits</h3>
+                                <p class="pm-card-subtitle">Break collections into business buckets automatically: main
+                                    cafe, delivery, corporate catering, cashier tills, staff tip pool, supplier escrow,
+                                    and tax buckets.</p>
+                            </div>
+                            <div class="pm-actions-group"><button class="pm-btn pm-btn-sm"
+                                    onclick="openModal('allocationRules')">Allocation rules</button><button
+                                    class="pm-btn pm-btn-sm" onclick="openModal('splitSettlement')">Split
+                                    settlement</button></div>
+                        </div>
+                        <div class="pm-ledger-grid">
+                            <div class="pm-card span-6" style="padding:20px">
+                                <h4 class="pm-section-title">Allocation buckets today</h4>
+                                <div class="pm-table-wrap">
+                                    <table class="pm-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Bucket</th>
+                                                <th>Rule</th>
+                                                <th>Amount</th>
+                                                <th>Status</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>Main cafe sales</td>
+                                                <td>Default on all in-store receipts</td>
+                                                <td><strong>KES 122,840</strong></td>
+                                                <td><span class="pm-badge success">Balanced</span></td>
+                                                <td><button class="pm-btn pm-btn-sm"
+                                                        onclick="openModal('allocationDetail')">Open</button></td>
+                                            </tr>
+                                            <tr>
+                                                <td>Delivery channel</td>
+                                                <td>Order source = delivery</td>
+                                                <td><strong>KES 24,600</strong></td>
+                                                <td><span class="pm-badge success">Balanced</span></td>
+                                                <td><button class="pm-btn pm-btn-sm"
+                                                        onclick="openModal('allocationDetail')">Open</button></td>
+                                            </tr>
+                                            <tr>
+                                                <td>Corporate invoices</td>
+                                                <td>PayBill account starts INV-</td>
+                                                <td><strong>KES 24,800</strong></td>
+                                                <td><span class="pm-badge success">Balanced</span></td>
+                                                <td><button class="pm-btn pm-btn-sm"
+                                                        onclick="openModal('allocationDetail')">Open</button></td>
+                                            </tr>
+                                            <tr>
+                                                <td>Staff tip pool</td>
+                                                <td>Checkout tip line</td>
+                                                <td><strong>KES 5,420</strong></td>
+                                                <td><span class="pm-badge warning">Review split</span></td>
+                                                <td><button class="pm-btn pm-btn-sm"
+                                                        onclick="openModal('tipPool')">Split</button></td>
+                                            </tr>
+                                            <tr>
+                                                <td>VAT bucket</td>
+                                                <td>Taxable sales auto allocation</td>
+                                                <td><strong>KES 23,040</strong></td>
+                                                <td><span class="pm-badge success">Calculated</span></td>
+                                                <td><button class="pm-btn pm-btn-sm"
+                                                        onclick="openModal('taxBreakdown')">Open</button></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="pm-card span-6" style="padding:20px">
+                                <h4 class="pm-section-title">Cashier and shift settlement matrix</h4>
+                                <div class="pm-matrix">
+                                    <div class="pm-matrix-cell good" onclick="openModal('shiftDetail')">AM 1</div>
+                                    <div class="pm-matrix-cell good" onclick="openModal('shiftDetail')">AM 2</div>
+                                    <div class="pm-matrix-cell warn" onclick="openModal('shiftDetail')">AM 3</div>
+                                    <div class="pm-matrix-cell good" onclick="openModal('shiftDetail')">PM 1</div>
+                                    <div class="pm-matrix-cell good" onclick="openModal('shiftDetail')">PM 2</div>
+                                    <div class="pm-matrix-cell hot" onclick="openModal('shiftDetail')">PM 3</div>
+                                    <div class="pm-matrix-cell good" onclick="openModal('shiftDetail')">DLV</div>
+                                    <div class="pm-matrix-cell good" onclick="openModal('shiftDetail')">QR A</div>
+                                    <div class="pm-matrix-cell warn" onclick="openModal('shiftDetail')">QR B</div>
+                                    <div class="pm-matrix-cell good" onclick="openModal('shiftDetail')">POS 1</div>
+                                    <div class="pm-matrix-cell good" onclick="openModal('shiftDetail')">POS 2</div>
+                                    <div class="pm-matrix-cell good" onclick="openModal('shiftDetail')">POS 3</div>
+                                    <div class="pm-matrix-cell good" onclick="openModal('shiftDetail')">RDR1</div>
+                                    <div class="pm-matrix-cell good" onclick="openModal('shiftDetail')">RDR2</div>
+                                </div>
+                                <div class="pm-alert" style="margin-top:12px">Green means the shift balanced perfectly.
+                                    Yellow means one or more receipts still need review. Red means a material mismatch
+                                    still exists before close.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pm-anchor-section" id="s2117">
+                    <div class="pm-card">
+                        <div class="pm-card-header">
+                            <div>
+                                <h3 class="pm-card-title">2.11.7 - Statements, Exports, Bank Files & Accountant Handoff
+                                </h3>
+                                <p class="pm-card-subtitle">Pull statements in PDF, CSV, Excel, MT940-like formats, tax
+                                    summaries, and channel-level supporting schedules for your accountant.</p>
+                            </div>
+                            <div class="pm-actions-group"><button class="pm-btn pm-btn-sm"
+                                    onclick="openModal('reportsCenter')">Report center</button><button
+                                    class="pm-btn pm-btn-sm" onclick="openModal('downloadBankPack')">Download bank
+                                    pack</button></div>
+                        </div>
+                        <div class="pm-rule-grid">
+                            <div class="pm-rule-card" onclick="openModal('reportsCenter')">
+                                <div class="pm-rule-header">
+                                    <div class="pm-rule-name">Daily close pack</div><span
+                                        class="pm-badge success">Ready</span>
+                                </div>
+                                <div class="pm-rule-desc">Receipts, matches, exceptions, bank sweeps, cashier summary,
+                                    refunds, and net position for today's close.</div>
+                                <div class="pm-rule-meta"><span>PDF + CSV</span><span>Open</span></div>
+                            </div>
+                            <div class="pm-rule-card" onclick="openModal('downloadBankPack')">
+                                <div class="pm-rule-header">
+                                    <div class="pm-rule-name">Bank settlement support</div><span
+                                        class="pm-badge success">Ready</span>
+                                </div>
+                                <div class="pm-rule-desc">Files for Equity and KCB statement matching, including batch
+                                    references and settlement references.</div>
+                                <div class="pm-rule-meta"><span>CSV + MT940-like</span><span>Open</span></div>
+                            </div>
+                            <div class="pm-rule-card" onclick="openModal('taxBreakdown')">
+                                <div class="pm-rule-header">
+                                    <div class="pm-rule-name">VAT and tax support</div><span
+                                        class="pm-badge success">Ready</span>
+                                </div>
+                                <div class="pm-rule-desc">Taxable sales, zero-rated lines, service charge, and refund
+                                    adjustments for KRA filing support.</div>
+                                <div class="pm-rule-meta"><span>KRA support export</span><span>Open</span></div>
+                            </div>
+                            <div class="pm-rule-card" onclick="openModal('statementDetail')">
+                                <div class="pm-rule-header">
+                                    <div class="pm-rule-name">Channel statement</div><span
+                                        class="pm-badge warning">Draft</span>
+                                </div>
+                                <div class="pm-rule-desc">Airtel, M-Pesa, cards, QR, and PayMo wallet performance, fees,
+                                    and settlement lags.</div>
+                                <div class="pm-rule-meta"><span>Month to date</span><span>Open</span></div>
+                            </div>
+                        </div>
+                        <div class="pm-table-wrap" style="margin-top:20px">
+                            <table class="pm-table">
+                                <thead>
+                                    <tr>
+                                        <th>File</th>
+                                        <th>Period</th>
+                                        <th>Format</th>
+                                        <th>Contains</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Daily close pack - Thu</td>
+                                        <td>Today</td>
+                                        <td>PDF + CSV</td>
+                                        <td>Cashbook, receipts, exceptions, sweeps, cashier summary</td>
+                                        <td><button class="pm-btn pm-btn-sm"
+                                                onclick="openModal('reportsCenter')">Download</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Equity bank support file</td>
+                                        <td>Today</td>
+                                        <td>CSV</td>
+                                        <td>Settlement references ready to match in bank statement</td>
+                                        <td><button class="pm-btn pm-btn-sm"
+                                                onclick="openModal('downloadBankPack')">Download</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Tax support register</td>
+                                        <td>MTD</td>
+                                        <td>Excel</td>
+                                        <td>VAT, service charge, refund offsets</td>
+                                        <td><button class="pm-btn pm-btn-sm"
+                                                onclick="openModal('taxBreakdown')">Download</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Accountant handoff</td>
+                                        <td>Week to date</td>
+                                        <td>Zip bundle</td>
+                                        <td>All ledgers, statements, and support schedules</td>
+                                        <td><button class="pm-btn pm-btn-sm"
+                                                onclick="openModal('notifyAccountant')">Send</button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pm-anchor-section" id="s2118">
+                    <div class="pm-card">
+                        <div class="pm-card-header">
+                            <div>
+                                <h3 class="pm-card-title">2.11.8 - Controls, Reconciliation Rules & Close-the-Books
+                                    Automation</h3>
+                                <p class="pm-card-subtitle">Define how strict your matching should be, when files sweep,
+                                    who can approve repairs, and how close works for personal or business use.</p>
+                            </div>
+                            <div class="pm-actions-group"><button class="pm-btn pm-btn-sm"
+                                    onclick="openModal('matchingRules')">Rules</button><button class="pm-btn pm-btn-sm"
+                                    onclick="openModal('closeBooks')">Close wizard</button></div>
+                        </div>
+                        <div class="pm-ledger-grid">
+                            <div class="pm-card span-6" style="padding:20px">
+                                <h4 class="pm-section-title">Controls</h4>
+                                <div class="pm-switch-row">
+                                    <div><strong>Auto-match exact amount within 15 minutes</strong>
+                                        <div class="tiny">Best for cafe walk-ins and STK</div>
+                                    </div><span class="pm-toggle on" onclick="this.classList.toggle('on')"></span>
+                                </div>
+                                <div class="pm-switch-row">
+                                    <div><strong>Auto-refund duplicate payments below KES 2,000</strong>
+                                        <div class="tiny">Keeps customer support light</div>
+                                    </div><span class="pm-toggle" onclick="this.classList.toggle('on')"></span>
+                                </div>
+                                <div class="pm-switch-row">
+                                    <div><strong>Require owner PIN for manual journal repairs</strong>
+                                        <div class="tiny">Protects ledger integrity</div>
+                                    </div><span class="pm-toggle on" onclick="this.classList.toggle('on')"></span>
+                                </div>
+                                <div class="pm-switch-row">
+                                    <div><strong>Auto-close day at 22:30 if readiness > 98%</strong>
+                                        <div class="tiny">Great when operations are calm</div>
+                                    </div><span class="pm-toggle" onclick="this.classList.toggle('on')"></span>
+                                </div>
+                                <div class="pm-switch-row">
+                                    <div><strong>Email accountant after every close</strong>
+                                        <div class="tiny">Attach PDF and CSV bundle</div>
+                                    </div><span class="pm-toggle on" onclick="this.classList.toggle('on')"></span>
+                                </div>
+                            </div>
+                            <div class="pm-card span-6" style="padding:20px">
+                                <h4 class="pm-section-title">Close wizard checklist</h4>
+                                <div class="pm-checklist-item">
+                                    <div class="pm-check-icon"
+                                        style="background:var(--pm-accent-soft);color:var(--pm-accent)">1</div>
+                                    <div><strong>Run matcher</strong>
+                                        <div class="tiny">Scan receipts, bank lines, order tickets, and wallet events.
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="pm-checklist-item">
+                                    <div class="pm-check-icon"
+                                        style="background:var(--pm-warning-soft);color:var(--pm-warning)">2</div>
+                                    <div><strong>Review exceptions</strong>
+                                        <div class="tiny">Resolve duplicates, ambiguous matches, and pending reversals.
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="pm-checklist-item">
+                                    <div class="pm-check-icon"
+                                        style="background:var(--pm-warning-soft);color:var(--pm-warning)">3</div>
+                                    <div><strong>Confirm settlements</strong>
+                                        <div class="tiny">Check expected credits and sweep schedule.</div>
+                                    </div>
+                                </div>
+                                <div class="pm-checklist-item">
+                                    <div class="pm-check-icon"
+                                        style="background:var(--pm-accent-soft);color:var(--pm-accent)">4</div>
+                                    <div><strong>Export support files</strong>
+                                        <div class="tiny">Daily close pack for accountant or internal archive.</div>
+                                    </div>
+                                </div>
+                                <div class="pm-checklist-item">
+                                    <div class="pm-check-icon"
+                                        style="background:var(--pm-info-soft);color:var(--pm-info)">5</div>
+                                    <div><strong>Lock the day</strong>
+                                        <div class="tiny">Freeze edits except authorized reversals and audit-noted
+                                            corrections.</div>
+                                    </div>
+                                </div>
+                                <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap"><button class="pm-btn"
+                                        onclick="openModal('matchingRules')">Edit rules</button><button
+                                        class="pm-btn pm-btn-primary" onclick="openModal('closeBooks')">Start close
+                                        wizard</button></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pm-card" style="padding:20px;background:var(--pm-surface-2)">
+                    <div style="display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap">
+                        <div class="tiny">PayMo reconciliation workspace - built for customer and business users.
+                            Reconcile collections, payouts, cards, QR, and bank settlement without leaving your
+                            workspace.</div>
+                        <div class="tiny">Need help? Support: +254 700 000 111 · support@paymo.co.ke · accountant bundle
+                            and close support available.</div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div id="modalContainer"></div>
+
+    <script>
+        const MODALS = {
+            about: { title: 'About this reconciliation workspace', sub: 'Customer-facing page 2.11.', size: 'sm', body: `<div class="pm-detail-row"><span class="pm-detail-key">Workspace</span><span class="pm-detail-val">Kilimani Cafe Ltd</span></div><div class="pm-detail-row"><span class="pm-detail-key">Page</span><span class="pm-detail-val">2.11 - Reconciliation, Settlement & Clearing Operations</span></div><div class="pm-detail-row"><span class="pm-detail-key">Designed for</span><span class="pm-detail-val">Business and personal users, not PayMo admins</span></div><div class="pm-alert success" style="margin-top:10px">Everything here is built to help the account owner reconcile and close quickly.</div>` },
+            homeNav: { title: 'Go to PayMo home', sub: 'Navigation preview for this single page.', size: 'sm', body: `<div class="pm-alert">In your live PayMo workspace this opens your main overview dashboard. In this single-page build, it acts as a fully wired navigation preview.</div>` },
+            workspaceSwitch: { title: 'Switch workspace', sub: 'Move between your business and personal ledgers.', body: `<div class="pm-2col"><div class="pm-card" style="padding:14px"><strong>Kilimani Cafe Ltd</strong><div class="tiny">Business workspace - KES 482,140 wallet balance</div><span class="pm-badge success" style="margin-top:8px">Current</span></div><div class="pm-card" style="padding:14px"><strong>Nadia Omondi personal</strong><div class="tiny">Personal wallet - KES 84,200 balance</div><button class="pm-btn pm-btn-sm" style="margin-top:8px" onclick="doAction(event)">Switch</button></div></div><div class="pm-alert">Switching workspace changes your receipts, reconciliations, statements, beneficiaries, and settlement rules.</div>` },
+            collectionsNav: { title: 'Collections navigation', sub: 'Jump to collection channels tied to reconciliation.', body: `<div class="pm-2col"><div class="pm-card" style="padding:14px"><strong>M-Pesa & Airtel collections</strong><div class="tiny">Till, PayBill, STK, QR, and payment links</div><button class="pm-btn pm-btn-sm" onclick="doAction(event)" style="margin-top:8px">Open</button></div><div class="pm-card" style="padding:14px"><strong>Invoices & corporate payments</strong><div class="tiny">Linked to your current matching engine</div><button class="pm-btn pm-btn-sm" onclick="doAction(event)" style="margin-top:8px">Open</button></div></div>` },
+            notifications: { title: 'Reconciliation notifications', sub: 'Recent items that affect settlement or close.', body: `<div class="pm-timeline"><div class="pm-tl-item warning"><div class="pm-tl-title">Duplicate receipt detected</div><div class="pm-tl-meta">Mary Wanjiku paid KES 1,240 twice</div></div><div class="pm-tl-item warning"><div class="pm-tl-title">1 card batch delayed to T+1</div><div class="pm-tl-meta">Acquirer cutoff reached at 23:00</div></div><div class="pm-tl-item success"><div class="pm-tl-title">206 receipts matched automatically</div><div class="pm-tl-meta">Today's auto-match pass complete</div></div><div class="pm-tl-item"><div class="pm-tl-title">Daily close pack ready</div><div class="pm-tl-meta">Awaiting your review of 7 exceptions</div></div></div>` },
+            statusCenter: { title: 'Channel and clearing health', sub: 'Operational status of collection and settlement rails.', body: `<div class="pm-2col"><div class="pm-card" style="padding:14px"><strong>M-Pesa Till / STK</strong><div class="tiny">Success 99.3% - same-day settlement active</div><span class="pm-badge success">Healthy</span></div><div class="pm-card" style="padding:14px"><strong>Airtel Money</strong><div class="tiny">Success 97.8% - minor settlement lag</div><span class="pm-badge warning">Watch</span></div><div class="pm-card" style="padding:14px"><strong>Cards</strong><div class="tiny">Authorizations healthy - T+1 batch expected</div><span class="pm-badge success">Healthy</span></div><div class="pm-card" style="padding:14px"><strong>Bank statement feed</strong><div class="tiny">Equity feed last sync 23 minutes ago</div><span class="pm-badge success">Healthy</span></div></div>` },
+            settlementCalendar: { title: 'Settlement calendar', sub: 'Expected landing times by channel and bank destination.', size: 'lg', tabs: ['Today', 'Tomorrow', 'Weekly', 'Rules'], body: `<div class="pm-table-wrap"><table class="pm-table"><thead><tr><th>Time</th><th>Batch</th><th>Channel</th><th>Net</th><th>Destination</th><th>Notes</th></tr></thead><tbody><tr><td>17:00</td><td>SET-1700-UG</td><td>MTN MoMo Uganda</td><td>UGX 2.058M</td><td>Supplier float</td><td>Kampala supplier settlement</td></tr><tr><td>22:00</td><td>SET-2200-01</td><td>M-Pesa Till</td><td>KES 210,460</td><td>Equity Business</td><td>Daily auto-sweep</td></tr><tr><td>22:45</td><td>SET-2245-02</td><td>Airtel Money</td><td>KES 37,540</td><td>PayMo Wallet</td><td>Merchant float top-up</td></tr><tr><td>23:00</td><td>SET-2300-03</td><td>Cards</td><td>KES 45,170</td><td>PayMo Wallet</td><td>T+1 due to cutoff</td></tr></tbody></table></div>` },
+            reconcileNow: { title: 'Run reconciliation now', sub: 'Match receipts, bank lines, wallet movements, and order records in one guided workflow.', size: 'lg', stepper: ['Sources', 'Run engine', 'Review suggestions', 'Handle exceptions', 'Export'], body: `<div class="pm-2col"><div><div class="pm-check-row selected"><input type="checkbox" checked><span class="pm-label">M-Pesa Till and STK receipts (today)</span></div><div class="pm-check-row selected"><input type="checkbox" checked><span class="pm-label">Airtel Money merchant feed</span></div><div class="pm-check-row selected"><input type="checkbox" checked><span class="pm-label">Cards and terminal batch files</span></div><div class="pm-check-row selected"><input type="checkbox" checked><span class="pm-label">POS orders and table tickets</span></div><div class="pm-check-row selected"><input type="checkbox" checked><span class="pm-label">Open invoices and payment links</span></div><div class="pm-check-row"><input type="checkbox"><span class="pm-label">Pull latest bank statement feed before matching</span></div></div><div><div class="pm-alert success">Estimated run time: 28 seconds. Expected records scanned: 498. Expected auto-match rate: 96% to 98% based on current feed quality.</div><div class="pm-detail-row"><span class="pm-detail-key">Current open exceptions</span><span class="pm-detail-val">7</span></div><div class="pm-detail-row"><span class="pm-detail-key">Potential duplicates</span><span class="pm-detail-val">1</span></div><div class="pm-detail-row"><span class="pm-detail-key">Pending bank lines</span><span class="pm-detail-val">3</span></div></div></div>` },
+            uploadFiles: { title: 'Upload reconciliation files', sub: 'Bring in POS exports, bank statements, acquirer files, or manual support schedules.', size: 'lg', stepper: ['Choose files', 'Validate', 'Map columns', 'Preview', 'Import'], body: `<div class="pm-dropzone"><div style="font-size:34px;margin-bottom:8px">+</div><strong>Drop files here</strong><div class="tiny" style="margin-top:6px">Supported: CSV, XLSX, TXT, PDF statement extracts, acquirer reports, MT940-like files</div><button class="pm-btn" style="margin-top:12px" onclick="doAction(event)">Browse files</button></div><div class="pm-2col" style="margin-top:16px"><div class="pm-card" style="padding:14px"><strong>Typical files</strong><div class="tiny">POS order export, bank CSV, card batch settlement, Airtel merchant report, M-Pesa statement lines</div></div><div class="pm-card" style="padding:14px"><strong>Column auto-mapping</strong><div class="tiny">PayMo detects amount, date, receipt code, payer, account field, till, fee, and reference columns automatically.</div></div></div>` },
+            matchingRules: { title: 'Matching rules', sub: 'Control how strict or flexible PayMo should be when linking receipts to business records.', size: 'lg', tabs: ['Rules', 'Priorities', 'Tolerance', 'Audit'], body: `<div class="pm-switch-row"><div><strong>Exact amount + 15 minute window</strong><div class="tiny">Primary walk-in rule</div></div><span class="pm-toggle on" onclick="this.classList.toggle('on')"></span></div><div class="pm-switch-row"><div><strong>Accept +/- KES 5 for cash rounding</strong><div class="tiny">Useful for hand-entered tables and service charges</div></div><span class="pm-toggle on" onclick="this.classList.toggle('on')"></span></div><div class="pm-switch-row"><div><strong>Invoice code in PayBill account field</strong><div class="tiny">Strongest rule for corporate collections</div></div><span class="pm-toggle on" onclick="this.classList.toggle('on')"></span></div><div class="pm-switch-row"><div><strong>Auto-flag same payer same amount within 5 minutes</strong><div class="tiny">Detect duplicates early</div></div><span class="pm-toggle on" onclick="this.classList.toggle('on')"></span></div><div class="pm-form-group" style="margin-top:12px"><label class="pm-label">Default time tolerance</label><input class="pm-input" value="15 minutes"></div>` },
+            transactionDetail: { title: 'Receipt and settlement detail', sub: 'One payment, fully explained from customer payment to bank settlement.', size: 'lg', tabs: ['Receipt', 'Order', 'Ledger', 'Settlement', 'Actions'], body: `<div class="pm-2col"><div><h4 class="pm-section-title">Receipt</h4><div class="pm-detail-row"><span class="pm-detail-key">Receipt code</span><span class="pm-detail-val">QJ14X882</span></div><div class="pm-detail-row"><span class="pm-detail-key">Channel</span><span class="pm-detail-val">M-Pesa STK</span></div><div class="pm-detail-row"><span class="pm-detail-key">Customer</span><span class="pm-detail-val">Mary Wanjiku</span></div><div class="pm-detail-row"><span class="pm-detail-key">Amount</span><span class="pm-detail-val">KES 1,240</span></div><div class="pm-detail-row"><span class="pm-detail-key">Fee</span><span class="pm-detail-val">KES 0 customer · KES 18 merchant</span></div></div><div><h4 class="pm-section-title">Ledger path</h4><div class="pm-timeline"><div class="pm-tl-item success"><div class="pm-tl-title">11:28 receipt confirmed</div><div class="pm-tl-meta">Customer approved STK</div></div><div class="pm-tl-item success"><div class="pm-tl-title">11:28 matched to order KC-8829</div><div class="pm-tl-meta">Confidence 99%</div></div><div class="pm-tl-item"><div class="pm-tl-title">22:00 included in sweep batch</div><div class="pm-tl-meta">SET-2200-01</div></div><div class="pm-tl-item"><div class="pm-tl-title">22:08 expected bank credit</div><div class="pm-tl-meta">Equity Business</div></div></div></div></div>` },
+            matchExplainer: { title: 'Why this receipt matched', sub: 'Human-readable matching explanation.', size: 'sm', body: `<div class="pm-detail-row"><span class="pm-detail-key">Rule 1</span><span class="pm-detail-val">Exact amount KES 1,240 matched open order KC-8829</span></div><div class="pm-detail-row"><span class="pm-detail-key">Rule 2</span><span class="pm-detail-val">Payment happened 3 minutes after the order was opened</span></div><div class="pm-detail-row"><span class="pm-detail-key">Rule 3</span><span class="pm-detail-val">Customer phone matches prior customer record</span></div><div class="pm-alert success" style="margin-top:10px">Confidence reached 99%, so PayMo linked the receipt automatically and included it in your sales totals.</div>` },
+            matchReceipt: { title: 'Manual receipt match', sub: 'Choose the right order, invoice, or ledger bucket for an unmatched payment.', size: 'lg', stepper: ['Receipt', 'Find target', 'Review effect', 'Confirm'], body: `<div class="pm-2col"><div><div class="pm-detail-row"><span class="pm-detail-key">Receipt</span><span class="pm-detail-val">AM1842</span></div><div class="pm-detail-row"><span class="pm-detail-key">Channel</span><span class="pm-detail-val">Airtel Money</span></div><div class="pm-detail-row"><span class="pm-detail-key">Amount</span><span class="pm-detail-val">KES 840</span></div><div class="pm-detail-row"><span class="pm-detail-key">When</span><span class="pm-detail-val">11:18</span></div></div><div><div class="pm-form-group"><label class="pm-label">Select target</label><select class="pm-select"><option>KC-8834 · Rider pickup · KES 840</option><option>KC-8835 · Walk-in drinks · KES 840</option><option>Create manual sale line</option><option>Leave unmatched</option></select></div><div class="pm-alert">Confirming this will update sales reports, cashier balance, settlement support, and the accountant export.</div></div></div>` },
+            settlementDetail: { title: 'Settlement batch detail', sub: 'Track one batch from pending to credited.', size: 'lg', tabs: ['Overview', 'Lines', 'Destination', 'Fees', 'Timeline'], body: `<div class="pm-2col"><div><div class="pm-detail-row"><span class="pm-detail-key">Batch</span><span class="pm-detail-val">SET-2200-01</span></div><div class="pm-detail-row"><span class="pm-detail-key">Channel</span><span class="pm-detail-val">M-Pesa Till</span></div><div class="pm-detail-row"><span class="pm-detail-key">Gross</span><span class="pm-detail-val">KES 214,880</span></div><div class="pm-detail-row"><span class="pm-detail-key">Fees</span><span class="pm-detail-val">KES 4,420</span></div><div class="pm-detail-row"><span class="pm-detail-key">Net</span><span class="pm-detail-val"><strong>KES 210,460</strong></span></div></div><div><div class="pm-timeline"><div class="pm-tl-item success"><div class="pm-tl-title">Ready</div><div class="pm-tl-meta">Receipts matched and batched</div></div><div class="pm-tl-item"><div class="pm-tl-title">Queued for 22:00 sweep</div><div class="pm-tl-meta">Destination: Equity Business</div></div><div class="pm-tl-item"><div class="pm-tl-title">Expected bank credit 22:08</div><div class="pm-tl-meta">Statement ref KC-MPESA-DAILY-SWEEP</div></div></div></div></div>` },
+            requestBankStatement: { title: 'Request latest bank statement lines', sub: 'Pull fresh bank transactions before you match or close.', size: 'sm', body: `<div class="pm-check-row selected"><input type="radio" checked><span class="pm-label">Equity Business 0110-2214-001</span></div><div class="pm-check-row"><input type="radio"><span class="pm-label">KCB reserve account</span></div><div class="pm-check-row"><input type="radio"><span class="pm-label">Upload a PDF or CSV manually instead</span></div><div class="pm-alert">PayMo will fetch recent credits and debits since the last sync and use them in reconciliation immediately.</div>` },
+            rescheduleSettlement: { title: 'Reschedule settlement', sub: 'Change when a wallet sweep or settlement batch lands.', size: 'sm', body: `<div class="pm-form-group"><label class="pm-label">Batch</label><select class="pm-select"><option>SET-2200-01 · M-Pesa Till</option><option>SET-2245-02 · Airtel Money</option></select></div><div class="pm-form-group"><label class="pm-label">New time</label><select class="pm-select"><option>22:00 today</option><option>23:00 today</option><option>Tomorrow 08:00</option></select></div><div class="pm-alert warning">Moving a sweep changes when cash hits your bank and may affect daily close readiness.</div>` },
+            exceptionsWorkbench: { title: 'Exceptions workbench', sub: 'Resolve unmatched, duplicate, reversed, delayed, or disputed items from one workspace.', size: 'lg', tabs: ['Queue', 'Duplicates', 'Delayed', 'Chargebacks', 'Manual repairs'], body: `<div class="pm-table-wrap"><table class="pm-table"><thead><tr><th>Issue</th><th>Amount</th><th>Owner</th><th>Next step</th><th>Action</th></tr></thead><tbody><tr><td>Duplicate M-Pesa receipt</td><td>KES 1,240</td><td>Nadia</td><td>Refund customer</td><td><button class="pm-btn pm-btn-sm" onclick="openModal('refundFlow')">Refund</button></td></tr><tr><td>Airtel unmatched line</td><td>KES 840</td><td>Cashier</td><td>Manual match</td><td><button class="pm-btn pm-btn-sm" onclick="openModal('matchReceipt')">Match</button></td></tr><tr><td>Card chargeback</td><td>KES 2,800</td><td>Owner</td><td>Upload evidence</td><td><button class="pm-btn pm-btn-sm" onclick="openModal('chargebackResponse')">Respond</button></td></tr></tbody></table></div>` },
+            bulkResolve: { title: 'Bulk resolve exceptions', sub: 'Resolve similar issues together to speed up close.', size: 'sm', body: `<div class="pm-check-row selected"><input type="checkbox" checked><span class="pm-label">Approve all high-confidence matches above 85%</span></div><div class="pm-check-row"><input type="checkbox"><span class="pm-label">Create manual sales lines for receipts below KES 1,000</span></div><div class="pm-check-row"><input type="checkbox"><span class="pm-label">Delay unresolved card issues to tomorrow's close</span></div><div class="pm-alert">Bulk actions are logged to your audit trail and included in the close pack.</div>` },
+            exceptionDetail: { title: 'Exception detail', sub: 'Investigate one ambiguous or problematic line.', size: 'lg', tabs: ['Overview', 'Candidates', 'Timeline', 'Repair log'], body: `<div class="pm-detail-row"><span class="pm-detail-key">Issue</span><span class="pm-detail-val">CARD-B7-2211 ambiguous match</span></div><div class="pm-detail-row"><span class="pm-detail-key">Amount</span><span class="pm-detail-val">KES 1,650</span></div><div class="pm-detail-row"><span class="pm-detail-key">Possible orders</span><span class="pm-detail-val">2 breakfast tickets in same minute</span></div><div class="pm-alert warning" style="margin-top:10px">Use cashier, terminal, and product mix to choose the correct order before close.</div>` },
+            chargebackResponse: { title: 'Respond to chargeback', sub: 'Upload proof and protect your revenue.', size: 'lg', stepper: ['Case', 'Evidence', 'Narrative', 'Submit'], body: `<div class="pm-detail-row"><span class="pm-detail-key">Case</span><span class="pm-detail-val">CB-2026-18</span></div><div class="pm-detail-row"><span class="pm-detail-key">Amount</span><span class="pm-detail-val">KES 2,800</span></div><div class="pm-form-group" style="margin-top:12px"><label class="pm-label">Why should this charge stand?</label><textarea class="pm-textarea">Customer opened a payment link, entered their details, and received the catering service. Supporting proof includes invoice INV-8804, delivery receipt, and WhatsApp confirmation.</textarea></div><div class="pm-dropzone" style="margin-top:12px"><strong>Attach evidence</strong><div class="tiny">Invoice, signed delivery note, WhatsApp screenshot, receipt, and customer confirmation</div></div>` },
+            refundFlow: { title: 'Refund duplicate or incorrect payment', sub: 'Send money back to the customer with a full audit trail.', size: 'lg', stepper: ['Select receipt', 'Reason', 'Review', 'PIN', 'Receipt'], body: `<div class="pm-2col"><div><div class="pm-detail-row"><span class="pm-detail-key">Customer</span><span class="pm-detail-val">Mary Wanjiku</span></div><div class="pm-detail-row"><span class="pm-detail-key">Refund amount</span><span class="pm-detail-val">KES 1,240</span></div><div class="pm-detail-row"><span class="pm-detail-key">Original receipt</span><span class="pm-detail-val">QJ14X889</span></div><div class="pm-form-group" style="margin-top:12px"><label class="pm-label">Reason</label><select class="pm-select"><option>Duplicate payment</option><option>Customer cancelled order</option><option>Wrong amount</option></select></div></div><div><div class="pm-alert warning">Refund will go back to the same customer phone and appear in both the receipts register and accountant export. Duplicate refunds are blocked automatically.</div><div class="pm-pin-dots" id="pinDots2"><span></span><span></span><span></span><span></span></div><div class="pm-pin-pad"><button class="pm-pin-key" onclick="pressPin(2)">1</button><button class="pm-pin-key" onclick="pressPin(2)">2</button><button class="pm-pin-key" onclick="pressPin(2)">3</button><button class="pm-pin-key" onclick="pressPin(2)">4</button><button class="pm-pin-key" onclick="pressPin(2)">5</button><button class="pm-pin-key" onclick="pressPin(2)">6</button><button class="pm-pin-key" onclick="pressPin(2)">7</button><button class="pm-pin-key" onclick="pressPin(2)">8</button><button class="pm-pin-key" onclick="pressPin(2)">9</button><button class="pm-pin-key" onclick="clearPin(2)">C</button><button class="pm-pin-key" onclick="pressPin(2)">0</button><button class="pm-pin-key" onclick="verifyPin(2)">OK</button></div><div id="pinStatus2" class="tiny" style="text-align:center;margin-top:8px">Enter your 4 digit PayMo PIN.</div></div></div>` },
+            channelTimeline: { title: 'Full clearing timeline by channel', sub: 'Detailed timing assumptions for every collection and settlement channel.', size: 'lg', body: `<div class="pm-table-wrap"><table class="pm-table"><thead><tr><th>Channel</th><th>Auth</th><th>Matching</th><th>Clearing</th><th>Settlement</th><th>Typical total</th></tr></thead><tbody><tr><td>M-Pesa STK / Till</td><td>Instant</td><td>Instant to 30 sec</td><td>Same day</td><td>22:00 sweep</td><td>Under 12 hours</td></tr><tr><td>Airtel Money</td><td>Instant</td><td>Instant to 2 min</td><td>Same day or T+1</td><td>22:45 / next morning</td><td>2 to 18 hours</td></tr><tr><td>Cards</td><td>Instant</td><td>Instant</td><td>T+1</td><td>Next business day</td><td>1 business day</td></tr><tr><td>PayMo wallet</td><td>Instant</td><td>Instant</td><td>N/A</td><td>Already settled</td><td>Seconds</td></tr></tbody></table></div>` },
+            allocationRules: { title: 'Allocation rules', sub: 'How money is split between branches, tax buckets, staff tips, and business lines.', size: 'lg', body: `<div class="pm-switch-row"><div><strong>Allocate table tips to staff tip pool</strong><div class="tiny">Split by shift headcount</div></div><span class="pm-toggle on" onclick="this.classList.toggle('on')"></span></div><div class="pm-switch-row"><div><strong>Corporate invoices to catering bucket</strong><div class="tiny">Improves branch P&amp;L accuracy</div></div><span class="pm-toggle on" onclick="this.classList.toggle('on')"></span></div><div class="pm-switch-row"><div><strong>Delivery sales to delivery margin bucket</strong><div class="tiny">Includes rider support costs</div></div><span class="pm-toggle on" onclick="this.classList.toggle('on')"></span></div>` },
+            splitSettlement: { title: 'Split one settlement into multiple buckets', sub: 'Allocate incoming cash to multiple internal destinations before final posting.', size: 'lg', stepper: ['Choose batch', 'Define splits', 'Review impact', 'Confirm'], body: `<div class="pm-detail-row"><span class="pm-detail-key">Source batch</span><span class="pm-detail-val">SET-2200-01 · Net KES 210,460</span></div><div class="pm-form-group" style="margin-top:12px"><label class="pm-label">Split 1</label><input class="pm-input" value="Main cafe sales - KES 180,000"></div><div class="pm-form-group"><label class="pm-label">Split 2</label><input class="pm-input" value="Tip pool - KES 5,420"></div><div class="pm-form-group"><label class="pm-label">Split 3</label><input class="pm-input" value="Tax reserve - KES 25,040"></div>` },
+            allocationDetail: { title: 'Allocation bucket detail', sub: 'See how one bucket was built.', size: 'sm', body: `<div class="pm-detail-row"><span class="pm-detail-key">Bucket</span><span class="pm-detail-val">Corporate invoices</span></div><div class="pm-detail-row"><span class="pm-detail-key">Rule</span><span class="pm-detail-val">PayBill account starts INV-</span></div><div class="pm-detail-row"><span class="pm-detail-key">Today</span><span class="pm-detail-val">KES 24,800</span></div><div class="pm-detail-row"><span class="pm-detail-key">Items</span><span class="pm-detail-val">1 invoice · INV-8821</span></div>` },
+            tipPool: {
+                title: 'Staff tip pool split', sub: 'Distribute today\'s digital tips across eligible staff.', size: 'lg', stepper: ['Tip total', 'Eligible staff', 'Split model', 'Confirm'], body: `<div class="pm-detail-row"><span class="pm-detail-key">Tip total today</span><span class="pm-detail-val">KES 5,420</span></div><div class="pm-check-row selected"><input type="radio" checked><span class="pm-label">Split equally by shift headcount</span></div><div class="pm-check-row"><input type="radio"><span class="pm-label">Split by hours worked</span></div><div class="pm-check-row"><input type="radio"><span class="pm-label">Split by custom percentages</span></div><div class="pm-table-wrap" style="margin-top:12px"><table class="pm-table"><thead><tr><th>Staff</th><th>Shift</th><th>Hours</th><th>Estimated share</th></tr></thead><tbody><tr><td>Nadia Omondi</td><td>AM</td><td>8</td><td>KES 1,355</td></tr><tr><td>Peter Mwangi</td><td>AM</td><td>8</td><td>KES 1,355</td></tr><tr><td>Grace Kanyi</td><td>PM</td><td>8</td><td>KES 1,355</td></tr><tr><td>Brian Njoroge</td><td>PM</td><td>8</td><td>KES 1,355</td></tr></tbody></table></div>`
+            },
+            taxBreakdown: { title: 'Tax and VAT breakdown', sub: 'How today\'s receipts map to tax support schedules.', size: 'lg', tabs: ['Summary', 'Taxable sales', 'Refund offsets', 'Export'], body: `<div class="pm-detail-row"><span class="pm-detail-key">Gross taxable sales</span><span class="pm-detail-val">KES 144,000</span></div><div class="pm-detail-row"><span class="pm-detail-key">VAT portion</span><span class="pm-detail-val">KES 23,040</span></div><div class="pm-detail-row"><span class="pm-detail-key">Refund offsets</span><span class="pm-detail-val">KES 1,240</span></div><div class="pm-detail-row"><span class="pm-detail-key">Net tax support base</span><span class="pm-detail-val">KES 142,760</span></div><div class="pm-alert success" style="margin-top:10px">Export this register directly to your accountant's VAT working papers.</div>` },
+            shiftDetail: { title: 'Shift balancing detail', sub: 'How one shift balanced against receipts and tills.', size: 'sm', body: `<div class="pm-detail-row"><span class="pm-detail-key">Shift</span><span class="pm-detail-val">PM 3</span></div><div class="pm-detail-row"><span class="pm-detail-key">Cashier</span><span class="pm-detail-val">Grace Kanyi</span></div><div class="pm-detail-row"><span class="pm-detail-key">Receipts</span><span class="pm-detail-val">31</span></div><div class="pm-detail-row"><span class="pm-detail-key">Matched</span><span class="pm-detail-val">29</span></div><div class="pm-detail-row"><span class="pm-detail-key">Exceptions</span><span class="pm-detail-val">2</span></div><div class="pm-alert warning" style="margin-top:10px">Resolve the duplicate customer receipt and one ambiguous card line to turn this shift green.</div>` },
+            reportsCenter: { title: 'Reports center', sub: 'Download close packs, statements, support files, and accountant bundles.', size: 'lg', tabs: ['Templates', 'Custom export', 'Scheduled', 'History'], body: `<div class="pm-rule-grid"><div class="pm-rule-card" onclick="openModal('downloadBankPack')"><div class="pm-rule-header"><div class="pm-rule-name">Daily close pack</div><span class="pm-badge success">Ready</span></div><div class="pm-rule-desc">Receipts, matches, exceptions, sweeps, cashier summary, and net position.</div><div class="pm-rule-meta"><span>PDF + CSV</span><span>Open</span></div></div><div class="pm-rule-card" onclick="openModal('statementDetail')"><div class="pm-rule-header"><div class="pm-rule-name">Weekly channel statement</div><span class="pm-badge success">Ready</span></div><div class="pm-rule-desc">Collections, fees, refunds, and settlement lags by channel.</div><div class="pm-rule-meta"><span>XLSX</span><span>Open</span></div></div><div class="pm-rule-card" onclick="openModal('notifyAccountant')"><div class="pm-rule-header"><div class="pm-rule-name">Accountant handoff</div><span class="pm-badge">One click</span></div><div class="pm-rule-desc">Email full support bundle securely to your accountant or finance manager.</div><div class="pm-rule-meta"><span>Zip bundle</span><span>Send</span></div></div></div>` },
+            downloadBankPack: { title: 'Download bank support pack', sub: 'Files built specifically for matching your bank statement.', size: 'sm', body: `<div class="pm-check-row selected"><input type="checkbox" checked><span class="pm-label">Equity settlement support CSV</span></div><div class="pm-check-row selected"><input type="checkbox" checked><span class="pm-label">MT940-like reference file</span></div><div class="pm-check-row"><input type="checkbox"><span class="pm-label">Include refund and reversal memo lines</span></div><div class="pm-check-row"><input type="checkbox"><span class="pm-label">Include teller and cashier allocation detail</span></div>` },
+            statementDetail: { title: 'Statement detail', sub: 'Preview one export before downloading.', size: 'lg', body: `<div class="pm-table-wrap"><table class="pm-table"><thead><tr><th>Date</th><th>Channel</th><th>Gross</th><th>Fees</th><th>Refunds</th><th>Net settled</th></tr></thead><tbody><tr><td>Mon</td><td>M-Pesa, QR, Cards</td><td>KES 152,400</td><td>KES 3,240</td><td>KES 0</td><td>KES 149,160</td></tr><tr><td>Tue</td><td>M-Pesa, QR, Cards</td><td>KES 166,880</td><td>KES 3,842</td><td>KES 620</td><td>KES 162,418</td></tr><tr><td>Wed</td><td>M-Pesa, QR, Cards</td><td>KES 171,220</td><td>KES 4,012</td><td>KES 0</td><td>KES 167,208</td></tr><tr><td>Thu</td><td>M-Pesa, QR, Cards</td><td>KES 184,200</td><td>KES 4,420</td><td>KES 1,240</td><td>KES 178,540</td></tr></tbody></table></div>` },
+            notifyAccountant: { title: 'Send accountant handoff', sub: 'Email today\'s close pack and supporting schedules securely.', size: 'sm', body: `<div class="pm-form-group"><label class="pm-label">Recipient</label><input class="pm-input" value="accounts@kilimanicafe.co.ke"></div><div class="pm-form-group"><label class="pm-label">Message</label><textarea class="pm-textarea">Attached is today's close pack including reconciled receipts, exceptions, settlement support, VAT support, and the channel performance schedule. Four minor exceptions remain visible in the notes section.</textarea></div><div class="pm-check-row selected"><input type="checkbox" checked><span class="pm-label">Attach PDF close pack</span></div><div class="pm-check-row selected"><input type="checkbox" checked><span class="pm-label">Attach CSV and bank support files</span></div>` },
+            closeBooks: { title: 'Close today\'s books', sub: 'Guided end-of-day process with readiness checks and final lock.', size: 'lg', stepper: ['Readiness', 'Resolve blockers', 'Approve totals', 'Lock day', 'Share pack'], body: `<div class="pm-kpi-grid" style="margin-bottom:16px"><div class="pm-card" style="padding:14px"><div class="tiny">Readiness</div><div class="pm-bignum" style="font-size:28px">91%</div></div><div class="pm-card" style="padding:14px"><div class="tiny">Auto-matched</div><div class="pm-bignum" style="font-size:28px">206</div></div><div class="pm-card" style="padding:14px"><div class="tiny">Exceptions</div><div class="pm-bignum" style="font-size:28px">7</div></div><div class="pm-card" style="padding:14px"><div class="tiny">Must fix before close</div><div class="pm-bignum" style="font-size:28px">4</div></div></div><div class="pm-checklist-item"><div class="pm-check-icon" style="background:var(--pm-accent-soft);color:var(--pm-accent)">1</div><div><strong>Run latest matcher</strong><div class="tiny">Already complete at 00:03 EAT.</div></div></div><div class="pm-checklist-item"><div class="pm-check-icon" style="background:var(--pm-warning-soft);color:var(--pm-warning)">2</div><div><strong>Resolve 4 material blockers</strong><div class="tiny">1 duplicate refund, 2 ambiguous matches, 1 delayed card batch note.</div></div></div><div class="pm-checklist-item"><div class="pm-check-icon" style="background:var(--pm-info-soft);color:var(--pm-info)">3</div><div><strong>Confirm expected settlement</strong><div class="tiny">KES 293,170 net due into wallet and bank destinations.</div></div></div><div class="pm-checklist-item"><div class="pm-check-icon" style="background:var(--pm-accent-soft);color:var(--pm-accent)">4</div><div><strong>Lock the day</strong><div class="tiny">Prevents accidental edits after handoff, except authorized reversals.</div></div></div>` },
+            dayCloseDetail: { title: 'Day close detail', sub: 'How one day closed and what was included.', size: 'sm', body: `<div class="pm-detail-row"><span class="pm-detail-key">Day</span><span class="pm-detail-val">Thursday</span></div><div class="pm-detail-row"><span class="pm-detail-key">Close status</span><span class="pm-detail-val">Open - 91% ready</span></div><div class="pm-detail-row"><span class="pm-detail-key">Expected close time</span><span class="pm-detail-val">14 minutes after blocker resolution</span></div><div class="pm-detail-row"><span class="pm-detail-key">Main blockers</span><span class="pm-detail-val">Duplicate refund, 2 manual matches, 1 note on delayed card batch</span></div>` },
+            requestReverseEntry: { title: 'Create reversing entry', sub: 'Correct a mistaken manual posting while preserving audit history.', size: 'lg', stepper: ['Find line', 'Reason', 'Preview reversal', 'Confirm'], body: `<div class="pm-form-group"><label class="pm-label">Original line reference</label><input class="pm-input" value="MAN-2026-0144"></div><div class="pm-form-group"><label class="pm-label">Reason</label><textarea class="pm-textarea">Original manual sale was created against the wrong cashier shift. Reverse and repost to PM 3.</textarea></div><div class="pm-alert warning">PayMo never deletes posted lines. It creates an equal and opposite reversing entry, then lets you post the corrected line.</div>` },
+            preferences: { title: 'Reconciliation preferences', sub: 'Operational settings for daily close, exports, reminders, and matching.', body: `<div class="pm-switch-row"><div><strong>Auto-run matcher every hour</strong><div class="tiny">Keeps exceptions low during service</div></div><span class="pm-toggle on" onclick="this.classList.toggle('on')"></span></div><div class="pm-switch-row"><div><strong>Email close pack to accountant</strong><div class="tiny">On successful day lock</div></div><span class="pm-toggle on" onclick="this.classList.toggle('on')"></span></div><div class="pm-switch-row"><div><strong>Notify me when readiness drops below 95%</strong><div class="tiny">Useful during busy days</div></div><span class="pm-toggle on" onclick="this.classList.toggle('on')"></span></div><div class="pm-switch-row"><div><strong>Keep delayed card batches visible for next day</strong><div class="tiny">Improves morning review</div></div><span class="pm-toggle on" onclick="this.classList.toggle('on')"></span></div>` },
+            profile: { title: 'Kilimani Cafe profile', sub: 'Business identity used across reconciliation and settlement.', size: 'sm', body: `<div class="pm-detail-row"><span class="pm-detail-key">Business</span><span class="pm-detail-val">Kilimani Cafe Ltd</span></div><div class="pm-detail-row"><span class="pm-detail-key">Settlement bank</span><span class="pm-detail-val">Equity Business 0110-2214-001</span></div><div class="pm-detail-row"><span class="pm-detail-key">Primary till</span><span class="pm-detail-val">M-Pesa Till 423177</span></div><div class="pm-detail-row"><span class="pm-detail-key">Accountant email</span><span class="pm-detail-val">accounts@kilimanicafe.co.ke</span></div><div class="pm-detail-row"><span class="pm-detail-key">Daily close owner</span><span class="pm-detail-val">Nadia Omondi</span></div>` },
+            help: { title: 'Help with reconciliation and settlement', sub: 'Practical support for close, exceptions, and bank matching.', body: `<div class="pm-2col"><div class="pm-card" style="padding:14px"><strong>Unmatched receipts guide</strong><div class="tiny">Best practices for matching walk-ins, delivery riders, and invoice payments.</div><button class="pm-btn pm-btn-sm" onclick="openModal('matchReceipt')" style="margin-top:8px">Open</button></div><div class="pm-card" style="padding:14px"><strong>Duplicate and refund playbook</strong><div class="tiny">When to refund, when to reverse, and when to leave for tomorrow.</div><button class="pm-btn pm-btn-sm" onclick="openModal('refundFlow')" style="margin-top:8px">Open</button></div><div class="pm-card" style="padding:14px"><strong>Settlement support</strong><div class="tiny">Missing bank credit? Start here with batch tracking and bank line pulls.</div><button class="pm-btn pm-btn-sm" onclick="openModal('settlementCalendar')" style="margin-top:8px">Open</button></div><div class="pm-card" style="padding:14px"><strong>Contact support</strong><div class="tiny">+254 700 000 111 · support@paymo.co.ke</div><button class="pm-btn pm-btn-sm" onclick="doAction(event)" style="margin-top:8px">Start chat</button></div></div>` }
+        };
+
+        function openModal(id) {
+            const def = MODALS[id];
+            if (!def) return;
+            const modal = document.createElement('div');
+            modal.className = 'pm-modal-overlay open';
+            let tabs = '';
+            if (def.tabs) { tabs = '<div class="pm-tabs" style="margin-bottom:16px">' + def.tabs.map((t, i) => `<button class="pm-tab ${i === 0 ? 'active' : ''}" onclick="switchModalTab(this)">${t}</button>`).join('') + '</div>'; }
+            let step = '';
+            if (def.stepper) { step = '<div class="pm-stepper">' + def.stepper.map((s, i) => `<div class="pm-step ${i === 0 ? 'active' : ''}"><div class="pm-step-num">${i + 1}</div><div class="pm-step-label">${s}</div></div>${i < def.stepper.length - 1 ? '<div class="pm-step-line"></div>' : ''}`).join('') + '</div>'; }
+            modal.innerHTML = `<div class="pm-modal ${def.size === 'lg' ? 'pm-modal-lg' : def.size === 'sm' ? 'pm-modal-sm' : ''}"><div class="pm-modal-header"><div><h3 class="pm-modal-title">${def.title}</h3><p class="pm-modal-sub">${def.sub || ''}</p></div><button class="pm-modal-close" onclick="closeAllModals()">x</button></div><div class="pm-modal-body">${step}${tabs}${def.body || ''}</div><div class="pm-modal-footer"><button class="pm-btn" onclick="closeAllModals()">Close</button><div class="pm-modal-footer-right"><button class="pm-btn pm-btn-primary" onclick="doAction(event)">Save or continue</button></div></div></div>`;
+            document.body.appendChild(modal);
+            document.body.style.overflow = 'hidden';
+        }
+        function closeAllModals() { document.querySelectorAll('.pm-modal-overlay.open').forEach(m => { m.classList.remove('open'); setTimeout(() => m.remove(), 180) }); document.body.style.overflow = ''; }
+        function switchModalTab(btn) { btn.parentElement.querySelectorAll('.pm-tab').forEach(t => t.classList.remove('active')); btn.classList.add('active'); }
+        function switchSegment(btn) { btn.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active')); btn.classList.add('active'); }
+        function switchPanel(btn, group, name) { btn.parentElement.querySelectorAll('.pm-tab').forEach(t => t.classList.remove('active')); btn.classList.add('active'); document.querySelectorAll(`[id^="${group}-"]`).forEach(p => p.classList.remove('active')); const target = document.getElementById(`${group}-${name}`); if (target) target.classList.add('active'); }
+        function scrollToSection(id, ev) { const el = document.getElementById(id); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); document.querySelectorAll('.pm-anchor-btn').forEach(b => b.classList.remove('active')); if (ev && ev.target) ev.target.classList.add('active'); }
+        function doAction(ev) { const btn = ev && ev.target; if (btn) { btn.innerHTML = '<span class="pm-spinner"></span> Processing'; btn.disabled = true; } setTimeout(() => closeAllModals(), 650); }
+        let pinState = {};
+        function pressPin(id) { pinState[id] = (pinState[id] || '') + '*'; const dots = document.querySelectorAll(`#pinDots${id} span`); dots.forEach((d, i) => d.classList.toggle('filled', i < pinState[id].length)); }
+        function clearPin(id) { pinState[id] = ''; document.querySelectorAll(`#pinDots${id} span`).forEach(d => d.classList.remove('filled')); }
+        function verifyPin(id) { const s = document.getElementById(`pinStatus${id}`); if (!s) return; if ((pinState[id] || '').length >= 4) { s.textContent = 'PIN accepted. Ready to continue.'; s.style.color = 'var(--pm-accent)'; } else { s.textContent = 'Enter 4 digits to continue.'; s.style.color = 'var(--pm-danger)'; } }
+
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAllModals(); });
+        document.addEventListener('click', e => { if (e.target.classList && e.target.classList.contains('pm-modal-overlay')) closeAllModals(); });
+
+        const sections = ['s2111', 's2112', 's2113', 's2114', 's2115', 's2116', 's2117', 's2118'];
+        window.addEventListener('scroll', () => { let cur = sections[0]; for (const id of sections) { const el = document.getElementById(id); if (el && el.getBoundingClientRect().top < 240) cur = id; } document.querySelectorAll('.pm-anchor-btn').forEach((b, i) => b.classList.toggle('active', sections[i] === cur)); }, { passive: true });
+
+        (function () {
+            const grid = document.querySelector('.pm-matrix');
+            if (!grid) return;
+        })();
+
+        const liveRows = [['11:42', 'Airtel Money', '6', 'KES 4,920', 'Matched'], ['11:38', 'Cards', '4', 'KES 3,410', 'Authorized'], ['11:36', 'QR', '9', 'KES 6,880', 'Matched'], ['11:31', 'M-Pesa STK', '11', 'KES 8,240', 'Settling']];
+        let idx = 0;
+        setInterval(() => {
+            const t = document.getElementById('hourRows');
+            if (!t) return;
+            const r = liveRows[idx % liveRows.length];
+            const tr = document.createElement('tr');
+            tr.className = 'pm-reco-row';
+            tr.innerHTML = `<td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td><span class="pm-badge success">${r[4]}</span></td>`;
+            t.insertBefore(tr, t.firstChild);
+            while (t.children.length > 6) t.removeChild(t.lastChild);
+            idx++;
+        }, 5000);
+    </script>
+</body>
+
+</html>
