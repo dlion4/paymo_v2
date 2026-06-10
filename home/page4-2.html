@@ -1,0 +1,1127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Paymo BAAS · Embedded Banking — Launch a Bank Without Becoming One</title>
+<meta name="description" content="Virtual accounts, ledgers, card issuing, sub-accounts, white-label banking — the complete Banking-as-a-Service core for Africa." />
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Geist:wght@400;600;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+
+<style>
+  /* ============ MASTER PAYMO CSS ============ */
+  :root {
+    --bg-0: #04081a; --bg-1: #06122e; --bg-2: #0a1a3f;
+    --ink-0: #ffffff; --ink-1: #e6ecff; --ink-2: #a8b6e0; --ink-3: #6f82b5;
+    --accent: #22d3ee; --accent-2: #60a5fa; --accent-3: #a78bfa; --accent-4: #fbbf24;
+    --success: #22c55e; --danger: #ef4444;
+    --glass-bg: rgba(255,255,255,0.04); --glass-border: rgba(255,255,255,0.10);
+    --glass-strong: rgba(255,255,255,0.08); --glass-border-strong: rgba(255,255,255,0.16);
+    --radius-lg: 22px; --radius-md: 14px; --radius-sm: 10px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg-0); color: var(--ink-1); overflow-x: hidden; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+  h1,h2,h3,h4,h5 { font-family: 'Inter','Geist',sans-serif; font-weight: 800; letter-spacing: -0.02em; color: var(--ink-0); }
+  code, pre, .mono { font-family: 'JetBrains Mono', monospace; }
+  a { color: var(--accent); text-decoration: none; transition: color .2s; }
+  a:hover { color: var(--accent-2); }
+
+  .bg-gradient-deep {
+    background:
+      radial-gradient(1200px 600px at 80% -10%, rgba(96,165,250,0.22), transparent 60%),
+      radial-gradient(900px 500px at -10% 20%, rgba(167,139,250,0.18), transparent 60%),
+      radial-gradient(800px 500px at 50% 110%, rgba(34,211,238,0.18), transparent 60%),
+      linear-gradient(180deg, #04081a 0%, #06122e 30%, #081838 70%, #04081a 100%);
+  }
+  .grid-overlay { background-image: linear-gradient(rgba(96,165,250,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(96,165,250,0.06) 1px, transparent 1px); background-size: 56px 56px; mask-image: radial-gradient(ellipse at center, black 40%, transparent 80%); }
+  .blob { position: absolute; border-radius: 50%; filter: blur(80px); opacity: .45; pointer-events: none; animation: float 14s ease-in-out infinite; }
+  @keyframes float { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(40px,-30px) scale(1.08); } }
+  @keyframes pulseGlow { 0%,100% { box-shadow: 0 0 0 0 rgba(34,211,238,0.35); } 50% { box-shadow: 0 0 0 14px rgba(34,211,238,0); } }
+  .reveal { opacity: 0; transform: translateY(24px); transition: opacity .8s ease, transform .8s ease; }
+  .reveal.in { opacity: 1; transform: translateY(0); }
+
+  .glass { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: var(--radius-lg); backdrop-filter: blur(20px) saturate(140%); -webkit-backdrop-filter: blur(20px) saturate(140%); box-shadow: 0 1px 0 0 rgba(255,255,255,0.04) inset, 0 30px 60px -30px rgba(0,0,0,0.5); }
+  .glass-strong { background: var(--glass-strong); border: 1px solid var(--glass-border-strong); border-radius: var(--radius-lg); backdrop-filter: blur(24px) saturate(150%); -webkit-backdrop-filter: blur(24px) saturate(150%); }
+  .glass-hover { transition: transform .35s ease, border-color .35s ease, background .35s ease; }
+  .glass-hover:hover { transform: translateY(-4px); border-color: rgba(96,165,250,0.35); background: rgba(96,165,250,0.06); }
+
+  .text-gradient { background: linear-gradient(135deg, #22d3ee 0%, #60a5fa 50%, #a78bfa 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .text-gradient-gold { background: linear-gradient(135deg, #fde68a 0%, #fbbf24 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+
+  .btn { font-weight: 600; border-radius: 12px; padding: .75rem 1.4rem; transition: all .25s ease; letter-spacing: -0.01em; }
+  .btn-primary-paymo { background: linear-gradient(135deg, #22d3ee 0%, #3b82f6 100%); color: #02121f; border: none; box-shadow: 0 10px 30px -10px rgba(34,211,238,0.55); }
+  .btn-primary-paymo:hover { transform: translateY(-2px); color: #02121f; box-shadow: 0 14px 40px -10px rgba(34,211,238,0.75); }
+  .btn-outline-paymo { background: transparent; color: var(--ink-1); border: 1px solid rgba(255,255,255,0.18); }
+  .btn-outline-paymo:hover { background: rgba(255,255,255,0.08); border-color: var(--accent); color: var(--ink-0); }
+  .btn-gold { background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); color: #1f1200; border: none; box-shadow: 0 10px 30px -10px rgba(251,191,36,0.5); }
+  .btn-gold:hover { transform: translateY(-2px); color: #1f1200; }
+
+  .nav-glass { background: rgba(4,8,26,0.72); backdrop-filter: blur(18px) saturate(150%); -webkit-backdrop-filter: blur(18px) saturate(150%); border-bottom: 1px solid rgba(255,255,255,0.06); }
+  .nav-link-paymo { color: var(--ink-2); font-weight: 500; font-size: .92rem; padding: .5rem .9rem; border-radius: 10px; transition: all .2s; }
+  .nav-link-paymo:hover, .nav-link-paymo.active { color: var(--ink-0); background: rgba(255,255,255,0.05); }
+  .logo-mark { width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, #22d3ee, #60a5fa, #a78bfa); display: inline-flex; align-items: center; justify-content: center; color: #02121f; font-weight: 900; box-shadow: 0 8px 24px -8px rgba(34,211,238,.6); }
+
+  .pill { display: inline-flex; align-items: center; gap: .5rem; padding: .35rem .85rem; border-radius: 999px; background: rgba(34,211,238,0.08); border: 1px solid rgba(34,211,238,0.25); font-size: .8rem; font-weight: 500; color: #a5f3fc; }
+  .pill-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px var(--accent); animation: pulseGlow 2s infinite; }
+
+  section { position: relative; padding: 5rem 0; }
+  .kicker { display: inline-block; font-size: .78rem; font-weight: 600; text-transform: uppercase; letter-spacing: .18em; color: var(--accent); margin-bottom: 1rem; }
+
+  .badge-mini { font-size: .7rem; padding: .2rem .55rem; border-radius: 999px; font-weight: 600; letter-spacing: .02em; }
+  .badge-ok { background: rgba(34,197,94,0.15); color: #86efac; border: 1px solid rgba(34,197,94,0.3); }
+  .badge-adv { background: rgba(167,139,250,0.15); color: #c4b5fd; border: 1px solid rgba(167,139,250,0.3); }
+  .badge-native { background: rgba(34,211,238,0.15); color: #a5f3fc; border: 1px solid rgba(34,211,238,0.3); }
+  .badge-partial { background: rgba(251,191,36,0.12); color: #fde68a; border: 1px solid rgba(251,191,36,0.25); }
+  .chip { display: inline-flex; align-items: center; gap: .35rem; padding: .25rem .7rem; border-radius: 999px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); font-size: .78rem; color: var(--ink-2); font-weight: 500; margin: .15rem; }
+  .chip i { font-size: .8rem; color: var(--accent); }
+
+  .mobile-nav-panel { position: fixed; inset: 0; background: rgba(4,8,26,0.96); backdrop-filter: blur(20px); z-index: 1040; display: none; padding: 6rem 2rem 2rem; }
+  .mobile-nav-panel.show { display: block; animation: slideIn .3s ease; }
+  .mobile-nav-panel a { color: var(--ink-1); padding: 1rem 0; border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 1.2rem; display: block; }
+  @keyframes slideIn { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+
+  .modal-content.glass-strong { background: rgba(6,18,46,0.95); border: 1px solid rgba(255,255,255,0.1); color: var(--ink-1); border-radius: var(--radius-lg); }
+  .modal-header { border-bottom-color: rgba(255,255,255,0.08) !important; }
+  .newsletter-input { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: .8rem 1rem; color: var(--ink-0); width: 100%; font-size: .9rem; }
+  .newsletter-input:focus { outline: none; border-color: var(--accent); }
+
+  .scroll-top { position: fixed; bottom: 24px; right: 24px; width: 48px; height: 48px; border-radius: 14px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #02121f; border: none; display: none; align-items: center; justify-content: center; font-size: 1.4rem; z-index: 100; box-shadow: 0 10px 30px -8px rgba(34,211,238,0.55); cursor: pointer; font-weight: 900; }
+  .scroll-top.show { display: inline-flex; }
+
+  /* ========== PAGE 04 SPECIFIC ========== */
+  .module-icon { width: 56px; height: 56px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; margin-bottom: .5rem; }
+  .method-card { padding: 1.8rem; min-height: 280px; display: flex; flex-direction: column; gap: .8rem; }
+  .dash-row { display: flex; justify-content: space-between; padding: .55rem 0; border-bottom: 1px dashed rgba(255,255,255,0.08); font-size: .85rem; }
+  .ledger-row { padding: .7rem 1rem; border-radius: var(--radius-sm); background: rgba(6,18,46,0.55); border: 1px solid rgba(255,255,255,0.06); font-family: 'JetBrains Mono', monospace; font-size: .8rem; margin-bottom: .3rem; }
+  .card-mock { background: linear-gradient(135deg, #22d3ee, #60a5fa, #a78bfa); border-radius: 16px; padding: 1.3rem; min-height: 190px; position: relative; overflow: hidden; color: #02121f; }
+  .card-mock.gold { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #1f1200; }
+  .card-mock.violet { background: linear-gradient(135deg, #a78bfa, #ec4899); color: #fff; }
+  .metric-box { padding: 1rem; border-radius: var(--radius-sm); background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); text-align: center; }
+  .metric-box .v { font-size: 1.5rem; font-weight: 800; font-family: 'JetBrains Mono', monospace; }
+  .metric-box .l { font-size: .72rem; color: var(--ink-3); text-transform: uppercase; letter-spacing: .1em; }
+
+  .accordion-paymo .accordion-item { background: transparent; border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius-md) !important; margin-bottom: .75rem; overflow: hidden; }
+  .accordion-paymo .accordion-button { background: transparent; color: var(--ink-0); font-weight: 600; padding: 1.2rem 1.4rem; box-shadow: none !important; }
+  .accordion-paymo .accordion-button:not(.collapsed) { background: rgba(34,211,238,0.05); color: var(--ink-0); }
+  .accordion-paymo .accordion-body { color: var(--ink-2); padding: 0 1.4rem 1.4rem; font-size: .92rem; }
+  .accordion-paymo .accordion-button::after { filter: invert(1) sepia(1) saturate(5) hue-rotate(175deg); }
+
+  .cta-banner { position: relative; overflow: hidden; padding: 5rem 2rem; border-radius: var(--radius-lg); background: radial-gradient(600px 300px at 80% 20%, rgba(167,139,250,0.28), transparent 60%), radial-gradient(500px 300px at 20% 80%, rgba(34,211,238,0.28), transparent 60%), linear-gradient(135deg, #0a1a3f 0%, #06122e 100%); border: 1px solid rgba(34,211,238,0.2); }
+
+  footer { background: #030512; border-top: 1px solid rgba(255,255,255,0.06); padding: 4rem 0 1.5rem; }
+  footer h5 { font-size: .85rem; text-transform: uppercase; letter-spacing: .12em; color: var(--ink-0); margin-bottom: 1rem; }
+  footer a { color: var(--ink-3); font-size: .88rem; display: block; padding: .3rem 0; }
+  footer a:hover { color: var(--accent); }
+  .social-icon { width: 36px; height: 36px; border-radius: 10px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); display: inline-flex; align-items: center; justify-content: center; color: var(--ink-2); font-size: 1rem; transition: all .25s; text-decoration: none; margin-right: .4rem; }
+  .social-icon:hover { color: var(--accent); border-color: var(--accent); transform: translateY(-2px); }
+
+  @media (max-width: 992px) { section { padding: 4rem 0; } }
+  @media (max-width: 768px) { section { padding: 3rem 0; } .card-mock { min-height: 170px; padding: 1rem; } }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: #06122e; }
+  ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #22d3ee, #60a5fa); border-radius: 10px; }
+</style>
+</head>
+<body class="bg-gradient-deep">
+
+<!-- ===================== NAV ===================== -->
+<nav class="navbar nav-glass fixed-top">
+  <div class="container">
+    <a class="navbar-brand d-inline-flex align-items-center gap-2" href="index.html" aria-label="Paymo BAAS">
+      <span class="logo-mark">P</span>
+      <span style="font-weight:800;color:var(--ink-0);letter-spacing:-0.02em;font-size:1.1rem;">Paymo<span style="color:var(--accent);">.</span>BAAS</span>
+    </a>
+    <div class="d-none d-lg-flex align-items-center gap-1">
+      <a class="nav-link-paymo" href="platform.html">Platform</a>
+      <a class="nav-link-paymo" href="payments.html">Payments</a>
+      <a class="nav-link-paymo active" href="banking.html">Banking / BAAS</a>
+      <a class="nav-link-paymo" href="index.html#fx">FX Intelligence</a>
+      <a class="nav-link-paymo" href="index.html#developers">Developers</a>
+      <a class="nav-link-paymo" href="index.html#pricing">Pricing</a>
+    </div>
+    <div class="d-none d-lg-flex align-items-center gap-2">
+      <a href="#signin" class="btn btn-outline-paymo" onclick="openModal('signin');return false;">Sign In</a>
+      <a href="#sandbox" class="btn btn-primary-paymo" onclick="openModal('sandbox');return false;"><i class="bi bi-rocket-takeoff me-1"></i> Free Sandbox</a>
+    </div>
+    <button class="btn btn-outline-paymo d-lg-none" style="padding:.4rem .8rem" onclick="toggleMobileNav()" aria-label="Menu"><i class="bi bi-list fs-4"></i></button>
+  </div>
+</nav>
+
+<div id="mobileNav" class="mobile-nav-panel">
+  <button onclick="toggleMobileNav()" class="btn btn-outline-paymo" style="position:absolute;top:1.2rem;right:1.2rem;padding:.4rem .8rem;"><i class="bi bi-x-lg fs-4"></i></button>
+  <div class="container">
+    <a href="platform.html" onclick="toggleMobileNav()">Platform</a>
+    <a href="payments.html" onclick="toggleMobileNav()">Payments</a>
+    <a href="banking.html" onclick="toggleMobileNav()">Banking / BAAS</a>
+    <a href="index.html#fx" onclick="toggleMobileNav()">FX Intelligence</a>
+    <a href="index.html#developers" onclick="toggleMobileNav()">Developers</a>
+    <a href="index.html#pricing" onclick="toggleMobileNav()">Pricing</a>
+    <div class="mt-4 d-flex gap-2 flex-column">
+      <a href="#" onclick="openModal('signin');toggleMobileNav();return false;" class="btn btn-outline-paymo">Sign In</a>
+      <a href="#" onclick="openModal('sandbox');toggleMobileNav();return false;" class="btn btn-primary-paymo">Get Free Sandbox</a>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== 4.1 HERO ===================== -->
+<section style="padding:10rem 0 5rem" class="position-relative overflow-hidden">
+  <div class="grid-overlay position-absolute w-100 h-100" style="top:0;left:0;"></div>
+  <div class="blob" style="width:500px;height:500px;background:#22d3ee;top:-100px;right:-100px;"></div>
+  <div class="blob" style="width:420px;height:420px;background:#a78bfa;bottom:-120px;left:-80px;animation-delay:-7s;"></div>
+
+  <div class="container position-relative">
+    <div class="row g-5 align-items-center">
+      <div class="col-lg-6 reveal">
+        <div class="eyebrow-row">
+          <span class="pill"><span class="pill-dot"></span> Banking-as-a-Service Core</span>
+          <span class="pill" style="background:rgba(167,139,250,.1);border-color:rgba(167,139,250,.3);color:#c4b5fd"><i class="bi bi-shield-check"></i> FBO · Licensed</span>
+        </div>
+        <h1 class="mb-4" style="font-size:clamp(2.2rem,4.8vw,4.2rem);line-height:1.05">
+          Launch a bank without<br />
+          <span class="text-gradient">becoming one.</span>
+        </h1>
+        <p class="lead mb-5" style="color:var(--ink-2);max-width:560px">
+          Virtual accounts in 40+ currencies, programmable ledgers, physical + virtual card issuing, sub-account hierarchies, and interest-bearing wallets — all under your brand, with our licenses.
+        </p>
+        <div class="d-flex flex-wrap gap-3 mb-5">
+          <a href="#sandbox" class="btn btn-primary-paymo" onclick="openModal('sandbox');return false;"><i class="bi bi-rocket-takeoff"></i> Start Building</a>
+          <a href="#demo" class="btn btn-gold" onclick="openModal('demo');return false;"><i class="bi bi-calendar3"></i> Book BAAS Consult</a>
+          <a href="#docs" class="btn btn-outline-paymo"><i class="bi bi-book"></i> Banking API Docs</a>
+        </div>
+        <div class="row g-3">
+          <div class="col-6 col-md-3"><div class="glass p-3 text-center"><div class="mono fw-bold text-gradient">40+</div><div class="small" style="color:var(--ink-3)">Currencies</div></div></div>
+          <div class="col-6 col-md-3"><div class="glass p-3 text-center"><div class="mono fw-bold text-gradient">25</div><div class="small" style="color:var(--ink-3)">Markets</div></div></div>
+          <div class="col-6 col-md-3"><div class="glass p-3 text-center"><div class="mono fw-bold text-gradient">90d</div><div class="small" style="color:var(--ink-3)">Avg Launch</div></div></div>
+          <div class="col-6 col-md-3"><div class="glass p-3 text-center"><div class="mono fw-bold text-gradient-gold">$0</div><div class="small" style="color:var(--ink-3)">Setup Fees</div></div></div>
+        </div>
+      </div>
+
+      <!-- Bank account + card mockup visual -->
+      <div class="col-lg-6 reveal">
+        <div class="glass p-4">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <span class="pill"><span class="pill-dot"></span> Live Console</span>
+            <span class="mono small" id="bankClock" style="color:var(--ink-3)">—</span>
+          </div>
+          <h5 class="mb-3">Acme Neobank · <span class="text-gradient">Customer cust_9x2a3f</span></h5>
+
+          <!-- Card mock -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <div class="card-mock">
+                <div class="d-flex justify-content-between align-items-start mb-4">
+                  <span style="font-weight:700;font-size:.85rem">Acme · Virtual</span>
+                  <span style="font-size:1.4rem">◉</span>
+                </div>
+                <div class="mono" style="font-size:1.15rem;letter-spacing:.05em;font-weight:700">4242 •••• •••• 8293</div>
+                <div class="d-flex justify-content-between align-items-end mt-4">
+                  <div><small style="font-size:.65rem;opacity:.75">CARDHOLDER</small><div style="font-weight:700;font-size:.8rem">AMAKA OBI</div></div>
+                  <div><small style="font-size:.65rem;opacity:.75">EXP</small><div style="font-weight:700;font-size:.8rem">12/28</div></div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card-mock gold">
+                <div class="d-flex justify-content-between align-items-start mb-4">
+                  <span style="font-weight:700;font-size:.85rem">Acme · Physical</span>
+                  <span style="font-size:1.4rem">◉</span>
+                </div>
+                <div class="mono" style="font-size:1.1rem;letter-spacing:.05em;font-weight:700">6502 •••• •••• 1847</div>
+                <div class="d-flex justify-content-between align-items-end mt-4">
+                  <div><small style="font-size:.65rem;opacity:.7">CARDHOLDER</small><div style="font-weight:700;font-size:.8rem">AMAKA OBI</div></div>
+                  <div><small style="font-size:.65rem;opacity:.7">EXP / CVV</small><div style="font-weight:700;font-size:.8rem">08/29 · 482</div></div>
+                </div>
+                <div style="position:absolute;bottom:12px;right:16px;font-weight:900;letter-spacing:.1em;font-size:.8rem;opacity:.85">PLATED</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Wallet balances -->
+          <div class="row g-2 mb-2">
+            <div class="col-6"><div class="ledger-row" style="padding:.5rem .8rem"><div style="color:var(--ink-2);font-size:.75rem">USD Wallet</div><div class="mono text-gradient">$ 42,301.50</div></div></div>
+            <div class="col-6"><div class="ledger-row" style="padding:.5rem .8rem"><div style="color:var(--ink-2);font-size:.75rem">NGN Wallet</div><div class="mono text-gradient">₦ 18,420,800</div></div></div>
+            <div class="col-6"><div class="ledger-row" style="padding:.5rem .8rem"><div style="color:var(--ink-2);font-size:.75rem">KES Wallet</div><div class="mono text-gradient">KSh 2,840,120</div></div></div>
+            <div class="col-6"><div class="ledger-row" style="padding:.5rem .8rem"><div style="color:var(--ink-2);font-size:.75rem">EUR Wallet</div><div class="mono text-gradient">€ 12,045.25</div></div></div>
+            <div class="col-6"><div class="ledger-row" style="padding:.5rem .8rem"><div style="color:var(--ink-2);font-size:.75rem">GBP Wallet</div><div class="mono text-gradient">£ 8,420.00</div></div></div>
+            <div class="col-6"><div class="ledger-row" style="padding:.5rem .8rem"><div style="color:var(--ink-2);font-size:.75rem">AED Wallet</div><div class="mono text-gradient">AED 18,820</div></div></div>
+          </div>
+
+          <div class="glass-strong p-3" style="border-radius:12px">
+            <div class="d-flex align-items-center gap-2 small" style="color:var(--ink-2)"><i class="bi bi-shield-check fs-5" style="color:var(--accent)"></i> <span><b>Segregated FBO accounts</b> — all customer funds held with tier-1 partner banks, ring-fenced from Paymo operations.</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 4.2 THE BAAS STACK ===================== -->
+<section style="background:linear-gradient(180deg,transparent,rgba(96,165,250,0.04),transparent)">
+  <div class="container">
+    <div class="section-head mx-auto text-center mb-5 reveal" style="max-width:720px;margin:0 auto;">
+      <span class="kicker">The BAAS Stack</span>
+      <h2 class="mb-3">Four engines. <span class="text-gradient">Infinite product combinations.</span></h2>
+    </div>
+
+    <div class="row g-4 reveal">
+      <div class="col-lg-3 col-md-6">
+        <div class="glass glass-hover p-4 method-card">
+          <div class="module-icon" style="background:linear-gradient(135deg,#22d3ee,#60a5fa);color:#02121f"><i class="bi bi-wallet2"></i></div>
+          <h4>Accounts</h4>
+          <p class="small" style="color:var(--ink-2)">Virtual FBO accounts in USD, GBP, EUR, NGN, KES, GHS, ZAR and 35+ more currencies — opened programmatically via API.</p>
+          <div class="d-flex gap-2 flex-wrap mt-auto"><span class="badge-mini badge-native">40+ Currencies</span><span class="badge-mini badge-ok">FBO</span><span class="badge-mini badge-adv">Programmatic</span></div>
+        </div>
+      </div>
+      <div class="col-lg-3 col-md-6">
+        <div class="glass glass-hover p-4 method-card">
+          <div class="module-icon" style="background:linear-gradient(135deg,#60a5fa,#a78bfa);color:#02121f"><i class="bi bi-journal-text"></i></div>
+          <h4>Ledger</h4>
+          <p class="small" style="color:var(--ink-2)">Double-entry, immutable, real-time ledger with per-customer, per-entity, per-wallet sub-accounts and full audit trail.</p>
+          <div class="d-flex gap-2 flex-wrap mt-auto"><span class="badge-mini badge-native">Double-Entry</span><span class="badge-mini badge-ok">Immutable</span><span class="badge-mini badge-adv">Sub-Ledgers</span></div>
+        </div>
+      </div>
+      <div class="col-lg-3 col-md-6">
+        <div class="glass glass-hover p-4 method-card">
+          <div class="module-icon" style="background:linear-gradient(135deg,#a78bfa,#ec4899);color:#fff"><i class="bi bi-credit-card-2-front-fill"></i></div>
+          <h4>Cards</h4>
+          <p class="small" style="color:var(--ink-2)">Virtual + physical card issuing with BIN sponsorship. Branded cards. Per-card controls, velocity limits, freezes, instant replacements.</p>
+          <div class="d-flex gap-2 flex-wrap mt-auto"><span class="badge-mini badge-native">Virtual · Physical</span><span class="badge-mini badge-ok">BIN Sponsored</span><span class="badge-mini badge-adv">Brandable</span></div>
+        </div>
+      </div>
+      <div class="col-lg-3 col-md-6">
+        <div class="glass glass-hover p-4 method-card">
+          <div class="module-icon" style="background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#1f1200"><i class="bi bi-cash-stack"></i></div>
+          <h4>Loans-as-a-Service</h4>
+          <p class="small" style="color:var(--ink-2)">Programmatic credit issuance, configurable decision-engine integration, amortization schedules, automated repayments, and NPL management.</p>
+          <div class="d-flex gap-2 flex-wrap mt-auto"><span class="badge-mini badge-native">Programmatic</span><span class="badge-mini badge-ok">Decision Engine</span><span class="badge-mini badge-adv">Auto-Repay</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 4.3 VIRTUAL ACCOUNTS ===================== -->
+<section>
+  <div class="container">
+    <div class="row g-5 align-items-center reveal">
+      <div class="col-lg-5">
+        <span class="kicker">Virtual Accounts</span>
+        <h2 class="mb-3">Open <span class="text-gradient">FBO accounts</span> in 40+ currencies programmatically.</h2>
+        <p class="mb-4" style="color:var(--ink-2)">Multi-currency, For-Benefit-Of (FBO), sub-account hierarchies. One API call instead of months of paperwork with a traditional bank.</p>
+
+        <div class="glass p-4">
+          <div class="row g-3 mb-3">
+            <div class="col-6"><div class="metric-box"><div class="v text-gradient">40+</div><div class="l">Currencies</div></div></div>
+            <div class="col-6"><div class="metric-box"><div class="v text-gradient-gold">≤1s</div><div class="l">Creation Time</div></div></div>
+            <div class="col-6"><div class="metric-box"><div class="v" style="color:var(--success)">100%</div><div class="l">Segregated FBO</div></div></div>
+            <div class="col-6"><div class="metric-box"><div class="v text-gradient">∞</div><div class="l">Per Customer</div></div></div>
+          </div>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2 mt-3">
+          <span class="chip"><i class="bi bi-circle-fill"></i> USD · GBP · EUR</span>
+          <span class="chip"><i class="bi bi-circle-fill"></i> NGN · KES · GHS</span>
+          <span class="chip"><i class="bi bi-circle-fill"></i> ZAR · XOF · XAF</span>
+          <span class="chip"><i class="bi bi-circle-fill"></i> AED · INR · SGD</span>
+          <span class="chip"><i class="bi bi-circle-fill"></i> +30 more</span>
+        </div>
+      </div>
+
+      <!-- API call code window -->
+      <div class="col-lg-7">
+        <div class="glass p-4">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <span class="pill"><span class="pill-dot"></span> Create Account · API</span>
+            <span class="mono small" style="color:var(--ink-3)">POST /v1/banking/accounts</span>
+          </div>
+
+          <div style="background:#030617;border:1px solid rgba(255,255,255,.08);border-radius:12px;font-family:'JetBrains Mono',monospace;font-size:.78rem;">
+            <div style="display:flex;justify-content:space-between;padding:.55rem 1rem;background:#070b22;border-bottom:1px solid rgba(255,255,255,.06)">
+              <span style="color:var(--ink-2);font-size:.75rem">create_account.js</span>
+              <span style="color:var(--accent);font-size:.65rem">201 · Created</span>
+            </div>
+            <div style="padding:1rem 1.2rem;line-height:1.7;color:#cbd5e1">
+<span style="color:#64748b">// Open a USD virtual account for a Nigerian customer</span><br/>
+<span style="color:#a78bfa">const</span> account = <span style="color:#a78bfa">await</span> paymo.<span style="color:#60a5fa">banking</span>.<span style="color:#60a5fa">createAccount</span>({<br/>
+&nbsp;&nbsp;<span style="color:#f472b6">currency</span>: <span style="color:#86efac">'USD'</span>,<br/>
+&nbsp;&nbsp;<span style="color:#f472b6">country</span>: <span style="color:#86efac">'NG'</span>,<br/>
+&nbsp;&nbsp;<span style="color:#f472b6">customerId</span>: <span style="color:#86efac">'cust_9x2a3f'</span>,<br/>
+&nbsp;&nbsp;<span style="color:#f472b6">type</span>: <span style="color:#86efac">'virtual_fbo'</span>,<br/>
+&nbsp;&nbsp;<span style="color:#f472b6">label</span>: <span style="color:#86efac">'Amaka OBI — USD wallet'</span><br/>
+});<br/><br/>
+<span style="color:#64748b">// Response:</span><br/>
+{<br/>
+&nbsp;&nbsp;<span style="color:#f472b6">"id"</span>: <span style="color:#86efac">"acct_4x7p2q"</span>,<br/>
+&nbsp;&nbsp;<span style="color:#f472b6">"iban"</span>: <span style="color:#86efac">"GB82 WEST 1234 5678 9012 34"</span>,<br/>
+&nbsp;&nbsp;<span style="color:#f472b6">"routing_no"</span>: <span style="color:#86efac">"084106547"</span>,<br/>
+&nbsp;&nbsp;<span style="color:#f472b6">"balance"</span>: { <span style="color:#f472b6">"available"</span>: <span style="color:#fbbf24">0.00</span>, <span style="color:#f472b6">"currency"</span>: <span style="color:#86efac">"USD"</span> },<br/>
+&nbsp;&nbsp;<span style="color:#f472b6">"status"</span>: <span style="color:#86efac">"active"</span><br/>
+}
+            </div>
+          </div>
+
+          <div class="glass-strong p-3 mt-3" style="border-radius:12px">
+            <div class="row g-2 text-center">
+              <div class="col-4"><small style="color:var(--ink-3)">Created in</small><div class="mono fw-bold text-gradient">847ms</div></div>
+              <div class="col-4"><small style="color:var(--ink-3)">Country</small><div class="mono fw-bold text-gradient">🇳🇬 NG</div></div>
+              <div class="col-4"><small style="color:var(--ink-3)">Status</small><div class="mono fw-bold" style="color:var(--success)">● active</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 4.4 LEDGER MANAGEMENT ===================== -->
+<section style="background:linear-gradient(180deg,transparent,rgba(167,139,250,0.05),transparent)">
+  <div class="container">
+    <div class="section-head mx-auto text-center mb-5 reveal" style="max-width:720px;margin:0 auto;">
+      <span class="kicker">Ledger Management</span>
+      <h2 class="mb-3">Double-entry. Real-time. <span class="text-gradient">Immutable audit trail.</span></h2>
+    </div>
+
+    <div class="row g-4 reveal">
+      <div class="col-lg-7">
+        <div class="glass p-4">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <span class="pill"><span class="pill-dot"></span> Live Ledger · Customer cust_9x2a3f</span>
+            <span class="mono small" id="ledgerClock" style="color:var(--ink-3)">—</span>
+          </div>
+
+          <!-- Ledger header -->
+          <div class="row g-2 mb-3">
+            <div class="col-4"><div class="glass-strong p-3 text-center" style="border-radius:10px"><small style="color:var(--ink-3)">Available Balance</small><div class="mono fw-bold text-gradient">$ 42,301.50</div></div></div>
+            <div class="col-4"><div class="glass-strong p-3 text-center" style="border-radius:10px"><small style="color:var(--ink-3)">In Flight</small><div class="mono fw-bold text-gradient-gold">$ 2,840.00</div></div></div>
+            <div class="col-4"><div class="glass-strong p-3 text-center" style="border-radius:10px"><small style="color:var(--ink-3)">Sub-Accounts</small><div class="mono fw-bold">24 wallets</div></div></div>
+          </div>
+
+          <!-- Ledger entries -->
+          <div style="font-family:'JetBrains Mono',monospace;font-size:.8rem">
+            <div class="ledger-row" style="padding:.6rem 1rem;display:flex;justify-content:space-between;align-items:center">
+              <div><span style="color:var(--ink-3)">#led_8a2f1 ·</span> <span style="color:var(--ink-1)">DEBIT: Payout → KES</span></div>
+              <div style="color:#fca5a5">− 50,000.00</div>
+            </div>
+            <div class="ledger-row" style="padding:.6rem 1rem;display:flex;justify-content:space-between;align-items:center">
+              <div><span style="color:var(--ink-3)">#led_8a2f2 ·</span> <span style="color:var(--ink-1)">CREDIT: Collection · M-Pesa</span></div>
+              <div style="color:#86efac">+ 12,480.00</div>
+            </div>
+            <div class="ledger-row" style="padding:.6rem 1rem;display:flex;justify-content:space-between;align-items:center">
+              <div><span style="color:var(--ink-3)">#led_8a2f3 ·</span> <span style="color:var(--ink-1)">TRANSFER: Wallet → Sub-account</span></div>
+              <div style="color:var(--ink-2)">0.00 net</div>
+            </div>
+            <div class="ledger-row" style="padding:.6rem 1rem;display:flex;justify-content:space-between;align-items:center">
+              <div><span style="color:var(--ink-3)">#led_8a2f4 ·</span> <span style="color:var(--ink-1)">DEBIT: Card spend · merchant_3x</span></div>
+              <div style="color:#fca5a5">− 840.00</div>
+            </div>
+            <div class="ledger-row" style="padding:.6rem 1rem;display:flex;justify-content:space-between;align-items:center">
+              <div><span style="color:var(--ink-3)">#led_8a2f5 ·</span> <span style="color:var(--ink-1)">CREDIT: Inbound · ACH · US customer</span></div>
+              <div style="color:#86efac">+ 25,000.00</div>
+            </div>
+            <div class="ledger-row" style="padding:.6rem 1rem;display:flex;justify-content:space-between;align-items:center">
+              <div><span style="color:var(--ink-3)">#led_8a2f6 ·</span> <span style="color:var(--ink-1)">FX CONVERSION · USD → NGN</span></div>
+              <div style="color:var(--ink-2)">lock @ 415.20</div>
+            </div>
+            <div class="ledger-row" style="padding:.6rem 1rem;display:flex;justify-content:space-between;align-items:center">
+              <div><span style="color:var(--ink-3)">#led_8a2f7 ·</span> <span style="color:var(--ink-1)">INTEREST ACCRUAL · 3.2% APY</span></div>
+              <div style="color:#86efac">+ 28.74</div>
+            </div>
+          </div>
+
+          <div class="glass-strong p-3 mt-3" style="border-radius:12px">
+            <div class="d-flex align-items-center gap-2 small" style="color:var(--ink-2)"><i class="bi bi-shield-fill-check fs-5" style="color:var(--accent)"></i> <span>Every entry is cryptographically signed and written to an immutable, append-only log — regulators and auditors get a full, verifiable trail.</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-5">
+        <h4 class="mb-3">Ledger features</h4>
+        <div class="row g-3">
+          <div class="col-12"><div class="glass p-4 glass-hover"><div class="d-flex align-items-start gap-3"><div class="module-icon" style="width:42px;height:42px;border-radius:10px;background:linear-gradient(135deg,#22d3ee,#60a5fa);color:#02121f;font-size:1.1rem"><i class="bi bi-arrow-left-right"></i></div><div><h5 class="mb-1">Double-Entry</h5><p class="small mb-0" style="color:var(--ink-2)">Every debit has a matching credit. Accounting integrity is enforced at the ledger level — no escape, no drift.</p></div></div></div></div>
+          <div class="col-12"><div class="glass p-4 glass-hover"><div class="d-flex align-items-start gap-3"><div class="module-icon" style="width:42px;height:42px;border-radius:10px;background:linear-gradient(135deg,#60a5fa,#a78bfa);color:#02121f;font-size:1.1rem"><i class="bi bi-diagram-2"></i></div><div><h5 class="mb-1">Sub-Accounting</h5><p class="small mb-0" style="color:var(--ink-2)">Infinite wallet hierarchy — per-customer, per-entity, per-product, per-market. All roll up to a real-time master balance.</p></div></div></div></div>
+          <div class="col-12"><div class="glass p-4 glass-hover"><div class="d-flex align-items-start gap-3"><div class="module-icon" style="width:42px;height:42px;border-radius:10px;background:linear-gradient(135deg,#a78bfa,#ec4899);color:#fff;font-size:1.1rem"><i class="bi bi-lock-fill"></i></div><div><h5 class="mb-1">Immutable Audit Trail</h5><p class="small mb-0" style="color:var(--ink-2)">Append-only, cryptographically signed ledger. Write-once semantics. Regulators get one source of truth — forever.</p></div></div></div></div>
+          <div class="col-12"><div class="glass p-4 glass-hover"><div class="d-flex align-items-start gap-3"><div class="module-icon" style="width:42px;height:42px;border-radius:10px;background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#1f1200;font-size:1.1rem"><i class="bi bi-clock-history"></i></div><div><h5 class="mb-1">Real-time Balances</h5><p class="small mb-0" style="color:var(--ink-2)">All balances update in ≤100ms of ledger entry. No overnight batch, no waiting for settlement, no reconciliation nightmare later.</p></div></div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 4.5 CARD ISSUING ===================== -->
+<section>
+  <div class="container">
+    <div class="row g-5 align-items-center reveal">
+      <div class="col-lg-6 order-2 order-lg-1">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="card-mock" style="min-height:210px">
+              <div class="d-flex justify-content-between align-items-start mb-4">
+                <span style="font-weight:700;font-size:.85rem">Paymo · Virtual</span>
+                <span style="font-size:1.4rem">◉</span>
+              </div>
+              <div class="mono" style="font-size:1.1rem;letter-spacing:.05em;font-weight:700">4242 •••• •••• 1847</div>
+              <div class="d-flex justify-content-between align-items-end mt-4">
+                <div><small style="font-size:.65rem;opacity:.75">CARDHOLDER</small><div style="font-weight:700;font-size:.8rem">AMAKA OBI</div></div>
+                <div><small style="font-size:.65rem;opacity:.75">EXP</small><div style="font-weight:700;font-size:.8rem">12/28</div></div>
+              </div>
+            </div>
+            <div class="metric-box mt-3"><div class="v text-gradient">≤5s</div><div class="l">Virtual Issuance</div></div>
+          </div>
+          <div class="col-md-6">
+            <div class="card-mock gold" style="min-height:210px">
+              <div class="d-flex justify-content-between align-items-start mb-4">
+                <span style="font-weight:700;font-size:.85rem">Paymo · Physical</span>
+                <span style="font-size:1.4rem">◉</span>
+              </div>
+              <div class="mono" style="font-size:1rem;letter-spacing:.05em;font-weight:700">6502 4827 1847 2938</div>
+              <div class="d-flex justify-content-between align-items-end mt-4">
+                <div><small style="font-size:.65rem;opacity:.75">CARDHOLDER</small><div style="font-weight:700;font-size:.8rem">AMAKA OBI</div></div>
+                <div><small style="font-size:.65rem;opacity:.75">EXP · CVV</small><div style="font-weight:700;font-size:.8rem">08/29 · 482</div></div>
+              </div>
+              <div style="position:absolute;bottom:12px;right:16px;font-weight:900;letter-spacing:.1em;font-size:.8rem;opacity:.85">PLATED</div>
+            </div>
+            <div class="metric-box mt-3"><div class="v text-gradient-gold">5 days</div><div class="l">Physical Delivery</div></div>
+          </div>
+        </div>
+
+        <div class="glass p-4 mt-3">
+          <div class="row g-3 text-center">
+            <div class="col-4"><div class="metric-box"><div class="v text-gradient">∞</div><div class="l">Virtual</div></div></div>
+            <div class="col-4"><div class="metric-box"><div class="v text-gradient-gold">$0.25</div><div class="l">Per Card</div></div></div>
+            <div class="col-4"><div class="metric-box"><div class="v" style="color:var(--success)">3</div><div class="l">BIN Sponsors</div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-6 order-1 order-lg-2">
+        <span class="kicker">Card Issuing</span>
+        <h2 class="mb-3">Instant virtual cards. <span class="text-gradient">Plated physical in 5 days.</span></h2>
+        <p class="mb-4" style="color:var(--ink-2)">Full BIN-sponsored card issuing under your brand. Virtual cards issue in seconds, physical cards delivered to your customer's door in 5 days. Per-card controls, velocity limits, instant freezes, single-use cards, and category-based spending controls.</p>
+
+        <div class="row g-3 mb-3">
+          <div class="col-6 col-md-4"><div class="glass p-3 glass-hover text-center"><small style="color:var(--ink-3)">Virtual</small><div class="mono fw-bold text-gradient">≤5s</div></div></div>
+          <div class="col-6 col-md-4"><div class="glass p-3 glass-hover text-center"><small style="color:var(--ink-3)">Physical</small><div class="mono fw-bold text-gradient-gold">5 days</div></div></div>
+          <div class="col-6 col-md-4"><div class="glass p-3 glass-hover text-center"><small style="color:var(--ink-3)">Branded</small><div class="mono fw-bold" style="color:var(--success)">Your logo</div></div></div>
+        </div>
+
+        <h5 class="mb-2 mt-3">Card controls &amp; capabilities</h5>
+        <ul class="list-unstyled" style="color:var(--ink-1)">
+          <li class="d-flex align-items-start gap-2 mb-2"><i class="bi bi-check-circle-fill mt-1" style="color:var(--success)"></i> <span><b>Per-card velocity limits</b> — spend, frequency, ATM, geographic.</span></li>
+          <li class="d-flex align-items-start gap-2 mb-2"><i class="bi bi-check-circle-fill mt-1" style="color:var(--success)"></i> <span><b>Instant freeze / replace</b> — via API or dashboard, with zero customer disruption.</span></li>
+          <li class="d-flex align-items-start gap-2 mb-2"><i class="bi bi-check-circle-fill mt-1" style="color:var(--success)"></i> <span><b>Single-use cards</b> — perfect for merchant, supplier, and marketplace payouts.</span></li>
+          <li class="d-flex align-items-start gap-2 mb-2"><i class="bi bi-check-circle-fill mt-1" style="color:var(--success)"></i> <span><b>3D Secure 2 (3DS2)</b> — built-in, no extra integration required.</span></li>
+          <li class="d-flex align-items-start gap-2"><i class="bi bi-check-circle-fill mt-1" style="color:var(--success)"></i> <span><b>Apple Pay · Google Pay</b> — tokenized push provisioning out of the box.</span></li>
+        </ul>
+
+        <a href="#demo" class="btn btn-primary-paymo mt-3" onclick="openModal('demo');return false;"><i class="bi bi-credit-card"></i> Request a Card Sample Kit</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 4.6 SUB-ACCOUNTS & WALLETS ===================== -->
+<section style="background:linear-gradient(180deg,transparent,rgba(34,211,238,0.05),transparent)">
+  <div class="container">
+    <div class="section-head mx-auto text-center mb-5 reveal" style="max-width:720px;margin:0 auto;">
+      <span class="kicker">Sub-Accounts &amp; Wallets</span>
+      <h2 class="mb-3">Customer wallet architecture. <span class="text-gradient">Interest-bearing by default.</span></h2>
+    </div>
+
+    <div class="row g-4 reveal">
+      <div class="col-lg-4">
+        <div class="glass glass-hover p-4 h-100">
+          <div class="module-icon" style="background:linear-gradient(135deg,#22d3ee,#60a5fa);color:#02121f"><i class="bi bi-diagram-3"></i></div>
+          <h4>Multi-Tier Hierarchy</h4>
+          <p class="small" style="color:var(--ink-2)">Any depth — entity → customer → wallet → sub-wallet. All roll up to real-time balances with no batch processing.</p>
+          <div class="d-flex flex-wrap gap-2 mt-3"><span class="badge-mini badge-native">Any Depth</span><span class="badge-mini badge-ok">Real-time</span><span class="badge-mini badge-adv">Auto-Rollup</span></div>
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <div class="glass glass-hover p-4 h-100">
+          <div class="module-icon" style="background:linear-gradient(135deg,#60a5fa,#a78bfa);color:#02121f"><i class="bi bi-percent"></i></div>
+          <h4>Interest-Bearing</h4>
+          <p class="small" style="color:var(--ink-2)">Customer balances earn up to 3.2% APY, automatically compounded daily. Your customers earn, you earn the float.</p>
+          <div class="d-flex flex-wrap gap-2 mt-3"><span class="badge-mini badge-native">Up to 3.2% APY</span><span class="badge-mini badge-ok">Daily Compound</span><span class="badge-mini badge-adv">Configurable</span></div>
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <div class="glass glass-hover p-4 h-100">
+          <div class="module-icon" style="background:linear-gradient(135deg,#a78bfa,#ec4899);color:#fff"><i class="bi bi-diagram-2-fill"></i></div>
+          <h4>Programmable Wallets</h4>
+          <p class="small" style="color:var(--ink-2)">Set per-wallet rules: minimum balance, velocity, auto-sweep, auto-convert, escrow logic, and scheduled transfers — via API.</p>
+          <div class="d-flex flex-wrap gap-2 mt-3"><span class="badge-mini badge-native">Rules Engine</span><span class="badge-mini badge-ok">Escrow</span><span class="badge-mini badge-adv">Scheduled</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Wallet architecture diagram -->
+    <div class="glass p-4 p-md-5 mt-4 reveal">
+      <svg viewBox="0 0 900 320" class="w-100" style="max-height:360px">
+        <defs>
+          <linearGradient id="wGrad" x1="0" x2="1"><stop offset="0%" stop-color="#22d3ee" stop-opacity=".05"/><stop offset="50%" stop-color="#60a5fa" stop-opacity=".7"/><stop offset="100%" stop-color="#a78bfa" stop-opacity=".05"/></linearGradient>
+          <marker id="wArrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#60a5fa"/></marker>
+        </defs>
+
+        <!-- Root: Entity -->
+        <rect x="360" y="10" width="180" height="50" rx="12" fill="rgba(34,211,238,.15)" stroke="#22d3ee"/>
+        <text x="450" y="40" text-anchor="middle" fill="#e6ecff" font-size="13" font-weight="700">Entity · Acme Neobank</text>
+
+        <!-- Customers -->
+        <g font-size="11" font-weight="600" fill="#e6ecff">
+          <rect x="40" y="100" width="220" height="40" rx="10" fill="rgba(96,165,250,.12)" stroke="#60a5fa"/>
+          <text x="150" y="125" text-anchor="middle">Customer · cust_9x2a3f</text>
+
+          <rect x="270" y="100" width="220" height="40" rx="10" fill="rgba(96,165,250,.12)" stroke="#60a5fa"/>
+          <text x="380" y="125" text-anchor="middle">Customer · cust_7b8c1d</text>
+
+          <rect x="500" y="100" width="220" height="40" rx="10" fill="rgba(96,165,250,.12)" stroke="#60a5fa"/>
+          <text x="610" y="125" text-anchor="middle">Customer · cust_3f5e2a</text>
+
+          <rect x="730" y="100" width="130" height="40" rx="10" fill="rgba(167,139,250,.1)" stroke="#a78bfa"/>
+          <text x="795" y="125" text-anchor="middle" fill="#c4b5fd">+ 48,312</text>
+        </g>
+
+        <!-- Wallets -->
+        <g font-size="9" font-weight="600" fill="#e6ecff">
+          <!-- cust 9x2a3f wallets -->
+          <rect x="40" y="180" width="100" height="60" rx="8" fill="rgba(167,139,250,.12)" stroke="#a78bfa"/>
+          <text x="90" y="205" text-anchor="middle">USD Wallet</text>
+          <text x="90" y="222" text-anchor="middle" fill="#c4b5fd" font-family="JetBrains Mono">$42,301</text>
+
+          <rect x="150" y="180" width="100" height="60" rx="8" fill="rgba(167,139,250,.12)" stroke="#a78bfa"/>
+          <text x="200" y="205" text-anchor="middle">NGN Wallet</text>
+          <text x="200" y="222" text-anchor="middle" fill="#c4b5fd" font-family="JetBrains Mono">₦18.4M</text>
+
+          <!-- cust 7b8c1d wallets -->
+          <rect x="270" y="180" width="100" height="60" rx="8" fill="rgba(167,139,250,.12)" stroke="#a78bfa"/>
+          <text x="320" y="205" text-anchor="middle">KES Wallet</text>
+          <text x="320" y="222" text-anchor="middle" fill="#c4b5fd" font-family="JetBrains Mono">KSh 2.8M</text>
+
+          <rect x="380" y="180" width="100" height="60" rx="8" fill="rgba(167,139,250,.12)" stroke="#a78bfa"/>
+          <text x="430" y="205" text-anchor="middle">EUR Wallet</text>
+          <text x="430" y="222" text-anchor="middle" fill="#c4b5fd" font-family="JetBrains Mono">€12,045</text>
+
+          <!-- cust 3f5e2a wallets -->
+          <rect x="500" y="180" width="100" height="60" rx="8" fill="rgba(167,139,250,.12)" stroke="#a78bfa"/>
+          <text x="550" y="205" text-anchor="middle">GBP Wallet</text>
+          <text x="550" y="222" text-anchor="middle" fill="#c4b5fd" font-family="JetBrains Mono">£8,420</text>
+
+          <rect x="610" y="180" width="100" height="60" rx="8" fill="rgba(167,139,250,.12)" stroke="#a78bfa"/>
+          <text x="660" y="205" text-anchor="middle">AED Wallet</text>
+          <text x="660" y="222" text-anchor="middle" fill="#c4b5fd" font-family="JetBrains Mono">AED 18.8K</text>
+
+          <rect x="730" y="180" width="130" height="60" rx="8" fill="rgba(251,191,36,.12)" stroke="#fbbf24"/>
+          <text x="795" y="205" text-anchor="middle" fill="#fde68a">+ ∞ wallets</text>
+          <text x="795" y="225" text-anchor="middle" fill="#fde68a" font-size="8">interest-bearing · 3.2% APY</text>
+        </g>
+
+        <!-- Sub-wallets / cards -->
+        <g font-size="9" font-weight="600" fill="#e6ecff">
+          <rect x="40" y="260" width="100" height="40" rx="8" fill="rgba(34,197,94,.12)" stroke="#22c55e"/>
+          <text x="90" y="285" text-anchor="middle">Card · 4242 •••• 1847</text>
+
+          <rect x="150" y="260" width="100" height="40" rx="8" fill="rgba(34,197,94,.12)" stroke="#22c55e"/>
+          <text x="200" y="285" text-anchor="middle">Escrow · supplier_4x</text>
+
+          <rect x="500" y="260" width="100" height="40" rx="8" fill="rgba(34,197,94,.12)" stroke="#22c55e"/>
+          <text x="550" y="285" text-anchor="middle">Loan · amortizing</text>
+
+          <rect x="610" y="260" width="100" height="40" rx="8" fill="rgba(34,197,94,.12)" stroke="#22c55e"/>
+          <text x="660" y="285" text-anchor="middle">Goal · Savings</text>
+        </g>
+
+        <!-- connection lines -->
+        <g stroke-dasharray="6 6" stroke-width="1.3" fill="none" stroke="url(#wGrad)" marker-end="url(#wArrow)">
+          <line x1="450" y1="60" x2="150" y2="100"><animate attributeName="stroke-dashoffset" values="0;-24" dur="2s" repeatCount="indefinite"/></line>
+          <line x1="450" y1="60" x2="380" y2="100"><animate attributeName="stroke-dashoffset" values="0;-24" dur="2s" repeatCount="indefinite"/></line>
+          <line x1="450" y1="60" x2="610" y2="100"><animate attributeName="stroke-dashoffset" values="0;-24" dur="2s" repeatCount="indefinite"/></line>
+          <line x1="450" y1="60" x2="795" y2="100"><animate attributeName="stroke-dashoffset" values="0;-24" dur="2s" repeatCount="indefinite"/></line>
+
+          <line x1="150" y1="140" x2="90" y2="180"><animate attributeName="stroke-dashoffset" values="0;-24" dur="2s" repeatCount="indefinite"/></line>
+          <line x1="150" y1="140" x2="200" y2="180"><animate attributeName="stroke-dashoffset" values="0;-24" dur="2s" repeatCount="indefinite"/></line>
+          <line x1="380" y1="140" x2="320" y2="180"><animate attributeName="stroke-dashoffset" values="0;-24" dur="2s" repeatCount="indefinite"/></line>
+          <line x1="380" y1="140" x2="430" y2="180"><animate attributeName="stroke-dashoffset" values="0;-24" dur="2s" repeatCount="indefinite"/></line>
+          <line x1="610" y1="140" x2="550" y2="180"><animate attributeName="stroke-dashoffset" values="0;-24" dur="2s" repeatCount="indefinite"/></line>
+          <line x1="610" y1="140" x2="660" y2="180"><animate attributeName="stroke-dashoffset" values="0;-24" dur="2s" repeatCount="indefinite"/></line>
+
+          <line x1="90" y1="240" x2="90" y2="260"><animate attributeName="stroke-dashoffset" values="0;-24" dur="2s" repeatCount="indefinite"/></line>
+          <line x1="200" y1="240" x2="200" y2="260"><animate attributeName="stroke-dashoffset" values="0;-24" dur="2s" repeatCount="indefinite"/></line>
+          <line x1="550" y1="240" x2="550" y2="260"><animate attributeName="stroke-dashoffset" values="0;-24" dur="2s" repeatCount="indefinite"/></line>
+          <line x1="660" y1="240" x2="660" y2="260"><animate attributeName="stroke-dashoffset" values="0;-24" dur="2s" repeatCount="indefinite"/></line>
+        </g>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 4.7 PROGRAMMATIC BANKING ===================== -->
+<section>
+  <div class="container">
+    <div class="section-head mx-auto text-center mb-5 reveal" style="max-width:720px;margin:0 auto;">
+      <span class="kicker">Programmatic Banking</span>
+      <h2 class="mb-3">Automated sweeps, scheduled transfers, <span class="text-gradient">escrow logic — via API.</span></h2>
+    </div>
+
+    <div class="row g-4 reveal">
+      <div class="col-lg-3 col-md-6">
+        <div class="glass glass-hover p-4">
+          <div class="module-icon" style="width:46px;height:46px;border-radius:12px;background:linear-gradient(135deg,#22d3ee,#60a5fa);color:#02121f;font-size:1.2rem"><i class="bi bi-arrow-repeat"></i></div>
+          <h5 class="mt-3 mb-2">Auto-Sweeps</h5>
+          <p class="small" style="color:var(--ink-2)">Move excess balances from sub-wallets into a master wallet on a schedule — hourly, daily, or weekly.</p>
+        </div>
+      </div>
+      <div class="col-lg-3 col-md-6">
+        <div class="glass glass-hover p-4">
+          <div class="module-icon" style="width:46px;height:46px;border-radius:12px;background:linear-gradient(135deg,#60a5fa,#a78bfa);color:#02121f;font-size:1.2rem"><i class="bi bi-calendar-event"></i></div>
+          <h5 class="mt-3 mb-2">Scheduled Transfers</h5>
+          <p class="small" style="color:var(--ink-2)">Recurring payouts, scheduled conversions, auto-bill-pay. Cron-like, reliable, retry-on-failure.</p>
+        </div>
+      </div>
+      <div class="col-lg-3 col-md-6">
+        <div class="glass glass-hover p-4">
+          <div class="module-icon" style="width:46px;height:46px;border-radius:12px;background:linear-gradient(135deg,#a78bfa,#ec4899);color:#fff;font-size:1.2rem"><i class="bi bi-lock-fill"></i></div>
+          <h5 class="mt-3 mb-2">Escrow Logic</h5>
+          <p class="small" style="color:var(--ink-2)">Lock funds on transaction-initiation. Release on delivery confirmation. Refund on cancellation. All programmatic.</p>
+        </div>
+      </div>
+      <div class="col-lg-3 col-md-6">
+        <div class="glass glass-hover p-4">
+          <div class="module-icon" style="width:46px;height:46px;border-radius:12px;background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#1f1200;font-size:1.2rem"><i class="bi bi-arrow-left-right"></i></div>
+          <h5 class="mt-3 mb-2">Auto-Convert</h5>
+          <p class="small" style="color:var(--ink-2)">Convert USD receivables into NGN at the optimal 30-second FX window. Configurable per wallet.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 4.8 WHITE-LABEL MOBILE BANKING KIT ===================== -->
+<section style="background:linear-gradient(180deg,transparent,rgba(167,139,250,0.05),transparent)">
+  <div class="container">
+    <div class="row g-5 align-items-center reveal">
+      <div class="col-lg-5">
+        <span class="kicker">White-Label Mobile Banking Kit</span>
+        <h2 class="mb-3">Your brand, our screens, <span class="text-gradient">your app store listing.</span></h2>
+        <p class="mb-4" style="color:var(--ink-2)">iOS and Android SDKs with 40+ pre-built, themeable screens. Drop into your existing app or launch a standalone white-label neobank in under 90 days.</p>
+
+        <div class="glass p-4">
+          <h5 class="mb-3">What's in the kit</h5>
+          <div class="row g-2">
+            <div class="col-6"><div class="ledger-row" style="padding:.6rem .8rem"><div class="small" style="color:var(--ink-2)"><i class="bi bi-check-circle-fill" style="color:var(--success)"></i> iOS SDK · Swift</div></div></div>
+            <div class="col-6"><div class="ledger-row" style="padding:.6rem .8rem"><div class="small" style="color:var(--ink-2)"><i class="bi bi-check-circle-fill" style="color:var(--success)"></i> Android SDK · Kotlin</div></div></div>
+            <div class="col-6"><div class="ledger-row" style="padding:.6rem .8rem"><div class="small" style="color:var(--ink-2)"><i class="bi bi-check-circle-fill" style="color:var(--success)"></i> Flutter / React Native</div></div></div>
+            <div class="col-6"><div class="ledger-row" style="padding:.6rem .8rem"><div class="small" style="color:var(--ink-2)"><i class="bi bi-check-circle-fill" style="color:var(--success)"></i> 40+ Pre-built Screens</div></div></div>
+            <div class="col-6"><div class="ledger-row" style="padding:.6rem .8rem"><div class="small" style="color:var(--ink-2)"><i class="bi bi-check-circle-fill" style="color:var(--success)"></i> Themeable Design System</div></div></div>
+            <div class="col-6"><div class="ledger-row" style="padding:.6rem .8rem"><div class="small" style="color:var(--ink-2)"><i class="bi bi-check-circle-fill" style="color:var(--success)"></i> Onboarding Flows</div></div></div>
+            <div class="col-6"><div class="ledger-row" style="padding:.6rem .8rem"><div class="small" style="color:var(--ink-2)"><i class="bi bi-check-circle-fill" style="color:var(--success)"></i> KYC · Liveness · Biometric</div></div></div>
+            <div class="col-6"><div class="ledger-row" style="padding:.6rem .8rem"><div class="small" style="color:var(--ink-2)"><i class="bi bi-check-circle-fill" style="color:var(--success)"></i> Card Provisioning UI</div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-7">
+        <div class="glass p-4">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <span class="pill"><span class="pill-dot"></span> Themeable · Branded</span>
+            <span class="mono small" style="color:var(--ink-3)">YourBrand.app · iOS · Android</span>
+          </div>
+
+          <div class="row g-3">
+            <!-- Phone 1 mock -->
+            <div class="col-md-6">
+              <div style="background:linear-gradient(135deg,#0a1a3f,#06122e);border-radius:36px;padding:14px;border:2px solid rgba(255,255,255,0.12);position:relative">
+                <div style="position:absolute;top:14px;left:50%;transform:translateX(-50%);width:80px;height:18px;background:#04081a;border-radius:0 0 12px 12px"></div>
+                <div class="card-mock" style="border-radius:22px;padding:1rem;min-height:260px;margin-top:20px">
+                  <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div><small style="font-size:.65rem;opacity:.75">Total Balance</small><div class="mono fw-bold" style="font-size:1.4rem">$ 42,301</div></div>
+                    <span style="font-size:1.1rem">◉</span>
+                  </div>
+                  <div class="glass-strong p-2 mb-2" style="border-radius:10px;color:#02121f;background:rgba(2,18,31,0.3);border-color:rgba(2,18,31,0.4)">
+                    <div class="row g-1 text-center">
+                      <div class="col-3"><small style="font-size:.6rem;color:rgba(2,18,31,0.7)">SEND</small></div>
+                      <div class="col-3"><small style="font-size:.6rem;color:rgba(2,18,31,0.7)">RECV</small></div>
+                      <div class="col-3"><small style="font-size:.6rem;color:rgba(2,18,31,0.7)">FX</small></div>
+                      <div class="col-3"><small style="font-size:.6rem;color:rgba(2,18,31,0.7)">MORE</small></div>
+                    </div>
+                  </div>
+                  <div class="ledger-row" style="padding:.35rem .6rem;background:rgba(2,18,31,0.25);border:none;display:flex;justify-content:space-between;color:#02121f;font-size:.72rem">
+                    <div>M-Pesa · receive</div>
+                    <div style="font-weight:700">+KSh 2,840</div>
+                  </div>
+                  <div class="ledger-row mt-1" style="padding:.35rem .6rem;background:rgba(2,18,31,0.25);border:none;display:flex;justify-content:space-between;color:#02121f;font-size:.72rem">
+                    <div>Card · merchant_3x</div>
+                    <div style="font-weight:700">−$ 840.00</div>
+                  </div>
+                  <div class="ledger-row mt-1" style="padding:.35rem .6rem;background:rgba(2,18,31,0.25);border:none;display:flex;justify-content:space-between;color:#02121f;font-size:.72rem">
+                    <div>FX · USD → NGN</div>
+                    <div style="font-weight:700">lock @ 415.20</div>
+                  </div>
+                </div>
+                <div class="text-center mt-2" style="color:var(--ink-3);font-size:.7rem">Your Brand · iOS</div>
+              </div>
+            </div>
+            <!-- Phone 2 mock -->
+            <div class="col-md-6">
+              <div style="background:linear-gradient(135deg,#0a1a3f,#06122e);border-radius:36px;padding:14px;border:2px solid rgba(255,255,255,0.12);position:relative">
+                <div style="position:absolute;top:14px;left:50%;transform:translateX(-50%);width:80px;height:18px;background:#04081a;border-radius:0 0 12px 12px"></div>
+                <div class="card-mock gold" style="border-radius:22px;padding:1rem;min-height:260px;margin-top:20px">
+                  <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div><small style="font-size:.65rem;opacity:.75">Cards</small><div class="mono fw-bold" style="font-size:1.2rem">2 Active</div></div>
+                    <span style="font-size:1.1rem">◉</span>
+                  </div>
+                  <div style="background:rgba(31,18,0,0.25);border-radius:12px;padding:.6rem;margin-bottom:.5rem;border:1px solid rgba(31,18,0,0.3);color:#1f1200">
+                    <div class="mono" style="font-size:.85rem;font-weight:700;letter-spacing:.05em">6502 •••• 1847</div>
+                    <div class="d-flex justify-content-between mt-2" style="font-size:.65rem"><span>AMAKA OBI</span><span>12/28</span></div>
+                  </div>
+                  <div style="background:rgba(31,18,0,0.25);border-radius:12px;padding:.6rem;border:1px solid rgba(31,18,0,0.3);color:#1f1200">
+                    <div class="mono" style="font-size:.85rem;font-weight:700;letter-spacing:.05em">4242 •••• 8293</div>
+                    <div class="d-flex justify-content-between mt-2" style="font-size:.65rem"><span>VIRTUAL · FREEZE</span><span>Frozen</span></div>
+                  </div>
+                  <button class="btn btn-gold w-100 mt-3" style="padding:.4rem 1rem;font-size:.75rem;background:rgba(31,18,0,0.35);border:1px solid rgba(31,18,0,0.5);color:#1f1200">+ ISSUE NEW CARD</button>
+                </div>
+                <div class="text-center mt-2" style="color:var(--ink-3);font-size:.7rem">Your Brand · Android</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="glass-strong p-3 mt-3" style="border-radius:12px">
+            <div class="d-flex align-items-center gap-2 small" style="color:var(--ink-2)"><i class="bi bi-magic fs-5" style="color:var(--accent)"></i> <span><b>Everything is themeable</b> — colors, fonts, logos, copy. Your customers only ever see your brand.</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 4.9 REGULATORY COVERAGE ===================== -->
+<section>
+  <div class="container">
+    <div class="section-head mx-auto text-center mb-5 reveal" style="max-width:720px;margin:0 auto;">
+      <span class="kicker">Regulatory Coverage</span>
+      <h2 class="mb-3">Licensed, regulated, <span class="text-gradient">country-by-country.</span></h2>
+    </div>
+
+    <div class="row g-3 reveal" id="regGrid">
+      <!-- Rendered by JS -->
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 4.10 SECURITY ARCHITECTURE ===================== -->
+<section style="background:linear-gradient(180deg,transparent,rgba(34,211,238,0.05),transparent)">
+  <div class="container">
+    <div class="section-head mx-auto text-center mb-5 reveal" style="max-width:720px;margin:0 auto;">
+      <span class="kicker">Security Architecture</span>
+      <h2 class="mb-3">Bank-grade. <span class="text-gradient">HSM-backed. PCI-scope reduced.</span></h2>
+    </div>
+
+    <div class="row g-4 reveal">
+      <div class="col-lg-4 col-md-6">
+        <div class="glass glass-hover p-4 text-center">
+          <div class="module-icon mx-auto" style="width:64px;height:64px;border-radius:16px;background:linear-gradient(135deg,#22d3ee,#60a5fa);color:#02121f;font-size:1.6rem"><i class="bi bi-shield-lock-fill"></i></div>
+          <h4 class="mt-3 mb-2">Encryption</h4>
+          <p class="small" style="color:var(--ink-2)">AES-256 at rest. TLS 1.3 in transit. Every payload, every time, end-to-end.</p>
+          <div class="mono text-gradient mt-2">AES-256 · TLS 1.3</div>
+        </div>
+      </div>
+      <div class="col-lg-4 col-md-6">
+        <div class="glass glass-hover p-4 text-center">
+          <div class="module-icon mx-auto" style="width:64px;height:64px;border-radius:16px;background:linear-gradient(135deg,#60a5fa,#a78bfa);color:#02121f;font-size:1.6rem"><i class="bi bi-key-fill"></i></div>
+          <h4 class="mt-3 mb-2">HSM Secrets</h4>
+          <p class="small" style="color:var(--ink-2)">All encryption keys, card PANs, and customer credentials stored in hardware security modules — never plaintext.</p>
+          <div class="mono text-gradient mt-2">FIPS 140-2 Level 3</div>
+        </div>
+      </div>
+      <div class="col-lg-4 col-md-6">
+        <div class="glass glass-hover p-4 text-center">
+          <div class="module-icon mx-auto" style="width:64px;height:64px;border-radius:16px;background:linear-gradient(135deg,#a78bfa,#ec4899);color:#fff;font-size:1.6rem"><i class="bi bi-credit-card-fill"></i></div>
+          <h4 class="mt-3 mb-2">Tokenization</h4>
+          <p class="small" style="color:var(--ink-2)">PANs never hit your servers. Tokens everywhere. PCI SAQ A instead of the full DSS — massive scope reduction.</p>
+          <div class="mono text-gradient mt-2">PCI DSS L1 · SAQ A</div>
+        </div>
+      </div>
+      <div class="col-lg-4 col-md-6">
+        <div class="glass glass-hover p-4 text-center">
+          <div class="module-icon mx-auto" style="width:64px;height:64px;border-radius:16px;background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#1f1200;font-size:1.6rem"><i class="bi bi-incognito"></i></div>
+          <h4 class="mt-3 mb-2">Zero-Trust</h4>
+          <p class="small" style="color:var(--ink-2)">Zero-trust internal networking. Every service-to-service call authenticated. No implicit trust, ever.</p>
+          <div class="mono text-gradient-gold mt-2">mTLS · SPIFFE</div>
+        </div>
+      </div>
+      <div class="col-lg-4 col-md-6">
+        <div class="glass glass-hover p-4 text-center">
+          <div class="module-icon mx-auto" style="width:64px;height:64px;border-radius:16px;background:linear-gradient(135deg,#22c55e,#22d3ee);color:#02121f;font-size:1.6rem"><i class="bi bi-shield-shaded"></i></div>
+          <h4 class="mt-3 mb-2">Penetration Testing</h4>
+          <p class="small" style="color:var(--ink-2)">Quarterly penetration tests by Big-4 firms. Results available to enterprise customers under NDA.</p>
+          <div class="mono" style="color:var(--success);mt-2">Quarterly · Automated</div>
+        </div>
+      </div>
+      <div class="col-lg-4 col-md-6">
+        <div class="glass glass-hover p-4 text-center">
+          <div class="module-icon mx-auto" style="width:64px;height:64px;border-radius:16px;background:linear-gradient(135deg,#f472b6,#a78bfa);color:#fff;font-size:1.6rem"><i class="bi bi-shield-fill-check"></i></div>
+          <h4 class="mt-3 mb-2">Certifications</h4>
+          <p class="small" style="color:var(--ink-2)">PCI DSS Level 1, SOC 2 Type II, ISO 27001, ISO 22301. Licensed under CBN (Nigeria), CBK Sandbox (Kenya).</p>
+          <div class="mono text-gradient mt-2">PCI · SOC 2 · ISO</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 4.11 PRICING MODEL ===================== -->
+<section>
+  <div class="container">
+    <div class="section-head mx-auto text-center mb-5 reveal" style="max-width:720px;margin:0 auto;">
+      <span class="kicker">Banking-as-a-Service Pricing</span>
+      <h2 class="mb-3">Pay for what you use. <span class="text-gradient">No setup fees.</span></h2>
+      <p class="lead mt-2" style="color:var(--ink-2)">Per-account, per-transaction, plus card issuing. Enterprise plans support committed-use discounts and custom infrastructure pricing.</p>
+    </div>
+
+    <div class="row g-4 reveal">
+      <div class="col-lg-4">
+        <div class="glass glass-hover p-4 h-100">
+          <span class="badge-mini badge-native">PER-ACCOUNT</span>
+          <h3 class="mt-3 mb-2 text-gradient" style="font-size:2.2rem">$0.25<span class="small" style="font-size:.9rem;color:var(--ink-2);font-weight:500">/mo</span></h3>
+          <p class="small mb-3" style="color:var(--ink-2)">Per virtual FBO account, per month. Includes ledger entries, statements, webhooks, and API access.</p>
+          <ul class="list-unstyled small" style="color:var(--ink-1)">
+            <li class="mb-2"><i class="bi bi-check-circle-fill" style="color:var(--success)"></i> Unlimited ledger entries</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill" style="color:var(--success)"></i> API + webhooks</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill" style="color:var(--success)"></i> Monthly statements</li>
+          </ul>
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <div class="glass glass-hover p-4 h-100">
+          <span class="badge-mini badge-native">PER-TRANSACTION</span>
+          <h3 class="mt-3 mb-2 text-gradient-gold" style="font-size:2.2rem">0.2%<span class="small" style="font-size:.9rem;color:var(--ink-2);font-weight:500"> + $0.05</span></h3>
+          <p class="small mb-3" style="color:var(--ink-2)">Per API-initiated money movement. Volume discounts kick in automatically at tier thresholds, no contract required.</p>
+          <ul class="list-unstyled small" style="color:var(--ink-1)">
+            <li class="mb-2"><i class="bi bi-check-circle-fill" style="color:var(--success)"></i> Transfers · Payouts</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill" style="color:var(--success)"></i> FX conversions</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill" style="color:var(--success)"></i> Volume discounts: up to −30%</li>
+          </ul>
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <div class="glass glass-hover p-4 h-100">
+          <span class="badge-mini badge-native">CARD ISSUING</span>
+          <h3 class="mt-3 mb-2" style="font-size:2.2rem"><span class="text-gradient">$0.25</span> / v-card · <span class="text-gradient-gold">$3.50</span> / physical</h3>
+          <p class="small mb-3" style="color:var(--ink-2)">Per card, per issuance. Virtual cards issue in ≤5 seconds. Physical cards delivered to 25+ countries in 5 days.</p>
+          <ul class="list-unstyled small" style="color:var(--ink-1)">
+            <li class="mb-2"><i class="bi bi-check-circle-fill" style="color:var(--success)"></i> BIN-sponsored</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill" style="color:var(--success)"></i> Branded · Your logo</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill" style="color:var(--success)"></i> Apple Pay · Google Pay</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="glass p-4 mt-4 reveal">
+      <div class="row g-4 align-items-center">
+        <div class="col-lg-8">
+          <h4 class="mb-1">Enterprise &amp; Committed-Use</h4>
+          <p class="small mb-0" style="color:var(--ink-2)">Volume discounts, custom infrastructure pricing, dedicated private-cloud footprints, and co-branded programs. All negotiated per-enterprise with volume commitments.</p>
+        </div>
+        <div class="col-lg-4">
+          <a href="#demo" class="btn btn-primary-paymo w-100" onclick="openModal('demo');return false;"><i class="bi bi-chat-dots"></i> Talk to Enterprise Sales</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 4.12 FINAL CTA ===================== -->
+<section style="padding:3rem 0 5rem">
+  <div class="container">
+    <div class="cta-banner reveal text-center">
+      <div class="blob" style="width:400px;height:400px;background:#22d3ee;top:-80px;right:0;opacity:.3"></div>
+      <div class="blob" style="width:350px;height:350px;background:#a78bfa;bottom:-80px;left:0;opacity:.3;animation-delay:-4s"></div>
+      <div class="position-relative">
+        <span class="kicker">Ready when you are</span>
+        <h2 class="mb-3" style="font-size:clamp(1.8rem,3.6vw,2.8rem)">Start building your <span class="text-gradient">neobank today.</span></h2>
+        <p class="lead mb-4" style="color:var(--ink-2);max-width:560px;margin:0 auto 2rem;">Launch a full digital bank in 90 days. Accounts, ledgers, cards, your brand — on our licenses. Sandbox in 2 minutes.</p>
+        <div class="d-flex flex-wrap gap-3 justify-content-center">
+          <a href="#sandbox" class="btn btn-primary-paymo" onclick="openModal('sandbox');return false;"><i class="bi bi-rocket-takeoff"></i> Get Free Sandbox</a>
+          <a href="#demo" class="btn btn-gold" onclick="openModal('demo');return false;"><i class="bi bi-calendar-check"></i> Book BAAS Consultation</a>
+          <a href="#docs" class="btn btn-outline-paymo"><i class="bi bi-book"></i> Banking API Docs</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== FOOTER ===================== -->
+<footer>
+  <div class="container">
+    <div class="row g-5">
+      <div class="col-lg-3 col-md-6">
+        <div class="d-inline-flex align-items-center gap-2 mb-3">
+          <span class="logo-mark">P</span>
+          <span style="font-weight:800;color:var(--ink-0);letter-spacing:-0.02em;font-size:1.1rem;">Paymo<span style="color:var(--accent);">.</span>BAAS</span>
+        </div>
+        <p class="small mb-4" style="color:var(--ink-2)">Launch a bank without becoming one. Virtual accounts, ledgers, card issuing — under your brand, on our licenses.</p>
+        <div class="mb-3">
+          <a href="#" class="social-icon" aria-label="LinkedIn"><i class="bi bi-linkedin"></i></a>
+          <a href="#" class="social-icon" aria-label="Twitter"><i class="bi bi-twitter-x"></i></a>
+          <a href="#" class="social-icon" aria-label="GitHub"><i class="bi bi-github"></i></a>
+          <a href="#" class="social-icon" aria-label="YouTube"><i class="bi bi-youtube"></i></a>
+        </div>
+      </div>
+      <div class="col-lg-2 col-md-6"><h5>Platform</h5><a href="platform.html">Overview</a><a href="payments.html">Payments</a><a href="banking.html">Banking / BAAS</a><a href="index.html#fx">FX Intelligence</a><a href="index.html#trust">Compliance</a></div>
+      <div class="col-lg-2 col-md-6"><h5>Solutions</h5><a href="index.html#usecases">Fintechs</a><a href="index.html#usecases">Marketplaces</a><a href="index.html#usecases">Enterprise</a><a href="index.html#usecases">NGOs</a><a href="index.html#usecases">Startups</a></div>
+      <div class="col-lg-2 col-md-6"><h5>Resources</h5><a href="index.html#resources">Blog</a><a href="index.html#developers">Docs</a><a href="index.html#developers">API Reference</a><a href="index.html#resources">Changelog</a><a href="#" onclick="openModal('discord');return false;">Discord</a></div>
+      <div class="col-lg-3 col-md-12">
+        <h5>Newsletter · The Ledger</h5>
+        <p class="small" style="color:var(--ink-2)">Weekly African fintech intelligence.</p>
+        <form onsubmit="subscribeNewsletter(event)" class="d-flex flex-column gap-2">
+          <input type="email" class="newsletter-input" placeholder="your@company.com" required />
+          <button type="submit" class="btn btn-primary-paymo w-100" style="padding:.6rem 1rem"><i class="bi bi-envelope"></i> Subscribe</button>
+          <label class="small d-flex align-items-center gap-2" style="color:var(--ink-3);cursor:pointer"><input type="checkbox" required /> I agree to privacy</label>
+          <div id="newsletterMsg" class="small" style="color:var(--success);display:none;">✓ Subscribed. Check your inbox.</div>
+        </form>
+      </div>
+    </div>
+    <div class="row g-3 mt-5 pt-4" style="border-top:1px solid rgba(255,255,255,0.06)">
+      <div class="col-lg-7"><div class="small" style="color:var(--ink-3)">© 2026 Paymo BAAS Technologies Ltd. · Paymo is a financial technology company, not a bank. Banking services provided by partner banks per jurisdiction.</div></div>
+      <div class="col-lg-5 d-flex flex-wrap gap-3 justify-content-lg-end align-items-center">
+        <a href="#" class="small" style="color:var(--ink-3)" onclick="openModal('legal');return false;">Privacy</a>
+        <a href="#" class="small" style="color:var(--ink-3)" onclick="openModal('legal');return false;">Terms</a>
+        <a href="#" class="small" style="color:var(--ink-3)" onclick="openModal('legal');return false;">API Terms</a>
+        <a href="index.html#trust" class="small" style="color:var(--ink-3)">Trust Center</a>
+        <a href="#" class="small" style="color:var(--ink-3)" onclick="openModal('demo');return false;">Contact</a>
+      </div>
+    </div>
+    <div class="mt-4 small text-center" style="color:var(--ink-3)">PCI DSS L1 · SOC 2 Type II · ISO 27001 · ISO 22301 · CBN PSSP · CBK Sandbox Graduate · GDPR · NDPR</div>
+  </div>
+</footer>
+
+<!-- MODAL -->
+<div class="modal fade" id="paymoModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content glass-strong">
+      <div class="modal-header"><h5 class="modal-title text-light" id="modalTitle">—</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body" id="modalBody">—</div>
+    </div>
+  </div>
+</div>
+
+<button class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Scroll">↑</button>
+
+<!-- ===================== SCRIPTS ===================== -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+<script>
+/* REVEAL */
+(function(){ const obs = new IntersectionObserver((es)=>{ es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); obs.unobserve(e.target); }}); },{threshold:0.08,rootMargin:'0px 0px -60px 0px'}); document.querySelectorAll('.reveal').forEach(el=>obs.observe(el)); })();
+
+/* SCROLL TOP */
+(function(){ const btn = document.getElementById('scrollTop'); window.addEventListener('scroll',()=>btn.classList.toggle('show', window.scrollY>700)); })();
+
+/* MOBILE NAV */
+function toggleMobileNav(){ document.getElementById('mobileNav').classList.toggle('show'); }
+
+/* CLOCKS */
+function tickClock(id){
+  const el = document.getElementById(id); if(!el) return;
+  const d = new Date(); const pad = n => String(n).padStart(2,'0');
+  el.textContent = pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds());
+}
+setInterval(()=>{ tickClock('bankClock'); tickClock('ledgerClock'); }, 1000);
+tickClock('bankClock'); tickClock('ledgerClock');
+
+/* REGULATORY COVERAGE GRID */
+const regulators = [
+  { country:'🇳🇬 Nigeria', lic:'CBN Licensed PSSP', prod:'All BAAS products', status:'licensed' },
+  { country:'🇰🇪 Kenya', lic:'CBK Regulatory Sandbox Graduate', prod:'Accounts · Cards · Ledger', status:'licensed' },
+  { country:'🇬🇭 Ghana', lic:'BoG · Partner-Licensed', prod:'Accounts · Payments', status:'partner' },
+  { country:'🇿🇦 South Africa', lic:'FSCA · Partner-Licensed', prod:'Accounts · Cards', status:'partner' },
+  { country:'🇸🇳 Senegal', lic:'BCEAO · Partner-Licensed', prod:'Mobile-Money Banking', status:'partner' },
+  { country:'🇨🇮 Côte d\'Ivoire', lic:'BCEAO · Partner-Licensed', prod:'Mobile-Money Banking', status:'partner' },
+  { country:'🇹🇿 Tanzania', lic:'BOT · Partner-Licensed', prod:'Accounts · Cards', status:'partner' },
+  { country:'🇺🇬 Uganda', lic:'BoU · Partner-Licensed', prod:'Accounts · Ledger', status:'partner' },
+  { country:'🇬🇧 UK', lic:'FCA · E-Money Institution', prod:'GBP Accounts · IBANs', status:'licensed' },
+  { country:'🇺🇸 USA', lic:'Partner Bank · MSB', prod:'USD Accounts · ACH', status:'partner' },
+  { country:'🇪🇺 EU / EEA', lic:'Partner EMI · SEPA', prod:'EUR Accounts · SEPA', status:'partner' },
+  { country:'🇦🇪 UAE', lic:'Partner-Licensed · DIFC', prod:'AED Accounts · IMPS', status:'partner' },
+];
+function renderRegulators(){
+  const grid = document.getElementById('regGrid'); if(!grid) return;
+  grid.innerHTML = regulators.map(r=>`
+    <div class="col-6 col-md-4 col-lg-3">
+      <div class="glass glass-hover p-3">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="fw-bold small">${r.country}</span>
+          <span class="badge-mini ${r.status==='licensed'?'badge-ok':'badge-adv'}">${r.status==='licensed'?'Licensed':'Partner'}</span>
+        </div>
+        <p class="small mb-1" style="color:var(--ink-2);font-size:.8rem">${r.lic}</p>
+        <p class="small mb-0 mono" style="font-size:.72rem;color:var(--accent)">${r.prod}</p>
+      </div>
+    </div>`).join('');
+}
+renderRegulators();
+
+/* MODAL */
+const modalContent = {
+  sandbox: { title:'Start Building · Free Sandbox', body: `<p class="mb-3" style="color:var(--ink-2)">BAAS sandbox. Every product. API keys in ~2 minutes.</p>
+    <form onsubmit="submitForm(event,'sandbox')">
+      <div class="row g-3">
+        <div class="col-md-6"><label class="small" style="color:var(--ink-3)">Work email *</label><input required type="email" class="newsletter-input" placeholder="you@company.com"/></div>
+        <div class="col-md-6"><label class="small" style="color:var(--ink-3)">Company *</label><input required type="text" class="newsletter-input" placeholder="Acme Inc"/></div>
+      </div>
+      <button type="submit" class="btn btn-primary-paymo w-100 mt-3"><i class="bi bi-rocket-takeoff"></i> Generate Sandbox Keys</button>
+      <div class="formMsg small mt-2" style="color:var(--success);display:none;">✓ Created. Check your email for API keys &amp; onboarding guide.</div>
+    </form>` },
+  demo: { title:'Book BAAS Consultation', body: `<p class="mb-3" style="color:var(--ink-2)">Talk to a solutions engineer about your neobank, card program, or ledger architecture. 30-min walkthrough.</p>
+    <form onsubmit="submitForm(event,'demo')">
+      <div class="row g-3">
+        <div class="col-md-6"><label class="small" style="color:var(--ink-3)">Full name *</label><input required type="text" class="newsletter-input" placeholder="Jane Doe"/></div>
+        <div class="col-md-6"><label class="small" style="color:var(--ink-3)">Work email *</label><input required type="email" class="newsletter-input" placeholder="you@company.com"/></div>
+        <div class="col-12"><label class="small" style="color:var(--ink-3)">Company / Role *</label><input required type="text" class="newsletter-input" placeholder="Acme · CTO"/></div>
+      </div>
+      <button type="submit" class="btn btn-primary-paymo w-100 mt-3"><i class="bi bi-calendar-check"></i> Request Consultation</button>
+      <div class="formMsg small mt-2" style="color:var(--success);display:none;">✓ Received. Confirmation in under 2 business hours.</div>
+    </form>` },
+  signin: { title:'Sign In · Paymo Console', body: `<form onsubmit="submitForm(event,'signin')">
+      <div class="mb-3"><label class="small" style="color:var(--ink-3)">Email *</label><input required type="email" class="newsletter-input" placeholder="you@company.com"/></div>
+      <div class="mb-3"><label class="small" style="color:var(--ink-3)">Password *</label><input required type="password" class="newsletter-input" placeholder="••••••••"/></div>
+      <button type="submit" class="btn btn-primary-paymo w-100"><i class="bi bi-box-arrow-in-right"></i> Sign In</button>
+      <div class="formMsg small mt-2" style="color:var(--success);display:none;">✓ Sign in successful (demo) · redirecting...</div>
+    </form>
+    <div class="mt-4 text-center small" style="color:var(--ink-3)">No account? <a href="#" onclick="openModal('sandbox');return false;" style="color:var(--accent)">Create free sandbox</a></div>` },
+  legal: { title:'Legal · Privacy · Terms', body: `<div class="accordion accordion-paymo">
+      <div class="accordion-item"><h2 class="accordion-header"><button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#l1">Privacy</button></h2><div id="l1" class="accordion-collapse collapse"><div class="accordion-body">Customer data encrypted at rest (AES-256) and in transit (TLS 1.3). Retention: 7 years per financial regulations. Deletion on request, subject to legal holds.</div></div></div>
+      <div class="accordion-item"><h2 class="accordion-header"><button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#l2">Terms</button></h2><div id="l2" class="accordion-collapse collapse"><div class="accordion-body">Use subject to acceptable-use policies. Prohibited: fraud, sanctions evasion, money laundering. Disputes: arbitration under Nigerian law.</div></div></div>
+      <div class="accordion-item"><h2 class="accordion-header"><button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#l4">API Terms · SLAs</button></h2><div id="l4" class="accordion-collapse collapse"><div class="accordion-body">Standard API SLA: 99.97% (Growth), 99.99% (Enterprise). Rate limits: 1,000 → 10,000+ req/min by plan.</div></div></div>
+    </div>` },
+  discord: { title:'Paymo Community · Discord', body: `<p class="mb-3" style="color:var(--ink-2)">Join 12,400+ African fintech builders, treasury operators, and Paymo engineers. Live office hours every Thursday.</p>
+    <a href="#" class="btn btn-primary-paymo w-100" onclick="openModal('sandbox');return false;"><i class="bi bi-chat-dots-fill"></i> Join Paymo Community Discord</a>` }
+};
+
+let paymoModal = null;
+function openModal(key){
+  const data = modalContent[key]; if(!data){ openModal('demo'); return; }
+  if(!paymoModal) paymoModal = new bootstrap.Modal(document.getElementById('paymoModal'));
+  document.getElementById('modalTitle').textContent = data.title;
+  document.getElementById('modalBody').innerHTML = data.body;
+  paymoModal.show();
+}
+function submitForm(e, kind){
+  e.preventDefault();
+  const msg = e.target.querySelector('.formMsg');
+  if(msg) msg.style.display = 'block';
+  setTimeout(()=>{ if(paymoModal) paymoModal.hide(); e.target.reset(); if(msg) msg.style.display = 'none'; }, 2500);
+}
+function subscribeNewsletter(e){
+  e.preventDefault();
+  const msg = document.getElementById('newsletterMsg');
+  msg.style.display = 'block';
+  setTimeout(()=>{ msg.style.display = 'none'; e.target.reset(); }, 4500);
+}
+</script>
+</body>
+</html>
