@@ -1,0 +1,1244 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Identity Verification - Paymo BAAS</title>
+    <meta name="description"
+        content="High-assurance identity verification for Paymo account recovery, sensitive actions, regulatory updates, and step-up verification.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        :root {
+            --bg-0: #04081a;
+            --bg-1: #06122e;
+            --bg-2: #0a1a3f;
+            --bg-3: #0f2456;
+            --ink-0: #fff;
+            --ink-1: #e6ecff;
+            --ink-2: #a8b6e0;
+            --ink-3: #6f82b5;
+            --accent: #22d3ee;
+            --accent-2: #60a5fa;
+            --accent-3: #a78bfa;
+            --accent-4: #fbbf24;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --glass-bg: rgba(255, 255, 255, .04);
+            --glass-border: rgba(255, 255, 255, .10);
+            --glass-strong: rgba(255, 255, 255, .08);
+            --glass-border-strong: rgba(255, 255, 255, .16);
+            --radius-lg: 22px;
+            --radius-md: 14px;
+            --radius-sm: 10px;
+            --shadow-glow: 0 0 40px rgba(34, 211, 238, .18)
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        html {
+            scroll-behavior: smooth
+        }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--bg-0);
+            color: var(--ink-1);
+            overflow-x: hidden;
+            line-height: 1.55;
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5 {
+            font-family: 'Inter', sans-serif;
+            font-weight: 800;
+            letter-spacing: -.02em;
+            color: var(--ink-0)
+        }
+
+        code,
+        pre,
+        .mono {
+            font-family: 'JetBrains Mono', monospace
+        }
+
+        a {
+            color: var(--accent);
+            text-decoration: none;
+            transition: color .2s
+        }
+
+        a:hover {
+            color: var(--accent-2)
+        }
+
+        .bg-gradient-deep {
+            background: radial-gradient(1200px 600px at 80% -10%, rgba(96, 165, 250, .22), transparent 60%), radial-gradient(900px 500px at -10% 20%, rgba(167, 139, 250, .18), transparent 60%), radial-gradient(800px 500px at 50% 110%, rgba(34, 211, 238, .18), transparent 60%), linear-gradient(180deg, #04081a 0%, #06122e 30%, #081838 70%, #04081a 100%)
+        }
+
+        .grid-overlay {
+            background-image: linear-gradient(rgba(96, 165, 250, .06) 1px, transparent 1px), linear-gradient(90deg, rgba(96, 165, 250, .06) 1px, transparent 1px);
+            background-size: 56px 56px;
+            mask-image: radial-gradient(ellipse at center, black 40%, transparent 80%)
+        }
+
+        .blob {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: .42;
+            pointer-events: none;
+            animation: float 14s ease-in-out infinite
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translate(0, 0) scale(1)
+            }
+
+            50% {
+                transform: translate(40px, -30px) scale(1.08)
+            }
+        }
+
+        @keyframes pulseGlow {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(34, 211, 238, .35)
+            }
+
+            50% {
+                box-shadow: 0 0 0 14px rgba(34, 211, 238, 0)
+            }
+        }
+
+        @keyframes scan {
+            0% {
+                transform: translateY(-100%)
+            }
+
+            100% {
+                transform: translateY(420%)
+            }
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg)
+            }
+        }
+
+        @keyframes draw {
+            from {
+                stroke-dashoffset: 900
+            }
+
+            to {
+                stroke-dashoffset: 0
+            }
+        }
+
+        @keyframes pop {
+            0% {
+                transform: scale(.86);
+                opacity: 0
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1
+            }
+        }
+
+        .glass {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-lg);
+            backdrop-filter: blur(20px) saturate(140%);
+            -webkit-backdrop-filter: blur(20px) saturate(140%);
+            box-shadow: 0 1px 0 0 rgba(255, 255, 255, .04) inset, 0 30px 60px -30px rgba(0, 0, 0, .5)
+        }
+
+        .glass-strong {
+            background: var(--glass-strong);
+            border: 1px solid var(--glass-border-strong);
+            border-radius: var(--radius-lg);
+            backdrop-filter: blur(24px) saturate(150%);
+            -webkit-backdrop-filter: blur(24px) saturate(150%)
+        }
+
+        .glass-hover {
+            transition: transform .35s ease, border-color .35s ease, background .35s ease
+        }
+
+        .glass-hover:hover {
+            transform: translateY(-4px);
+            border-color: rgba(96, 165, 250, .35);
+            background: rgba(96, 165, 250, .06)
+        }
+
+        .text-gradient {
+            background: linear-gradient(135deg, #22d3ee 0%, #60a5fa 50%, #a78bfa 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent
+        }
+
+        .text-gradient-gold {
+            background: linear-gradient(135deg, #fde68a 0%, #fbbf24 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent
+        }
+
+        .btn {
+            font-weight: 600;
+            border-radius: 12px;
+            padding: .75rem 1.4rem;
+            transition: all .25s ease;
+            letter-spacing: -.01em
+        }
+
+        .btn-primary-paymo {
+            background: linear-gradient(135deg, #22d3ee 0%, #3b82f6 100%);
+            color: #02121f;
+            border: none;
+            box-shadow: 0 10px 30px -10px rgba(34, 211, 238, .55)
+        }
+
+        .btn-primary-paymo:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 40px -10px rgba(34, 211, 238, .75);
+            color: #02121f
+        }
+
+        .btn-outline-paymo {
+            background: transparent;
+            color: var(--ink-1);
+            border: 1px solid rgba(255, 255, 255, .18)
+        }
+
+        .btn-outline-paymo:hover {
+            background: rgba(255, 255, 255, .08);
+            border-color: var(--accent);
+            color: var(--ink-0)
+        }
+
+        .btn:disabled {
+            opacity: .55;
+            cursor: not-allowed;
+            transform: none !important
+        }
+
+        .logo-mark {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #22d3ee, #60a5fa, #a78bfa);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #02121f;
+            font-weight: 900;
+            box-shadow: 0 8px 24px -8px rgba(34, 211, 238, .6)
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: .5rem;
+            padding: .35rem .85rem;
+            border-radius: 999px;
+            background: rgba(34, 211, 238, .08);
+            border: 1px solid rgba(34, 211, 238, .25);
+            font-size: .8rem;
+            font-weight: 500;
+            color: #a5f3fc
+        }
+
+        .pill-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 0 10px var(--accent);
+            animation: pulseGlow 2s infinite
+        }
+
+        .badge-mini {
+            font-size: .7rem;
+            padding: .2rem .55rem;
+            border-radius: 999px;
+            font-weight: 600;
+            letter-spacing: .02em
+        }
+
+        .badge-ok {
+            background: rgba(34, 197, 94, .15);
+            color: #86efac;
+            border: 1px solid rgba(34, 197, 94, .3)
+        }
+
+        .badge-adv {
+            background: rgba(167, 139, 250, .15);
+            color: #c4b5fd;
+            border: 1px solid rgba(167, 139, 250, .3)
+        }
+
+        .badge-native {
+            background: rgba(34, 211, 238, .15);
+            color: #a5f3fc;
+            border: 1px solid rgba(34, 211, 238, .3)
+        }
+
+        .badge-soon {
+            background: rgba(251, 191, 36, .15);
+            color: #fcd34d;
+            border: 1px solid rgba(251, 191, 36, .3)
+        }
+
+        .badge-warn {
+            background: rgba(239, 68, 68, .15);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, .3)
+        }
+
+        .auth-shell {
+            position: relative;
+            min-height: 100vh;
+            padding: 2rem 0
+        }
+
+        .hero-panel {
+            position: sticky;
+            top: 2rem;
+            min-height: calc(100vh - 4rem);
+            overflow: hidden
+        }
+
+        .hero-panel:before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: url('https://i.pinimg.com/736x/81/8d/70/818d706bc8e2a226f8a4d0564be6f286.jpg') center/cover no-repeat;
+            opacity: .21;
+            mix-blend-mode: screen;
+            filter: hue-rotate(15deg) saturate(125%)
+        }
+
+        .hero-panel:after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(4, 8, 26, .35), rgba(4, 8, 26, .9))
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            padding: 2rem;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between
+        }
+
+        .section-title {
+            font-size: .72rem;
+            text-transform: uppercase;
+            letter-spacing: .22em;
+            color: var(--ink-3);
+            font-weight: 700;
+            margin-bottom: .8rem
+        }
+
+        .method-card {
+            padding: 1.25rem;
+            border-radius: var(--radius-md);
+            background: rgba(255, 255, 255, .035);
+            border: 1px solid var(--glass-border);
+            cursor: pointer;
+            height: 100%;
+            transition: .28s
+        }
+
+        .method-card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(34, 211, 238, .4);
+            background: rgba(34, 211, 238, .045)
+        }
+
+        .method-card.active {
+            border-color: rgba(34, 211, 238, .65);
+            background: linear-gradient(140deg, rgba(34, 211, 238, .11), rgba(96, 165, 250, .055));
+            box-shadow: 0 0 34px -18px rgba(34, 211, 238, .8)
+        }
+
+        .method-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            margin-bottom: .75rem;
+            background: linear-gradient(135deg, rgba(34, 211, 238, .18), rgba(96, 165, 250, .1));
+            border: 1px solid rgba(34, 211, 238, .28);
+            color: #a5f3fc
+        }
+
+        .check-dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, .18);
+            transition: .25s
+        }
+
+        .method-card.active .check-dot {
+            border-color: transparent;
+            background: linear-gradient(135deg, #22d3ee, #60a5fa);
+            box-shadow: 0 0 13px rgba(34, 211, 238, .55)
+        }
+
+        .step-rail {
+            display: flex;
+            align-items: center;
+            gap: .45rem;
+            flex-wrap: wrap
+        }
+
+        .step-chip {
+            display: flex;
+            align-items: center;
+            gap: .45rem;
+            padding: .48rem .72rem;
+            border-radius: 999px;
+            border: 1px solid var(--glass-border);
+            background: rgba(255, 255, 255, .03);
+            font-size: .75rem;
+            color: var(--ink-3);
+            font-weight: 700
+        }
+
+        .step-chip.active {
+            color: #a5f3fc;
+            border-color: rgba(34, 211, 238, .5);
+            background: rgba(34, 211, 238, .08)
+        }
+
+        .step-chip.done {
+            color: #86efac;
+            border-color: rgba(34, 197, 94, .35);
+            background: rgba(34, 197, 94, .08)
+        }
+
+        .form-label-paymo {
+            font-size: .73rem;
+            color: var(--ink-3);
+            text-transform: uppercase;
+            letter-spacing: .14em;
+            font-weight: 700;
+            margin-bottom: .38rem;
+            display: block
+        }
+
+        .form-control,
+        .form-select {
+            background: rgba(255, 255, 255, .035) !important;
+            border: 1px solid var(--glass-border) !important;
+            color: var(--ink-1) !important;
+            border-radius: var(--radius-md);
+            padding: .75rem .9rem;
+            font-size: .9rem
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: var(--accent) !important;
+            box-shadow: 0 0 0 3px rgba(34, 211, 238, .15) !important
+        }
+
+        .form-control::placeholder {
+            color: var(--ink-3)
+        }
+
+        .upload-zone {
+            border: 1.5px dashed rgba(34, 211, 238, .32);
+            border-radius: var(--radius-lg);
+            background: rgba(34, 211, 238, .04);
+            padding: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: .25s
+        }
+
+        .upload-zone:hover {
+            background: rgba(34, 211, 238, .08);
+            border-color: rgba(34, 211, 238, .6)
+        }
+
+        .upload-zone.loaded {
+            border-style: solid;
+            border-color: rgba(34, 197, 94, .55);
+            background: rgba(34, 197, 94, .07)
+        }
+
+        .quality-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: .62rem .75rem;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, .03);
+            border: 1px solid var(--glass-border);
+            margin-bottom: .45rem
+        }
+
+        .camera-box {
+            position: relative;
+            aspect-ratio: 4/3;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            background: #020514;
+            border: 1px solid var(--glass-border-strong)
+        }
+
+        .camera-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: .72;
+            mix-blend-mode: screen
+        }
+
+        .scan-line {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            animation: scan 2.5s linear infinite
+        }
+
+        .face-frame {
+            position: absolute;
+            inset: 18% 27%;
+            border: 2px solid rgba(34, 211, 238, .8);
+            border-radius: 45%;
+            box-shadow: 0 0 30px rgba(34, 211, 238, .22)
+        }
+
+        .slot {
+            padding: .62rem .9rem;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, .035);
+            border: 1px solid var(--glass-border);
+            cursor: pointer;
+            text-align: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: .82rem;
+            transition: .2s
+        }
+
+        .slot:hover,
+        .slot.active {
+            background: linear-gradient(135deg, #22d3ee, #60a5fa);
+            border-color: transparent;
+            color: #02121f;
+            font-weight: 800
+        }
+
+        .status-line {
+            position: relative;
+            padding-left: 2.2rem;
+            padding-bottom: 1.2rem
+        }
+
+        .status-line:before {
+            content: "";
+            position: absolute;
+            left: 14px;
+            top: 28px;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(180deg, rgba(34, 211, 238, .65), transparent)
+        }
+
+        .status-line:last-child:before {
+            display: none
+        }
+
+        .status-dot {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--glass-border);
+            background: rgba(255, 255, 255, .04);
+            color: var(--ink-3)
+        }
+
+        .status-line.done .status-dot {
+            background: rgba(34, 197, 94, .16);
+            color: #86efac;
+            border-color: rgba(34, 197, 94, .35)
+        }
+
+        .status-line.active .status-dot {
+            background: rgba(34, 211, 238, .16);
+            color: #a5f3fc;
+            border-color: rgba(34, 211, 238, .45)
+        }
+
+        .detail-stat {
+            padding: .7rem .8rem;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, .035);
+            border: 1px solid var(--glass-border)
+        }
+
+        .detail-stat-lbl {
+            font-size: .65rem;
+            color: var(--ink-3);
+            text-transform: uppercase;
+            letter-spacing: .12em
+        }
+
+        .detail-stat-val {
+            font-weight: 700;
+            color: var(--ink-0);
+            font-size: .94rem;
+            margin-top: .18rem
+        }
+
+        .progress {
+            height: 8px;
+            background: rgba(255, 255, 255, .08);
+            border-radius: 999px
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, #22d3ee, #60a5fa, #a78bfa)
+        }
+
+        .hidden-panel {
+            display: none
+        }
+
+        .hidden-panel.active {
+            display: block;
+            animation: pop .35s ease
+        }
+
+        .success-card {
+            display: none;
+            text-align: center;
+            padding: 2rem
+        }
+
+        .success-card.active {
+            display: block;
+            animation: pop .45s ease
+        }
+
+        .success-icon {
+            width: 78px;
+            height: 78px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            color: white;
+            font-size: 2.4rem
+        }
+
+        .flow-frame {
+            position: relative;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            border: 1px solid var(--glass-border-strong);
+            background: #020514
+        }
+
+        .flow-frame img {
+            width: 100%;
+            display: block;
+            opacity: .88;
+            mix-blend-mode: screen;
+            filter: hue-rotate(-15deg) saturate(120%) brightness(1.05)
+        }
+
+        .flow-frame:before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, transparent 50%, rgba(4, 8, 26, .65));
+            z-index: 1
+        }
+
+        .flow-label {
+            position: absolute;
+            left: 1rem;
+            bottom: 1rem;
+            z-index: 2
+        }
+
+        @media(max-width:991px) {
+            .hero-panel {
+                position: relative;
+                top: 0;
+                min-height: auto
+            }
+
+            .auth-shell {
+                padding: 1rem 0
+            }
+
+            .hero-content {
+                padding: 1.4rem
+            }
+
+            .method-card {
+                padding: 1rem
+            }
+        }
+
+        @media(max-width:576px) {
+            .step-chip {
+                width: 100%;
+                justify-content: center
+            }
+
+            .slot {
+                font-size: .78rem;
+                padding: .55rem
+            }
+
+            .hero-content h1 {
+                font-size: 2rem !important
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-gradient-deep">
+    <div class="grid-overlay fixed inset-0 opacity-50 pointer-events-none"></div>
+    <div class="blob" style="width:520px;height:520px;background:#22d3ee;top:-160px;right:-120px"></div>
+    <div class="blob" style="width:420px;height:420px;background:#a78bfa;bottom:-130px;left:-80px;animation-delay:-6s">
+    </div>
+
+    <main class="auth-shell">
+        <div class="container">
+            <div class="row g-4 align-items-stretch">
+                <aside class="col-lg-5">
+                    <div class="glass-strong hero-panel">
+                        <div class="hero-content">
+                            <div>
+                                <div class="d-flex align-items-center gap-2 mb-4">
+                                    <span class="logo-mark">P</span>
+                                    <div>
+                                        <div class="fw-bold text-white">Paymo <span class="text-gradient">BAAS</span>
+                                        </div>
+                                        <div style="font-size:.75rem;color:var(--ink-3)">Identity Verification</div>
+                                    </div>
+                                </div>
+                                <span class="pill mb-3"><span class="pill-dot"></span> High assurance recovery</span>
+                                <h1 style="font-size:clamp(2.2rem,4.4vw,4rem);line-height:1.02;font-weight:900">Verify
+                                    your <span class="text-gradient">identity.</span></h1>
+                                <p class="mt-3" style="color:var(--ink-2);max-width:430px">We need to confirm it is
+                                    really you. This protects your Paymo account from unauthorized recovery, fraud, and
+                                    sensitive-action abuse.</p>
+                                <div class="glass p-3 mt-4" style="border-radius:16px">
+                                    <div class="section-title mb-2">Reason for verification</div>
+                                    <select id="reasonSelect" class="form-select">
+                                        <option>Account recovery</option>
+                                        <option>Large transaction above $10,000</option>
+                                        <option>Sensitive action: API key rotation</option>
+                                        <option>Regulatory requirement: KYC refresh</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <div class="detail-stat">
+                                            <div class="detail-stat-lbl">Auto review</div>
+                                            <div class="detail-stat-val">2-5 min</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="detail-stat">
+                                            <div class="detail-stat-lbl">Video calls</div>
+                                            <div class="detail-stat-val">4h SLA</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="detail-stat">
+                                            <div class="detail-stat-lbl">Languages</div>
+                                            <div class="detail-stat-val">8</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="detail-stat">
+                                            <div class="detail-stat-lbl">Encryption</div>
+                                            <div class="detail-stat-val">TLS 1.3</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+
+                <section class="col-lg-7">
+                    <div class="glass-strong p-3 p-md-4">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+                            <div>
+                                <div class="section-title">Page 59 - Account Recovery & Identity Verification</div>
+                                <h2 class="mb-1" style="font-size:1.55rem">Choose a verification path</h2>
+                                <p class="mb-0" style="color:var(--ink-2);font-size:.92rem">Select the assurance level
+                                    that matches your risk prompt.</p>
+                            </div>
+                            <span class="badge-mini badge-native" id="riskBadge">Risk: Medium</span>
+                        </div>
+
+                        <div class="step-rail mb-4" id="stepRail">
+                            <span class="step-chip active" data-step="select"><i class="bi bi-grid"></i> Method</span>
+                            <span class="step-chip" data-step="verify"><i class="bi bi-person-vcard"></i> Verify</span>
+                            <span class="step-chip" data-step="review"><i class="bi bi-hourglass-split"></i>
+                                Review</span>
+                            <span class="step-chip" data-step="done"><i class="bi bi-check2-circle"></i> Next
+                                steps</span>
+                        </div>
+
+                        <div id="appView">
+                            <div id="selectPanel" class="hidden-panel active">
+                                <div class="row g-3">
+                                    <div class="col-md-6 col-xl-4">
+                                        <div class="method-card active" data-method="basic">
+                                            <div class="d-flex justify-content-between">
+                                                <div class="method-icon"><i class="bi bi-shield-check"></i></div><span
+                                                    class="check-dot"></span>
+                                            </div>
+                                            <h5 style="font-size:1rem">Level 1 - Basic</h5>
+                                            <p style="font-size:.82rem;color:var(--ink-2);margin:0">Dual-channel OTP
+                                                plus security questions for low-risk recovery.</p>
+                                            <div class="mt-3 d-flex gap-1 flex-wrap"><span
+                                                    class="badge-mini badge-ok">Email</span><span
+                                                    class="badge-mini badge-ok">SMS</span></div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 col-xl-4">
+                                        <div class="method-card" data-method="document">
+                                            <div class="d-flex justify-content-between">
+                                                <div class="method-icon"><i class="bi bi-person-vcard"></i></div><span
+                                                    class="check-dot"></span>
+                                            </div>
+                                            <h5 style="font-size:1rem">Level 2 - Standard</h5>
+                                            <p style="font-size:.82rem;color:var(--ink-2);margin:0">Government ID,
+                                                selfie match, and automated document review.</p>
+                                            <div class="mt-3 d-flex gap-1 flex-wrap"><span
+                                                    class="badge-mini badge-native">ID</span><span
+                                                    class="badge-mini badge-native">Selfie</span></div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 col-xl-4">
+                                        <div class="method-card" data-method="video">
+                                            <div class="d-flex justify-content-between">
+                                                <div class="method-icon"><i class="bi bi-camera-video"></i></div><span
+                                                    class="check-dot"></span>
+                                            </div>
+                                            <h5 style="font-size:1rem">Level 3 - Video</h5>
+                                            <p style="font-size:.82rem;color:var(--ink-2);margin:0">Live agent
+                                                verification for high-risk recovery and legal holds.</p>
+                                            <div class="mt-3 d-flex gap-1 flex-wrap"><span
+                                                    class="badge-mini badge-adv">4h slots</span></div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 col-xl-4">
+                                        <div class="method-card" data-method="bank">
+                                            <div class="d-flex justify-content-between">
+                                                <div class="method-icon"><i class="bi bi-bank"></i></div><span
+                                                    class="check-dot"></span>
+                                            </div>
+                                            <h5 style="font-size:1rem">Bank Micro-deposit</h5>
+                                            <p style="font-size:.82rem;color:var(--ink-2);margin:0">Confirm ownership of
+                                                a linked bank account with two small amounts.</p>
+                                            <div class="mt-3 d-flex gap-1 flex-wrap"><span
+                                                    class="badge-mini badge-soon">1-2 days</span></div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 col-xl-4">
+                                        <div class="method-card" data-method="enterprise">
+                                            <div class="d-flex justify-content-between">
+                                                <div class="method-icon"><i class="bi bi-building-lock"></i></div><span
+                                                    class="check-dot"></span>
+                                            </div>
+                                            <h5 style="font-size:1rem">Enterprise Courier</h5>
+                                            <p style="font-size:.82rem;color:var(--ink-2);margin:0">Document courier
+                                                verification for enterprise admins and signatories.</p>
+                                            <div class="mt-3 d-flex gap-1 flex-wrap"><span
+                                                    class="badge-mini badge-warn">High assurance</span></div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 col-xl-4">
+                                        <div class="method-card" data-method="affidavit">
+                                            <div class="d-flex justify-content-between">
+                                                <div class="method-icon"><i class="bi bi-file-earmark-lock"></i></div>
+                                                <span class="check-dot"></span>
+                                            </div>
+                                            <h5 style="font-size:1rem">Notarized Affidavit</h5>
+                                            <p style="font-size:.82rem;color:var(--ink-2);margin:0">Legal dispute
+                                                recovery with notarized statement and compliance review.</p>
+                                            <div class="mt-3 d-flex gap-1 flex-wrap"><span
+                                                    class="badge-mini badge-warn">3-5 days</span></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="d-flex flex-wrap gap-2 mt-4"><button class="btn btn-primary-paymo"
+                                        id="startBtn"><i class="bi bi-arrow-right-circle me-1"></i> Continue
+                                        verification</button><button class="btn btn-outline-paymo"
+                                        id="simulateRiskBtn"><i class="bi bi-lightning-charge me-1"></i> Simulate risk
+                                        routing</button></div>
+                            </div>
+
+                            <div id="verifyPanel" class="hidden-panel">
+                                <div id="basicFlow" class="verify-flow">
+                                    <h4>Dual-channel verification</h4>
+                                    <p style="color:var(--ink-2)">Enter both OTP codes and answer 2 security questions.
+                                    </p>
+                                    <div class="row g-3">
+                                        <div class="col-md-6"><label class="form-label-paymo">Email OTP</label><input
+                                                class="form-control otp" maxlength="6" placeholder="123456"></div>
+                                        <div class="col-md-6"><label class="form-label-paymo">SMS OTP</label><input
+                                                class="form-control otp" maxlength="6" placeholder="654321"></div>
+                                        <div class="col-md-6"><label class="form-label-paymo">Security question
+                                                1</label><input class="form-control" id="q1"
+                                                placeholder="City where you were born"></div>
+                                        <div class="col-md-6"><label class="form-label-paymo">Security question
+                                                2</label><input class="form-control" id="q2"
+                                                placeholder="First school name"></div>
+                                    </div>
+                                </div>
+
+                                <div id="documentFlow" class="verify-flow d-none">
+                                    <div class="row g-4">
+                                        <div class="col-lg-6">
+                                            <h4>Document upload verification</h4>
+                                            <p style="color:var(--ink-2)">Select document type, upload or capture the
+                                                document, then complete a live selfie match.</p><label
+                                                class="form-label-paymo">Document type</label><select
+                                                class="form-select mb-3" id="docType">
+                                                <option>Passport</option>
+                                                <option>National ID</option>
+                                                <option>Driver's License</option>
+                                                <option>Voter's Card</option>
+                                            </select><input type="file" id="docFile" class="d-none"
+                                                accept="image/*,.pdf">
+                                            <div class="upload-zone" id="uploadZone"><i class="bi bi-cloud-arrow-up"
+                                                    style="font-size:2rem;color:var(--accent)"></i>
+                                                <div class="fw-bold mt-2">Upload or capture document</div>
+                                                <div style="font-size:.82rem;color:var(--ink-3)">JPEG, PNG, or PDF.
+                                                    Auto-crop enabled.</div>
+                                            </div>
+                                            <div class="mt-3" id="qualityBox">
+                                                <div class="quality-row"><span>Lighting</span><span
+                                                        class="badge-mini badge-soon">Pending</span></div>
+                                                <div class="quality-row"><span>Glare detection</span><span
+                                                        class="badge-mini badge-soon">Pending</span></div>
+                                                <div class="quality-row"><span>Frame quality</span><span
+                                                        class="badge-mini badge-soon">Pending</span></div>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <div class="camera-box"><img
+                                                    src="https://i.pinimg.com/736x/9e/c1/f1/9ec1f12d8d3474f7ca550168f7ef48bc.jpg"
+                                                    alt="Selfie verification preview">
+                                                <div class="scan-line"></div>
+                                                <div class="face-frame"></div>
+                                            </div>
+                                            <div class="d-flex flex-wrap gap-2 mt-3"><button
+                                                    class="btn btn-outline-paymo btn-sm" id="blinkBtn"><i
+                                                        class="bi bi-eye me-1"></i> Blink</button><button
+                                                    class="btn btn-outline-paymo btn-sm" id="turnBtn"><i
+                                                        class="bi bi-arrow-left-right me-1"></i> Turn
+                                                    head</button><button class="btn btn-outline-paymo btn-sm"
+                                                    id="smileBtn"><i class="bi bi-emoji-smile me-1"></i> Smile</button>
+                                            </div>
+                                            <div class="detail-stat mt-3">
+                                                <div class="detail-stat-lbl">Face match confidence</div>
+                                                <div class="detail-stat-val" id="faceScore">Not captured</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div id="videoFlow" class="verify-flow d-none">
+                                    <h4>Schedule a 5-minute video call</h4>
+                                    <p style="color:var(--ink-2)">Have a valid ID ready, use good lighting, and join
+                                        from a stable connection.</p>
+                                    <div class="row g-3">
+                                        <div class="col-md-6"><label class="form-label-paymo">Language</label><select
+                                                class="form-select" id="callLang">
+                                                <option>English</option>
+                                                <option>French</option>
+                                                <option>Portuguese</option>
+                                                <option>Swahili</option>
+                                                <option>Arabic</option>
+                                                <option>Hausa</option>
+                                                <option>Yoruba</option>
+                                                <option>Zulu</option>
+                                            </select></div>
+                                        <div class="col-md-6"><label class="form-label-paymo">Timezone</label><select
+                                                class="form-select">
+                                                <option>WAT - Lagos</option>
+                                                <option>EAT - Nairobi</option>
+                                                <option>GMT - Accra/London</option>
+                                                <option>GST - Dubai</option>
+                                            </select></div>
+                                    </div>
+                                    <div class="row g-2 mt-3" id="slotGrid"></div>
+                                    <div id="callConfirm" class="glass p-3 mt-3 d-none" style="border-radius:14px">
+                                    </div>
+                                </div>
+
+                                <div id="bankFlow" class="verify-flow d-none">
+                                    <h4>Micro-deposit verification</h4>
+                                    <p style="color:var(--ink-2)">We send two small deposits to your linked bank. Enter
+                                        the amounts to confirm ownership.</p>
+                                    <div id="bankSetup">
+                                        <div class="row g-3">
+                                            <div class="col-md-6"><label class="form-label-paymo">Bank
+                                                    name</label><select class="form-select">
+                                                    <option>GTBank</option>
+                                                    <option>Equity Bank</option>
+                                                    <option>Stanbic Bank</option>
+                                                    <option>Standard Bank</option>
+                                                </select></div>
+                                            <div class="col-md-6"><label class="form-label-paymo">Account
+                                                    number</label><input class="form-control" id="acctNum"
+                                                    placeholder="0123456789"></div>
+                                        </div><button class="btn btn-outline-paymo mt-3" id="sendDepositsBtn">Send
+                                            micro-deposits</button>
+                                    </div>
+                                    <div id="depositConfirm" class="d-none">
+                                        <div class="row g-3">
+                                            <div class="col-md-6"><label class="form-label-paymo">First
+                                                    amount</label><input class="form-control" id="dep1"
+                                                    placeholder="0.23"></div>
+                                            <div class="col-md-6"><label class="form-label-paymo">Second
+                                                    amount</label><input class="form-control" id="dep2"
+                                                    placeholder="0.47"></div>
+                                        </div>
+                                        <p class="mt-2" style="font-size:.82rem;color:var(--ink-3)">Demo accepted
+                                            values: 0.23 and 0.47.</p>
+                                    </div>
+                                </div>
+
+                                <div id="enterpriseFlow" class="verify-flow d-none">
+                                    <h4>Enterprise document courier verification</h4>
+                                    <p style="color:var(--ink-2)">For enterprise admins and signatories, we verify
+                                        original documents through an approved courier partner.</p>
+                                    <div class="row g-3">
+                                        <div class="col-md-6"><label class="form-label-paymo">Company legal
+                                                name</label><input class="form-control" id="entName"
+                                                placeholder="Company Ltd"></div>
+                                        <div class="col-md-6"><label class="form-label-paymo">Registered
+                                                country</label><select class="form-select">
+                                                <option>Nigeria</option>
+                                                <option>Kenya</option>
+                                                <option>Ghana</option>
+                                                <option>South Africa</option>
+                                                <option>United Kingdom</option>
+                                            </select></div>
+                                        <div class="col-12"><label class="form-label-paymo">Courier pickup
+                                                address</label><input class="form-control" id="pickupAddr"
+                                                placeholder="Office address"></div>
+                                    </div>
+                                </div>
+                                <div id="affidavitFlow" class="verify-flow d-none">
+                                    <h4>Notarized affidavit recovery</h4>
+                                    <p style="color:var(--ink-2)">For legal disputes, ownership conflicts, or
+                                        inaccessible recovery factors.</p>
+                                    <div class="row g-3">
+                                        <div class="col-md-6"><label class="form-label-paymo">Case type</label><select
+                                                class="form-select">
+                                                <option>Lost access to all factors</option>
+                                                <option>Business signatory dispute</option>
+                                                <option>Estate/legal representative</option>
+                                                <option>Regulatory hold appeal</option>
+                                            </select></div>
+                                        <div class="col-md-6"><label class="form-label-paymo">Jurisdiction</label><input
+                                                class="form-control" id="jurisdiction"
+                                                placeholder="e.g. Lagos, Nigeria"></div>
+                                        <div class="col-12"><label class="form-label-paymo">Short
+                                                explanation</label><textarea class="form-control" rows="3" id="affText"
+                                                placeholder="Describe the recovery issue"></textarea></div>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex flex-wrap gap-2 mt-4"><button class="btn btn-primary-paymo"
+                                        id="submitVerifyBtn"><i class="bi bi-shield-check me-1"></i> Submit
+                                        verification</button><button class="btn btn-outline-paymo" id="backSelectBtn"><i
+                                            class="bi bi-arrow-left me-1"></i> Change method</button></div>
+                            </div>
+
+                            <div id="reviewPanel" class="hidden-panel">
+                                <div class="row g-4">
+                                    <div class="col-lg-6">
+                                        <h4>Verification status tracking</h4>
+                                        <p style="color:var(--ink-2)">Email and push notifications are sent at each
+                                            stage. If rejected, we provide a clear reason and re-submission guidance.
+                                        </p>
+                                        <div id="statusList">
+                                            <div class="status-line done"><span class="status-dot"><i
+                                                        class="bi bi-check-lg"></i></span><strong>Submitted</strong>
+                                                <div style="font-size:.82rem;color:var(--ink-3)">Evidence package
+                                                    received</div>
+                                            </div>
+                                            <div class="status-line active"><span class="status-dot"><i
+                                                        class="bi bi-hourglass-split"></i></span><strong>Under
+                                                    review</strong>
+                                                <div style="font-size:.82rem;color:var(--ink-3)">Automated and human
+                                                    checks running</div>
+                                            </div>
+                                            <div class="status-line"><span class="status-dot"><i
+                                                        class="bi bi-info"></i></span><strong>Decision</strong>
+                                                <div style="font-size:.82rem;color:var(--ink-3)">Approved, rejected, or
+                                                    additional info required</div>
+                                            </div>
+                                        </div>
+                                        <div class="progress mt-3">
+                                            <div class="progress-bar" id="reviewBar" style="width:38%"></div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6">
+                                        <div class="flow-frame"><img
+                                                src="https://i.pinimg.com/originals/82/de/83/82de83fb86c54aa5783bbb6ca3b26938.gif"
+                                                alt="Verification flow">
+                                            <div class="flow-label"><span class="badge-mini badge-native">Review
+                                                    engine</span>
+                                                <div class="fw-bold text-white mt-1">Identity graph, fraud checks, and
+                                                    compliance rules</div>
+                                            </div>
+                                        </div>
+                                        <div class="row g-2 mt-3">
+                                            <div class="col-6">
+                                                <div class="detail-stat">
+                                                    <div class="detail-stat-lbl">Case ID</div>
+                                                    <div class="detail-stat-val mono" id="caseId">IDV-0000</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="detail-stat">
+                                                    <div class="detail-stat-lbl">ETA</div>
+                                                    <div class="detail-stat-val" id="caseEta">2-5 min</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="donePanel" class="hidden-panel">
+                                <div class="success-card active">
+                                    <div class="success-icon"><i class="bi bi-check-lg"></i></div>
+                                    <h3>Identity verified</h3>
+                                    <p style="color:var(--ink-2);max-width:520px;margin:0 auto 1.5rem" id="doneCopy">
+                                        Your account recovery can continue. Please secure your account with the next
+                                        actions.</p>
+                                    <div class="row g-3 text-start">
+                                        <div class="col-md-6">
+                                            <div class="method-card">
+                                                <div class="method-icon"><i class="bi bi-key"></i></div>
+                                                <h5 style="font-size:1rem">Set new password</h5>
+                                                <p style="font-size:.82rem;color:var(--ink-2)">Create a strong password
+                                                    and revoke older login credentials.</p><button
+                                                    class="btn btn-outline-paymo btn-sm w-100 actionBtn">Start password
+                                                    reset</button>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="method-card">
+                                                <div class="method-icon"><i class="bi bi-phone"></i></div>
+                                                <h5 style="font-size:1rem">Re-enroll MFA</h5>
+                                                <p style="font-size:.82rem;color:var(--ink-2)">Refresh authenticator,
+                                                    SMS, WhatsApp, or passkey factors.</p><button
+                                                    class="btn btn-outline-paymo btn-sm w-100 actionBtn">Open MFA
+                                                    setup</button>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="method-card">
+                                                <div class="method-icon"><i class="bi bi-clock-history"></i></div>
+                                                <h5 style="font-size:1rem">Review login activity</h5>
+                                                <p style="font-size:.82rem;color:var(--ink-2)">Check recent logins and
+                                                    mark unauthorized devices.</p><button
+                                                    class="btn btn-outline-paymo btn-sm w-100 actionBtn">Review
+                                                    sessions</button>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="method-card">
+                                                <div class="method-icon"><i class="bi bi-shield-lock"></i></div>
+                                                <h5 style="font-size:1rem">Set up passkey</h5>
+                                                <p style="font-size:.82rem;color:var(--ink-2)">Add phishing-resistant
+                                                    recovery for future access.</p><button
+                                                    class="btn btn-primary-paymo btn-sm w-100 actionBtn">Create
+                                                    passkey</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const methods = document.querySelectorAll('.method-card'); let selected = 'basic'; let liveness = { blink: false, turn: false, smile: false }; const panels = { select: document.getElementById('selectPanel'), verify: document.getElementById('verifyPanel'), review: document.getElementById('reviewPanel'), done: document.getElementById('donePanel') };
+        methods.forEach(card => card.addEventListener('click', () => { methods.forEach(c => c.classList.remove('active')); card.classList.add('active'); selected = card.dataset.method; document.getElementById('riskBadge').textContent = selected === 'basic' ? 'Risk: Low' : selected === 'document' || selected === 'bank' ? 'Risk: Medium' : 'Risk: High'; document.getElementById('riskBadge').className = 'badge-mini ' + (selected === 'basic' ? 'badge-ok' : selected === 'document' || selected === 'bank' ? 'badge-native' : 'badge-warn') }));
+        function goto(name) { Object.values(panels).forEach(p => p.classList.remove('active')); panels[name].classList.add('active'); document.querySelectorAll('.step-chip').forEach(chip => { chip.classList.remove('active', 'done'); if (chip.dataset.step === name) chip.classList.add('active') }); const order = ['select', 'verify', 'review', 'done']; document.querySelectorAll('.step-chip').forEach(chip => { if (order.indexOf(chip.dataset.step) < order.indexOf(name)) chip.classList.add('done') }); }
+        function showFlow() { document.querySelectorAll('.verify-flow').forEach(f => f.classList.add('d-none')); document.getElementById(selected + 'Flow').classList.remove('d-none'); goto('verify'); }
+        document.getElementById('startBtn').addEventListener('click', showFlow); document.getElementById('backSelectBtn').addEventListener('click', () => goto('select'));
+        document.getElementById('simulateRiskBtn').addEventListener('click', () => { const routes = ['basic', 'document', 'video', 'bank', 'enterprise', 'affidavit']; selected = routes[Math.floor(Math.random() * routes.length)]; methods.forEach(c => c.classList.toggle('active', c.dataset.method === selected)); document.getElementById('reasonSelect').selectedIndex = Math.floor(Math.random() * 4); document.getElementById('riskBadge').textContent = selected === 'basic' ? 'Risk: Low' : selected === 'document' || selected === 'bank' ? 'Risk: Medium' : 'Risk: High'; });
+        document.getElementById('uploadZone').addEventListener('click', () => document.getElementById('docFile').click()); document.getElementById('docFile').addEventListener('change', () => { const z = document.getElementById('uploadZone'); z.classList.add('loaded'); z.innerHTML = '<i class="bi bi-check-circle" style="font-size:2rem;color:#86efac"></i><div class="fw-bold mt-2">Document received</div><div style="font-size:.82rem;color:var(--ink-3)">Auto-crop and OCR complete</div>'; document.getElementById('qualityBox').innerHTML = '<div class="quality-row"><span>Lighting</span><span class="badge-mini badge-ok">Passed</span></div><div class="quality-row"><span>Glare detection</span><span class="badge-mini badge-ok">Passed</span></div><div class="quality-row"><span>Frame quality</span><span class="badge-mini badge-ok">Passed</span></div>'; });
+        ['blink', 'turn', 'smile'].forEach(k => document.getElementById(k + 'Btn').addEventListener('click', e => { liveness[k] = true; e.currentTarget.classList.remove('btn-outline-paymo'); e.currentTarget.classList.add('btn-primary-paymo'); if (Object.values(liveness).every(Boolean)) document.getElementById('faceScore').innerHTML = '<span style="color:#86efac">97.8% match</span>'; }));
+        const slots = ['Today 14:00', 'Today 16:30', 'Tomorrow 09:00', 'Tomorrow 11:30', 'Tomorrow 15:00', '+2 days 10:00', '+2 days 13:30', '+2 days 17:00']; document.getElementById('slotGrid').innerHTML = slots.map(s => `<div class="col-6 col-md-3"><div class="slot">${s}</div></div>`).join(''); document.querySelectorAll('.slot').forEach(s => s.addEventListener('click', () => { document.querySelectorAll('.slot').forEach(x => x.classList.remove('active')); s.classList.add('active'); document.getElementById('callConfirm').classList.remove('d-none'); document.getElementById('callConfirm').innerHTML = '<i class="bi bi-calendar-check me-2" style="color:#86efac"></i>Video call reserved for <strong>' + s.textContent + '</strong>. Calendar invite will be sent after submission.'; }));
+        document.getElementById('sendDepositsBtn').addEventListener('click', () => { if (!document.getElementById('acctNum').value) { document.getElementById('acctNum').focus(); return } document.getElementById('bankSetup').classList.add('d-none'); document.getElementById('depositConfirm').classList.remove('d-none') });
+        document.getElementById('submitVerifyBtn').addEventListener('click', () => { if (selected === 'document' && !document.getElementById('docFile').value) { document.getElementById('uploadZone').style.borderColor = 'rgba(239,68,68,.65)'; return } if (selected === 'bank' && !document.getElementById('depositConfirm').classList.contains('d-none')) { if (document.getElementById('dep1').value !== '0.23' || document.getElementById('dep2').value !== '0.47') { document.getElementById('dep1').focus(); return } } document.getElementById('caseId').textContent = 'IDV-' + Math.floor(1000 + Math.random() * 9000); document.getElementById('caseEta').textContent = selected === 'video' ? 'After video call' : selected === 'enterprise' || selected === 'affidavit' ? '3-5 days' : '2-5 min'; goto('review'); let w = 38; const bar = document.getElementById('reviewBar'); const timer = setInterval(() => { w += 12; bar.style.width = Math.min(w, 100) + '%'; if (w >= 100) { clearInterval(timer); setTimeout(() => goto('done'), 500) } }, 650) });
+        document.querySelectorAll('.actionBtn').forEach(btn => btn.addEventListener('click', () => { btn.innerHTML = '<i class="bi bi-check-lg me-1"></i> Action queued'; btn.disabled = true }));
+    </script>
+</body>
+
+</html>

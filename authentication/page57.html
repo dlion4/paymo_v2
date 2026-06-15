@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Center - Paymo BAAS</title>
+    <meta name="description"
+        content="Paymo BAAS session management and security center for active sessions, login history, trusted devices, alerts, emergency lock, and third-party app access.">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-0: #04081a;
+            --bg-1: #06122e;
+            --bg-2: #0a1a3f;
+            --bg-3: #0f2456;
+            --ink-0: #ffffff;
+            --ink-1: #e6ecff;
+            --ink-2: #a8b6e0;
+            --ink-3: #6f82b5;
+            --accent: #22d3ee;
+            --accent-2: #60a5fa;
+            --accent-3: #a78bfa;
+            --accent-4: #fbbf24;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --glass-bg: rgba(255, 255, 255, 0.04);
+            --glass-border: rgba(255, 255, 255, 0.10);
+            --glass-strong: rgba(255, 255, 255, 0.08);
+            --glass-border-strong: rgba(255, 255, 255, 0.16);
+            --radius-lg: 22px;
+            --radius-md: 14px;
+            --radius-sm: 10px;
+            --shadow-glow: 0 0 40px rgba(34, 211, 238, 0.18);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--bg-0);
+            color: var(--ink-1);
+            overflow-x: hidden;
+            line-height: 1.55;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5 {
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: var(--ink-0);
+        }
+
+        code,
+        pre,
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        a {
+            color: var(--accent);
+            text-decoration: none;
+            transition: color .2s;
+        }
+
+        a:hover {
+            color: var(--accent-2);
+        }
+
+        .bg-gradient-deep {
+            background:
+                radial-gradient(1200px 600px at 80% -10%, rgba(96, 165, 250, 0.22), transparent 60%),
+                radial-gradient(900px 500px at -10% 20%, rgba(167, 139, 250, 0.18), transparent 60%),
+                radial-gradient(800px 500px at 50% 110%, rgba(34, 211, 238, 0.18), transparent 60%),
+                linear-gradient(180deg, #04081a 0%, #06122e 30%, #081838 70%, #04081a 100%);
+        }
+
+        .grid-overlay {
+            background-image:
+                linear-gradient(rgba(96, 165, 250, 0.06) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(96, 165, 250, 0.06) 1px, transparent 1px);
+            background-size: 56px 56px;
+            mask-image: radial-gradient(ellipse at center, black 40%, transparent 80%);
+        }
+
+        .blob {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: .45;
+            pointer-events: none;
+            animation: float 14s ease-in-out infinite;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            50% {
+                transform: translate(40px, -30px) scale(1.08);
+            }
+        }
+
+        @keyframes pulseGlow {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(34, 211, 238, 0.35);
+            }
+
+            50% {
+                box-shadow: 0 0 0 14px rgba(34, 211, 238, 0);
+            }
+        }
+
+        @keyframes ping {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(2.2);
+                opacity: 0;
+            }
+        }
+
+        @keyframes scan {
+            from {
+                transform: translateY(-100%);
+            }
+
+            to {
+                transform: translateY(420%);
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(18px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .glass {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-lg);
+            backdrop-filter: blur(20px) saturate(140%);
+            -webkit-backdrop-filter: blur(20px) saturate(140%);
+            box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.04) inset, 0 30px 60px -30px rgba(0, 0, 0, 0.5);
+        }
+
+        .glass-strong {
+            background: var(--glass-strong);
+            border: 1px solid var(--glass-border-strong);
+            border-radius: var(--radius-lg);
+            backdrop-filter: blur(24px) saturate(150%);
+            -webkit-backdrop-filter: blur(24px) saturate(150%);
+        }
+
+        .glass-hover {
+            transition: transform .35s ease, border-color .35s ease, background .35s ease;
+        }
+
+        .glass-hover:hover {
+            transform: translateY(-4px);
+            border-color: rgba(96, 165, 250, 0.35);
+            background: rgba(96, 165, 250, 0.06);
+        }
+
+        .text-gradient {
+            background: linear-gradient(135deg, #22d3ee 0%, #60a5fa 50%, #a78bfa 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .text-gradient-gold {
+            background: linear-gradient(135deg, #fde68a 0%, #fbbf24 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .btn {
+            font-weight: 600;
+            border-radius: 12px;
+            padding: .75rem 1.4rem;
+            transition: all .25s ease;
+            letter-spacing: -0.01em;
+        }
+
+        .btn-primary-paymo {
+            background: linear-gradient(135deg, #22d3ee 0%, #3b82f6 100%);
+            color: #02121f;
+            border: none;
+            box-shadow: 0 10px 30px -10px rgba(34, 211, 238, 0.55);
+        }
+
+        .btn-primary-paymo:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 40px -10px rgba(34, 211, 238, 0.75);
+            color: #02121f;
+        }
+
+        .btn-outline-paymo {
+            background: transparent;
+            color: var(--ink-1);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        .btn-outline-paymo:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--accent);
+            color: var(--ink-0);
+        }
+
+        .btn-danger-paymo {
+            background: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
+            color: #fff;
+            border: none;
+            box-shadow: 0 10px 30px -10px rgba(239, 68, 68, 0.55);
+        }
+
+        .logo-mark {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #22d3ee, #60a5fa, #a78bfa);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #02121f;
+            font-weight: 900;
+            box-shadow: 0 8px 24px -8px rgba(34, 211, 238, .6);
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: .5rem;
+            padding: .35rem .85rem;
+            border-radius: 999px;
+            background: rgba(34, 211, 238, 0.08);
+            border: 1px solid rgba(34, 211, 238, 0.25);
+            font-size: .8rem;
+            font-weight: 500;
+            color: #a5f3fc;
+        }
+
+        .pill-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 0 10px var(--accent);
+            animation: pulseGlow 2s infinite;
+        }
+
+        .badge-mini {
+            font-size: .7rem;
+            padding: .2rem .55rem;
+            border-radius: 999px;
+            font-weight: 600;
+            letter-spacing: .02em;
+        }
+
+        .badge-ok {
+            background: rgba(34, 197, 94, 0.15);
+            color: #86efac;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .badge-adv {
+            background: rgba(167, 139, 250, 0.15);
+            color: #c4b5fd;
+            border: 1px solid rgba(167, 139, 250, 0.3);
+        }
+
+        .badge-native {
+            background: rgba(34, 211, 238, 0.15);
+            color: #a5f3fc;
+            border: 1px solid rgba(34, 211, 238, 0.3);
+        }
+
+        .badge-soon {
+            background: rgba(251, 191, 36, 0.15);
+            color: #fcd34d;
+            border: 1px solid rgba(251, 191, 36, 0.3);
+        }
+
+        .badge-danger-soft {
+            background: rgba(239, 68, 68, .15);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, .3);
+        }
+
+        .page-wrap {
+            min-height: 100vh;
+            position: relative;
+            padding: 32px 0;
+        }
+
+        .auth-shell {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 16px;
+        }
+
+        .section-label {
+            display: inline-flex;
+            align-items: center;
+            gap: .5rem;
+            font-size: .7rem;
+            text-transform: uppercase;
+            letter-spacing: .24em;
+            color: var(--ink-3);
+            font-weight: 700;
+            margin-bottom: .85rem;
+        }
+
+        .section-label::before {
+            content: "";
+            width: 22px;
+            height: 1px;
+            background: var(--accent);
+        }
+
+        .side-visual {
+            min-height: calc(100vh - 64px);
+            position: sticky;
+            top: 32px;
+            overflow: hidden;
+        }
+
+        .side-visual::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: url('https://i.pinimg.com/736x/81/8d/70/818d706bc8e2a226f8a4d0564be6f286.jpg') center/cover;
+            opacity: .22;
+            mix-blend-mode: screen;
+            filter: hue-rotate(12deg) saturate(130%);
+        }
+
+        .side-visual::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(4, 8, 26, .2), rgba(4, 8, 26, .92));
+        }
+
+        .side-content {
+            position: relative;
+            z-index: 2;
+            padding: 32px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .score-ring {
+            width: 180px;
+            height: 180px;
+            position: relative;
+            display: grid;
+            place-items: center;
+        }
+
+        .score-ring svg {
+            transform: rotate(-90deg);
+        }
+
+        .score-center {
+            position: absolute;
+            text-align: center;
+        }
+
+        .score-num {
+            font-size: 2.7rem;
+            line-height: 1;
+            font-weight: 900;
+            color: var(--ink-0);
+        }
+
+        .score-caption {
+            font-size: .72rem;
+            color: var(--ink-3);
+            text-transform: uppercase;
+            letter-spacing: .12em;
+            margin-top: .35rem;
+        }
+
+        .tabbar {
+            display: flex;
+            gap: .5rem;
+            flex-wrap: wrap;
+        }
+
+        .tabbtn {
+            border: 1px solid var(--glass-border);
+            background: rgba(255, 255, 255, .035);
+            color: var(--ink-2);
+            border-radius: 999px;
+            padding: .52rem .9rem;
+            font-size: .82rem;
+            font-weight: 700;
+            transition: all .2s;
+        }
+
+        .tabbtn:hover,
+        .tabbtn.active {
+            border-color: rgba(34, 211, 238, .45);
+            color: #a5f3fc;
+            background: rgba(34, 211, 238, .09);
+        }
+
+        .panel {
+            display: none;
+            animation: slideIn .45s ease both;
+        }
+
+        .panel.active {
+            display: block;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: .35rem;
+        }
+
+        .status-dot.green {
+            background: #22c55e;
+            box-shadow: 0 0 12px rgba(34, 197, 94, .65);
+        }
+
+        .status-dot.amber {
+            background: #fbbf24;
+            box-shadow: 0 0 12px rgba(251, 191, 36, .55);
+        }
+
+        .status-dot.red {
+            background: #ef4444;
+            box-shadow: 0 0 12px rgba(239, 68, 68, .55);
+        }
+
+        .session-card,
+        .device-card,
+        .app-card,
+        .alert-card,
+        .recommend-card {
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            background: rgba(255, 255, 255, .03);
+            border: 1px solid var(--glass-border);
+            transition: all .25s ease;
+        }
+
+        .session-card:hover,
+        .device-card:hover,
+        .app-card:hover,
+        .alert-card:hover,
+        .recommend-card:hover {
+            border-color: rgba(96, 165, 250, .35);
+            background: rgba(96, 165, 250, .045);
+            transform: translateY(-2px);
+        }
+
+        .device-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 14px;
+            display: grid;
+            place-items: center;
+            background: linear-gradient(135deg, rgba(34, 211, 238, .18), rgba(96, 165, 250, .08));
+            border: 1px solid rgba(34, 211, 238, .25);
+            color: #a5f3fc;
+            font-size: 1.35rem;
+            flex-shrink: 0;
+        }
+
+        .mini-map {
+            height: 64px;
+            border-radius: 12px;
+            background: radial-gradient(circle at 35% 50%, rgba(34, 211, 238, .28), transparent 18%), radial-gradient(circle at 70% 35%, rgba(167, 139, 250, .2), transparent 17%), rgba(255, 255, 255, .025);
+            border: 1px solid var(--glass-border);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mini-map::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background-image: linear-gradient(rgba(96, 165, 250, .08) 1px, transparent 1px), linear-gradient(90deg, rgba(96, 165, 250, .08) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        .form-control,
+        .form-select {
+            background: rgba(255, 255, 255, .035) !important;
+            border: 1px solid var(--glass-border) !important;
+            color: var(--ink-1) !important;
+            border-radius: 12px !important;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            box-shadow: 0 0 0 3px rgba(34, 211, 238, .14) !important;
+            border-color: var(--accent) !important;
+        }
+
+        .form-select option {
+            background: #06122e;
+            color: #e6ecff;
+        }
+
+        .toggle {
+            position: relative;
+            width: 50px;
+            height: 28px;
+            display: inline-block;
+            flex-shrink: 0;
+        }
+
+        .toggle input {
+            display: none;
+        }
+
+        .toggle span {
+            position: absolute;
+            inset: 0;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, .1);
+            border: 1px solid var(--glass-border);
+            cursor: pointer;
+            transition: all .2s;
+        }
+
+        .toggle span::before {
+            content: "";
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            left: 3px;
+            top: 3px;
+            background: var(--ink-2);
+            transition: all .2s;
+        }
+
+        .toggle input:checked+span {
+            background: linear-gradient(135deg, #22d3ee, #60a5fa);
+            border-color: transparent;
+        }
+
+        .toggle input:checked+span::before {
+            transform: translateX(22px);
+            background: #02121f;
+        }
+
+        .flow-frame {
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            border: 1px solid var(--glass-border-strong);
+            background: #020514;
+            position: relative;
+        }
+
+        .flow-frame img {
+            width: 100%;
+            min-height: 180px;
+            object-fit: cover;
+            display: block;
+            opacity: .85;
+            mix-blend-mode: screen;
+            filter: hue-rotate(-15deg) saturate(120%) brightness(1.05);
+        }
+
+        .flow-frame::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, transparent 45%, rgba(4, 8, 26, .8));
+        }
+
+        .flow-caption {
+            position: absolute;
+            left: 1rem;
+            right: 1rem;
+            bottom: 1rem;
+            z-index: 2;
+        }
+
+        .scan-line {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            animation: scan 4s linear infinite;
+            opacity: .75;
+        }
+
+        .notice {
+            display: none;
+            border-radius: 14px;
+            padding: .9rem 1rem;
+            border: 1px solid rgba(34, 197, 94, .28);
+            background: rgba(34, 197, 94, .08);
+            color: #bbf7d0;
+            font-size: .86rem;
+        }
+
+        .notice.show {
+            display: flex;
+            gap: .6rem;
+            align-items: center;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+        }
+
+        .security-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            font-size: .84rem;
+            min-width: 760px;
+        }
+
+        .security-table th {
+            color: var(--ink-3);
+            text-transform: uppercase;
+            letter-spacing: .12em;
+            font-size: .68rem;
+            padding: .75rem .8rem;
+            border-bottom: 1px solid var(--glass-border);
+            font-weight: 800;
+        }
+
+        .security-table td {
+            padding: .78rem .8rem;
+            border-bottom: 1px solid rgba(255, 255, 255, .05);
+            color: var(--ink-2);
+        }
+
+        .security-table tr:hover td {
+            background: rgba(96, 165, 250, .04);
+        }
+
+        @media (max-width: 991px) {
+            .side-visual {
+                position: relative;
+                min-height: 420px;
+                top: 0;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .page-wrap {
+                padding: 16px 0;
+            }
+
+            .side-content {
+                padding: 22px;
+            }
+
+            .score-ring {
+                width: 150px;
+                height: 150px;
+            }
+
+            .score-num {
+                font-size: 2.2rem;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-gradient-deep">
+    <div class="grid-overlay position-fixed top-0 start-0 w-100 h-100" style="opacity:.45; pointer-events:none;"></div>
+    <div class="blob" style="width:520px;height:520px;background:#22d3ee;top:-190px;right:-120px;"></div>
+    <div class="blob"
+        style="width:430px;height:430px;background:#a78bfa;bottom:-140px;left:-120px;animation-delay:-6s;"></div>
+
+    <main class="page-wrap">
+        <div class="auth-shell">
+            <div class="row g-4 align-items-start">
+                <aside class="col-lg-4">
+                    <div class="side-visual glass-strong">
+                        <div class="scan-line"></div>
+                        <div class="side-content">
+                            <div>
+                                <div class="d-flex align-items-center gap-2 mb-4">
+                                    <span class="logo-mark">P</span>
+                                    <div>
+                                        <div class="fw-bold text-white">Paymo <span class="text-gradient">BAAS</span>
+                                        </div>
+                                        <div style="font-size:.74rem;color:var(--ink-3);">Zero-trust security center
+                                        </div>
+                                    </div>
+                                </div>
+                                <span class="pill mb-3"><span class="pill-dot"></span> Account protected</span>
+                                <h1 class="mb-3" style="font-size:clamp(2rem,4vw,3.1rem);line-height:1.02;">Session
+                                    Management & <span class="text-gradient">Security Center</span></h1>
+                                <p class="mb-4" style="color:var(--ink-2);max-width:360px;">Monitor active devices,
+                                    login history, app access, alert rules, and emergency controls from one secure
+                                    surface.</p>
+                                <div class="flow-frame mb-4">
+                                    <img src="https://i.pinimg.com/originals/82/de/83/82de83fb86c54aa5783bbb6ca3b26938.gif"
+                                        alt="Security telemetry flow">
+                                    <div class="flow-caption">
+                                        <span class="badge-mini badge-native">Live risk engine</span>
+                                        <div class="fw-bold text-white mt-1">Device, location, API and login telemetry
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <div class="glass p-3">
+                                        <div class="mono text-gradient fw-bold">7</div>
+                                        <div style="font-size:.72rem;color:var(--ink-3);">Active sessions</div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="glass p-3">
+                                        <div class="mono text-gradient fw-bold">90d</div>
+                                        <div style="font-size:.72rem;color:var(--ink-3);">Login history</div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="glass p-3">
+                                        <div class="mono text-gradient-gold fw-bold">2</div>
+                                        <div style="font-size:.72rem;color:var(--ink-3);">Open actions</div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="glass p-3">
+                                        <div class="mono text-gradient fw-bold">24/7</div>
+                                        <div style="font-size:.72rem;color:var(--ink-3);">Fraud watch</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+
+                <section class="col-lg-8">
+                    <div class="glass-strong p-3 p-md-4 mb-4">
+                        <div
+                            class="d-flex flex-column flex-md-row justify-content-between align-items-md-start gap-3 mb-4">
+                            <div>
+                                <div class="section-label">Page 57 · /security</div>
+                                <h2 class="mb-2" style="font-size:clamp(1.8rem,3.5vw,2.6rem);">Security Center</h2>
+                                <p class="mb-0" style="color:var(--ink-2);">Monitor your account security and manage
+                                    every active session.</p>
+                            </div>
+                            <div class="d-flex flex-wrap gap-2">
+                                <button class="btn btn-outline-paymo btn-sm" id="exportSummaryBtn"><i
+                                        class="bi bi-download me-1"></i> Export summary</button>
+                                <button class="btn btn-danger-paymo btn-sm" data-panel="emergency"><i
+                                        class="bi bi-shield-exclamation me-1"></i> Emergency</button>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 align-items-center">
+                            <div class="col-md-4 d-flex justify-content-center">
+                                <div class="score-ring">
+                                    <svg width="180" height="180" viewBox="0 0 180 180">
+                                        <circle cx="90" cy="90" r="72" fill="none" stroke="rgba(255,255,255,.08)"
+                                            stroke-width="14"></circle>
+                                        <circle id="scoreCircle" cx="90" cy="90" r="72" fill="none"
+                                            stroke="url(#scoreGrad)" stroke-width="14" stroke-linecap="round"
+                                            stroke-dasharray="452" stroke-dashoffset="68"></circle>
+                                        <defs>
+                                            <linearGradient id="scoreGrad" x1="0" x2="1">
+                                                <stop offset="0" stop-color="#22d3ee"></stop>
+                                                <stop offset="1" stop-color="#a78bfa"></stop>
+                                            </linearGradient>
+                                        </defs>
+                                    </svg>
+                                    <div class="score-center">
+                                        <div class="score-num"><span id="scoreNumber">85</span></div>
+                                        <div class="score-caption">Security score</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-8">
+                                <div class="row g-2" id="scoreComponents"></div>
+                            </div>
+                        </div>
+                        <div class="notice mt-3" id="globalNotice"><i class="bi bi-check-circle-fill"></i><span
+                                id="globalNoticeText">Updated.</span></div>
+                    </div>
+
+                    <div class="glass p-3 p-md-4 mb-4">
+                        <div class="tabbar" id="tabs">
+                            <button class="tabbtn active" data-panel="sessions"><i class="bi bi-phone me-1"></i> Active
+                                sessions</button>
+                            <button class="tabbtn" data-panel="history"><i class="bi bi-clock-history me-1"></i> Login
+                                history</button>
+                            <button class="tabbtn" data-panel="trusted"><i class="bi bi-patch-check me-1"></i> Trusted
+                                devices</button>
+                            <button class="tabbtn" data-panel="alerts"><i class="bi bi-bell me-1"></i> Alerts</button>
+                            <button class="tabbtn" data-panel="recommendations"><i class="bi bi-check2-square me-1"></i>
+                                Recommendations</button>
+                            <button class="tabbtn" data-panel="emergency"><i class="bi bi-shield-lock me-1"></i>
+                                Emergency</button>
+                            <button class="tabbtn" data-panel="apps"><i class="bi bi-plug me-1"></i> Apps</button>
+                        </div>
+                    </div>
+
+                    <div class="panel active" id="panel-sessions">
+                        <div class="glass p-3 p-md-4 mb-4">
+                            <div
+                                class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
+                                <div>
+                                    <h3 class="mb-1">Active Sessions</h3>
+                                    <p class="mb-0" style="color:var(--ink-2);font-size:.92rem;">Review devices
+                                        currently signed in and revoke anything unfamiliar.</p>
+                                </div>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <select id="autoLogout" class="form-select form-select-sm" style="width:auto;">
+                                        <option value="15">Auto logout: 15 min</option>
+                                        <option value="60">Auto logout: 1 hour</option>
+                                        <option value="480" selected>Auto logout: 8 hours</option>
+                                        <option value="never">Auto logout: Never</option>
+                                    </select>
+                                    <button class="btn btn-outline-paymo btn-sm" id="logoutOthersBtn"><i
+                                            class="bi bi-box-arrow-right me-1"></i> Log out all other devices</button>
+                                </div>
+                            </div>
+                            <div class="row g-3" id="sessionsList"></div>
+                        </div>
+                    </div>
+
+                    <div class="panel" id="panel-history">
+                        <div class="glass p-3 p-md-4 mb-4">
+                            <div
+                                class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
+                                <div>
+                                    <h3 class="mb-1">Login History</h3>
+                                    <p class="mb-0" style="color:var(--ink-2);font-size:.92rem;">90-day activity trail
+                                        with risk flags and step-up events.</p>
+                                </div>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <select id="historyStatus" class="form-select form-select-sm" style="width:auto;">
+                                        <option value="all">All statuses</option>
+                                        <option>Success</option>
+                                        <option>Failed</option>
+                                        <option>Blocked</option>
+                                        <option>Step-up Required</option>
+                                    </select>
+                                    <select id="historyLocation" class="form-select form-select-sm" style="width:auto;">
+                                        <option value="all">All locations</option>
+                                        <option>Lagos</option>
+                                        <option>Nairobi</option>
+                                        <option>Accra</option>
+                                        <option>London</option>
+                                        <option>Dubai</option>
+                                    </select>
+                                    <button class="btn btn-outline-paymo btn-sm" id="csvBtn"><i
+                                            class="bi bi-filetype-csv me-1"></i> CSV</button>
+                                    <button class="btn btn-outline-paymo btn-sm" id="pdfBtn"><i
+                                            class="bi bi-filetype-pdf me-1"></i> PDF</button>
+                                </div>
+                            </div>
+                            <div class="table-wrap">
+                                <table class="security-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Date/Time</th>
+                                            <th>Device</th>
+                                            <th>Browser</th>
+                                            <th>Location</th>
+                                            <th>IP</th>
+                                            <th>Method</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="historyRows"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel" id="panel-trusted">
+                        <div class="glass p-3 p-md-4 mb-4">
+                            <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                                <div>
+                                    <h3 class="mb-1">Trusted Devices</h3>
+                                    <p class="mb-0" style="color:var(--ink-2);font-size:.92rem;">Trusted devices can use
+                                        longer sessions and lighter step-up prompts. Limit: 10 devices.</p>
+                                </div>
+                                <span class="badge-mini badge-native" id="trustedLimit">0 / 10</span>
+                            </div>
+                            <div class="row g-3" id="trustedList"></div>
+                        </div>
+                    </div>
+
+                    <div class="panel" id="panel-alerts">
+                        <div class="glass p-3 p-md-4 mb-4">
+                            <div
+                                class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
+                                <div>
+                                    <h3 class="mb-1">Security Alerts & Notifications</h3>
+                                    <p class="mb-0" style="color:var(--ink-2);font-size:.92rem;">Customize delivery
+                                        methods and thresholds for high-risk events.</p>
+                                </div>
+                                <button class="btn btn-primary-paymo btn-sm" id="enableAllAlerts"><i
+                                        class="bi bi-bell-fill me-1"></i> Enable all alerts</button>
+                            </div>
+                            <div class="row g-3" id="alertSettings"></div>
+                        </div>
+                    </div>
+
+                    <div class="panel" id="panel-recommendations">
+                        <div class="glass p-3 p-md-4 mb-4">
+                            <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                                <div>
+                                    <h3 class="mb-1">Security Recommendations</h3>
+                                    <p class="mb-0" style="color:var(--ink-2);font-size:.92rem;">Complete these actions
+                                        to improve your score.</p>
+                                </div>
+                                <span class="badge-mini badge-soon" id="openActions">2 open</span>
+                            </div>
+                            <div class="row g-3" id="recommendationsList"></div>
+                        </div>
+                    </div>
+
+                    <div class="panel" id="panel-emergency">
+                        <div class="glass p-3 p-md-4 mb-4">
+                            <div class="d-flex align-items-start gap-3 mb-4">
+                                <div class="device-icon"
+                                    style="background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.35);color:#fca5a5;">
+                                    <i class="bi bi-shield-exclamation"></i></div>
+                                <div>
+                                    <h3 class="mb-1">Account Lock & Emergency Freeze</h3>
+                                    <p class="mb-0" style="color:var(--ink-2);font-size:.92rem;">Use these controls if
+                                        you suspect unauthorized access or card fraud.</p>
+                                </div>
+                            </div>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <div class="alert-card h-100"><span
+                                            class="badge-mini badge-soon mb-2">Temporary</span>
+                                        <h5>Lock account for 24 hours</h5>
+                                        <p style="color:var(--ink-2);font-size:.86rem;">Blocks all new logins and
+                                            sensitive account changes.</p><button
+                                            class="btn btn-outline-paymo btn-sm w-100 emergency-action"
+                                            data-action="lock"><i class="bi bi-lock me-1"></i> Lock account</button>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="alert-card h-100"><span class="badge-mini badge-danger-soft mb-2">Fraud
+                                            control</span>
+                                        <h5>Freeze cards and transactions</h5>
+                                        <p style="color:var(--ink-2);font-size:.86rem;">Stops card spend, payouts,
+                                            beneficiary additions, and API transfers.</p><button
+                                            class="btn btn-danger-paymo btn-sm w-100 emergency-action"
+                                            data-action="freeze"><i class="bi bi-credit-card-2-front me-1"></i> Freeze
+                                            movement</button>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="alert-card h-100"><span class="badge-mini badge-danger-soft mb-2">Panic
+                                            button</span>
+                                        <h5>Secure my account now</h5>
+                                        <p style="color:var(--ink-2);font-size:.86rem;">Revokes sessions, freezes money
+                                            movement, and starts a fraud review.</p><button
+                                            class="btn btn-danger-paymo btn-sm w-100 emergency-action"
+                                            data-action="panic"><i class="bi bi-lightning-charge me-1"></i> Secure
+                                            now</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="notice mt-3" id="emergencyNotice"><i class="bi bi-check-circle-fill"></i><span
+                                    id="emergencyText">Emergency control applied.</span></div>
+                        </div>
+                    </div>
+
+                    <div class="panel" id="panel-apps">
+                        <div class="glass p-3 p-md-4 mb-4">
+                            <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                                <div>
+                                    <h3 class="mb-1">Third-Party App Access</h3>
+                                    <p class="mb-0" style="color:var(--ink-2);font-size:.92rem;">OAuth-connected apps
+                                        and their granted permissions.</p>
+                                </div>
+                                <span class="badge-mini badge-adv" id="appCount">0 connected</span>
+                            </div>
+                            <div class="row g-3" id="appsList"></div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const state = {
+            components: [
+                { key: 'password', label: 'Strong password', points: 20, done: true },
+                { key: 'twofa', label: '2FA enabled', points: 25, done: true },
+                { key: 'passkey', label: 'Passkey enrolled', points: 20, done: true },
+                { key: 'biometric', label: 'Biometric enabled', points: 10, done: true },
+                { key: 'review', label: 'Recent security review', points: 10, done: false },
+                { key: 'clean', label: 'No suspicious activity', points: 15, done: true }
+            ],
+            sessions: [
+                { id: 1, device: 'iPhone 15 Pro', icon: 'bi-phone', location: 'Lagos, Nigeria', ip: '192.168.x.x', last: 'Active now', status: 'This device', current: true, trusted: true },
+                { id: 2, device: 'Chrome on MacBook', icon: 'bi-laptop', location: 'Nairobi, Kenya', ip: '197.x.x.x', last: '2 hours ago', status: 'Active', current: false, trusted: true },
+                { id: 3, device: 'Safari on iPad', icon: 'bi-tablet', location: 'Accra, Ghana', ip: '154.x.x.x', last: '3 days ago', status: 'Inactive', current: false, trusted: false },
+                { id: 4, device: 'Edge on Windows', icon: 'bi-pc-display', location: 'London, UK', ip: '82.x.x.x', last: '6 days ago', status: 'Active', current: false, trusted: false }
+            ],
+            history: [
+                ['Jun 11, 2026 09:14', 'iPhone 15 Pro', 'Paymo iOS', 'Lagos', '192.168.x.x', 'Passkey', 'Success'],
+                ['Jun 11, 2026 06:45', 'MacBook Pro', 'Chrome', 'Nairobi', '197.x.x.x', 'Password + MFA', 'Success'],
+                ['Jun 10, 2026 23:02', 'Unknown Windows', 'Chrome', 'Dubai', '51.x.x.x', 'Password', 'Step-up Required'],
+                ['Jun 10, 2026 03:18', 'Unknown Android', 'Chrome', 'London', '82.x.x.x', 'Password', 'Failed'],
+                ['Jun 09, 2026 18:40', 'iPad Pro', 'Safari', 'Accra', '154.x.x.x', 'PIN', 'Success'],
+                ['Jun 08, 2026 02:11', 'Unknown Linux', 'Firefox', 'Moscow', '185.x.x.x', 'Password', 'Blocked'],
+                ['Jun 07, 2026 11:28', 'MacBook Pro', 'Chrome', 'Nairobi', '197.x.x.x', 'Passkey', 'Success']
+            ],
+            alerts: [
+                { key: 'newDevice', label: 'New device login', desc: 'Notify when your account is accessed from a new device.', channels: ['Email', 'Push'], enabled: true },
+                { key: 'password', label: 'Password changed', desc: 'Immediate alert when password or PIN changes.', channels: ['Email', 'SMS', 'Push'], enabled: true },
+                { key: 'largeTxn', label: 'Large transaction initiated', desc: 'Alert for transactions above your custom threshold.', channels: ['Push'], enabled: true, threshold: 10000 },
+                { key: 'apiKey', label: 'API key created or rotated', desc: 'Notify admins when API credentials change.', channels: ['Email'], enabled: true },
+                { key: 'failedLogin', label: 'Failed login attempts', desc: 'Warn after repeated failed attempts.', channels: ['Email'], enabled: false },
+                { key: 'suspicious', label: 'Suspicious activity detected', desc: 'High priority fraud and risk engine alerts.', channels: ['SMS', 'Push'], enabled: true }
+            ],
+            apps: [
+                { id: 'xero', name: 'Xero Accounting', icon: 'bi-receipt', last: 'Used 1 hour ago', risk: 'Low', perms: ['Read balances', 'Read transactions', 'Export statements'] },
+                { id: 'slack', name: 'Slack Alerts', icon: 'bi-bell', last: 'Used today', risk: 'Low', perms: ['Send security notifications'] },
+                { id: 'payroll', name: 'Northstar Payroll', icon: 'bi-people', last: 'Used 4 days ago', risk: 'Medium', perms: ['Read wallets', 'Initiate payouts', 'View beneficiaries'] },
+                { id: 'legacy', name: 'Legacy BI Connector', icon: 'bi-database', last: 'Used 61 days ago', risk: 'High', perms: ['Read transactions', 'Read customers', 'Export CSV'] }
+            ]
+        };
+
+        function score() { return state.components.reduce((sum, c) => sum + (c.done ? c.points : 0), 0); }
+        function showNotice(text) { const n = document.getElementById('globalNotice'); document.getElementById('globalNoticeText').textContent = text; n.classList.add('show'); setTimeout(() => n.classList.remove('show'), 3500); }
+        function badgeForStatus(status) { const map = { Success: 'badge-ok', Failed: 'badge-soon', Blocked: 'badge-danger-soft', 'Step-up Required': 'badge-adv' }; return map[status] || 'badge-native'; }
+        function downloadFile(name, content, type) { const blob = new Blob([content], { type }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; a.click(); URL.revokeObjectURL(a.href); }
+
+        function renderScore() {
+            const value = score();
+            document.getElementById('scoreNumber').textContent = value;
+            document.getElementById('scoreCircle').style.strokeDashoffset = String(452 - (452 * value / 100));
+            document.getElementById('scoreComponents').innerHTML = state.components.map(c => `
+        <div class="col-sm-6">
+          <div class="d-flex align-items-center justify-content-between glass p-3 h-100" style="border-radius:14px;">
+            <div><div class="fw-bold text-white" style="font-size:.9rem;">${c.label}</div><div style="font-size:.72rem;color:var(--ink-3);">+${c.points} points</div></div>
+            <span class="badge-mini ${c.done ? 'badge-ok' : 'badge-soon'}">${c.done ? 'Done' : 'Open'}</span>
+          </div>
+        </div>`).join('');
+            renderRecommendations();
+        }
+
+        function renderSessions() {
+            document.getElementById('sessionsList').innerHTML = state.sessions.map(s => `
+        <div class="col-md-6">
+          <div class="session-card h-100">
+            <div class="d-flex gap-3 align-items-start">
+              <div class="device-icon"><i class="bi ${s.icon}"></i></div>
+              <div class="flex-grow-1">
+                <div class="d-flex justify-content-between gap-2"><h5 class="mb-1" style="font-size:1rem;">${s.device}</h5><span class="badge-mini ${s.current ? 'badge-native' : s.status === 'Active' ? 'badge-ok' : 'badge-req'}">${s.status}</span></div>
+                <div style="font-size:.82rem;color:var(--ink-2);"><i class="bi bi-geo-alt me-1"></i>${s.location}</div>
+                <div class="mono" style="font-size:.74rem;color:var(--ink-3);">${s.ip} · ${s.last}</div>
+              </div>
+            </div>
+            <div class="mini-map my-3"></div>
+            <div class="d-flex gap-2 flex-wrap">
+              <button class="btn btn-outline-paymo btn-sm trust-btn" data-id="${s.id}"><i class="bi ${s.trusted ? 'bi-patch-check-fill' : 'bi-patch-check'} me-1"></i>${s.trusted ? 'Trusted' : 'Mark trusted'}</button>
+              ${s.current ? '<button class="btn btn-outline-paymo btn-sm" disabled>This device</button>' : `<button class="btn btn-outline-paymo btn-sm logout-btn" data-id="${s.id}"><i class="bi bi-box-arrow-right me-1"></i>Log out</button>`}
+            </div>
+          </div>
+        </div>`).join('');
+            renderTrusted();
+        }
+
+        function renderTrusted() {
+            const trusted = state.sessions.filter(s => s.trusted);
+            document.getElementById('trustedLimit').textContent = `${trusted.length} / 10`;
+            document.getElementById('trustedList').innerHTML = trusted.length ? trusted.map(s => `
+        <div class="col-md-6">
+          <div class="device-card h-100">
+            <div class="d-flex gap-3"><div class="device-icon"><i class="bi ${s.icon}"></i></div><div class="flex-grow-1"><h5 style="font-size:1rem;">${s.device}</h5><div style="color:var(--ink-2);font-size:.84rem;">${s.location}</div><div class="mono" style="color:var(--ink-3);font-size:.74rem;">Last active: ${s.last}</div></div></div>
+            <div class="d-flex gap-2 mt-3"><button class="btn btn-outline-paymo btn-sm rename-device" data-id="${s.id}">Rename</button><button class="btn btn-outline-paymo btn-sm untrust-device" data-id="${s.id}">Remove trust</button></div>
+          </div>
+        </div>`).join('') : '<div class="col-12"><div class="glass p-4 text-center" style="border-radius:14px;color:var(--ink-2);">No trusted devices yet.</div></div>';
+        }
+
+        function renderHistory() {
+            const status = document.getElementById('historyStatus').value;
+            const loc = document.getElementById('historyLocation').value;
+            const rows = state.history.filter(r => (status === 'all' || r[6] === status) && (loc === 'all' || r[3] === loc));
+            document.getElementById('historyRows').innerHTML = rows.map(r => `<tr><td class="mono">${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]} ${r[6] === 'Blocked' ? '<span class="badge-mini badge-danger-soft ms-1">Unusual</span>' : ''}</td><td class="mono">${r[4]}</td><td>${r[5]}</td><td><span class="badge-mini ${badgeForStatus(r[6])}">${r[6]}</span></td></tr>`).join('');
+        }
+
+        function renderAlerts() {
+            document.getElementById('alertSettings').innerHTML = state.alerts.map(a => `
+        <div class="col-md-6">
+          <div class="alert-card h-100">
+            <div class="d-flex justify-content-between gap-3 align-items-start mb-2"><div><h5 style="font-size:1rem;">${a.label}</h5><p class="mb-0" style="color:var(--ink-2);font-size:.84rem;">${a.desc}</p></div><label class="toggle"><input type="checkbox" class="alert-toggle" data-key="${a.key}" ${a.enabled ? 'checked' : ''}><span></span></label></div>
+            <div class="d-flex flex-wrap gap-1 mt-3">${a.channels.map(c => `<span class="badge-mini badge-native">${c}</span>`).join('')}</div>
+            ${a.threshold ? `<div class="mt-3"><label style="font-size:.72rem;color:var(--ink-3);text-transform:uppercase;letter-spacing:.12em;">Threshold USD</label><input class="form-control form-control-sm threshold-input" data-key="${a.key}" value="${a.threshold}"></div>` : ''}
+          </div>
+        </div>`).join('');
+        }
+
+        function renderRecommendations() {
+            const recs = [
+                { key: 'twofa', title: 'Enable 2FA', desc: 'Require an additional factor for logins and sensitive actions.', link: 'Already enabled' },
+                { key: 'passkey', title: 'Set up a passkey', desc: 'Use phishing-resistant authentication on supported devices.', link: 'Already enrolled' },
+                { key: 'review', title: 'Review security settings', desc: 'Confirm devices, alerts, apps, and recovery options.', link: 'Start review' },
+                { key: 'questions', title: 'Update security questions', desc: 'Refresh recovery questions and answers.', link: 'Update now' },
+                { key: 'recovery', title: 'Generate new recovery codes', desc: 'Keep fresh backup codes offline.', link: 'Generate codes' },
+                { key: 'apps', title: 'Review connected apps', desc: 'Remove stale or excessive OAuth permissions.', link: 'Review apps' }
+            ];
+            const open = recs.filter(r => !state.components.find(c => c.key === r.key)?.done && r.key === 'review').length + 1;
+            document.getElementById('openActions').textContent = `${open} open`;
+            document.getElementById('recommendationsList').innerHTML = recs.map(r => {
+                const comp = state.components.find(c => c.key === r.key);
+                const done = comp ? comp.done : false;
+                return `<div class="col-md-6"><div class="recommend-card h-100"><div class="d-flex gap-3"><div class="device-icon" style="width:42px;height:42px;font-size:1.1rem;"><i class="bi ${done ? 'bi-check-circle-fill' : 'bi-circle'}"></i></div><div class="flex-grow-1"><h5 style="font-size:1rem;">${r.title}</h5><p style="color:var(--ink-2);font-size:.84rem;">${r.desc}</p><button class="btn ${done ? 'btn-outline-paymo' : 'btn-primary-paymo'} btn-sm rec-btn" data-key="${r.key}" ${done ? 'disabled' : ''}>${done ? r.link : r.link}</button></div></div></div></div>`;
+            }).join('');
+        }
+
+        function renderApps() {
+            document.getElementById('appCount').textContent = `${state.apps.length} connected`;
+            document.getElementById('appsList').innerHTML = state.apps.map(app => `
+        <div class="col-md-6">
+          <div class="app-card h-100">
+            <div class="d-flex gap-3 align-items-start"><div class="device-icon"><i class="bi ${app.icon}"></i></div><div class="flex-grow-1"><div class="d-flex justify-content-between gap-2"><h5 style="font-size:1rem;">${app.name}</h5><span class="badge-mini ${app.risk === 'High' ? 'badge-danger-soft' : app.risk === 'Medium' ? 'badge-soon' : 'badge-ok'}">${app.risk} risk</span></div><div style="color:var(--ink-3);font-size:.78rem;">${app.last}</div></div></div>
+            <div class="d-flex flex-wrap gap-1 my-3">${app.perms.map(p => `<span class="badge-mini badge-adv">${p}</span>`).join('')}</div>
+            <button class="btn btn-outline-paymo btn-sm revoke-app" data-id="${app.id}"><i class="bi bi-x-circle me-1"></i>Revoke access</button>
+          </div>
+        </div>`).join('') || '<div class="col-12"><div class="glass p-4 text-center" style="border-radius:14px;color:var(--ink-2);">No connected apps remain.</div></div>';
+        }
+
+        document.addEventListener('click', e => {
+            const panelButton = e.target.closest('[data-panel]');
+            if (panelButton) { const p = panelButton.dataset.panel; document.querySelectorAll('.tabbtn').forEach(b => b.classList.toggle('active', b.dataset.panel === p)); document.querySelectorAll('.panel').forEach(x => x.classList.toggle('active', x.id === `panel-${p}`)); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+            const logout = e.target.closest('.logout-btn');
+            if (logout) { state.sessions = state.sessions.filter(s => s.id !== Number(logout.dataset.id)); renderSessions(); showNotice('Selected session logged out.'); }
+            const trust = e.target.closest('.trust-btn');
+            if (trust) { const s = state.sessions.find(x => x.id === Number(trust.dataset.id)); s.trusted = !s.trusted; renderSessions(); showNotice(s.trusted ? 'Device marked as trusted.' : 'Device removed from trusted list.'); }
+            const untrust = e.target.closest('.untrust-device');
+            if (untrust) { const s = state.sessions.find(x => x.id === Number(untrust.dataset.id)); s.trusted = false; renderSessions(); showNotice('Trusted device removed.'); }
+            const rename = e.target.closest('.rename-device');
+            if (rename) { const s = state.sessions.find(x => x.id === Number(rename.dataset.id)); const name = prompt('Rename device', s.device); if (name) { s.device = name; renderSessions(); showNotice('Device renamed.'); } }
+            const rec = e.target.closest('.rec-btn');
+            if (rec && !rec.disabled) { if (rec.dataset.key === 'apps') { document.querySelector('[data-panel="apps"]').click(); } else { const comp = state.components.find(c => c.key === rec.dataset.key); if (comp) comp.done = true; renderScore(); showNotice('Security recommendation completed.'); } }
+            const revoke = e.target.closest('.revoke-app');
+            if (revoke) { state.apps = state.apps.filter(a => a.id !== revoke.dataset.id); renderApps(); showNotice('Third-party app access revoked.'); }
+            const emergency = e.target.closest('.emergency-action');
+            if (emergency) { const action = emergency.dataset.action; if (action === 'panic') state.sessions = state.sessions.filter(s => s.current); if (action === 'freeze' || action === 'panic') showEmergency('Money movement frozen. Fraud review started.'); if (action === 'lock') showEmergency('Account locked for 24 hours. Identity verification required to unlock.'); if (action === 'panic') { renderSessions(); showEmergency('Account secured, sessions revoked, transactions frozen.'); } }
+        });
+
+        function showEmergency(text) { const n = document.getElementById('emergencyNotice'); document.getElementById('emergencyText').textContent = text; n.classList.add('show'); showNotice(text); }
+
+        document.getElementById('logoutOthersBtn').addEventListener('click', () => { state.sessions = state.sessions.filter(s => s.current); renderSessions(); showNotice('All other sessions have been logged out.'); });
+        document.getElementById('autoLogout').addEventListener('change', e => showNotice(`Auto-logout updated to ${e.target.options[e.target.selectedIndex].text.replace('Auto logout: ', '')}.`));
+        document.getElementById('historyStatus').addEventListener('change', renderHistory);
+        document.getElementById('historyLocation').addEventListener('change', renderHistory);
+        document.getElementById('enableAllAlerts').addEventListener('click', () => { state.alerts.forEach(a => a.enabled = true); renderAlerts(); showNotice('All security alerts enabled.'); });
+        document.getElementById('alertSettings').addEventListener('change', e => { if (e.target.classList.contains('alert-toggle')) { const a = state.alerts.find(x => x.key === e.target.dataset.key); a.enabled = e.target.checked; showNotice(`${a.label} ${a.enabled ? 'enabled' : 'disabled'}.`); } if (e.target.classList.contains('threshold-input')) { const a = state.alerts.find(x => x.key === e.target.dataset.key); a.threshold = e.target.value; showNotice('Alert threshold updated.'); } });
+        document.getElementById('csvBtn').addEventListener('click', () => downloadFile('paymo-login-history.csv', 'Date/Time,Device,Browser,Location,IP,Method,Status\n' + state.history.map(r => r.join(',')).join('\n'), 'text/csv'));
+        document.getElementById('pdfBtn').addEventListener('click', () => downloadFile('paymo-login-history.txt', 'Paymo BAAS Login History\n\n' + state.history.map(r => r.join(' | ')).join('\n'), 'text/plain'));
+        document.getElementById('exportSummaryBtn').addEventListener('click', () => downloadFile('paymo-security-summary.json', JSON.stringify({ score: score(), sessions: state.sessions, alerts: state.alerts, apps: state.apps }, null, 2), 'application/json'));
+
+        renderScore(); renderSessions(); renderHistory(); renderAlerts(); renderApps();
+    </script>
+</body>
+
+</html>

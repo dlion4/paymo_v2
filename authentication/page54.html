@@ -1,0 +1,1288 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MFA Challenge — Paymo BAAS</title>
+    <meta name="description"
+        content="Paymo BAAS multi-factor authentication challenge with TOTP, SMS, WhatsApp, push approval, passkey, hardware key, and recovery code verification.">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        /* =========================================================
+   MASTER PAYMO BAAS CSS
+   Theme: Deep space blue + glassmorphism + electric cyan
+   ========================================================= */
+        :root {
+            --bg-0: #04081a;
+            --bg-1: #06122e;
+            --bg-2: #0a1a3f;
+            --bg-3: #0f2456;
+            --ink-0: #ffffff;
+            --ink-1: #e6ecff;
+            --ink-2: #a8b6e0;
+            --ink-3: #6f82b5;
+            --accent: #22d3ee;
+            --accent-2: #60a5fa;
+            --accent-3: #a78bfa;
+            --accent-4: #fbbf24;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --glass-bg: rgba(255, 255, 255, .04);
+            --glass-border: rgba(255, 255, 255, .10);
+            --glass-strong: rgba(255, 255, 255, .08);
+            --glass-border-strong: rgba(255, 255, 255, .16);
+            --radius-lg: 22px;
+            --radius-md: 14px;
+            --radius-sm: 10px;
+            --shadow-glow: 0 0 40px rgba(34, 211, 238, .18);
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        html {
+            scroll-behavior: smooth
+        }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--bg-0);
+            color: var(--ink-1);
+            overflow-x: hidden;
+            line-height: 1.55;
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5 {
+            font-family: 'Inter', 'Geist', sans-serif;
+            font-weight: 800;
+            letter-spacing: -.02em;
+            color: var(--ink-0)
+        }
+
+        code,
+        pre,
+        .mono {
+            font-family: 'JetBrains Mono', monospace
+        }
+
+        a {
+            color: var(--accent);
+            text-decoration: none;
+            transition: color .2s
+        }
+
+        a:hover {
+            color: var(--accent-2)
+        }
+
+        .bg-gradient-deep {
+            background:
+                radial-gradient(1200px 600px at 80% -10%, rgba(96, 165, 250, .22), transparent 60%),
+                radial-gradient(900px 500px at -10% 20%, rgba(167, 139, 250, .18), transparent 60%),
+                radial-gradient(800px 500px at 50% 110%, rgba(34, 211, 238, .18), transparent 60%),
+                linear-gradient(180deg, #04081a 0%, #06122e 30%, #081838 70%, #04081a 100%);
+        }
+
+        .grid-overlay {
+            background-image:
+                linear-gradient(rgba(96, 165, 250, .06) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(96, 165, 250, .06) 1px, transparent 1px);
+            background-size: 56px 56px;
+            mask-image: radial-gradient(ellipse at center, black 40%, transparent 80%);
+        }
+
+        .blob {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: .45;
+            pointer-events: none;
+            animation: float 14s ease-in-out infinite
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translate(0, 0) scale(1)
+            }
+
+            50% {
+                transform: translate(40px, -30px) scale(1.08)
+            }
+        }
+
+        @keyframes pulseGlow {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(34, 211, 238, .35)
+            }
+
+            50% {
+                box-shadow: 0 0 0 14px rgba(34, 211, 238, 0)
+            }
+        }
+
+        @keyframes ping {
+            0% {
+                transform: scale(1);
+                opacity: 1
+            }
+
+            100% {
+                transform: scale(2.2);
+                opacity: 0
+            }
+        }
+
+        @keyframes rotate {
+            to {
+                transform: rotate(360deg)
+            }
+        }
+
+        @keyframes scanLine {
+            0% {
+                transform: translateY(-110%)
+            }
+
+            100% {
+                transform: translateY(110%)
+            }
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0)
+            }
+
+            25% {
+                transform: translateX(-10px)
+            }
+
+            75% {
+                transform: translateX(10px)
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(18px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        @keyframes drawDash {
+            to {
+                stroke-dashoffset: -120
+            }
+        }
+
+        @keyframes successPop {
+            0% {
+                transform: scale(.65);
+                opacity: 0
+            }
+
+            60% {
+                transform: scale(1.08);
+                opacity: 1
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1
+            }
+        }
+
+        .glass {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-lg);
+            backdrop-filter: blur(20px) saturate(140%);
+            -webkit-backdrop-filter: blur(20px) saturate(140%);
+            box-shadow: 0 1px 0 0 rgba(255, 255, 255, .04) inset, 0 30px 60px -30px rgba(0, 0, 0, .5)
+        }
+
+        .glass-strong {
+            background: var(--glass-strong);
+            border: 1px solid var(--glass-border-strong);
+            border-radius: var(--radius-lg);
+            backdrop-filter: blur(24px) saturate(150%);
+            -webkit-backdrop-filter: blur(24px) saturate(150%)
+        }
+
+        .glass-hover {
+            transition: transform .35s ease, border-color .35s ease, background .35s ease
+        }
+
+        .glass-hover:hover {
+            transform: translateY(-4px);
+            border-color: rgba(96, 165, 250, .35);
+            background: rgba(96, 165, 250, .06)
+        }
+
+        .text-gradient {
+            background: linear-gradient(135deg, #22d3ee 0%, #60a5fa 50%, #a78bfa 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent
+        }
+
+        .text-gradient-gold {
+            background: linear-gradient(135deg, #fde68a 0%, #fbbf24 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent
+        }
+
+        .btn {
+            font-weight: 600;
+            border-radius: 12px;
+            padding: .75rem 1.4rem;
+            transition: all .25s ease;
+            letter-spacing: -.01em
+        }
+
+        .btn-primary-paymo {
+            background: linear-gradient(135deg, #22d3ee 0%, #3b82f6 100%);
+            color: #02121f;
+            border: none;
+            box-shadow: 0 10px 30px -10px rgba(34, 211, 238, .55)
+        }
+
+        .btn-primary-paymo:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 40px -10px rgba(34, 211, 238, .75);
+            color: #02121f
+        }
+
+        .btn-primary-paymo:disabled {
+            opacity: .55;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none
+        }
+
+        .btn-outline-paymo {
+            background: transparent;
+            color: var(--ink-1);
+            border: 1px solid rgba(255, 255, 255, .18)
+        }
+
+        .btn-outline-paymo:hover {
+            background: rgba(255, 255, 255, .08);
+            border-color: var(--accent);
+            color: var(--ink-0)
+        }
+
+        .logo-mark {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #22d3ee, #60a5fa, #a78bfa);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #02121f;
+            font-weight: 900;
+            box-shadow: 0 8px 24px -8px rgba(34, 211, 238, .6)
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: .5rem;
+            padding: .35rem .85rem;
+            border-radius: 999px;
+            background: rgba(34, 211, 238, .08);
+            border: 1px solid rgba(34, 211, 238, .25);
+            font-size: .8rem;
+            font-weight: 500;
+            color: #a5f3fc
+        }
+
+        .pill-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 0 10px var(--accent);
+            animation: pulseGlow 2s infinite
+        }
+
+        .badge-mini {
+            font-size: .7rem;
+            padding: .2rem .55rem;
+            border-radius: 999px;
+            font-weight: 600;
+            letter-spacing: .02em
+        }
+
+        .badge-ok {
+            background: rgba(34, 197, 94, .15);
+            color: #86efac;
+            border: 1px solid rgba(34, 197, 94, .3)
+        }
+
+        .badge-adv {
+            background: rgba(167, 139, 250, .15);
+            color: #c4b5fd;
+            border: 1px solid rgba(167, 139, 250, .3)
+        }
+
+        .badge-native {
+            background: rgba(34, 211, 238, .15);
+            color: #a5f3fc;
+            border: 1px solid rgba(34, 211, 238, .3)
+        }
+
+        .badge-soon {
+            background: rgba(251, 191, 36, .15);
+            color: #fcd34d;
+            border: 1px solid rgba(251, 191, 36, .3)
+        }
+
+        .badge-warn {
+            background: rgba(239, 68, 68, .15);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, .3)
+        }
+
+        /* Auth-specific */
+        .auth-wrap {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 0;
+            position: relative
+        }
+
+        .brand-panel {
+            position: relative;
+            min-height: 760px;
+            overflow: hidden;
+            border-radius: var(--radius-lg)
+        }
+
+        .brand-panel::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: url('https://i.pinimg.com/736x/81/8d/70/818d706bc8e2a226f8a4d0564be6f286.jpg') center/cover;
+            opacity: .55;
+            filter: saturate(1.1)
+        }
+
+        .brand-panel::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(4, 8, 26, .1), rgba(4, 8, 26, .92)), radial-gradient(600px 320px at 70% 20%, rgba(34, 211, 238, .18), transparent 65%)
+        }
+
+        .brand-content {
+            position: relative;
+            z-index: 2;
+            padding: 3rem;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between
+        }
+
+        .method-card {
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--glass-border);
+            background: rgba(255, 255, 255, .03);
+            cursor: pointer;
+            transition: all .25s;
+            height: 100%;
+            position: relative;
+            overflow: hidden
+        }
+
+        .method-card:hover {
+            border-color: rgba(34, 211, 238, .4);
+            background: rgba(34, 211, 238, .05);
+            transform: translateY(-2px)
+        }
+
+        .method-card.active {
+            border-color: rgba(34, 211, 238, .65);
+            background: linear-gradient(135deg, rgba(34, 211, 238, .12), rgba(96, 165, 250, .07));
+            box-shadow: 0 0 34px -18px rgba(34, 211, 238, .7)
+        }
+
+        .method-card.last::after {
+            content: "Last used";
+            position: absolute;
+            top: .75rem;
+            right: .75rem;
+            font-size: .62rem;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            color: #fcd34d;
+            background: rgba(251, 191, 36, .12);
+            border: 1px solid rgba(251, 191, 36, .26);
+            padding: .14rem .45rem;
+            border-radius: 999px
+        }
+
+        .method-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.15rem;
+            margin-bottom: .7rem;
+            background: linear-gradient(135deg, rgba(34, 211, 238, .18), rgba(96, 165, 250, .1));
+            border: 1px solid rgba(34, 211, 238, .28);
+            color: #a5f3fc
+        }
+
+        .challenge-panel {
+            animation: slideIn .35s ease
+        }
+
+        .otp-container {
+            display: flex;
+            gap: .45rem;
+            justify-content: center;
+            margin: 1.25rem 0
+        }
+
+        .otp-input {
+            width: 48px;
+            height: 56px;
+            text-align: center;
+            font-size: 1.35rem;
+            font-weight: 800;
+            background: rgba(255, 255, 255, .035);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            color: var(--ink-0);
+            font-family: 'JetBrains Mono', monospace;
+            transition: all .2s
+        }
+
+        .otp-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(34, 211, 238, .15);
+            background: rgba(34, 211, 238, .04)
+        }
+
+        .otp-container.shake,
+        .shake {
+            animation: shake .4s ease
+        }
+
+        .totp-ring {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.25rem;
+            position: relative;
+            background: conic-gradient(var(--accent) var(--progress, 100%), rgba(255, 255, 255, .08) 0)
+        }
+
+        .totp-ring::before {
+            content: "";
+            position: absolute;
+            inset: 9px;
+            border-radius: 50%;
+            background: rgba(4, 8, 26, .92);
+            border: 1px solid var(--glass-border)
+        }
+
+        .totp-ring .time {
+            position: relative;
+            z-index: 1;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 800;
+            font-size: 1.8rem;
+            color: var(--ink-0)
+        }
+
+        .push-device {
+            border-radius: 18px;
+            border: 1px solid var(--glass-border-strong);
+            background: linear-gradient(180deg, rgba(15, 36, 86, .72), rgba(4, 8, 26, .72));
+            padding: 1.2rem;
+            max-width: 280px;
+            margin: 0 auto;
+            box-shadow: 0 28px 70px -38px rgba(34, 211, 238, .55)
+        }
+
+        .push-screen {
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, .12);
+            background: rgba(2, 5, 20, .8);
+            padding: 1rem;
+            min-height: 210px;
+            position: relative;
+            overflow: hidden
+        }
+
+        .push-screen::before {
+            content: "";
+            position: absolute;
+            inset: -50%;
+            background: linear-gradient(180deg, transparent, rgba(34, 211, 238, .08), transparent);
+            animation: scanLine 3s linear infinite
+        }
+
+        .hardware-slot {
+            border: 1px dashed rgba(34, 211, 238, .35);
+            border-radius: 18px;
+            padding: 1.2rem;
+            background: rgba(34, 211, 238, .04);
+            position: relative;
+            overflow: hidden
+        }
+
+        .hardware-slot svg .dash {
+            stroke-dasharray: 8 8;
+            animation: drawDash 2s linear infinite
+        }
+
+        .recovery-code-input {
+            text-transform: uppercase;
+            letter-spacing: .16em;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            text-align: center
+        }
+
+        .input-paymo {
+            width: 100%;
+            padding: .78rem .95rem;
+            background: rgba(255, 255, 255, .035);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            color: var(--ink-1);
+            font-size: .9rem;
+            transition: all .2s
+        }
+
+        .input-paymo:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(34, 211, 238, .15);
+            background: rgba(34, 211, 238, .04)
+        }
+
+        .input-paymo::placeholder {
+            color: var(--ink-3)
+        }
+
+        .label-paymo {
+            display: block;
+            font-size: .72rem;
+            color: var(--ink-3);
+            text-transform: uppercase;
+            letter-spacing: .14em;
+            font-weight: 700;
+            margin-bottom: .45rem
+        }
+
+        .risk-row {
+            display: flex;
+            align-items: center;
+            gap: .7rem;
+            padding: .65rem .8rem;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, .025);
+            border: 1px solid var(--glass-border);
+            font-size: .82rem;
+            color: var(--ink-2)
+        }
+
+        .security-strip {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: .75rem
+        }
+
+        .security-item {
+            padding: .8rem;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, .03);
+            border: 1px solid var(--glass-border);
+            font-size: .74rem;
+            color: var(--ink-2)
+        }
+
+        .success-state {
+            display: none;
+            text-align: center;
+            padding: 2.5rem 0;
+            animation: slideIn .4s ease
+        }
+
+        .success-icon {
+            width: 86px;
+            height: 86px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            animation: successPop .65s ease
+        }
+
+        .success-icon i {
+            font-size: 2.7rem;
+            color: white
+        }
+
+        .inline-alert {
+            padding: .85rem 1rem;
+            border-radius: 14px;
+            background: rgba(251, 191, 36, .08);
+            border: 1px solid rgba(251, 191, 36, .22);
+            color: #fcd34d;
+            font-size: .83rem
+        }
+
+        @media(max-width:991px) {
+            .brand-panel {
+                min-height: 340px
+            }
+
+            .brand-content {
+                padding: 2rem
+            }
+
+            .auth-wrap {
+                padding: 1rem 0
+            }
+
+            .security-strip {
+                grid-template-columns: repeat(2, 1fr)
+            }
+        }
+
+        @media(max-width:576px) {
+            .otp-input {
+                width: 42px;
+                height: 52px
+            }
+
+            .method-card {
+                padding: .85rem
+            }
+
+            .security-strip {
+                grid-template-columns: 1fr
+            }
+
+            .glass-strong {
+                border-radius: 18px
+            }
+
+            .tab-grid {
+                grid-template-columns: 1fr !important
+            }
+        }
+
+        @media(prefers-reduced-motion:reduce) {
+
+            *,
+            ::before,
+            ::after {
+                animation: none !important;
+                transition: none !important
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-gradient-deep">
+    <div class="grid-overlay" style="position:fixed;inset:0;opacity:.45;pointer-events:none"></div>
+    <div class="blob" style="width:520px;height:520px;background:#22d3ee;top:-160px;right:-120px"></div>
+    <div class="blob" style="width:430px;height:430px;background:#a78bfa;bottom:-130px;left:-80px;animation-delay:-6s">
+    </div>
+
+    <main class="auth-wrap">
+        <div class="container">
+            <div class="row g-4 align-items-stretch">
+                <div class="col-lg-5 d-none d-lg-block">
+                    <aside class="brand-panel glass">
+                        <div class="brand-content">
+                            <div>
+                                <div class="d-flex align-items-center gap-2 mb-4">
+                                    <span class="logo-mark">P</span>
+                                    <div>
+                                        <div class="fw-bold text-white">Paymo <span class="text-gradient">BAAS</span>
+                                        </div>
+                                        <div style="font-size:.76rem;color:var(--ink-3)">Borderless African finance
+                                            infrastructure</div>
+                                    </div>
+                                </div>
+                                <span class="pill mb-3"><span class="pill-dot"></span> Risk-based step-up
+                                    required</span>
+                                <h1 style="font-size:clamp(2.3rem,4vw,3.8rem);line-height:1.03;font-weight:900">Verify
+                                    before entering your financial control plane.</h1>
+                                <p class="mt-3" style="color:var(--ink-2);max-width:390px">Paymo Shield checks device,
+                                    location, network, and session risk before allowing dashboard access.</p>
+                            </div>
+
+                            <div>
+                                <div class="flow-frame mb-3"
+                                    style="border-radius:18px;overflow:hidden;border:1px solid var(--glass-border-strong);background:#020514">
+                                    <img src="https://i.pinimg.com/originals/82/de/83/82de83fb86c54aa5783bbb6ca3b26938.gif"
+                                        alt="MFA security flow"
+                                        style="width:100%;height:170px;object-fit:cover;opacity:.8;mix-blend-mode:screen;filter:hue-rotate(-15deg) saturate(120%)">
+                                </div>
+                                <div class="security-strip">
+                                    <div class="security-item"><i class="bi bi-lock-fill me-1"
+                                            style="color:var(--accent)"></i> TLS 1.3</div>
+                                    <div class="security-item"><i class="bi bi-shield-check me-1"
+                                            style="color:#86efac"></i> SOC 2</div>
+                                    <div class="security-item"><i class="bi bi-eye-slash me-1"
+                                            style="color:var(--accent-3)"></i> No code logs</div>
+                                    <div class="security-item"><i class="bi bi-clock-history me-1"
+                                            style="color:var(--accent-4)"></i> 30s TOTP</div>
+                                </div>
+                            </div>
+                        </div>
+                    </aside>
+                </div>
+
+                <div class="col-lg-7">
+                    <section class="glass-strong p-4 p-md-5 h-100" style="max-width:760px;margin:0 auto">
+                        <div id="challengeState">
+                            <div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-4">
+                                <div>
+                                    <div class="d-flex align-items-center gap-2 mb-3 d-lg-none">
+                                        <span class="logo-mark">P</span>
+                                        <div>
+                                            <div class="fw-bold text-white">Paymo <span
+                                                    class="text-gradient">BAAS</span></div>
+                                            <div style="font-size:.75rem;color:var(--ink-3)">MFA Challenge</div>
+                                        </div>
+                                    </div>
+                                    <span class="pill"><span class="pill-dot"></span> Paymo Shield MFA</span>
+                                    <h2 class="mt-3 mb-2" style="font-size:clamp(1.8rem,4vw,2.7rem);line-height:1.05">
+                                        Verify your identity.</h2>
+                                    <p style="color:var(--ink-2);margin-bottom:0">We need to confirm it is really you.
+                                        Choose one approved factor to continue.</p>
+                                </div>
+                                <div class="text-lg-end">
+                                    <span class="badge-mini badge-soon">Step-up auth</span>
+                                    <div style="font-size:.76rem;color:var(--ink-3);margin-top:.45rem">Session expires
+                                        in <span class="mono" id="sessionTimer" style="color:#fcd34d">05:00</span></div>
+                                </div>
+                            </div>
+
+                            <div class="glass p-3 mb-4" style="border-radius:16px">
+                                <div class="row g-2">
+                                    <div class="col-md-6">
+                                        <div class="risk-row"><i class="bi bi-browser-chrome"
+                                                style="color:var(--accent)"></i><span id="browserText">Chrome on
+                                                Windows</span></div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="risk-row"><i class="bi bi-geo-alt"
+                                                style="color:var(--accent-2)"></i><span>Lagos, Nigeria</span></div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="risk-row"><i class="bi bi-router"
+                                                style="color:var(--accent-3)"></i><span>IP reputation: trusted</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="risk-row"><i class="bi bi-fingerprint"
+                                                style="color:var(--accent-4)"></i><span>Device fingerprint: known</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row g-3 tab-grid"
+                                style="display:grid;grid-template-columns:repeat(3,1fr);margin-left:0;margin-right:0"
+                                id="methodGrid">
+                                <div class="method-card active last" data-method="totp">
+                                    <div class="method-icon"><i class="bi bi-shield-lock"></i></div>
+                                    <div class="fw-bold text-white" style="font-size:.95rem">Authenticator app</div>
+                                    <div style="font-size:.75rem;color:var(--ink-3)">Google Authenticator, Authy,
+                                        Microsoft</div>
+                                </div>
+                                <div class="method-card" data-method="sms">
+                                    <div class="method-icon"><i class="bi bi-phone"></i></div>
+                                    <div class="fw-bold text-white" style="font-size:.95rem">SMS / WhatsApp</div>
+                                    <div style="font-size:.75rem;color:var(--ink-3)">Send code to +234 •••••1234</div>
+                                </div>
+                                <div class="method-card" data-method="push">
+                                    <div class="method-icon"><i class="bi bi-bell"></i></div>
+                                    <div class="fw-bold text-white" style="font-size:.95rem">Push approval</div>
+                                    <div style="font-size:.75rem;color:var(--ink-3)">Approve from trusted phone</div>
+                                </div>
+                                <div class="method-card" data-method="passkey">
+                                    <div class="method-icon"><i class="bi bi-fingerprint"></i></div>
+                                    <div class="fw-bold text-white" style="font-size:.95rem">Passkey / biometric</div>
+                                    <div style="font-size:.75rem;color:var(--ink-3)">Face ID, Touch ID, Windows Hello
+                                    </div>
+                                </div>
+                                <div class="method-card" data-method="hardware">
+                                    <div class="method-icon"><i class="bi bi-usb-symbol"></i></div>
+                                    <div class="fw-bold text-white" style="font-size:.95rem">Security key</div>
+                                    <div style="font-size:.75rem;color:var(--ink-3)">YubiKey or FIDO2 hardware key</div>
+                                </div>
+                                <div class="method-card" data-method="recovery">
+                                    <div class="method-icon"><i class="bi bi-key"></i></div>
+                                    <div class="fw-bold text-white" style="font-size:.95rem">Recovery code</div>
+                                    <div style="font-size:.75rem;color:var(--ink-3)">Use a saved backup code</div>
+                                </div>
+                            </div>
+
+                            <hr style="border-color:var(--glass-border);margin:1.5rem 0">
+
+                            <div id="challengePanel" class="challenge-panel"></div>
+
+                            <div class="mt-4 d-flex flex-wrap gap-2 justify-content-between align-items-center">
+                                <button class="btn btn-outline-paymo btn-sm" id="helpBtn"><i
+                                        class="bi bi-question-circle me-1"></i> Need help?</button>
+                                <button class="btn btn-outline-paymo btn-sm" id="differentAccountBtn"><i
+                                        class="bi bi-arrow-left me-1"></i> Use different account</button>
+                            </div>
+                        </div>
+
+                        <div id="successState" class="success-state">
+                            <div class="success-icon"><i class="bi bi-check-lg"></i></div>
+                            <h3 style="font-size:1.7rem;font-weight:900">Identity verified.</h3>
+                            <p style="color:var(--ink-2);max-width:420px;margin:0 auto 1.4rem">Your MFA challenge was
+                                completed successfully. Paymo Shield is redirecting you to account selection.</p>
+                            <div class="glass p-3 mb-3" style="border-radius:16px;max-width:420px;margin:0 auto">
+                                <div class="d-flex justify-content-between" style="font-size:.85rem"><span
+                                        style="color:var(--ink-3)">Factor used</span><span id="successFactor"
+                                        class="text-gradient fw-bold">Authenticator app</span></div>
+                                <div class="d-flex justify-content-between mt-2" style="font-size:.85rem"><span
+                                        style="color:var(--ink-3)">Risk decision</span><span
+                                        style="color:#86efac;font-weight:700">Approved</span></div>
+                            </div>
+                            <button class="btn btn-primary-paymo" id="continueDashboardBtn">Continue to account type <i
+                                    class="bi bi-arrow-right ms-1"></i></button>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="modal fade" id="helpModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content"
+                style="background:var(--bg-1);border:1px solid var(--glass-border-strong);border-radius:22px;color:var(--ink-1)">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title">MFA help</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="d-flex flex-column gap-3">
+                        <div class="risk-row"><i class="bi bi-shield-check" style="color:var(--accent)"></i><span>Use
+                                recovery codes if you lost your phone or authenticator app.</span></div>
+                        <div class="risk-row"><i class="bi bi-phone" style="color:var(--accent-2)"></i><span>SMS and
+                                WhatsApp codes expire after 5 minutes.</span></div>
+                        <div class="risk-row"><i class="bi bi-headset"
+                                style="color:var(--accent-4)"></i><span>Support-assisted recovery requires identity
+                                verification and may take 24-48 hours.</span></div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button class="btn btn-outline-paymo btn-sm" data-bs-dismiss="modal">Close</button>
+                    <button class="btn btn-primary-paymo btn-sm" id="openSupportBtn">Start support recovery</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const state = {
+            method: 'totp',
+            attempts: 0,
+            sessionSeconds: 300,
+            totpSeconds: 30,
+            smsSent: false,
+            smsSeconds: 0,
+            pushStatus: 'idle',
+            factorLabels: {
+                totp: 'Authenticator app',
+                sms: 'SMS / WhatsApp',
+                push: 'Push approval',
+                passkey: 'Passkey / biometric',
+                hardware: 'Security key',
+                recovery: 'Recovery code'
+            }
+        };
+
+        const panel = document.getElementById('challengePanel');
+
+        function getBrowserLabel() {
+            const ua = navigator.userAgent;
+            const browser = ua.includes('Edg') ? 'Edge' : ua.includes('Chrome') ? 'Chrome' : ua.includes('Firefox') ? 'Firefox' : ua.includes('Safari') ? 'Safari' : 'Browser';
+            const os = ua.includes('Windows') ? 'Windows' : ua.includes('Mac') ? 'macOS' : ua.includes('Android') ? 'Android' : ua.includes('iPhone') ? 'iOS' : 'this device';
+            return `${browser} on ${os}`;
+        }
+        document.getElementById('browserText').textContent = getBrowserLabel();
+
+        function renderPanel() {
+            if (state.method === 'totp') renderTotp();
+            if (state.method === 'sms') renderSms();
+            if (state.method === 'push') renderPush();
+            if (state.method === 'passkey') renderPasskey();
+            if (state.method === 'hardware') renderHardware();
+            if (state.method === 'recovery') renderRecovery();
+        }
+
+        function otpMarkup(prefix = 'totp') {
+            return `<div class="otp-container" id="${prefix}Otp">
+    ${[0, 1, 2, 3, 4, 5].map(i => `<input class="otp-input" inputmode="numeric" maxlength="1" data-index="${i}">`).join('')}
+  </div>`;
+        }
+
+        function bindOtp(containerId) {
+            const inputs = document.querySelectorAll(`#${containerId} .otp-input`);
+            inputs.forEach((input, index) => {
+                input.addEventListener('input', e => {
+                    e.target.value = e.target.value.replace(/\D/g, '').slice(0, 1);
+                    if (e.target.value && inputs[index + 1]) inputs[index + 1].focus();
+                    validateCurrent();
+                });
+                input.addEventListener('keydown', e => {
+                    if (e.key === 'Backspace' && !e.target.value && inputs[index - 1]) inputs[index - 1].focus();
+                    if (e.key === 'Enter') verifyCurrent();
+                });
+                input.addEventListener('paste', e => {
+                    e.preventDefault();
+                    const data = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+                    data.split('').forEach((n, i) => { if (inputs[i]) inputs[i].value = n; });
+                    if (inputs[Math.min(data.length, 6) - 1]) inputs[Math.min(data.length, 6) - 1].focus();
+                    validateCurrent();
+                });
+            });
+            setTimeout(() => inputs[0]?.focus(), 100);
+        }
+
+        function getOtp(containerId) {
+            return Array.from(document.querySelectorAll(`#${containerId} .otp-input`)).map(i => i.value).join('');
+        }
+
+        function renderTotp() {
+            panel.innerHTML = `<div class="row g-4 align-items-center">
+    <div class="col-md-5 text-center">
+      <div class="totp-ring" id="totpRing"><span class="time" id="totpTime">30</span></div>
+      <div class="badge-mini badge-native">Code refreshes every 30 seconds</div>
+    </div>
+    <div class="col-md-7">
+      <h4 class="mb-2">Enter authenticator code</h4>
+      <p style="color:var(--ink-2);font-size:.92rem">Open Google Authenticator, Authy, Microsoft Authenticator, or your configured TOTP app.</p>
+      ${otpMarkup('totp')}
+      <button class="btn btn-primary-paymo w-100" id="verifyBtn" disabled>Verify code <i class="bi bi-check-circle ms-1"></i></button>
+      <button class="btn btn-outline-paymo w-100 mt-2" onclick="selectMethod('recovery')"><i class="bi bi-key me-1"></i> Cannot access authenticator?</button>
+    </div>
+  </div>`;
+            bindOtp('totpOtp');
+            document.getElementById('verifyBtn').addEventListener('click', verifyCurrent);
+            updateTotpRing();
+        }
+
+        function renderSms() {
+            panel.innerHTML = `<div class="challenge-panel">
+    <div class="d-flex align-items-center gap-3 mb-3">
+      <div class="method-icon mb-0"><i class="bi bi-phone"></i></div>
+      <div><h4 class="mb-0">SMS / WhatsApp code</h4><div style="color:var(--ink-3);font-size:.84rem">Destination: +234 •••••1234</div></div>
+    </div>
+    <div class="glass p-3 mb-3" style="border-radius:14px">
+      <div class="d-flex flex-wrap gap-2 align-items-center justify-content-between">
+        <span style="font-size:.86rem;color:var(--ink-2)">Choose delivery channel</span>
+        <div class="d-flex gap-2">
+          <button class="btn btn-outline-paymo btn-sm channel-btn active" data-channel="SMS">SMS</button>
+          <button class="btn btn-outline-paymo btn-sm channel-btn" data-channel="WhatsApp">WhatsApp</button>
+        </div>
+      </div>
+    </div>
+    <button class="btn btn-primary-paymo w-100 mb-3" id="sendSmsBtn"><i class="bi bi-send me-1"></i> ${state.smsSent ? 'Resend code' : 'Send code'}</button>
+    <div id="smsCodeWrap" style="display:${state.smsSent ? 'block' : 'none'}">
+      ${otpMarkup('sms')}
+      <button class="btn btn-primary-paymo w-100" id="verifyBtn" disabled>Verify OTP <i class="bi bi-check-circle ms-1"></i></button>
+      <div class="text-center mt-2" style="font-size:.82rem;color:var(--ink-3)">Resend available in <span class="mono" id="smsTimer" style="color:var(--accent)">${state.smsSeconds}</span>s</div>
+    </div>
+  </div>`;
+            document.querySelectorAll('.channel-btn').forEach(btn => btn.addEventListener('click', () => {
+                document.querySelectorAll('.channel-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            }));
+            document.getElementById('sendSmsBtn').addEventListener('click', sendSmsCode);
+            if (state.smsSent) { bindOtp('sms'); document.getElementById('verifyBtn').addEventListener('click', verifyCurrent); }
+        }
+
+        function sendSmsCode() {
+            state.smsSent = true;
+            state.smsSeconds = 60;
+            renderSms();
+        }
+
+        function renderPush() {
+            panel.innerHTML = `<div class="row g-4 align-items-center">
+    <div class="col-md-5">
+      <div class="push-device">
+        <div class="d-flex justify-content-between align-items-center mb-2" style="font-size:.72rem;color:var(--ink-3)"><span>Paymo</span><span>now</span></div>
+        <div class="push-screen">
+          <div style="position:relative;z-index:2">
+            <div class="d-flex align-items-center gap-2 mb-3"><span class="logo-mark" style="width:30px;height:30px;border-radius:8px;font-size:.8rem">P</span><strong>Verify login</strong></div>
+            <p style="color:var(--ink-2);font-size:.82rem">Chrome on Windows is requesting access from Lagos.</p>
+            <div class="d-grid gap-2 mt-3">
+              <button class="btn btn-primary-paymo btn-sm" id="deviceApproveBtn">Approve</button>
+              <button class="btn btn-outline-paymo btn-sm" id="deviceDenyBtn">Deny</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-7">
+      <h4 class="mb-2">Approve on trusted device</h4>
+      <p style="color:var(--ink-2);font-size:.92rem">We sent a push request to <strong class="text-white">iPhone 15 Pro</strong>, last used 2 days ago in Lagos.</p>
+      <div class="inline-alert mb-3"><i class="bi bi-phone-vibrate me-1"></i> Open your Paymo mobile app and tap Approve.</div>
+      <button class="btn btn-primary-paymo w-100" id="pushSendBtn"><i class="bi bi-bell me-1"></i> Send push request</button>
+      <div class="text-center mt-3" id="pushStatus" style="color:var(--ink-3);font-size:.85rem">Waiting to send approval request.</div>
+    </div>
+  </div>`;
+            document.getElementById('pushSendBtn').addEventListener('click', startPushFlow);
+            document.getElementById('deviceApproveBtn').addEventListener('click', () => completeSuccess());
+            document.getElementById('deviceDenyBtn').addEventListener('click', () => showError('Approval denied on trusted device.'));
+        }
+
+        function startPushFlow() {
+            const status = document.getElementById('pushStatus');
+            const btn = document.getElementById('pushSendBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Request sent';
+            status.innerHTML = '<span style="color:var(--accent)">Waiting for approval...</span>';
+            setTimeout(() => { if (state.method === 'push') status.innerHTML = '<span style="color:#86efac">Request visible on trusted phone. Use the phone preview to approve.</span>'; }, 1800);
+        }
+
+        function renderPasskey() {
+            const supported = !!(window.PublicKeyCredential);
+            panel.innerHTML = `<div class="text-center" style="max-width:520px;margin:0 auto">
+    <div class="method-icon mx-auto" style="width:72px;height:72px;border-radius:24px;font-size:2rem"><i class="bi bi-fingerprint"></i></div>
+    <h4>Use passkey or biometric</h4>
+    <p style="color:var(--ink-2);font-size:.92rem">Authenticate with Face ID, Touch ID, Windows Hello, Android biometric, or a synced passkey.</p>
+    <div class="glass p-3 my-3" style="border-radius:16px;text-align:left">
+      <div class="d-flex justify-content-between" style="font-size:.85rem"><span style="color:var(--ink-3)">WebAuthn support</span><span class="badge-mini ${supported ? 'badge-ok' : 'badge-warn'}">${supported ? 'Detected' : 'Not detected'}</span></div>
+      <div class="d-flex justify-content-between mt-2" style="font-size:.85rem"><span style="color:var(--ink-3)">Registered passkeys</span><span class="text-gradient fw-bold">2</span></div>
+    </div>
+    <button class="btn btn-primary-paymo w-100" id="passkeyBtn"><i class="bi bi-fingerprint me-1"></i> Verify with passkey</button>
+    <button class="btn btn-outline-paymo w-100 mt-2" onclick="selectMethod('totp')">Use another factor</button>
+  </div>`;
+            document.getElementById('passkeyBtn').addEventListener('click', simulatePasskey);
+        }
+
+        function simulatePasskey() {
+            const btn = document.getElementById('passkeyBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Waiting for platform prompt...';
+            setTimeout(() => completeSuccess(), 2200);
+        }
+
+        function renderHardware() {
+            panel.innerHTML = `<div class="row g-4 align-items-center">
+    <div class="col-md-5">
+      <div class="hardware-slot text-center">
+        <svg viewBox="0 0 260 130" width="100%" height="130" aria-hidden="true">
+          <defs><linearGradient id="keyGrad" x1="0" x2="1"><stop offset="0" stop-color="#22d3ee"/><stop offset="1" stop-color="#a78bfa"/></linearGradient></defs>
+          <rect x="44" y="42" width="170" height="45" rx="18" fill="rgba(255,255,255,.05)" stroke="url(#keyGrad)" stroke-width="2"/>
+          <circle cx="78" cy="64" r="14" fill="none" stroke="#22d3ee" stroke-width="3"/>
+          <path class="dash" d="M120 64 L200 64" stroke="#a5f3fc" stroke-width="2"/>
+        </svg>
+        <span class="badge-mini badge-native">FIDO2 / U2F compatible</span>
+      </div>
+    </div>
+    <div class="col-md-7">
+      <h4>Use hardware security key</h4>
+      <p style="color:var(--ink-2);font-size:.92rem">Insert your YubiKey, Titan key, or compatible FIDO2 device. Touch it when it blinks.</p>
+      <button class="btn btn-primary-paymo w-100" id="securityKeyBtn"><i class="bi bi-usb-drive me-1"></i> Start security key check</button>
+      <div class="text-center mt-3" id="keyStatus" style="font-size:.85rem;color:var(--ink-3)">Waiting to start.</div>
+    </div>
+  </div>`;
+            document.getElementById('securityKeyBtn').addEventListener('click', simulateHardwareKey);
+        }
+
+        function simulateHardwareKey() {
+            const btn = document.getElementById('securityKeyBtn');
+            const status = document.getElementById('keyStatus');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Waiting for touch...';
+            status.innerHTML = '<span style="color:var(--accent)">Touch your security key now.</span>';
+            setTimeout(() => completeSuccess(), 2600);
+        }
+
+        function renderRecovery() {
+            panel.innerHTML = `<div style="max-width:540px;margin:0 auto">
+    <div class="d-flex align-items-center gap-3 mb-3">
+      <div class="method-icon mb-0"><i class="bi bi-key"></i></div>
+      <div><h4 class="mb-0">Use recovery code</h4><div style="color:var(--ink-3);font-size:.84rem">Enter one of your saved 10-character backup codes.</div></div>
+    </div>
+    <label class="label-paymo">Recovery code</label>
+    <input class="input-paymo recovery-code-input" id="recoveryCode" maxlength="11" placeholder="PAYMO-1A2B3C">
+    <div class="inline-alert my-3"><i class="bi bi-exclamation-triangle me-1"></i> Recovery codes are single-use. We will ask you to generate new codes after login.</div>
+    <button class="btn btn-primary-paymo w-100" id="verifyRecoveryBtn" disabled>Verify recovery code <i class="bi bi-check-circle ms-1"></i></button>
+    <button class="btn btn-outline-paymo w-100 mt-2" id="downloadCodesBtn"><i class="bi bi-download me-1"></i> Download new code template</button>
+  </div>`;
+            const input = document.getElementById('recoveryCode');
+            input.addEventListener('input', () => {
+                input.value = input.value.toUpperCase().replace(/[^A-Z0-9-]/g, '');
+                document.getElementById('verifyRecoveryBtn').disabled = input.value.length < 8;
+            });
+            input.addEventListener('keydown', e => { if (e.key === 'Enter' && input.value.length >= 8) verifyCurrent(); });
+            document.getElementById('verifyRecoveryBtn').addEventListener('click', verifyCurrent);
+            document.getElementById('downloadCodesBtn').addEventListener('click', downloadTemplate);
+            setTimeout(() => input.focus(), 100);
+        }
+
+        function validateCurrent() {
+            const btn = document.getElementById('verifyBtn');
+            if (!btn) return;
+            const container = state.method === 'totp' ? 'totpOtp' : 'sms';
+            btn.disabled = getOtp(container).length !== 6;
+        }
+
+        function verifyCurrent() {
+            if (state.method === 'totp') {
+                const val = getOtp('totpOtp');
+                if (val.length === 6) return completeSuccess();
+                return showError('Enter the full 6-digit authenticator code.');
+            }
+            if (state.method === 'sms') {
+                const val = getOtp('sms');
+                if (val.length === 6) return completeSuccess();
+                return showError('Enter the full 6-digit SMS or WhatsApp code.');
+            }
+            if (state.method === 'recovery') {
+                const code = document.getElementById('recoveryCode').value.trim();
+                if (code.length >= 8) return completeSuccess();
+                return showError('Enter a valid recovery code.');
+            }
+        }
+
+        function showError(message) {
+            state.attempts += 1;
+            const target = document.querySelector('.challenge-panel') || panel;
+            target.classList.add('shake');
+            setTimeout(() => target.classList.remove('shake'), 400);
+            const existing = document.getElementById('inlineError');
+            if (existing) existing.remove();
+            panel.insertAdjacentHTML('beforeend', `<div id="inlineError" class="mt-3" style="padding:.85rem 1rem;border-radius:14px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);color:#fca5a5;font-size:.86rem"><i class="bi bi-exclamation-triangle me-1"></i>${message} Attempt ${state.attempts} of 5.</div>`);
+        }
+
+        function completeSuccess() {
+            document.getElementById('challengeState').style.display = 'none';
+            document.getElementById('successState').style.display = 'block';
+            document.getElementById('successFactor').textContent = state.factorLabels[state.method];
+        }
+
+        function selectMethod(method) {
+            state.method = method;
+            document.querySelectorAll('.method-card').forEach(card => card.classList.toggle('active', card.dataset.method === method));
+            renderPanel();
+        }
+
+        document.querySelectorAll('.method-card').forEach(card => {
+            card.addEventListener('click', () => selectMethod(card.dataset.method));
+        });
+
+        function updateTotpRing() {
+            const ring = document.getElementById('totpRing');
+            const time = document.getElementById('totpTime');
+            if (!ring || !time) return;
+            const pct = (state.totpSeconds / 30) * 100;
+            ring.style.setProperty('--progress', pct + '%');
+            time.textContent = String(state.totpSeconds).padStart(2, '0');
+        }
+
+        function tickTimers() {
+            state.sessionSeconds -= 1;
+            if (state.sessionSeconds < 0) state.sessionSeconds = 0;
+            const m = Math.floor(state.sessionSeconds / 60);
+            const s = state.sessionSeconds % 60;
+            document.getElementById('sessionTimer').textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+
+            state.totpSeconds -= 1;
+            if (state.totpSeconds <= 0) state.totpSeconds = 30;
+            if (state.method === 'totp') updateTotpRing();
+
+            if (state.smsSent && state.smsSeconds > 0) {
+                state.smsSeconds -= 1;
+                const el = document.getElementById('smsTimer');
+                if (el) el.textContent = state.smsSeconds;
+                const sendBtn = document.getElementById('sendSmsBtn');
+                if (sendBtn) sendBtn.disabled = state.smsSeconds > 0;
+            }
+        }
+
+        function downloadTemplate() {
+            const codes = ['PAYMO-8F4A2C', 'PAYMO-71B9E0', 'PAYMO-3D6F90', 'PAYMO-A1C778', 'PAYMO-52EE14'];
+            const blob = new Blob([`Paymo BAAS recovery code template\nGenerated locally for demo\n\n${codes.join('\n')}\n\nStore these codes in a secure place.`], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'paymo-recovery-codes-template.txt';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+        }
+
+        document.getElementById('helpBtn').addEventListener('click', () => new bootstrap.Modal(document.getElementById('helpModal')).show());
+        document.getElementById('differentAccountBtn').addEventListener('click', () => {
+            localStorage.removeItem('paymo_remembered_user');
+            window.location.hash = 'different-account-cleared';
+            document.getElementById('differentAccountBtn').innerHTML = '<i class="bi bi-check-lg me-1"></i> Remembered account cleared';
+        });
+        document.getElementById('continueDashboardBtn').addEventListener('click', () => {
+            window.location.hash = 'account-type';
+            document.getElementById('continueDashboardBtn').innerHTML = '<i class="bi bi-check-lg me-1"></i> Account type route ready';
+        });
+        document.getElementById('openSupportBtn').addEventListener('click', () => {
+            bootstrap.Modal.getInstance(document.getElementById('helpModal')).hide();
+            selectMethod('recovery');
+        });
+
+        renderPanel();
+        setInterval(tickTimers, 1000);
+    </script>
+</body>
+
+</html>

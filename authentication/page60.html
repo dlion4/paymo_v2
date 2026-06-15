@@ -1,0 +1,1807 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login Activity & Fraud Alerts — Paymo BAAS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css" rel="stylesheet" />
+    <style>
+        :root {
+            --bg-0: #04081a;
+            --bg-1: #06122e;
+            --bg-2: #0a1a3f;
+            --bg-3: #0f2456;
+            --ink-0: #fff;
+            --ink-1: #e6ecff;
+            --ink-2: #a8b6e0;
+            --ink-3: #6f82b5;
+            --accent: #22d3ee;
+            --accent-2: #60a5fa;
+            --accent-3: #a78bfa;
+            --accent-4: #fbbf24;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --warn: #f59e0b;
+            --glass-bg: rgba(255, 255, 255, .04);
+            --glass-border: rgba(255, 255, 255, .10);
+            --glass-strong: rgba(255, 255, 255, .08);
+            --glass-border-strong: rgba(255, 255, 255, .16);
+            --radius-lg: 22px;
+            --radius-md: 14px;
+            --radius-sm: 10px;
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        html {
+            scroll-behavior: smooth
+        }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--bg-0);
+            color: var(--ink-1);
+            overflow-x: hidden;
+            line-height: 1.55;
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh
+        }
+
+        code,
+        .mono {
+            font-family: 'JetBrains Mono', monospace
+        }
+
+        a {
+            color: var(--accent);
+            text-decoration: none;
+            transition: color .2s
+        }
+
+        a:hover {
+            color: var(--accent-2)
+        }
+
+        .bg-gradient-deep {
+            background: radial-gradient(1200px 600px at 80% -10%, rgba(96, 165, 250, .22), transparent 60%), radial-gradient(900px 500px at -10% 20%, rgba(167, 139, 250, .18), transparent 60%), radial-gradient(800px 500px at 50% 110%, rgba(34, 211, 238, .18), transparent 60%), linear-gradient(180deg, #04081a 0%, #06122e 30%, #081838 70%, #04081a 100%)
+        }
+
+        .grid-overlay {
+            background-image: linear-gradient(rgba(96, 165, 250, .06) 1px, transparent 1px), linear-gradient(90deg, rgba(96, 165, 250, .06) 1px, transparent 1px);
+            background-size: 56px 56px;
+            mask-image: radial-gradient(ellipse at center, black 40%, transparent 80%)
+        }
+
+        .blob {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: .45;
+            pointer-events: none;
+            animation: float 14s ease-in-out infinite
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translate(0, 0) scale(1)
+            }
+
+            50% {
+                transform: translate(40px, -30px) scale(1.08)
+            }
+        }
+
+        @keyframes pulseGlow {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(34, 211, 238, .35)
+            }
+
+            50% {
+                box-shadow: 0 0 0 14px rgba(34, 211, 238, 0)
+            }
+        }
+
+        @keyframes ping {
+            0% {
+                transform: scale(1);
+                opacity: 1
+            }
+
+            100% {
+                transform: scale(2.6);
+                opacity: 0
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(18px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        @keyframes fadeOut {
+            to {
+                opacity: 0;
+                transform: translateX(30px);
+                max-height: 0;
+                padding: 0;
+                margin: 0;
+                overflow: hidden
+            }
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0)
+            }
+
+            25% {
+                transform: translateX(-8px)
+            }
+
+            75% {
+                transform: translateX(8px)
+            }
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity .7s ease, transform .7s ease
+        }
+
+        .reveal.in {
+            opacity: 1;
+            transform: translateY(0)
+        }
+
+        .glass {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-lg);
+            backdrop-filter: blur(20px) saturate(140%);
+            -webkit-backdrop-filter: blur(20px) saturate(140%);
+            box-shadow: 0 1px 0 0 rgba(255, 255, 255, .04) inset, 0 30px 60px -30px rgba(0, 0, 0, .5)
+        }
+
+        .glass-strong {
+            background: var(--glass-strong);
+            border: 1px solid var(--glass-border-strong);
+            border-radius: var(--radius-lg);
+            backdrop-filter: blur(24px) saturate(150%);
+            -webkit-backdrop-filter: blur(24px) saturate(150%)
+        }
+
+        .glass-hover {
+            transition: transform .35s ease, border-color .35s ease, background .35s ease
+        }
+
+        .glass-hover:hover {
+            transform: translateY(-3px);
+            border-color: rgba(96, 165, 250, .35);
+            background: rgba(96, 165, 250, .06)
+        }
+
+        .text-gradient {
+            background: linear-gradient(135deg, #22d3ee 0%, #60a5fa 50%, #a78bfa 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent
+        }
+
+        .text-gradient-gold {
+            background: linear-gradient(135deg, #fde68a 0%, #fbbf24 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent
+        }
+
+        .btn {
+            font-weight: 600;
+            border-radius: 12px;
+            padding: .65rem 1.2rem;
+            transition: all .25s ease;
+            letter-spacing: -.01em;
+            font-size: .88rem;
+            border: none
+        }
+
+        .btn-primary-paymo {
+            background: linear-gradient(135deg, #22d3ee 0%, #3b82f6 100%);
+            color: #02121f;
+            box-shadow: 0 10px 30px -10px rgba(34, 211, 238, .55)
+        }
+
+        .btn-primary-paymo:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 40px -10px rgba(34, 211, 238, .75);
+            color: #02121f
+        }
+
+        .btn-outline-paymo {
+            background: transparent;
+            color: var(--ink-1);
+            border: 1px solid rgba(255, 255, 255, .18)
+        }
+
+        .btn-outline-paymo:hover {
+            background: rgba(255, 255, 255, .08);
+            border-color: var(--accent);
+            color: var(--ink-0)
+        }
+
+        .btn-danger-paymo {
+            background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+            color: #fff;
+            box-shadow: 0 10px 30px -10px rgba(239, 68, 68, .5)
+        }
+
+        .btn-danger-paymo:hover {
+            transform: translateY(-2px);
+            color: #fff
+        }
+
+        .btn-sm {
+            padding: .45rem .85rem;
+            font-size: .8rem
+        }
+
+        .logo-mark {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #22d3ee, #60a5fa, #a78bfa);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #02121f;
+            font-weight: 900;
+            box-shadow: 0 8px 24px -8px rgba(34, 211, 238, .6)
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: .5rem;
+            padding: .35rem .85rem;
+            border-radius: 999px;
+            background: rgba(34, 211, 238, .08);
+            border: 1px solid rgba(34, 211, 238, .25);
+            font-size: .8rem;
+            font-weight: 500;
+            color: #a5f3fc
+        }
+
+        .pill-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 0 10px var(--accent);
+            animation: pulseGlow 2s infinite
+        }
+
+        .badge-mini {
+            font-size: .7rem;
+            padding: .2rem .55rem;
+            border-radius: 999px;
+            font-weight: 600;
+            letter-spacing: .02em
+        }
+
+        .badge-ok {
+            background: rgba(34, 197, 94, .15);
+            color: #86efac;
+            border: 1px solid rgba(34, 197, 94, .3)
+        }
+
+        .badge-native {
+            background: rgba(34, 211, 238, .15);
+            color: #a5f3fc;
+            border: 1px solid rgba(34, 211, 238, .3)
+        }
+
+        .badge-adv {
+            background: rgba(167, 139, 250, .15);
+            color: #c4b5fd;
+            border: 1px solid rgba(167, 139, 250, .3)
+        }
+
+        .badge-soon {
+            background: rgba(251, 191, 36, .15);
+            color: #fcd34d;
+            border: 1px solid rgba(251, 191, 36, .3)
+        }
+
+        .badge-warn {
+            background: rgba(239, 68, 68, .15);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, .3)
+        }
+
+        .badge-req {
+            background: rgba(107, 114, 128, .2);
+            color: #cbd5e1;
+            border: 1px solid rgba(148, 163, 184, .3)
+        }
+
+        /* Section */
+        .page-wrap {
+            padding: 6rem 0 4rem;
+            position: relative
+        }
+
+        .section-label {
+            display: inline-flex;
+            align-items: center;
+            gap: .5rem;
+            font-size: .72rem;
+            text-transform: uppercase;
+            letter-spacing: .28em;
+            color: var(--ink-3);
+            font-weight: 600;
+            margin-bottom: .8rem
+        }
+
+        .section-label::before {
+            content: "";
+            width: 24px;
+            height: 1px;
+            background: var(--accent)
+        }
+
+        /* Tabs */
+        .tab-nav {
+            display: flex;
+            gap: .5rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 1rem
+        }
+
+        .tab-link {
+            padding: .6rem 1.1rem;
+            border-radius: 10px;
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--ink-2);
+            font-size: .88rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .25s;
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            position: relative
+        }
+
+        .tab-link:hover {
+            color: var(--ink-0);
+            background: rgba(255, 255, 255, .04)
+        }
+
+        .tab-link.active {
+            color: #a5f3fc;
+            background: linear-gradient(135deg, rgba(34, 211, 238, .14), rgba(96, 165, 250, .08));
+            border-color: rgba(34, 211, 238, .35)
+        }
+
+        .tab-link .badge-count {
+            background: var(--danger);
+            color: #fff;
+            font-size: .65rem;
+            padding: .15rem .45rem;
+            border-radius: 6px;
+            margin-left: .25rem
+        }
+
+        .tab-panel {
+            display: none
+        }
+
+        .tab-panel.active {
+            display: block;
+            animation: slideIn .4s ease
+        }
+
+        /* Stat tile */
+        .stat-tile {
+            padding: 1.2rem 1.4rem;
+            border-radius: var(--radius-md);
+            background: rgba(255, 255, 255, .03);
+            border: 1px solid var(--glass-border);
+            height: 100%;
+            transition: all .3s
+        }
+
+        .stat-tile:hover {
+            border-color: rgba(34, 211, 238, .3)
+        }
+
+        .stat-label {
+            font-size: .72rem;
+            color: var(--ink-3);
+            text-transform: uppercase;
+            letter-spacing: .14em;
+            font-weight: 600
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin-top: .4rem;
+            line-height: 1
+        }
+
+        .stat-delta {
+            font-size: .78rem;
+            margin-top: .4rem;
+            display: inline-flex;
+            align-items: center;
+            gap: .3rem
+        }
+
+        .stat-delta.up {
+            color: #86efac
+        }
+
+        .stat-delta.down {
+            color: #fca5a5
+        }
+
+        /* Activity item */
+        .activity-item {
+            display: grid;
+            grid-template-columns: auto 1fr auto auto;
+            gap: 1rem;
+            padding: 1rem 1.1rem;
+            border-radius: var(--radius-md);
+            background: rgba(255, 255, 255, .025);
+            border: 1px solid var(--glass-border);
+            margin-bottom: .7rem;
+            transition: all .25s;
+            align-items: center
+        }
+
+        .activity-item:hover {
+            border-color: rgba(96, 165, 250, .25);
+            background: rgba(96, 165, 250, .03)
+        }
+
+        .activity-item.flagged {
+            border-color: rgba(239, 68, 68, .3);
+            background: rgba(239, 68, 68, .04)
+        }
+
+        .activity-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            flex-shrink: 0
+        }
+
+        .activity-title {
+            font-weight: 600;
+            color: var(--ink-0);
+            font-size: .92rem;
+            margin-bottom: .2rem
+        }
+
+        .activity-meta {
+            font-size: .78rem;
+            color: var(--ink-3);
+            display: flex;
+            flex-wrap: wrap;
+            gap: .5rem;
+            align-items: center
+        }
+
+        .activity-meta .mono {
+            font-size: .72rem;
+            color: var(--ink-2);
+            background: rgba(255, 255, 255, .04);
+            padding: .15rem .45rem;
+            border-radius: 4px
+        }
+
+        /* Device card */
+        .device-card {
+            padding: 1.3rem;
+            border-radius: var(--radius-md);
+            background: rgba(255, 255, 255, .03);
+            border: 1px solid var(--glass-border);
+            transition: all .3s;
+            height: 100%;
+            position: relative
+        }
+
+        .device-card:hover {
+            border-color: rgba(34, 211, 238, .35)
+        }
+
+        .device-card.current {
+            border-color: rgba(34, 211, 238, .5);
+            background: linear-gradient(140deg, rgba(34, 211, 238, .08), rgba(96, 165, 250, .04))
+        }
+
+        .device-card .device-head {
+            display: flex;
+            align-items: center;
+            gap: .8rem;
+            margin-bottom: .8rem
+        }
+
+        .device-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0
+        }
+
+        .device-name {
+            font-weight: 700;
+            color: var(--ink-0);
+            font-size: .95rem
+        }
+
+        .device-info {
+            font-size: .78rem;
+            color: var(--ink-3)
+        }
+
+        .device-row {
+            display: flex;
+            justify-content: space-between;
+            padding: .4rem 0;
+            font-size: .82rem;
+            border-top: 1px solid var(--glass-border)
+        }
+
+        .device-row-label {
+            color: var(--ink-3)
+        }
+
+        .device-row-value {
+            color: var(--ink-1);
+            font-weight: 500
+        }
+
+        .device-status {
+            position: absolute;
+            top: 1rem;
+            right: 1rem
+        }
+
+        /* Alert card */
+        .alert-card {
+            padding: 1.2rem;
+            border-radius: var(--radius-md);
+            background: rgba(255, 255, 255, .03);
+            border: 1px solid var(--glass-border);
+            margin-bottom: .7rem;
+            transition: all .3s;
+            display: grid;
+            grid-template-columns: auto 1fr auto auto;
+            gap: 1rem;
+            align-items: center
+        }
+
+        .alert-card:hover {
+            border-color: rgba(96, 165, 250, .3)
+        }
+
+        .alert-card.critical {
+            border-color: rgba(239, 68, 68, .4);
+            background: rgba(239, 68, 68, .05)
+        }
+
+        .alert-card.high {
+            border-color: rgba(251, 191, 36, .3);
+            background: rgba(251, 191, 36, .04)
+        }
+
+        .alert-card.medium {
+            border-color: rgba(96, 165, 250, .3);
+            background: rgba(96, 165, 250, .04)
+        }
+
+        .alert-card.low {
+            border-color: rgba(34, 197, 94, .2);
+            background: rgba(34, 197, 94, .03)
+        }
+
+        .alert-icon-box {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0
+        }
+
+        .alert-title {
+            font-weight: 700;
+            color: var(--ink-0);
+            font-size: .92rem;
+            margin-bottom: .25rem
+        }
+
+        .alert-desc {
+            font-size: .82rem;
+            color: var(--ink-2);
+            margin-bottom: .5rem;
+            line-height: 1.5
+        }
+
+        .alert-dismissed {
+            opacity: .5;
+            text-decoration: line-through
+        }
+
+        .alert-dismissed .alert-desc {
+            opacity: .6
+        }
+
+        /* Filter pills */
+        .filter-pill {
+            padding: .45rem 1rem;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, .04);
+            border: 1px solid var(--glass-border);
+            font-size: .8rem;
+            font-weight: 500;
+            color: var(--ink-2);
+            cursor: pointer;
+            transition: all .2s;
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem
+        }
+
+        .filter-pill:hover {
+            color: var(--ink-0);
+            border-color: var(--accent)
+        }
+
+        .filter-pill.active {
+            background: linear-gradient(135deg, rgba(34, 211, 238, .18), rgba(96, 165, 250, .14));
+            border-color: rgba(34, 211, 238, .5);
+            color: #a5f3fc
+        }
+
+        /* Flow frame */
+        .flow-frame {
+            position: relative;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            border: 1px solid var(--glass-border-strong);
+            background: #020514
+        }
+
+        .flow-frame img {
+            width: 100%;
+            display: block;
+            opacity: .9;
+            mix-blend-mode: screen;
+            filter: hue-rotate(-15deg) saturate(120%) brightness(1.05)
+        }
+
+        .flow-frame::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, transparent 50%, rgba(4, 8, 26, .6) 100%);
+            z-index: 1;
+            pointer-events: none
+        }
+
+        .flow-label {
+            position: absolute;
+            left: 1rem;
+            bottom: 1rem;
+            z-index: 2
+        }
+
+        /* Settings toggle */
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--glass-border)
+        }
+
+        .setting-row:last-child {
+            border-bottom: none
+        }
+
+        .setting-info h6 {
+            font-size: .92rem;
+            margin-bottom: .2rem;
+            color: var(--ink-0)
+        }
+
+        .setting-info p {
+            font-size: .8rem;
+            color: var(--ink-3);
+            margin: 0
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 26px;
+            flex-shrink: 0
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            inset: 0;
+            background: rgba(255, 255, 255, .1);
+            border: 1px solid var(--glass-border);
+            transition: .3s;
+            border-radius: 999px
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background: var(--ink-2);
+            transition: .3s;
+            border-radius: 50%
+        }
+
+        .toggle-switch input:checked+.toggle-slider {
+            background: linear-gradient(135deg, #22d3ee, #60a5fa);
+            border-color: transparent
+        }
+
+        .toggle-switch input:checked+.toggle-slider:before {
+            transform: translateX(24px);
+            background: #02121f
+        }
+
+        /* Search */
+        .search-wrap {
+            position: relative
+        }
+
+        .search-wrap i {
+            position: absolute;
+            left: .9rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--ink-3)
+        }
+
+        .search-wrap input {
+            padding-left: 2.4rem
+        }
+
+        /* Form */
+        .form-input {
+            width: 100%;
+            padding: .65rem .9rem;
+            background: rgba(255, 255, 255, .03);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            color: var(--ink-1);
+            font-size: .88rem;
+            transition: all .25s
+        }
+
+        .form-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(34, 211, 238, .12);
+            outline: none
+        }
+
+        .form-input::placeholder {
+            color: var(--ink-3)
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--ink-3)
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: .5
+        }
+
+        /* Responsive */
+        @media(max-width:991px) {
+            .activity-item {
+                grid-template-columns: auto 1fr auto;
+                gap: .7rem
+            }
+
+            .activity-item>.d-flex:last-child {
+                grid-column: 2/4
+            }
+
+            .alert-card {
+                grid-template-columns: auto 1fr;
+                gap: .8rem
+            }
+
+            .alert-card>.d-flex {
+                grid-column: 2
+            }
+        }
+
+        @media(max-width:576px) {
+            .activity-item {
+                grid-template-columns: 1fr
+            }
+
+            .activity-item>.d-flex {
+                grid-column: 1
+            }
+
+            .stat-value {
+                font-size: 1.5rem
+            }
+        }
+
+        /* Animations */
+        .fade-out {
+            animation: fadeOut .4s ease forwards
+        }
+
+        .shake {
+            animation: shake .4s ease
+        }
+    </style>
+</head>
+
+<body class="bg-gradient-deep">
+
+    <div class="blob" style="width:500px;height:500px;background:#22d3ee;top:-150px;right:-120px"></div>
+    <div class="blob" style="width:380px;height:380px;background:#a78bfa;bottom:-100px;left:-60px;animation-delay:-6s">
+    </div>
+
+    <div class="page-wrap">
+        <div class="container">
+
+            <!-- Brand bar -->
+            <div class="d-flex align-items-center justify-content-between mb-4">
+                <a href="#" class="d-flex align-items-center gap-2 text-decoration-none">
+                    <div class="logo-mark">P</div>
+                    <div>
+                        <div class="fw-bold text-white">Paymo <span class="text-gradient">BAAS</span></div>
+                        <div style="font-size:.72rem;color:var(--ink-3)">Security Center</div>
+                    </div>
+                </a>
+                <div class="d-flex align-items-center gap-2">
+                    <a href="#" class="btn btn-outline-paymo btn-sm"><i class="bi bi-arrow-left me-1"></i> Back to
+                        Dashboard</a>
+                </div>
+            </div>
+
+            <!-- Hero -->
+            <div class="row align-items-center g-4 mb-4">
+                <div class="col-lg-8">
+                    <div class="section-label">Section 60 · Security Dashboard</div>
+                    <h1 style="font-size:clamp(1.8rem,4vw,3rem);font-weight:900;line-height:1.1">
+                        Login Activity & <span class="text-gradient">Fraud Alerts</span>
+                    </h1>
+                    <p style="font-size:1rem;color:var(--ink-2);max-width:600px;margin-top:.8rem">
+                        Monitor every session, manage trusted devices, and respond to suspicious activity in real time.
+                        Your security, visualized.
+                    </p>
+                    <div class="d-flex flex-wrap gap-2 mt-3">
+                        <a href="#alerts" class="btn btn-primary-paymo"><i class="bi bi-shield-exclamation me-1"></i>
+                            View Alerts</a>
+                        <a href="#sessions" class="btn btn-outline-paymo"><i class="bi bi-laptop me-1"></i> Manage
+                            Sessions</a>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="glass p-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="pill-dot"></span>
+                                <span
+                                    style="font-size:.78rem;color:var(--ink-3);letter-spacing:.14em;text-transform:uppercase;font-weight:600">Security
+                                    Score</span>
+                            </div>
+                            <span class="badge-mini badge-ok">Strong</span>
+                        </div>
+                        <div style="font-size:2.6rem;font-weight:900;color:#fff" id="securityScore">92<span
+                                style="font-size:1rem;color:var(--ink-3)">/100</span></div>
+                        <div
+                            style="height:6px;border-radius:6px;background:rgba(255,255,255,.06);margin-top:.8rem;overflow:hidden">
+                            <div
+                                style="height:100%;width:92%;background:linear-gradient(90deg,#22d3ee,#22c55e);border-radius:6px">
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between mt-2" style="font-size:.74rem;color:var(--ink-3)">
+                            <span>+8 this week</span><span>Last scanned: 2 min ago</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stat row -->
+            <div class="row g-3 mb-4">
+                <div class="col-6 col-lg-3">
+                    <div class="stat-tile glass-hover">
+                        <div class="stat-label">Total Logins (30d)</div>
+                        <div class="stat-value text-gradient" id="statLogins">147</div>
+                        <div class="stat-delta up"><i class="bi bi-arrow-up"></i> 12% vs last month</div>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-3">
+                    <div class="stat-tile glass-hover">
+                        <div class="stat-label">Blocked Attempts</div>
+                        <div class="stat-value" style="color:#fca5a5" id="statBlocked">8</div>
+                        <div class="stat-delta down"><i class="bi bi-arrow-down"></i> 3 this week</div>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-3">
+                    <div class="stat-tile glass-hover">
+                        <div class="stat-label">Active Sessions</div>
+                        <div class="stat-value text-gradient" id="statSessions">5</div>
+                        <div class="stat-delta"><i class="bi bi-circle-fill" style="color:#86efac;font-size:.5rem"></i>
+                            1 current device</div>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-3">
+                    <div class="stat-tile glass-hover">
+                        <div class="stat-label">Open Alerts</div>
+                        <div class="stat-value text-gradient-gold" id="statAlerts">4</div>
+                        <div class="stat-delta"><i class="bi bi-circle-fill" style="color:#fca5a5;font-size:.5rem"></i>
+                            1 requires action</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="tab-nav" role="tablist">
+                <button class="tab-link active" data-tab="activity"><i class="bi bi-clock-history"></i> Activity
+                    Log</button>
+                <button class="tab-link" data-tab="sessions"><i class="bi bi-laptop"></i> Sessions</button>
+                <button class="tab-link" data-tab="alerts">
+                    <i class="bi bi-shield-exclamation"></i> Fraud Alerts
+                    <span class="badge-count" id="alertCount">4</span>
+                </button>
+                <button class="tab-link" data-tab="devices"><i class="bi bi-phone"></i> Devices</button>
+                <button class="tab-link" data-tab="settings"><i class="bi bi-gear"></i> Alert Settings</button>
+            </div>
+
+            <!-- ============ TAB: ACTIVITY ============ -->
+            <div class="tab-panel active" id="tab-activity">
+                <div class="row g-4 mb-4">
+                    <div class="col-lg-4">
+                        <div class="flow-frame">
+                            <img src="https://i.pinimg.com/originals/82/de/83/82de83fb86c54aa5783bbb6ca3b26938.gif"
+                                alt="Activity flow" />
+                            <div class="flow-label">
+                                <div class="badge-mini badge-native mb-1">Live monitoring</div>
+                                <div style="font-weight:700;color:#fff">Every login tracked and analyzed</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-8">
+                        <div class="glass p-4 h-100" style="border-radius:18px">
+                            <h5 class="mb-1">Risk-based authentication</h5>
+                            <p style="font-size:.88rem;color:var(--ink-2);margin-bottom:1.2rem">Every login is scored
+                                against 14 risk signals. High-risk attempts are blocked and flagged for review.</p>
+                            <div class="row g-2">
+                                <div class="col-6 col-md-3">
+                                    <div class="detail-stat">
+                                        <div class="detail-stat-lbl">Risk signals</div>
+                                        <div class="detail-stat-val">14</div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="detail-stat">
+                                        <div class="detail-stat-lbl">Blocked today</div>
+                                        <div class="detail-stat-val">1</div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="detail-stat">
+                                        <div class="detail-stat-lbl">Avg latency</div>
+                                        <div class="detail-stat-val">38ms</div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="detail-stat">
+                                        <div class="detail-stat-lbl">False positives</div>
+                                        <div class="detail-stat-val">0.4%</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="margin-top:1.2rem;padding-top:1.2rem;border-top:1px solid var(--glass-border)">
+                                <div class="d-flex flex-wrap gap-2">
+                                    <span class="filter-pill"><i class="bi bi-geo-alt"></i> Impossible travel</span>
+                                    <span class="filter-pill"><i class="bi bi-clock"></i> Anomalous time</span>
+                                    <span class="filter-pill"><i class="bi bi-cpu"></i> New fingerprint</span>
+                                    <span class="filter-pill"><i class="bi bi-torrent"></i> VPN / Tor</span>
+                                    <span class="filter-pill"><i class="bi bi-lightning"></i> High velocity</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filters & Search -->
+                <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-3">
+                    <div class="d-flex flex-wrap gap-2" id="activityFilters">
+                        <span class="filter-pill active" data-filter="all"><i class="bi bi-funnel"></i> All
+                            Activity</span>
+                        <span class="filter-pill" data-filter="success"><i class="bi bi-check-circle"></i>
+                            Successful</span>
+                        <span class="filter-pill" data-filter="blocked"><i class="bi bi-x-circle"></i> Blocked</span>
+                        <span class="filter-pill" data-filter="mfa"><i class="bi bi-shield-lock"></i> MFA</span>
+                        <span class="filter-pill" data-filter="flagged"><i class="bi bi-flag"></i> Flagged</span>
+                    </div>
+                    <div class="search-wrap" style="max-width:280px">
+                        <i class="bi bi-search"></i>
+                        <input type="text" class="form-input" id="activitySearch"
+                            placeholder="Search by IP, location, device..." />
+                    </div>
+                </div>
+
+                <!-- Activity List -->
+                <div id="activityList"></div>
+            </div>
+
+            <!-- ============ TAB: SESSIONS ============ -->
+            <div class="tab-panel" id="tab-sessions">
+                <div class="row g-4">
+                    <div class="col-lg-8">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <h5 class="mb-1">Active Sessions</h5>
+                                <p style="font-size:.85rem;color:var(--ink-3);margin:0">Manage where you're signed in.
+                                    Revoke access on any device anytime.</p>
+                            </div>
+                            <button class="btn btn-danger-paymo btn-sm" id="revokeAllBtn"><i
+                                    class="bi bi-trash me-1"></i> Revoke All Others</button>
+                        </div>
+                        <div class="row g-3" id="sessionsList"></div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="flow-frame mb-3">
+                            <img src="https://i.pinimg.com/736x/9e/c1/f1/9ec1f12d8d3474f7ca550168f7ef48bc.jpg"
+                                alt="Session security" />
+                            <div class="flow-label">
+                                <div class="badge-mini badge-ok mb-1">Real-time</div>
+                                <div style="font-weight:700;color:#fff">Session validation on every request</div>
+                            </div>
+                        </div>
+                        <div class="glass p-3" style="border-radius:16px">
+                            <h6 class="mb-2"><i class="bi bi-info-circle me-2" style="color:var(--accent)"></i>Session
+                                tips</h6>
+                            <ul style="font-size:.82rem;color:var(--ink-2);padding-left:1.2rem;margin:0">
+                                <li>Sessions expire after 30 days of inactivity</li>
+                                <li>Password change revokes all sessions automatically</li>
+                                <li>Current session cannot be revoked</li>
+                                <li>Suspicious sessions are auto-flagged for review</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============ TAB: ALERTS ============ -->
+            <div class="tab-panel" id="tab-alerts">
+                <div class="row g-4 mb-4">
+                    <div class="col-lg-7">
+                        <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-3">
+                            <h5 class="mb-0">Fraud Alerts</h5>
+                            <div class="d-flex flex-wrap gap-2" id="alertFilters">
+                                <span class="filter-pill active" data-filter="all">All <span
+                                        class="badge-mini badge-ok ms-1" id="af-all">4</span></span>
+                                <span class="filter-pill" data-filter="critical">Critical <span
+                                        class="badge-mini badge-warn ms-1" id="af-critical">1</span></span>
+                                <span class="filter-pill" data-filter="high">High <span
+                                        class="badge-mini badge-soon ms-1" id="af-high">1</span></span>
+                                <span class="filter-pill" data-filter="medium">Medium <span
+                                        class="badge-mini badge-native ms-1" id="af-medium">1</span></span>
+                                <span class="filter-pill" data-filter="low">Low <span class="badge-mini badge-adv ms-1"
+                                        id="af-low">1</span></span>
+                            </div>
+                        </div>
+                        <div id="alertList"></div>
+                    </div>
+                    <div class="col-lg-5">
+                        <div class="flow-frame mb-3">
+                            <img src="https://i.pinimg.com/736x/90/c8/9e/90c89eba3035569f426401ce96443c1b.jpg"
+                                alt="Fraud detection" />
+                            <div class="flow-label">
+                                <div class="badge-mini badge-warn mb-1">AI-powered</div>
+                                <div style="font-weight:700;color:#fff">Anomaly detection across 25+ signals</div>
+                            </div>
+                        </div>
+
+                        <div class="glass p-3" style="border-radius:16px">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="mb-0">Alert Summary</h6>
+                                <span class="badge-mini badge-ok">Last 7 days</span>
+                            </div>
+                            <div class="d-flex flex-column gap-2">
+                                <div class="d-flex justify-content-between align-items-center" style="font-size:.88rem">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge-mini badge-warn">Critical</span>
+                                        <span style="color:var(--ink-2)">Requires immediate action</span>
+                                    </div>
+                                    <strong style="color:var(--ink-0)">1</strong>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center" style="font-size:.88rem">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge-mini badge-soon">High</span>
+                                        <span style="color:var(--ink-2)">Review recommended</span>
+                                    </div>
+                                    <strong style="color:var(--ink-0)">1</strong>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center" style="font-size:.88rem">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge-mini badge-native">Medium</span>
+                                        <span style="color:var(--ink-2)">Informational</span>
+                                    </div>
+                                    <strong style="color:var(--ink-0)">1</strong>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center" style="font-size:.88rem">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge-mini badge-adv">Low</span>
+                                        <span style="color:var(--ink-2)">Routine notification</span>
+                                    </div>
+                                    <strong style="color:var(--ink-0)">1</strong>
+                                </div>
+                            </div>
+                            <hr style="border-color:var(--glass-border);margin:1rem 0" />
+                            <button class="btn btn-primary-paymo btn-sm w-100"><i class="bi bi-download me-1"></i>
+                                Export Alert Log (PDF)</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============ TAB: DEVICES ============ -->
+            <div class="tab-panel" id="tab-devices">
+                <div class="row g-4 mb-4">
+                    <div class="col-lg-8">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <h5 class="mb-1">Trusted Devices</h5>
+                                <p style="font-size:.85rem;color:var(--ink-3);margin:0">Devices marked as trusted skip
+                                    MFA on subsequent logins.</p>
+                            </div>
+                            <button class="btn btn-outline-paymo btn-sm" id="addDeviceBtn"><i
+                                    class="bi bi-plus-circle me-1"></i> Trust This Device</button>
+                        </div>
+                        <div class="row g-3" id="deviceList"></div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="glass p-4 h-100" style="border-radius:18px">
+                            <div class="d-flex align-items-center gap-3 mb-3">
+                                <div
+                                    style="width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,rgba(34,211,238,.2),rgba(96,165,250,.1));border:1px solid rgba(34,211,238,.3);display:flex;align-items:center;justify-content:center;color:#a5f3fc;font-size:1.3rem">
+                                    <i class="bi bi-phone"></i></div>
+                                <div>
+                                    <h6 class="mb-0">Current Device</h6>
+                                    <div style="font-size:.78rem;color:var(--ink-3)">Detected via fingerprinting</div>
+                                </div>
+                            </div>
+                            <div class="detail-stat mb-2">
+                                <div class="detail-stat-lbl">Device</div>
+                                <div class="detail-stat-val" id="curDeviceName">—</div>
+                            </div>
+                            <div class="detail-stat mb-2">
+                                <div class="detail-stat-lbl">Browser</div>
+                                <div class="detail-stat-val mono" id="curBrowser">—</div>
+                            </div>
+                            <div class="detail-stat mb-2">
+                                <div class="detail-stat-lbl">OS</div>
+                                <div class="detail-stat-val" id="curOS">—</div>
+                            </div>
+                            <div class="detail-stat mb-2">
+                                <div class="detail-stat-lbl">Fingerprint</div>
+                                <div class="detail-stat-val mono" id="curFP" style="font-size:.78rem">—</div>
+                            </div>
+                            <button class="btn btn-primary-paymo btn-sm w-100 mt-2" id="trustCurDevice"><i
+                                    class="bi bi-shield-check me-1"></i> Mark as Trusted</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============ TAB: SETTINGS ============ -->
+            <div class="tab-panel" id="tab-settings">
+                <div class="row g-4">
+                    <div class="col-lg-7">
+                        <div class="glass p-4" style="border-radius:18px">
+                            <h5 class="mb-1">Notification Preferences</h5>
+                            <p style="font-size:.85rem;color:var(--ink-3);margin-bottom:1.5rem">Control which alerts
+                                reach you and via which channels.</p>
+                            <div id="alertSettings">
+                                <div class="setting-row">
+                                    <div class="setting-info">
+                                        <h6>Login from new device</h6>
+                                        <p>Alert when account is accessed from an unrecognized device</p>
+                                    </div>
+                                    <label class="toggle-switch"><input type="checkbox" class="setting-toggle"
+                                            data-key="newDevice" checked><span class="toggle-slider"></span></label>
+                                </div>
+                                <div class="setting-row">
+                                    <div class="setting-info">
+                                        <h6>Failed login attempts</h6>
+                                        <p>Get notified after 3+ failed login attempts</p>
+                                    </div>
+                                    <label class="toggle-switch"><input type="checkbox" class="setting-toggle"
+                                            data-key="failedLogin" checked><span class="toggle-slider"></span></label>
+                                </div>
+                                <div class="setting-row">
+                                    <div class="setting-info">
+                                        <h6>Suspicious activity</h6>
+                                        <p>Impossible travel, unusual hours, VPN usage</p>
+                                    </div>
+                                    <label class="toggle-switch"><input type="checkbox" class="setting-toggle"
+                                            data-key="suspicious" checked><span class="toggle-slider"></span></label>
+                                </div>
+                                <div class="setting-row">
+                                    <div class="setting-info">
+                                        <h6>Large transactions</h6>
+                                        <p>Alert on transactions over $10,000</p>
+                                    </div>
+                                    <label class="toggle-switch"><input type="checkbox" class="setting-toggle"
+                                            data-key="largeTx" checked><span class="toggle-slider"></span></label>
+                                </div>
+                                <div class="setting-row">
+                                    <div class="setting-info">
+                                        <h6>Weekly security digest</h6>
+                                        <p>Summary of login activity and alerts every Monday</p>
+                                    </div>
+                                    <label class="toggle-switch"><input type="checkbox" class="setting-toggle"
+                                            data-key="digest" checked><span class="toggle-slider"></span></label>
+                                </div>
+                                <div class="setting-row">
+                                    <div class="setting-info">
+                                        <h6>Marketing notifications</h6>
+                                        <p>Product updates and security tips</p>
+                                    </div>
+                                    <label class="toggle-switch"><input type="checkbox" class="setting-toggle"
+                                            data-key="marketing"><span class="toggle-slider"></span></label>
+                                </div>
+                            </div>
+                            <div id="settingsSaved" class="alert-box info mt-3" style="display:none;padding:.9rem">
+                                <i class="bi bi-check-circle-fill alert-icon" style="color:#86efac"></i>
+                                <div class="alert-content">
+                                    <h6 style="color:#86efac;font-size:.95rem">Preferences saved</h6>
+                                    <p style="font-size:.85rem">Your notification preferences have been updated.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-5">
+                        <div class="glass p-4 mb-3" style="border-radius:18px">
+                            <h6 class="mb-3"><i class="bi bi-bell me-2" style="color:var(--accent)"></i>Delivery
+                                Channels</h6>
+                            <div class="d-flex flex-column gap-2">
+                                <div class="d-flex justify-content-between align-items-center p-2"
+                                    style="border-radius:10px;background:rgba(255,255,255,.03);border:1px solid var(--glass-border)">
+                                    <div class="d-flex align-items-center gap-2"><i class="bi bi-envelope"
+                                            style="color:var(--accent)"></i><span style="font-size:.88rem">Email</span>
+                                    </div>
+                                    <span class="badge-mini badge-ok">Active</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center p-2"
+                                    style="border-radius:10px;background:rgba(255,255,255,.03);border:1px solid var(--glass-border)">
+                                    <div class="d-flex align-items-center gap-2"><i class="bi bi-phone"
+                                            style="color:var(--accent-2)"></i><span style="font-size:.88rem">SMS</span>
+                                    </div>
+                                    <span class="badge-mini badge-ok">Active</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center p-2"
+                                    style="border-radius:10px;background:rgba(255,255,255,.03);border:1px solid var(--glass-border)">
+                                    <div class="d-flex align-items-center gap-2"><i class="bi bi-bell"
+                                            style="color:var(--accent-3)"></i><span style="font-size:.88rem">Push</span>
+                                    </div>
+                                    <span class="badge-mini badge-ok">Active</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center p-2"
+                                    style="border-radius:10px;background:rgba(255,255,255,.03);border:1px solid var(--glass-border)">
+                                    <div class="d-flex align-items-center gap-2"><i class="bi bi-telegram"
+                                            style="color:var(--accent-4)"></i><span
+                                            style="font-size:.88rem">Telegram</span></div>
+                                    <a href="#" class="btn btn-outline-paymo btn-sm">Connect</a>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center p-2"
+                                    style="border-radius:10px;background:rgba(255,255,255,.03);border:1px solid var(--glass-border)">
+                                    <div class="d-flex align-items-center gap-2"><i class="bi bi-chat-dots"
+                                            style="color:var(--accent)"></i><span
+                                            style="font-size:.88rem">WhatsApp</span></div>
+                                    <a href="#" class="btn btn-outline-paymo btn-sm">Connect</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="glass p-4" style="border-radius:18px">
+                            <h6 class="mb-2"><i class="bi bi-shield-check me-2" style="color:#86efac"></i>Security
+                                Recommendations</h6>
+                            <div class="d-flex flex-column gap-2 mt-2" id="recommendations"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom CTA -->
+            <div class="glass p-4 mt-4 d-flex flex-wrap justify-content-between align-items-center gap-3"
+                style="border-radius:18px">
+                <div>
+                    <div style="font-weight:700;color:var(--ink-0)">Something look wrong?</div>
+                    <div style="font-size:.85rem;color:var(--ink-2)">Contact our security team immediately for account
+                        protection.</div>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="#alerts" class="btn btn-outline-paymo">View All Alerts</a>
+                    <a href="#" class="btn btn-primary-paymo"><i class="bi bi-headset me-1"></i> Contact Security</a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        /* =========================================================
+           DATA
+           ========================================================= */
+        const ACTIVITY = [
+            { time: '2026-06-14 14:32:18', type: 'success', title: 'Successful login', device: 'Chrome 125 · Windows 11', location: 'Lagos, Nigeria', ip: '105.112.44.12', method: 'Passkey', flagged: false },
+            { time: '2026-06-14 09:14:02', type: 'mfa', title: 'MFA challenge completed', device: 'Safari 17 · iOS 17.5', location: 'London, UK', ip: '81.129.18.94', method: 'TOTP', flagged: false },
+            { time: '2026-06-13 22:41:55', type: 'blocked', title: 'Login blocked — new device', device: 'Firefox 127 · Ubuntu', location: 'Moscow, Russia', ip: '91.214.88.3', method: 'Password + OTP', flagged: true, reason: 'Impossible travel + new fingerprint' },
+            { time: '2026-06-13 18:05:44', type: 'success', title: 'Successful login', device: 'Paymo iOS App 4.2', location: 'Lagos, Nigeria', ip: '105.112.44.12', method: 'Face ID', flagged: false },
+            { time: '2026-06-13 11:22:09', type: 'mfa', title: 'MFA challenge completed', device: 'Chrome 125 · macOS 14.5', location: 'Lagos, Nigeria', ip: '105.112.44.12', method: 'Security Key', flagged: false },
+            { time: '2026-06-12 23:17:33', type: 'blocked', title: 'Login blocked — VPN detected', device: 'Brave 1.67 · Windows 11', location: 'Accra, Ghana (VPN)', ip: '45.132.192.7', method: 'Password', flagged: true, reason: 'Known anonymizing proxy' },
+            { time: '2026-06-12 15:48:21', type: 'success', title: 'Successful login', device: 'Safari 17 · iPadOS 17.5', location: 'Abuja, Nigeria', ip: '102.89.33.5', method: 'Password + SMS OTP', flagged: false },
+            { time: '2026-06-11 08:32:10', type: 'flagged', title: 'Login flagged for review', device: 'Chrome 125 · Android 14', location: 'Nairobi, Kenya', ip: '41.90.220.11', method: 'Password', flagged: true, reason: 'Unusual hour (3:32 AM WAT)' },
+            { time: '2026-06-10 19:55:44', type: 'success', title: 'Successful login', device: 'Chrome 125 · Windows 11', location: 'Lagos, Nigeria', ip: '105.112.44.12', method: 'Passkey', flagged: false },
+            { time: '2026-06-09 12:14:07', type: 'success', title: 'Successful login', device: 'Paymo Android App 4.2', location: 'Lagos, Nigeria', ip: '105.112.44.12', method: 'Fingerprint', flagged: false },
+            { time: '2026-06-08 21:03:28', type: 'blocked', title: 'Login blocked — velocity limit', device: 'Unknown Bot', location: 'Multiple', ip: '185.220.101.44', method: 'Brute force attempt', flagged: true, reason: '47 attempts in 60 seconds' },
+            { time: '2026-06-08 10:45:12', type: 'success', title: 'Successful login', device: 'Chrome 125 · Windows 11', location: 'Lagos, Nigeria', ip: '105.112.44.12', method: 'Passkey', flagged: false }
+        ];
+
+        const SESSIONS = [
+            { id: 1, current: true, device: 'Chrome 125 · Windows 11', location: 'Lagos, Nigeria', ip: '105.112.44.12', started: '14 Jun 2026, 14:32', lastActive: 'Just now', os: 'Windows 11 Pro' },
+            { id: 2, current: false, device: 'Paymo iOS App 4.2', location: 'Lagos, Nigeria', ip: '105.112.44.12', started: '13 Jun 2026, 18:05', lastActive: '5 hours ago', os: 'iOS 17.5.1' },
+            { id: 3, current: false, device: 'Safari 17 · iPadOS 17.5', location: 'Abuja, Nigeria', ip: '102.89.33.5', started: '12 Jun 2026, 15:48', lastActive: '2 days ago', os: 'iPadOS 17.5' },
+            { id: 4, current: false, device: 'Paymo Android App 4.2', location: 'Lagos, Nigeria', ip: '105.112.44.12', started: '09 Jun 2026, 12:14', lastActive: '5 days ago', os: 'Android 14' },
+            { id: 5, current: false, device: 'Safari 17 · iOS 17.5', location: 'London, UK', ip: '81.129.18.94', started: '06 Jun 2026, 09:14', lastActive: '8 days ago', os: 'iOS 17.5.1' }
+        ];
+
+        const ALERTS = [
+            { id: 1, level: 'critical', title: 'Impossible travel detected', desc: 'Login from Moscow, Russia 12 minutes after a successful login from Lagos, Nigeria. Physical travel between these locations is not possible in this timeframe.', time: '13 Jun 2026 · 22:41 WAT', location: 'Moscow, Russia', ip: '91.214.88.3', dismissed: false },
+            { id: 2, level: 'high', title: 'Brute force attempt blocked', desc: '47 failed login attempts in 60 seconds from anonymizing proxy. Account was temporarily locked and IP blacklisted for 24 hours.', time: '08 Jun 2026 · 21:03 WAT', location: 'Multiple', ip: '185.220.101.44', dismissed: false },
+            { id: 3, level: 'medium', title: 'Login from new device', desc: 'A new device (Firefox 127 · Ubuntu) accessed your account from Accra, Ghana. Please confirm if this was you.', time: '13 Jun 2026 · 23:17 WAT', location: 'Accra, Ghana', ip: '45.132.192.7', dismissed: false },
+            { id: 4, level: 'low', title: 'Password unchanged for 90+ days', desc: 'It has been 92 days since your last password change. Consider updating your password as a security best practice.', time: '01 Jun 2026 · 00:00 WAT', location: '—', ip: '—', dismissed: false }
+        ];
+
+        const DEVICES = [
+            { id: 1, name: 'MacBook Pro (2024)', os: 'macOS 14.5', browser: 'Chrome 125', trusted: true, lastUsed: '14 Jun 2026', sessions: 2 },
+            { id: 2, name: 'iPhone 15 Pro', os: 'iOS 17.5.1', browser: 'Paymo iOS 4.2', trusted: true, lastUsed: '13 Jun 2026', sessions: 1 },
+            { id: 3, name: 'iPad Air', os: 'iPadOS 17.5', browser: 'Safari 17', trusted: true, lastUsed: '12 Jun 2026', sessions: 1 },
+            { id: 4, name: 'Samsung Galaxy S24', os: 'Android 14', browser: 'Paymo Android 4.2', trusted: false, lastUsed: '09 Jun 2026', sessions: 1 },
+            { id: 5, name: 'Windows PC (Office)', os: 'Windows 11 Pro', browser: 'Chrome 125', trusted: true, lastUsed: '14 Jun 2026', sessions: 1 }
+        ];
+
+        /* =========================================================
+           RENDER FUNCTIONS
+           ========================================================= */
+
+        /* Activity */
+        const TYPE_CONFIG = {
+            success: { icon: 'bi-check-circle-fill', color: '#86efac', bg: 'rgba(34,197,94,.12)', border: 'rgba(34,197,94,.25)' },
+            blocked: { icon: 'bi-x-circle-fill', color: '#fca5a5', bg: 'rgba(239,68,68,.12)', border: 'rgba(239,68,68,.25)' },
+            mfa: { icon: 'bi-shield-lock-fill', color: '#a5f3fc', bg: 'rgba(34,211,238,.12)', border: 'rgba(34,211,238,.25)' },
+            flagged: { icon: 'bi-flag-fill', color: '#fcd34d', bg: 'rgba(251,191,36,.12)', border: 'rgba(251,191,36,.25)' }
+        };
+
+        function renderActivity(filter = 'all', search = '') {
+            const list = document.getElementById('activityList');
+            const filtered = ACTIVITY.filter(a => {
+                const matchFilter = filter === 'all' || a.type === filter || (filter === 'flagged' && a.flagged);
+                const matchSearch = !search || (a.title + a.device + a.location + a.ip).toLowerCase().includes(search.toLowerCase());
+                return matchFilter && matchSearch;
+            });
+            if (!filtered.length) {
+                list.innerHTML = `<div class="empty-state glass"><i class="bi bi-inbox"></i><div>No activity matches your filters.</div></div>`;
+                return;
+            }
+            list.innerHTML = filtered.map(a => {
+                const c = TYPE_CONFIG[a.type];
+                const date = new Date(a.time.replace(' ', 'T'));
+                const relTime = relativeTime(date);
+                return `
+      <div class="activity-item ${a.flagged ? 'flagged' : ''} reveal">
+        <div class="activity-icon" style="background:${c.bg};border:1px solid ${c.border};color:${c.color}">
+          <i class="bi ${c.icon}"></i>
+        </div>
+        <div>
+          <div class="activity-title">${a.title}</div>
+          <div class="activity-meta">
+            <i class="bi bi-clock me-1"></i>${relTime}
+            <span class="mono">${a.device}</span>
+          </div>
+        </div>
+        <div class="d-flex flex-column align-items-end gap-1">
+          <span style="font-size:.8rem;color:var(--ink-2)"><i class="bi bi-geo-alt me-1"></i>${a.location}</span>
+          <span class="mono" style="font-size:.72rem;color:var(--ink-3)">${a.ip}</span>
+        </div>
+        <div class="d-flex gap-1">
+          ${a.flagged ? `<span class="badge-mini badge-warn"><i class="bi bi-exclamation-triangle me-1"></i>Review</span>` : `<span class="badge-mini badge-ok"><i class="bi bi-check me-1"></i>Safe</span>`}
+        </div>
+      </div>
+    `;
+            }).join('');
+            document.querySelectorAll('.activity-item.reveal').forEach(el => io.observe(el));
+        }
+
+        function relativeTime(d) {
+            const now = new Date();
+            const diff = Math.floor((now - d) / 1000);
+            if (diff < 60) return `${diff}s ago`;
+            if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+            if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+            if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`;
+            return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        }
+
+        /* Sessions */
+        function renderSessions() {
+            const list = document.getElementById('sessionsList');
+            list.innerHTML = SESSIONS.map(s => {
+                const icon = s.device.toLowerCase().includes('ios') || s.device.toLowerCase().includes('safari') ? '🍎' :
+                    s.device.toLowerCase().includes('android') ? '🤖' :
+                        s.device.toLowerCase().includes('windows') ? '🪟' : '💻';
+                return `
+      <div class="col-md-6" id="session-${s.id}">
+        <div class="device-card ${s.current ? 'current' : ''}">
+          ${s.current ? '<span class="device-status"><span class="badge-mini badge-ok"><i class="bi bi-circle-fill me-1" style="font-size:.45rem"></i>Current</span></span>' : ''}
+          <div class="device-head">
+            <div class="device-icon" style="background:linear-gradient(135deg,rgba(34,211,238,.15),rgba(96,165,250,.1));border:1px solid rgba(34,211,238,.3)">${icon}</div>
+            <div style="min-width:0;flex-grow:1">
+              <div class="device-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.device}</div>
+              <div class="device-info">${s.location}</div>
+            </div>
+          </div>
+          <div class="device-row"><span class="device-row-label">IP Address</span><span class="device-row-value mono">${s.ip}</span></div>
+          <div class="device-row"><span class="device-row-label">Started</span><span class="device-row-value">${s.started}</span></div>
+          <div class="device-row"><span class="device-row-label">Last active</span><span class="device-row-value">${s.lastActive}</span></div>
+          ${!s.current ? `<button class="btn btn-danger-paymo btn-sm w-100 mt-3" onclick="revokeSession(${s.id})"><i class="bi bi-trash me-1"></i>Revoke Session</button>` : `<button class="btn btn-outline-paymo btn-sm w-100 mt-3" disabled style="opacity:.5">Current session</button>`}
+        </div>
+      </div>
+    `;
+            }).join('');
+        }
+
+        function revokeSession(id) {
+            const card = document.getElementById(`session-${id}`);
+            if (!card) return;
+            card.querySelector('.device-card').classList.add('fade-out');
+            setTimeout(() => {
+                card.remove();
+                const remaining = document.querySelectorAll('#sessionsList .col-md-6').length;
+                document.getElementById('statSessions').textContent = remaining + 1;
+                SESSIONS.splice(SESSIONS.findIndex(s => s.id === id), 1);
+            }, 400);
+        }
+
+        /* Alerts */
+        const ALERT_CONFIG = {
+            critical: { icon: 'bi-exclamation-triangle-fill', color: '#fca5a5', bg: 'rgba(239,68,68,.15)', border: 'rgba(239,68,68,.35)' },
+            high: { icon: 'bi-exclamation-circle-fill', color: '#fcd34d', bg: 'rgba(251,191,36,.12)', border: 'rgba(251,191,36,.3)' },
+            medium: { icon: 'bi-info-circle-fill', color: '#a5f3fc', bg: 'rgba(96,165,250,.12)', border: 'rgba(96,165,250,.3)' },
+            low: { icon: 'bi-check-circle-fill', color: '#c4b5fd', bg: 'rgba(167,139,250,.12)', border: 'rgba(167,139,250,.3)' }
+        };
+
+        function renderAlerts(filter = 'all') {
+            const list = document.getElementById('alertList');
+            const filtered = ALERTS.filter(a => filter === 'all' || a.level === filter);
+            // Update filter counts
+            document.getElementById('af-all').textContent = ALERTS.filter(a => !a.dismissed).length;
+            document.getElementById('af-critical').textContent = ALERTS.filter(a => a.level === 'critical' && !a.dismissed).length;
+            document.getElementById('af-high').textContent = ALERTS.filter(a => a.level === 'high' && !a.dismissed).length;
+            document.getElementById('af-medium').textContent = ALERTS.filter(a => a.level === 'medium' && !a.dismissed).length;
+            document.getElementById('af-low').textContent = ALERTS.filter(a => a.level === 'low' && !a.dismissed).length;
+
+            if (!filtered.length) {
+                list.innerHTML = `<div class="empty-state glass"><i class="bi bi-shield-check"></i><div>No alerts in this category.</div></div>`;
+                return;
+            }
+            list.innerHTML = filtered.map(a => {
+                const c = ALERT_CONFIG[a.level];
+                return `
+      <div class="alert-card ${a.level} ${a.dismissed ? 'alert-dismissed' : ''}" id="alert-${a.id}">
+        <div class="alert-icon-box" style="background:${c.bg};border:1px solid ${c.border};color:${c.color}">
+          <i class="bi ${c.icon}"></i>
+        </div>
+        <div>
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            <div class="alert-title">${a.title}</div>
+            <span class="badge-mini badge-${a.level === 'critical' ? 'warn' : a.level === 'high' ? 'soon' : a.level === 'medium' ? 'native' : 'adv'}">${a.level.toUpperCase()}</span>
+          </div>
+          <div class="alert-desc">${a.desc}</div>
+          <div class="activity-meta">
+            <i class="bi bi-clock me-1"></i>${a.time}
+            ${a.ip !== '—' ? `<span class="mono">${a.ip}</span>` : ''}
+            ${a.location !== '—' ? `<i class="bi bi-geo-alt ms-1"></i>${a.location}` : ''}
+          </div>
+        </div>
+        <div class="d-flex flex-column gap-1">
+          ${!a.dismissed ? `
+            ${a.level === 'critical' || a.level === 'high' ? `<button class="btn btn-primary-paymo btn-sm" onclick="takeAction(${a.id})"><i class="bi bi-shield-check me-1"></i>Secure</button>` : ''}
+            <button class="btn btn-outline-paymo btn-sm" onclick="dismissAlert(${a.id})"><i class="bi bi-x-circle me-1"></i>Dismiss</button>
+          ` : `<span class="badge-mini badge-req">Dismissed</span>`}
+        </div>
+        <div></div>
+      </div>
+    `;
+            }).join('');
+        }
+
+        function dismissAlert(id) {
+            const a = ALERTS.find(x => x.id === id);
+            if (a) a.dismissed = true;
+            const card = document.getElementById(`alert-${id}`);
+            if (card) card.classList.add('fade-out');
+            setTimeout(() => {
+                const activeFilter = document.querySelector('#alertFilters .filter-pill.active')?.dataset.filter || 'all';
+                renderAlerts(activeFilter);
+                updateAlertCount();
+            }, 400);
+        }
+
+        function takeAction(id) {
+            const a = ALERTS.find(x => x.id === id);
+            if (!a) return;
+            // Simulate securing account
+            const card = document.getElementById(`alert-${id}`);
+            if (card) {
+                const btn = card.querySelector('.btn-primary-paymo');
+                btn.innerHTML = '<i class="bi bi-shield-check me-1"></i>Secured';
+                btn.disabled = true;
+                setTimeout(() => {
+                    a.dismissed = true;
+                    renderAlerts(document.querySelector('#alertFilters .filter-pill.active')?.dataset.filter || 'all');
+                    updateAlertCount();
+                }, 1500);
+            }
+        }
+
+        function updateAlertCount() {
+            const count = ALERTS.filter(a => !a.dismissed).length;
+            document.getElementById('statAlerts').textContent = count;
+            document.getElementById('alertCount').textContent = count;
+            if (count === 0) {
+                document.getElementById('alertCount').style.display = 'none';
+            }
+        }
+
+        /* Devices */
+        function renderDevices() {
+            const list = document.getElementById('deviceList');
+            list.innerHTML = DEVICES.map(d => {
+                const icon = d.os.toLowerCase().includes('mac') ? '🍎' :
+                    d.os.toLowerCase().includes('ios') ? '📱' :
+                        d.os.toLowerCase().includes('android') ? '🤖' :
+                            d.os.toLowerCase().includes('windows') ? '🪟' : '💻';
+                return `
+      <div class="col-md-6" id="device-${d.id}">
+        <div class="device-card ${d.trusted ? '' : ''}">
+          <div class="device-head">
+            <div class="device-icon" style="background:linear-gradient(135deg,rgba(167,139,250,.15),rgba(96,165,250,.1));border:1px solid rgba(167,139,250,.3)">${icon}</div>
+            <div style="min-width:0;flex-grow:1">
+              <div class="device-name">${d.name}</div>
+              <div class="device-info">${d.os} · ${d.browser}</div>
+            </div>
+            ${d.trusted ? '<span class="badge-mini badge-ok"><i class="bi bi-shield-check me-1"></i>Trusted</span>' : '<span class="badge-mini badge-soon"><i class="bi bi-shield me-1"></i>Untrusted</span>'}
+          </div>
+          <div class="device-row"><span class="device-row-label">Last used</span><span class="device-row-value">${d.lastUsed}</span></div>
+          <div class="device-row"><span class="device-row-label">Active sessions</span><span class="device-row-value">${d.sessions}</span></div>
+          <div class="device-row"><span class="device-row-label">Trusted</span><span class="device-row-value">${d.trusted ? 'Yes' : 'No'}</span></div>
+          <div class="d-flex gap-2 mt-2">
+            ${!d.trusted ? `<button class="btn btn-primary-paymo btn-sm" style="flex:1" onclick="trustDevice(${d.id})"><i class="bi bi-shield-check me-1"></i>Trust</button>` : ''}
+            <button class="btn btn-outline-paymo btn-sm" style="flex:1" onclick="removeDevice(${d.id})"><i class="bi bi-trash me-1"></i>Remove</button>
+          </div>
+        </div>
+      </div>
+    `;
+            }).join('');
+        }
+
+        function trustDevice(id) {
+            const d = DEVICES.find(x => x.id === id);
+            if (d) d.trusted = true;
+            renderDevices();
+        }
+
+        function removeDevice(id) {
+            const card = document.getElementById(`device-${id}`);
+            if (card) {
+                card.querySelector('.device-card').classList.add('fade-out');
+                setTimeout(() => {
+                    card.remove();
+                    DEVICES.splice(DEVICES.findIndex(x => x.id === id), 1);
+                }, 400);
+            }
+        }
+
+        function trustCurrentDevice() {
+            const btn = document.getElementById('trustCurDevice');
+            btn.innerHTML = '<i class="bi bi-check-circle me-1"></i> Device Trusted';
+            btn.classList.remove('btn-primary-paymo');
+            btn.classList.add('btn-outline-paymo');
+            btn.disabled = true;
+            btn.style.opacity = '.7';
+        }
+
+        /* Current device fingerprint */
+        function detectCurrentDevice() {
+            const ua = navigator.userAgent;
+            let os = 'Unknown OS', browser = 'Unknown Browser', device = 'Unknown Device';
+            if (/Mac/.test(ua)) os = 'macOS'; else if (/Win/.test(ua)) os = 'Windows'; else if (/Android/.test(ua)) os = 'Android'; else if (/iPhone|iPad/.test(ua)) os = 'iOS'; else if (/Linux/.test(ua)) os = 'Linux';
+            if (/Chrome\//.test(ua)) browser = 'Chrome'; else if (/Firefox\//.test(ua)) browser = 'Firefox'; else if (/Safari\//.test(ua)) browser = 'Safari'; else if (/Edg\//.test(ua)) browser = 'Edge';
+            device = `${browser} on ${os}`;
+            document.getElementById('curDeviceName').textContent = device;
+            document.getElementById('curBrowser').textContent = browser + ' ' + (browser === 'Chrome' ? '125' : browser === 'Safari' ? '17' : browser === 'Firefox' ? '127' : '');
+            document.getElementById('curOS').textContent = os;
+            document.getElementById('curFP').textContent = 'fp_' + Math.random().toString(36).slice(2, 14);
+        }
+
+        /* Security recommendations */
+        function renderRecommendations() {
+            const recs = [
+                { title: 'Enable biometric login', desc: 'Add Face ID or fingerprint for faster, more secure access', done: true },
+                { title: 'Update your password', desc: 'Last changed 92 days ago. Recommended every 90 days.', done: false, action: 'Change now' },
+                { title: 'Add backup 2FA method', desc: 'Register a backup authenticator in case you lose your primary.', done: false, action: 'Add method' },
+                { title: 'Review connected apps', desc: '3 third-party apps have access to your account.', done: false, action: 'Review' },
+            ];
+            document.getElementById('recommendations').innerHTML = recs.map(r => `
+    <div class="d-flex align-items-center gap-3 p-2" style="border-radius:10px;background:rgba(255,255,255,.03);border:1px solid var(--glass-border)">
+      <i class="bi ${r.done ? 'bi-check-circle-fill' : 'bi-exclamation-circle'}" style="color:${r.done ? '#86efac' : '#fcd34d'};font-size:1.1rem"></i>
+      <div style="flex-grow:1;min-width:0">
+        <div style="font-weight:600;color:var(--ink-0);font-size:.88rem">${r.title}</div>
+        <div style="font-size:.78rem;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.desc}</div>
+      </div>
+      ${r.action ? `<button class="btn btn-outline-paymo btn-sm" onclick="this.innerHTML='<i class=\\'bi bi-check me-1\\'></i>Done';this.disabled=true;this.style.opacity='.5'">${r.action}</button>` : `<span class="badge-mini badge-ok">Done</span>`}
+    </div>
+  `).join('');
+        }
+
+        /* =========================================================
+           TAB SWITCHING
+           ========================================================= */
+        document.querySelectorAll('.tab-link').forEach(link => {
+            link.addEventListener('click', () => {
+                document.querySelectorAll('.tab-link').forEach(l => l.classList.remove('active'));
+                document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+                link.classList.add('active');
+                document.getElementById(`tab-${link.dataset.tab}`).classList.add('active');
+            });
+        });
+
+        /* =========================================================
+           FILTERS
+           ========================================================= */
+        document.querySelectorAll('#activityFilters .filter-pill').forEach(p => {
+            p.addEventListener('click', () => {
+                document.querySelectorAll('#activityFilters .filter-pill').forEach(x => x.classList.remove('active'));
+                p.classList.add('active');
+                renderActivity(p.dataset.filter, document.getElementById('activitySearch').value);
+            });
+        });
+        document.getElementById('activitySearch').addEventListener('input', e => {
+            const active = document.querySelector('#activityFilters .filter-pill.active')?.dataset.filter || 'all';
+            renderActivity(active, e.target.value);
+        });
+
+        document.querySelectorAll('#alertFilters .filter-pill').forEach(p => {
+            p.addEventListener('click', () => {
+                document.querySelectorAll('#alertFilters .filter-pill').forEach(x => x.classList.remove('active'));
+                p.classList.add('active');
+                renderAlerts(p.dataset.filter);
+            });
+        });
+
+        /* =========================================================
+           SESSIONS: REVOKE ALL
+           ========================================================= */
+        document.getElementById('revokeAllBtn').addEventListener('click', () => {
+            const toRevoke = SESSIONS.filter(s => !s.current).map(s => s.id);
+            toRevoke.forEach((id, i) => {
+                setTimeout(() => revokeSession(id), i * 300);
+            });
+        });
+
+        /* =========================================================
+           DEVICES: TRUST CURRENT
+           ========================================================= */
+        document.getElementById('trustCurDevice').addEventListener('click', trustCurrentDevice);
+        document.getElementById('addDeviceBtn').addEventListener('click', () => {
+            trustCurrentDevice();
+            document.getElementById('trustCurDevice').click();
+        });
+
+        /* =========================================================
+           SETTINGS
+           ========================================================= */
+        document.querySelectorAll('.setting-toggle').forEach(t => {
+            t.addEventListener('change', () => {
+                const msg = document.getElementById('settingsSaved');
+                msg.style.display = 'flex';
+                setTimeout(() => { msg.style.display = 'none'; }, 3500);
+            });
+        });
+
+        /* =========================================================
+           SCROLL REVEAL
+           ========================================================= */
+        const io = new IntersectionObserver(es => { es.forEach(e => { if (e.isIntersecting) e.target.classList.add('in') }) }, { threshold: .1 });
+        document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+        /* =========================================================
+           INIT
+           ========================================================= */
+        detectCurrentDevice();
+        renderActivity();
+        renderSessions();
+        renderAlerts();
+        renderDevices();
+        renderRecommendations();
+        updateAlertCount();
+    </script>
+</body>
+
+</html>
