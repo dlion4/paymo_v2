@@ -12,7 +12,7 @@ TABLE OF CONTENTS
 •	Page 52: Create Account / Registration Flow
 •	Page 53: Forgot Password / PIN Recovery
 •	Page 54: Multi-Factor Authentication (MFA) Challenge
-•	Page 55: Account Type Selection (Post-Login)
+•	Page 55: Account Status (account recovery, verify details, verify bank account, despute transaction etc)   Selection (Post-Login)
 •	Page 56: Dashboard Selection Hub
 •	Page 57: Session Management & Security Center
 •	Page 58: Biometric Setup & Passkey Management
