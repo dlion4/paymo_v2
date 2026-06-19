@@ -69,6 +69,32 @@ PAYMO BAAS
 ├── 16. CONTACT / SALES
 ├── 17. CAREERS
 └── 18. LEGAL & STATUS
+
+  •	Page 19: Terms of Use
+•	Page 20: Privacy Policy
+•	Page 21: AML & Anti-Fraud Policy
+•	Page 22: Cookie Policy & Consent Management
+•	Page 23: Data Processing Agreement (DPA)
+•	Page 24: API Terms of Service
+•	Page 25: Acceptable Use Policy
+•	Page 26: Dispute Resolution & Complaints
+•	Page 27: Use Cases Hub
+•	Page 28: Use Case — Pay Bills & Utilities
+•	Page 29: Use Case — Business Payments & Offline Cash Collection
+•	Page 30: Use Case — Personal, Fintech & Startup Ecosystem
+
+•	Overview & Authentication Philosophy
+•	Page 51: Authentication Gateway / Login Hub
+•	Page 52: Create Account / Registration Flow
+•	Page 53: Forgot Password / PIN Recovery
+•	Page 54: Multi-Factor Authentication (MFA) Challenge
+•	Page 55: Account Status (account recovery, verify details, verify bank account, despute transaction etc)   Selection (Post-Login)
+•	Page 56: Dashboard Selection Hub
+•	Page 57: Session Management & Security Center
+•	Page 58: Biometric Setup & Passkey Management
+•	Page 59: Account Recovery & Identity Verification
+•	Page 60: Login Activity & Fraud Alerts
+
 ________________________________________
  ## 4. PAGE-BY-PAGE DEEP ARCHITECTURE
 Each page contains 8–12 sections with detailed component specifications, content strategy, and conversion mechanics.
