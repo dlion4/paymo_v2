@@ -1,0 +1,876 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PayMo - Agricultural Payments & Services</title>
+  <style>
+    :root {
+      --pm-primary: #4f46e5;
+      --pm-primary-dark: #3730a3;
+      --pm-primary-light: #818cf8;
+      --pm-accent: #10b981;
+      --pm-accent-soft: #d1fae5;
+      --pm-warning: #f59e0b;
+      --pm-warning-soft: #fef3c7;
+      --pm-danger: #ef4444;
+      --pm-danger-soft: #fee2e2;
+      --pm-info: #3b82f6;
+      --pm-info-soft: #dbeafe;
+      --pm-purple: #8b5cf6;
+      --pm-purple-soft: #ede9fe;
+      --pm-bg: #f5f1ec;
+      --pm-bg-2: #eee8df;
+      --pm-surface: #ffffff;
+      --pm-surface-2: #faf7f3;
+      --pm-ink: #1a1f2e;
+      --pm-ink-soft: #4b5563;
+      --pm-muted: #9ca3af;
+      --pm-border: #e5e2dc;
+      --pm-border-2: #d4d0c8;
+      --pm-gradient-hero: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #ec4899 100%);
+      --pm-gradient-slate: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+      --pm-gradient-farm: linear-gradient(135deg, #166534 0%, #10b981 45%, #4f46e5 100%);
+      --pm-shadow-sm: 0 1px 2px rgba(26, 31, 46, 0.04);
+      --pm-shadow-md: 0 4px 12px rgba(26, 31, 46, 0.06);
+      --pm-shadow-lg: 0 10px 30px rgba(26, 31, 46, 0.08);
+      --pm-shadow-xl: 0 20px 50px rgba(26, 31, 46, 0.12);
+      --pm-r-sm: 8px;
+      --pm-r-md: 14px;
+      --pm-r-lg: 20px;
+      --pm-r-xl: 28px;
+      --pm-font: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { min-height: 100%; margin: 0; }
+    body {
+      font-family: var(--pm-font);
+      color: var(--pm-ink);
+      background:
+        radial-gradient(1200px 600px at -10% -20%, rgba(79, 70, 229, .08), transparent 60%),
+        radial-gradient(1000px 520px at 108% 4%, rgba(16, 185, 129, .08), transparent 58%),
+        radial-gradient(820px 460px at 42% 116%, rgba(34, 197, 94, .07), transparent 58%),
+        var(--pm-bg);
+      font-size: 14px;
+      line-height: 1.45;
+      overflow-x: hidden;
+    }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    a { color: inherit; text-decoration: none; }
+    .no-scroll { overflow: hidden; }
+
+    @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.22); opacity: .58; } }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes scaleIn { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: scale(1); } }
+    @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+
+    .app { display: flex; min-height: 100vh; }
+    .sidebar {
+      position: sticky; top: 0; z-index: 80; width: 88px; height: 100vh; flex: 0 0 88px;
+      background: var(--pm-gradient-slate); display: flex; flex-direction: column; align-items: center; padding: 20px 12px;
+    }
+    .logo { width: 48px; height: 48px; border-radius: 15px; background: var(--pm-gradient-hero); color: #fff; display: grid; place-items: center; font-weight: 900; font-size: 22px; box-shadow: var(--pm-shadow-lg); margin-bottom: 24px; }
+    .nav { width: 100%; display: flex; flex-direction: column; gap: 5px; flex: 1; }
+    .nav button { position: relative; width: 100%; height: 48px; border: 0; border-radius: 13px; color: rgba(255,255,255,.62); background: transparent; display: grid; place-items: center; transition: .2s ease; }
+    .nav button:hover, .nav button.active { color: #fff; background: var(--pm-primary); box-shadow: var(--pm-shadow-md); }
+    .nav-icon { width: 22px; height: 22px; display: grid; place-items: center; font-size: 10px; font-weight: 900; border: 1px solid rgba(255,255,255,.27); border-radius: 6px; }
+    .nav .dot { position: absolute; top: 8px; right: 10px; width: 8px; height: 8px; border: 2px solid #334155; background: var(--pm-danger); border-radius: 999px; animation: pulse 2s infinite; }
+    .nav-bottom { padding-top: 12px; border-top: 1px solid rgba(255,255,255,.1); }
+
+    .main { flex: 1; min-width: 0; }
+    .topbar { position: sticky; top: 0; z-index: 60; border-bottom: 1px solid var(--pm-border); background: rgba(245,241,236,.86); backdrop-filter: blur(18px); padding: 14px 30px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+    .menu-btn { display: none; }
+    .title h1 { margin: 0; font-size: 20px; letter-spacing: -.03em; }
+    .title p { margin: 1px 0 0; color: var(--pm-muted); font-size: 12px; }
+    .search { position: relative; flex: 1; max-width: 440px; }
+    .search input { width: 100%; height: 40px; border: 1px solid var(--pm-border); border-radius: var(--pm-r-md); padding: 0 14px 0 38px; background: #fff; outline: 0; }
+    .search:before { content: "S"; position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: var(--pm-muted); font-size: 11px; font-weight: 900; }
+    .search input:focus { border-color: var(--pm-primary); box-shadow: 0 0 0 3px rgba(79,70,229,.15); }
+    .actions { display: flex; align-items: center; gap: 8px; }
+    .icon-btn, .profile-btn, .btn, .tiny-btn { border: 1px solid var(--pm-border); background: #fff; color: var(--pm-ink-soft); border-radius: 12px; transition: .2s ease; }
+    .icon-btn { width: 40px; height: 40px; position: relative; display: grid; place-items: center; font-size: 11px; font-weight: 900; }
+    .icon-btn:hover, .profile-btn:hover, .btn:hover, .tiny-btn:hover { transform: translateY(-1px); box-shadow: var(--pm-shadow-sm); }
+    .counter { position: absolute; top: -6px; right: -6px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; background: var(--pm-danger); color: #fff; font-size: 10px; display: flex; align-items: center; justify-content: center; border: 2px solid var(--pm-bg); }
+    .profile-btn { height: 42px; display: flex; align-items: center; gap: 9px; padding: 5px 11px 5px 5px; }
+    .avatar { width: 32px; height: 32px; border-radius: 999px; background: var(--pm-gradient-hero); color: #fff; display: grid; place-items: center; font-weight: 900; font-size: 12px; }
+    .profile-name { display: block; font-size: 12px; font-weight: 900; color: var(--pm-ink); text-align: left; }
+    .profile-role { display: block; font-size: 10px; color: var(--pm-muted); text-align: left; }
+
+    .page { padding: 22px 30px 42px; }
+    .page-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
+    .crumb { color: var(--pm-muted); font-size: 12px; margin-bottom: 3px; }
+    .page-head h2 { margin: 0; font-size: 25px; letter-spacing: -.04em; }
+    .page-head p { margin: 4px 0 0; color: var(--pm-ink-soft); font-size: 13px; }
+    .head-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+    .btn { padding: 9px 13px; font-weight: 800; font-size: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; white-space: nowrap; }
+    .btn.primary { color: #fff; border-color: transparent; background: var(--pm-gradient-hero); }
+    .btn.farm { color: #fff; border-color: transparent; background: var(--pm-gradient-farm); }
+    .btn.danger { color: #fff; border-color: transparent; background: var(--pm-danger); }
+    .btn.success { color: #fff; border-color: transparent; background: var(--pm-accent); }
+    .tiny-btn { padding: 6px 9px; font-size: 11px; font-weight: 800; }
+
+    .grid { display: grid; gap: 14px; }
+    .hero-grid { grid-template-columns: 1.5fr .85fr .85fr .85fr; margin-bottom: 14px; }
+    .three-grid { grid-template-columns: repeat(3, 1fr); }
+    .two-grid { grid-template-columns: 1fr 1fr; }
+    .four-grid { grid-template-columns: repeat(4, 1fr); }
+    .five-grid { grid-template-columns: repeat(5, 1fr); }
+    .six-grid { grid-template-columns: repeat(6, 1fr); }
+
+    .card, .section { background: #fff; border: 1px solid var(--pm-border); border-radius: var(--pm-r-lg); box-shadow: var(--pm-shadow-sm); }
+    .card { padding: 16px; }
+    .section { margin-bottom: 18px; overflow: hidden; }
+    .section-head { padding: 17px 18px 12px; border-bottom: 1px solid var(--pm-border); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .section-title h3 { margin: 0; font-size: 16px; letter-spacing: -.02em; }
+    .section-title p { margin: 2px 0 0; font-size: 12px; color: var(--pm-muted); }
+    .section-body { padding: 16px; }
+    .hero-card { min-height: 156px; color: #fff; background: var(--pm-gradient-farm); position: relative; overflow: hidden; }
+    .hero-card:after { content: ""; position: absolute; width: 180px; height: 180px; right: -60px; top: -64px; background: rgba(255,255,255,.12); border-radius: 999px; }
+    .hero-card h3 { margin: 10px 0 4px; font-size: 24px; letter-spacing: -.04em; }
+    .hero-card p { margin: 0 0 18px; opacity: .85; font-size: 12px; }
+    .live-dot { width: 11px; height: 11px; border-radius: 999px; background: #22c55e; display: inline-block; animation: pulse 2s infinite; }
+    .metric-label { color: var(--pm-muted); font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: .04em; }
+    .metric-value { margin-top: 2px; font-size: 24px; line-height: 1.1; font-weight: 900; letter-spacing: -.05em; }
+    .metric-sub { margin-top: 8px; display: inline-flex; font-size: 11px; padding: 4px 7px; border-radius: 999px; background: var(--pm-accent-soft); color: var(--pm-accent); font-weight: 900; }
+    .progress { height: 8px; border-radius: 999px; background: var(--pm-border); overflow: hidden; }
+    .progress span { display: block; height: 100%; border-radius: 999px; background: var(--pm-primary); }
+    .barset { margin-top: 18px; display: flex; align-items: end; gap: 4px; height: 34px; }
+    .barset i { flex: 1; border-radius: 4px 4px 0 0; background: linear-gradient(180deg, var(--pm-primary-light), var(--pm-primary)); }
+    .row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .muted { color: var(--pm-muted); }
+    .mini-list { display: grid; gap: 9px; }
+    .mini-item { display: flex; gap: 10px; align-items: center; padding: 8px; border-radius: 12px; border: 1px solid transparent; transition: .2s ease; text-align: left; width: 100%; background: transparent; }
+    .mini-item:hover { background: var(--pm-surface-2); border-color: var(--pm-border); }
+    .mini-icon { width: 31px; height: 31px; border-radius: 10px; display: grid; place-items: center; font-weight: 900; font-size: 11px; flex: 0 0 auto; }
+    .mini-title { display: block; font-size: 12px; font-weight: 900; }
+    .mini-sub { display: block; font-size: 10px; color: var(--pm-muted); }
+    .quick-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+    .asset-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+    .asset-card { position: relative; border: 1px solid var(--pm-border); border-radius: 18px; background: #fff; transition: .2s ease; overflow: hidden; }
+    .asset-card:hover { transform: translateY(-2px); box-shadow: var(--pm-shadow-md); }
+    .asset-thumb { height: 88px; display: grid; place-items: center; color: #fff; font-weight: 900; font-size: 24px; letter-spacing: -.04em; position: relative; }
+    .asset-thumb .status { position: absolute; top: 10px; right: 10px; }
+    .asset-body { padding: 13px; }
+    .asset-name { font-weight: 900; font-size: 13px; }
+    .asset-meta { color: var(--pm-muted); font-size: 11px; margin-top: 1px; }
+    .asset-metrics { margin-top: 11px; padding-top: 10px; border-top: 1px dashed var(--pm-border); display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+    .asset-metrics small { display: block; color: var(--pm-muted); font-size: 9px; }
+    .asset-metrics b { font-size: 11px; }
+    .asset-actions { display: flex; gap: 6px; margin-top: 12px; }
+    .round-btn { flex: 1; height: 32px; border-radius: 10px; border: 1px solid var(--pm-border); background: #fff; color: var(--pm-primary); font-size: 10px; font-weight: 900; }
+    .round-btn.fill { background: var(--pm-primary); color: #fff; border-color: transparent; }
+    .status { display: inline-flex; align-items: center; gap: 4px; padding: 4px 7px; border-radius: 999px; font-size: 10px; font-weight: 900; text-transform: capitalize; }
+    .status:before { content: ""; width: 6px; height: 6px; border-radius: 999px; background: currentColor; }
+    .st-paid { background: var(--pm-accent-soft); color: var(--pm-accent); }
+    .st-due { background: var(--pm-warning-soft); color: var(--pm-warning); }
+    .st-overdue { background: var(--pm-danger-soft); color: var(--pm-danger); }
+    .st-auto { background: var(--pm-info-soft); color: var(--pm-info); }
+    .st-funded { background: var(--pm-purple-soft); color: var(--pm-purple); }
+    .st-light { background: rgba(255,255,255,.25); color: #fff; }
+
+    .filter-row { display: flex; gap: 7px; overflow-x: auto; padding: 12px 16px; border-bottom: 1px solid var(--pm-border); }
+    .chip { border: 1px solid var(--pm-border); background: #fff; color: var(--pm-ink-soft); border-radius: 999px; padding: 7px 11px; font-size: 11px; font-weight: 900; white-space: nowrap; }
+    .chip.active { border-color: var(--pm-primary); background: var(--pm-primary); color: #fff; }
+    .toolbar { display: flex; gap: 9px; align-items: center; flex-wrap: wrap; }
+    .field { position: relative; }
+    .field input, .field select, .field textarea, .modal input, .modal select, .modal textarea { width: 100%; border: 1px solid var(--pm-border); border-radius: 11px; background: #fff; color: var(--pm-ink); padding: 10px 12px; outline: 0; }
+    .field input { min-width: 230px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; }
+    .modal label { display: block; font-size: 11px; color: var(--pm-muted); font-weight: 900; margin: 0 0 5px; }
+
+    .chart-bars { display: grid; gap: 10px; }
+    .chart-row { display: grid; grid-template-columns: 144px 1fr 92px; gap: 10px; align-items: center; font-size: 12px; }
+    .chart-track { height: 9px; border-radius: 999px; background: var(--pm-border); overflow: hidden; }
+    .chart-track span { display: block; height: 100%; border-radius: 999px; }
+    .table-wrap { overflow-x: auto; border: 1px solid var(--pm-border); border-radius: 14px; }
+    table { width: 100%; border-collapse: collapse; min-width: 840px; }
+    th, td { padding: 12px 13px; border-bottom: 1px solid var(--pm-border); text-align: left; font-size: 12px; }
+    th { background: var(--pm-surface-2); color: var(--pm-muted); text-transform: uppercase; font-size: 10px; letter-spacing: .04em; }
+    tr:last-child td { border-bottom: 0; }
+    .right { text-align: right; }
+
+    .track-list { display: grid; gap: 0; position: relative; padding-left: 8px; }
+    .track-step { display: grid; grid-template-columns: 30px 1fr; gap: 12px; padding-bottom: 16px; position: relative; }
+    .track-step:before { content: ""; position: absolute; left: 14px; top: 26px; bottom: -2px; width: 2px; background: var(--pm-border); }
+    .track-step:last-child:before { display: none; }
+    .track-dot { width: 28px; height: 28px; border-radius: 999px; display: grid; place-items: center; font-size: 11px; font-weight: 900; background: var(--pm-accent-soft); color: var(--pm-accent); }
+    .track-step.pending .track-dot { background: var(--pm-border); color: var(--pm-muted); }
+    .track-step.current .track-dot { background: var(--pm-warning-soft); color: var(--pm-warning); }
+
+    .modal-backdrop { position: fixed; inset: 0; z-index: 200; background: rgba(15,23,42,.55); backdrop-filter: blur(5px); display: none; align-items: center; justify-content: center; padding: 18px; }
+    .modal-backdrop.open { display: flex; }
+    .modal { width: min(780px, 100%); max-height: 92vh; background: #fff; border-radius: 22px; box-shadow: var(--pm-shadow-xl); overflow: hidden; display: flex; flex-direction: column; animation: scaleIn .2s ease; }
+    .modal.lg { width: min(990px, 100%); }
+    .modal.xl { width: min(1190px, 100%); }
+    .modal-head { padding: 17px 20px; border-bottom: 1px solid var(--pm-border); display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+    .modal-head h3 { margin: 0; font-size: 18px; letter-spacing: -.02em; }
+    .modal-head p { margin: 2px 0 0; color: var(--pm-muted); font-size: 12px; }
+    .modal-close { width: 34px; height: 34px; border-radius: 11px; border: 1px solid var(--pm-border); background: #fff; font-weight: 900; color: var(--pm-muted); }
+    .modal-body { padding: 20px; overflow-y: auto; }
+    .modal-foot { padding: 14px 20px; border-top: 1px solid var(--pm-border); background: var(--pm-surface-2); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .steps { padding: 13px 20px; border-bottom: 1px solid var(--pm-border); background: var(--pm-surface-2); display: flex; gap: 8px; align-items: center; }
+    .step { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 900; color: var(--pm-muted); }
+    .step .num { width: 27px; height: 27px; border-radius: 999px; display: grid; place-items: center; background: var(--pm-border); color: var(--pm-muted); }
+    .step.active, .step.done { color: var(--pm-primary); }
+    .step.active .num, .step.done .num { background: var(--pm-primary); color: #fff; }
+    .step-line { flex: 1; height: 2px; background: var(--pm-border); border-radius: 999px; }
+    .step-line.done { background: var(--pm-primary); }
+    .modal-tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--pm-border); margin: -20px -20px 18px; padding: 0 20px; overflow-x: auto; }
+    .modal-tab { border: 0; background: transparent; padding: 13px 12px; font-size: 12px; font-weight: 900; color: var(--pm-muted); border-bottom: 2px solid transparent; }
+    .modal-tab.active { color: var(--pm-primary); border-color: var(--pm-primary); }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; animation: fadeIn .2s ease; }
+    .notice { padding: 13px; border-radius: 14px; font-size: 12px; margin-bottom: 14px; }
+    .notice.info { background: var(--pm-info-soft); color: #1d4ed8; }
+    .notice.warn { background: var(--pm-warning-soft); color: #92400e; }
+    .notice.danger { background: var(--pm-danger-soft); color: #991b1b; }
+    .notice.success { background: var(--pm-accent-soft); color: #047857; }
+    .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .stat-box { border: 1px solid var(--pm-border); border-radius: 14px; padding: 13px; background: #fff; }
+    .stat-box small { display: block; color: var(--pm-muted); font-size: 10px; text-transform: uppercase; font-weight: 900; letter-spacing: .04em; }
+    .stat-box strong { display: block; margin-top: 3px; font-size: 18px; }
+    .payment-method { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid var(--pm-border); border-radius: 14px; margin-bottom: 9px; cursor: pointer; }
+    .payment-method.selected { border-color: var(--pm-primary); background: rgba(79,70,229,.04); }
+    .pin-row { display: flex; justify-content: center; gap: 10px; margin: 15px 0; }
+    .pin-row input { width: 48px; height: 48px; text-align: center; font-size: 22px; font-weight: 900; }
+    .toast { position: fixed; right: 18px; bottom: 18px; z-index: 260; background: #111827; color: #fff; border-radius: 14px; padding: 12px 14px; min-width: 220px; box-shadow: var(--pm-shadow-xl); display: none; animation: fadeIn .2s ease; font-size: 12px; font-weight: 800; }
+    .toast.show { display: block; }
+
+    @media (max-width: 1280px) {
+      .asset-grid { grid-template-columns: repeat(3, 1fr); }
+      .hero-grid { grid-template-columns: 1fr 1fr; }
+      .five-grid, .six-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 900px) {
+      .sidebar { position: fixed; transform: translateX(-100%); transition: .25s ease; }
+      .sidebar.open { transform: translateX(0); }
+      .menu-btn { display: grid; }
+      .topbar { padding: 12px 15px; }
+      .title { display: none; }
+      .profile-text { display: none; }
+      .page { padding: 18px 14px 34px; }
+      .page-head { flex-direction: column; }
+      .head-actions { justify-content: flex-start; }
+      .hero-grid, .three-grid, .two-grid, .four-grid { grid-template-columns: 1fr; }
+      .five-grid, .six-grid { grid-template-columns: 1fr 1fr; }
+      .asset-grid { grid-template-columns: repeat(2, 1fr); }
+      .stat-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 560px) {
+      .actions .hide-mobile { display: none; }
+      .asset-grid, .five-grid, .six-grid, .form-grid, .stat-grid { grid-template-columns: 1fr; }
+      .section-head { flex-direction: column; align-items: flex-start; }
+      .chart-row { grid-template-columns: 92px 1fr 66px; }
+      .modal-foot { flex-direction: column-reverse; align-items: stretch; }
+      .modal-foot .btn { width: 100%; }
+      .step span:not(.num) { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <div class="logo">P</div>
+      <nav class="nav">
+        <button type="button" onclick="location.href='page1-1.html'" title="Command Center"><span class="nav-icon">CC</span></button>
+        <button type="button" onclick="location.href='page1-2.html'" title="Utilities"><span class="nav-icon">UT</span></button>
+        <button type="button" onclick="location.href='page1-3.html'" title="TV Internet"><span class="nav-icon">TV</span></button>
+        <button type="button" data-modal="navInsurance"><span class="nav-icon">IN</span></button>
+        <button type="button" data-modal="navGov"><span class="nav-icon">GV</span></button>
+        <button type="button" onclick="location.href='page1-9.html'" title="Real Estate"><span class="nav-icon">RE</span></button>
+        <button class="active" type="button" data-modal="navAgriculture" title="Agriculture"><span class="nav-icon">AG</span><span class="dot"></span></button>
+      </nav>
+      <nav class="nav nav-bottom">
+        <button type="button" data-modal="preferences"><span class="nav-icon">ST</span></button>
+        <button type="button" data-modal="supportCenter"><span class="nav-icon">HP</span></button>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <button class="icon-btn menu-btn" type="button" id="menuBtn">MN</button>
+        <div class="title">
+          <h1>Agricultural Payments & Services</h1>
+          <p>Inputs, off-taker sales, cooperatives, livestock, agri finance and subsidies</p>
+        </div>
+        <div class="search"><input id="globalSearch" type="search" placeholder="Search farms, inputs, buyers, cows, loans, vouchers..."></div>
+        <div class="actions">
+          <button class="icon-btn hide-mobile" type="button" data-modal="agriHealth">HC</button>
+          <button class="icon-btn" type="button" data-modal="notifications">NT<span class="counter">11</span></button>
+          <button class="icon-btn hide-mobile" type="button" data-modal="helpGuide">?</button>
+          <button class="profile-btn" type="button" data-modal="profileSettings">
+            <span class="avatar">AK</span><span class="profile-text"><span class="profile-name">Amina K.</span><span class="profile-role">Farmer & Aggregator</span></span>
+          </button>
+        </div>
+      </header>
+
+      <section class="page">
+        <div class="page-head">
+          <div>
+            <div class="crumb">Home / Services Hub / Agricultural Payments & Services</div>
+            <h2>PAGE 1.14 - Agricultural Payments & Services</h2>
+            <p>Manage farm inputs, produce sales, cooperative collections, livestock expenses, agri loans, subsidies and extension support in one agriculture payment hub.</p>
+          </div>
+          <div class="head-actions">
+            <button class="btn" type="button" data-modal="agriHealth">Health Check</button>
+            <button class="btn" type="button" data-modal="documentVault">Document Vault</button>
+            <button class="btn" type="button" data-modal="voucherRedeemWizard">Redeem Voucher</button>
+            <button class="btn farm" type="button" data-modal="addFarmWizard">Add Farm Profile</button>
+          </div>
+        </div>
+
+        <div class="grid hero-grid">
+          <article class="card hero-card">
+            <span>Agriculture service center is live <span class="live-dot"></span></span>
+            <h3>18 active agri services</h3>
+            <p>Inputs, produce buyers, cooperative dues, dairy collection, equipment leasing, agri insurance, subsidies and advisory services.</p>
+            <button class="btn" type="button" data-modal="inputOrderWizard">Order inputs</button>
+            <button class="btn" type="button" data-modal="produceSaleWizard">Sell produce</button>
+            <button class="btn" type="button" data-modal="loanRepaymentWizard">Repay agri loan</button>
+          </article>
+          <article class="card">
+            <div class="metric-label">Due in 7 days</div>
+            <div class="metric-value">KES 86,420</div>
+            <div class="metric-sub" style="background:var(--pm-warning-soft);color:var(--pm-warning)">6 farm payments due</div>
+            <div class="barset"><i style="height:44%"></i><i style="height:70%"></i><i style="height:38%"></i><i style="height:82%"></i><i style="height:56%"></i><i style="height:64%"></i><i style="height:78%"></i></div>
+          </article>
+          <article class="card">
+            <div class="metric-label">Projected harvest inflow</div>
+            <div class="metric-value">KES 1.42M</div>
+            <div class="metric-sub">3 active buyer contracts</div>
+            <div style="margin-top:18px" class="progress"><span style="width:82%;background:linear-gradient(90deg,var(--pm-primary),var(--pm-accent))"></span></div>
+            <div style="margin-top:9px" class="row"><small>Pre-sold</small><b>62%</b></div>
+          </article>
+          <article class="card">
+            <div class="metric-label">Subsidies available</div>
+            <div class="metric-value">KES 58,800</div>
+            <div class="metric-sub">3 active vouchers</div>
+            <div style="margin-top:16px" class="row"><span class="muted">Insurance cover</span><b style="color:var(--pm-accent)">Active</b></div>
+            <div class="progress"><span style="width:74%;background:var(--pm-purple)"></span></div>
+          </article>
+        </div>
+
+        <div class="grid three-grid" style="margin-bottom:16px">
+          <article class="card">
+            <div class="row" style="margin-bottom:10px"><b>Attention Required</b><button class="tiny-btn" data-modal="alertsAll" type="button">View all</button></div>
+            <div class="mini-list">
+              <button class="mini-item" type="button" data-modal="fertilizerShortfall"><span class="mini-icon" style="background:var(--pm-danger-soft);color:var(--pm-danger)">FS</span><span style="flex:1"><span class="mini-title">Fertilizer budget shortfall for maize block A</span><span class="mini-sub">KES 18,400 needed before planting window closes</span></span><span class="tiny-btn">Fund</span></button>
+              <button class="mini-item" type="button" data-modal="milkPaymentDelay"><span class="mini-icon" style="background:var(--pm-warning-soft);color:var(--pm-warning)">MP</span><span style="flex:1"><span class="mini-title">Dairy payout delayed by cooperative</span><span class="mini-sub">KES 64,800 pending from 4 milk collection days</span></span><span class="tiny-btn">Review</span></button>
+              <button class="mini-item" type="button" data-modal="weatherRisk"><span class="mini-icon" style="background:var(--pm-info-soft);color:var(--pm-info)">WR</span><span style="flex:1"><span class="mini-title">Rainfall anomaly risk this week</span><span class="mini-sub">Irrigation and fungicide timing recommendation available</span></span><span class="tiny-btn">Open</span></button>
+            </div>
+          </article>
+          <article class="card">
+            <div class="row" style="margin-bottom:10px"><b>Smart Suggestions</b><button class="tiny-btn" data-modal="smartSuggestions" type="button">AI</button></div>
+            <div class="mini-list">
+              <button class="mini-item" type="button" data-modal="inputBasketOptimize"><span class="mini-icon" style="background:var(--pm-accent-soft);color:var(--pm-accent)">IB</span><span style="flex:1"><span class="mini-title">Optimize input basket and save KES 12,600</span><span class="mini-sub">Swap suppliers and bundle delivery for 3 fields</span></span><span class="tiny-btn">Apply</span></button>
+              <button class="mini-item" type="button" data-modal="autoCollectionWizard"><span class="mini-icon" style="background:var(--pm-purple-soft);color:var(--pm-purple)">AC</span><span style="flex:1"><span class="mini-title">Automate off-taker collections</span><span class="mini-sub">Route produce payouts to loan, wallet and farm budget</span></span><span class="tiny-btn">Setup</span></button>
+              <button class="mini-item" type="button" data-modal="insuranceWizard"><span class="mini-icon" style="background:var(--pm-warning-soft);color:var(--pm-warning)">IN</span><span style="flex:1"><span class="mini-title">Add crop weather cover before next rainfall cycle</span><span class="mini-sub">Premium estimate KES 8,200 for 12 acres</span></span><span class="tiny-btn">Cover</span></button>
+            </div>
+          </article>
+          <article class="card">
+            <div style="margin-bottom:10px"><b>Quick Actions</b><p style="margin:2px 0 0;color:var(--pm-muted);font-size:11px">High-frequency farm payment workflows</p></div>
+            <div class="quick-grid">
+              <button class="tiny-btn" type="button" data-modal="inputOrderWizard">Order Inputs</button>
+              <button class="tiny-btn" type="button" data-modal="produceSaleWizard">Sell Produce</button>
+              <button class="tiny-btn" type="button" data-modal="coopContributionWizard">Co-op Dues</button>
+              <button class="tiny-btn" type="button" data-modal="vetBookingWizard">Vet Booking</button>
+              <button class="tiny-btn" type="button" data-modal="loanRepaymentWizard">Loan Repay</button>
+              <button class="tiny-btn" type="button" data-modal="grantApplicationWizard">Apply Grant</button>
+            </div>
+          </article>
+        </div>
+
+        <section class="section">
+          <div class="section-head">
+            <div class="section-title"><h3>1.14.1 - Farm Inputs, Suppliers & Input Payments</h3><p>Seeds, fertilizer, agrochemicals, irrigation kits, machinery hire, input bundles and supplier payments.</p></div>
+            <div class="toolbar"><div class="field"><input id="inputSearch" type="search" placeholder="Search supplier, input or farm block"></div><button class="btn" type="button" data-modal="inputCatalog">Catalog</button><button class="btn farm" type="button" data-modal="inputOrderWizard">Order Inputs</button></div>
+          </div>
+          <div class="filter-row" id="inputFilters"></div>
+          <div class="section-body">
+            <div class="grid four-grid" style="margin-bottom:14px">
+              <article class="card"><div class="metric-label">Active suppliers</div><div class="metric-value">12 linked</div><div class="row"><span class="muted">On credit</span><b>4 suppliers</b></div><div class="row"><span class="muted">Delivery this week</span><b>3 orders</b></div></article>
+              <article class="card"><div class="metric-label">Input budget</div><div class="metric-value">KES 286,000</div><div class="row"><span class="muted">Used</span><b>72%</b></div><div class="row"><span class="muted">Balance</span><b>KES 80,080</b></div></article>
+              <article class="card"><div class="metric-label">Subsidy vouchers</div><div class="metric-value">3 active</div><div class="row"><span class="muted">Value</span><b>KES 58,800</b></div><div class="row"><span class="muted">Expiring</span><b>2 this month</b></div></article>
+              <article class="card"><div class="metric-label">Equipment hire</div><div class="metric-value">4 bookings</div><div class="row"><span class="muted">Next tractor slot</span><b>Thu 08:00</b></div><div class="row"><span class="muted">Avg rate</span><b>KES 3,500/acre</b></div></article>
+            </div>
+            <div class="asset-grid" id="inputCards"></div>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-head">
+            <div class="section-title"><h3>1.14.2 - Produce Sales, Buyer Collections & Warehouse Receipts</h3><p>Produce lot listing, buyer offers, contract farming, warehouse receipts and split payout routing.</p></div>
+            <div class="toolbar"><button class="btn" type="button" data-modal="marketPrices">Market prices</button><button class="btn farm" type="button" data-modal="produceSaleWizard">Sell Produce</button></div>
+          </div>
+          <div class="section-body">
+            <div class="grid two-grid">
+              <article class="card">
+                <div class="row"><b>Active Produce Lots</b><button class="tiny-btn" type="button" data-modal="warehouseReceipt">Warehouse receipt</button></div>
+                <div class="mini-list" id="produceRows" style="margin-top:12px"></div>
+              </article>
+              <article class="card">
+                <div class="row"><b>Buyer Price Board</b><button class="tiny-btn" type="button" data-modal="buyerDirectory">Buyers</button></div>
+                <div class="chart-bars" id="produceBars" style="margin-top:14px"></div>
+              </article>
+            </div>
+            <div class="table-wrap" style="margin-top:14px"><table><thead><tr><th>Contract</th><th>Buyer</th><th>Commodity</th><th class="right">Volume</th><th class="right">Expected payout</th><th>Action</th></tr></thead><tbody id="contractRows"></tbody></table></div>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-head">
+            <div class="section-title"><h3>1.14.3 - Cooperative, SACCO, Outgrower & Aggregation Payments</h3><p>Cooperative dues, outgrower collections, deductions, member payouts and group settlement schedules.</p></div>
+            <div class="toolbar"><button class="btn" type="button" data-modal="coopStatement">Statements</button><button class="btn farm" type="button" data-modal="coopContributionWizard">Pay Co-op Dues</button></div>
+          </div>
+          <div class="section-body">
+            <div class="grid four-grid">
+              <article class="card"><div class="metric-label">Cooperatives linked</div><div class="metric-value">5</div><div class="row"><span class="muted">Monthly dues</span><b>KES 8,500</b></div></article>
+              <article class="card"><div class="metric-label">Outgrower groups</div><div class="metric-value">3 groups</div><div class="row"><span class="muted">Members</span><b>84</b></div></article>
+              <article class="card"><div class="metric-label">Pending payouts</div><div class="metric-value">KES 124,600</div><div class="row"><span class="muted">Settlement day</span><b>Fri</b></div></article>
+              <article class="card"><div class="metric-label">Deductions routed</div><div class="metric-value">KES 42,400</div><div class="row"><span class="muted">Loan + inputs</span><b>Automated</b></div></article>
+            </div>
+            <div class="table-wrap" style="margin-top:14px"><table><thead><tr><th>Co-op / Group</th><th>Type</th><th class="right">Due / payout</th><th>Status</th><th>Action</th></tr></thead><tbody id="coopRows"></tbody></table></div>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-head">
+            <div class="section-title"><h3>1.14.4 - Livestock, Dairy, Veterinary & Feed Services</h3><p>Livestock purchases, dairy collection payouts, vet visits, feed orders, artificial insemination and vaccination schedules.</p></div>
+            <div class="toolbar"><button class="btn" type="button" data-modal="dairyCollections">Dairy Collections</button><button class="btn farm" type="button" data-modal="vetBookingWizard">Book Vet</button></div>
+          </div>
+          <div class="section-body">
+            <div class="grid two-grid">
+              <article class="card"><div class="row"><b>Livestock & Dairy Accounts</b><button class="tiny-btn" type="button" data-modal="vaccinationPlanner">Vaccination</button></div><div class="asset-grid" id="livestockCards" style="grid-template-columns:repeat(3,1fr);margin-top:12px"></div></article>
+              <article class="card"><div class="row"><b>Feed, Vet & AI Spend</b><button class="tiny-btn" type="button" data-modal="animalHealth">Health</button></div><div class="chart-bars" id="livestockBars" style="margin-top:14px"></div></article>
+            </div>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-head">
+            <div class="section-title"><h3>1.14.5 - Agricultural Loans, Insurance & Equipment Finance</h3><p>Agri credit, seasonal loans, crop and livestock insurance, machinery lease and invoice-backed finance.</p></div>
+            <div class="toolbar"><button class="btn" type="button" data-modal="loanOffers">Loan offers</button><button class="btn farm" type="button" data-modal="loanRepaymentWizard">Repay Loan</button></div>
+          </div>
+          <div class="section-body">
+            <div class="grid two-grid">
+              <article class="card"><div class="row"><b>Active Finance Accounts</b><button class="tiny-btn" type="button" data-modal="equipmentLeaseWizard">Lease</button></div><div class="mini-list" id="loanRows" style="margin-top:12px"></div></article>
+              <article class="card"><div class="row"><b>Insurance & Lease Mix</b><button class="tiny-btn" type="button" data-modal="insuranceWizard">Coverage</button></div><div class="stat-grid" style="margin-top:12px"><div class="stat-box"><small>Loan balance</small><strong>KES 1.82M</strong></div><div class="stat-box"><small>Monthly due</small><strong>KES 94,600</strong></div><div class="stat-box"><small>Crop cover</small><strong>12 acres</strong></div><div class="stat-box"><small>Machinery lease</small><strong>2 active</strong></div></div><div class="chart-bars" id="loanBars" style="margin-top:14px"></div></article>
+            </div>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-head">
+            <div class="section-title"><h3>1.14.6 - Subsidies, Grants, Extension & Climate Services</h3><p>Government subsidies, e-vouchers, extension visits, soil testing, field planning and climate risk support.</p></div>
+            <div class="toolbar"><button class="btn" type="button" data-modal="climateRisk">Climate risk</button><button class="btn farm" type="button" data-modal="grantApplicationWizard">Apply Grant</button></div>
+          </div>
+          <div class="section-body">
+            <div class="grid two-grid">
+              <article class="card"><div class="row"><b>Active Subsidies & Grants</b><button class="tiny-btn" type="button" data-modal="voucherRedeemWizard">Redeem</button></div><div class="mini-list" id="subsidyRows" style="margin-top:12px"></div></article>
+              <article class="card"><div class="row"><b>Extension & Field Operations</b><button class="tiny-btn" type="button" data-modal="fieldPlanner">Planner</button></div><div class="track-list" id="fieldTrack" style="margin-top:14px"></div></article>
+            </div>
+            <div class="grid three-grid" style="margin-top:14px">
+              <button class="card" type="button" data-modal="soilTestWizard"><b>Soil Test Booking</b><p class="mini-sub">Book collection, upload previous results and receive nutrient recommendation.</p></button>
+              <button class="card" type="button" data-modal="extensionBookingWizard"><b>Extension Visit</b><p class="mini-sub">Schedule field agronomist, vet officer or irrigation technician visit.</p></button>
+              <button class="card" type="button" data-modal="fieldPlanner"><b>Planting Planner</b><p class="mini-sub">Set crop calendar, labor budget, input timing and harvest checklist.</p></button>
+            </div>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="modalBackdrop" aria-hidden="true">
+    <div class="modal" id="modalBox" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-head"><div><h3 id="modalTitle">Modal title</h3><p id="modalSubtitle">Modal subtitle</p></div><button class="modal-close" type="button" id="modalClose">X</button></div>
+      <div id="stepWrap"></div>
+      <div class="modal-body" id="modalBody"></div>
+      <div class="modal-foot" id="modalFoot"></div>
+    </div>
+  </div>
+  <div class="toast" id="toast">Action completed</div>
+
+  <script>
+    const inputCards = [
+      {name:"Fertilizer Basket - Maize Block A", meta:"Mavuno Inputs Ltd • 60 bags CAN + 40 bags DAP", total:"KES 148,200", status:"due", mark:"FB", color:"linear-gradient(135deg,#166534,#10b981)"},
+      {name:"Hybrid Seed Order - Beans & Maize", meta:"SeedCo Kenya • 24kg seed across 3 fields", total:"KES 38,400", status:"paid", mark:"SD", color:"linear-gradient(135deg,#4f46e5,#10b981)"},
+      {name:"Irrigation Kit Payment", meta:"Amiran drip lines • 2-acre set", total:"KES 92,000", status:"funded", mark:"IR", color:"linear-gradient(135deg,#0891b2,#4f46e5)"},
+      {name:"Tractor Hire Booking", meta:"Ploughing + harrowing • Thu 08:00 slot", total:"KES 21,000", status:"auto", mark:"TH", color:"linear-gradient(135deg,#7c3aed,#ec4899)"},
+      {name:"Pesticide & Fungicide Mix", meta:"GreenFarm Agrovet • 8 SKU bundle", total:"KES 16,880", status:"due", mark:"AG", color:"linear-gradient(135deg,#f59e0b,#10b981)"},
+      {name:"Dairy Feed Order", meta:"Unga Farm Care • 30 bags dairy meal", total:"KES 54,600", status:"paid", mark:"DF", color:"linear-gradient(135deg,#0891b2,#06b6d4)"}
+    ];
+
+    const produceRows = [
+      ["Maize Lot A - 82 bags", "Expected KES 344,400 • Warehouse stored", "Buyer offers open", "MZ", "funded"],
+      ["French Beans Export Batch", "Expected KES 218,000 • Collection Fri", "Contract active", "FB", "auto"],
+      ["Avocado Hass Grade 1", "Expected KES 486,000 • 3 buyers matched", "Negotiation", "AV", "due"],
+      ["Milk Collections Week 24", "Expected KES 64,800 • 1 co-op pending", "Payout lag", "MK", "overdue"]
+    ];
+
+    const coopRows = [
+      ["Ol Kalou Dairy Co-op", "Cooperative dues", "KES 2,500", "due"],
+      ["Farmers SACCO Monthly", "Savings contribution", "KES 5,000", "auto"],
+      ["Outgrower Group A", "Payout receivable", "KES 84,200", "funded"],
+      ["Potato Aggregator Group", "Input deduction", "KES 18,400", "paid"],
+      ["Tea Collection Group", "Bonus receivable", "KES 40,400", "due"]
+    ];
+
+    const livestockCards = [
+      {name:"Dairy Herd", meta:"18 milking cows • Avg 328L/day", total:"KES 64,800 payout", status:"overdue", mark:"DY", color:"linear-gradient(135deg,#166534,#10b981)"},
+      {name:"Vet & AI Services", meta:"2 pregnancy checks + 1 AI booking", total:"KES 12,600", status:"due", mark:"VT", color:"linear-gradient(135deg,#0891b2,#4f46e5)"},
+      {name:"Feed Program", meta:"Dairy meal, hay and mineral blocks", total:"KES 54,600", status:"paid", mark:"FD", color:"linear-gradient(135deg,#f59e0b,#ef4444)"},
+      {name:"Vaccination Calendar", meta:"FMD, LSD and deworming schedule", total:"4 actions", status:"auto", mark:"VC", color:"linear-gradient(135deg,#7c3aed,#ec4899)"},
+      {name:"Goat Unit", meta:"12 dairy goats • Supplements due", total:"KES 8,200", status:"due", mark:"GT", color:"linear-gradient(135deg,#334155,#10b981)"},
+      {name:"Livestock Market Fees", meta:"Boma sale market entries", total:"KES 3,600", status:"paid", mark:"LM", color:"linear-gradient(135deg,#0f766e,#06b6d4)"}
+    ];
+
+    const loanRows = [
+      ["Seasonal Crop Loan", "KES 840,000 outstanding • KCB M-Pesa Agri", "Next due KES 48,000", "CL", "due"],
+      ["Tractor Lease", "KES 420,000 outstanding • Asset Finance", "Auto debit monthly", "TL", "auto"],
+      ["Warehouse Receipt Finance", "KES 560,000 advanced on maize lot", "Settlement on buyer payout", "WR", "funded"],
+      ["Crop Weather Insurance", "12 acres maize + beans cover", "Premium KES 8,200 unpaid", "IN", "due"]
+    ];
+
+    const subsidyRows = [
+      ["Fertilizer Subsidy eVoucher", "KES 28,800 value • expires in 9 days", "Redeem now", "SV", "due"],
+      ["Irrigation Matching Grant", "KES 120,000 approved • co-pay needed", "Submit co-pay", "IG", "funded"],
+      ["County Seed Support", "KES 12,000 remaining • beans season", "Active", "CS", "auto"],
+      ["Soil Testing Coupon", "1 free test for 2 fields", "Book visit", "ST", "paid"]
+    ];
+
+    let currentStep = 0;
+    let activeWizard = null;
+
+    function statusClass(s){ return s === "paid" ? "st-paid" : s === "due" ? "st-due" : s === "overdue" ? "st-overdue" : s === "auto" ? "st-auto" : "st-funded"; }
+
+    function renderInputs(){
+      $("#inputFilters").innerHTML = ["All Inputs","Fertilizer","Seed","Agrochemicals","Irrigation","Equipment Hire"].map((c,i)=>`<button class="chip ${i===0?"active":""}" type="button">${c}</button>`).join("");
+      $("#inputCards").innerHTML = inputCards.map((p,i)=>`<article class="asset-card">
+        <div class="asset-thumb" style="background:${p.color}">${p.mark}<span class="status st-light">${p.meta.split(' • ')[0]}</span></div>
+        <div class="asset-body"><div class="asset-name">${p.name}</div><div class="asset-meta">${p.meta}</div>
+        <div class="asset-metrics"><div><small>Total</small><b>${p.total}</b></div><div><small>Status</small><b><span class="status ${statusClass(p.status)}">${p.status}</span></b></div><div><small>Delivery</small><b>${["Tomorrow","Collected","Mon 10:00","Thu 08:00","Today","Collected"][i]}</b></div><div><small>Funding</small><b>${i===0?"Voucher+wallet":"Wallet"}</b></div></div>
+        <div class="asset-actions"><button class="round-btn fill" data-modal="inputOrderWizard" type="button">Pay</button><button class="round-btn" data-modal="supplierProfile" type="button">Supplier</button><button class="round-btn" data-modal="paymentReceipt" type="button">History</button></div></div>
+      </article>`).join("");
+    }
+
+    function renderProduce(){
+      $("#produceRows").innerHTML = produceRows.map((r,i)=>`<button class="mini-item" type="button" data-modal="${i===0?"warehouseReceipt":"buyerOffer"}"><span class="mini-icon" style="background:${r[4]==="overdue"?"var(--pm-danger-soft)":r[4]==="due"?"var(--pm-warning-soft)":"var(--pm-accent-soft)"};color:${r[4]==="overdue"?"var(--pm-danger)":r[4]==="due"?"var(--pm-warning)":"var(--pm-accent)"}">${r[3]}</span><span style="flex:1"><span class="mini-title">${r[0]}</span><span class="mini-sub">${r[1]}</span></span><span class="status ${statusClass(r[4])}">${r[2]}</span></button>`).join("");
+      $("#produceBars").innerHTML = [["Maize / 90kg","KES 4,200",76,"#f59e0b"],["Beans / 90kg","KES 8,800",62,"#10b981"],["Avocado / kg","KES 74",58,"#4f46e5"],["Milk / litre","KES 49",52,"#0891b2"],["Potato / 50kg","KES 2,650",44,"#8b5cf6"]].map(r=>`<div class="chart-row"><span>${r[0]}</span><div class="chart-track"><span style="width:${r[2]}%;background:${r[3]}"></span></div><b class="right">${r[1]}</b></div>`).join("");
+      $("#contractRows").innerHTML = [["CTR-2201","VegPro Kenya","French Beans","4.8 tonnes","KES 218,000"],["CTR-2098","Unga Ltd","Maize","82 bags","KES 344,400"],["CTR-2218","Avocado EPZ","Hass Avocado","6.2 tonnes","KES 486,000"]].map(r=>`<tr><td><b>${r[0]}</b></td><td>${r[1]}</td><td>${r[2]}</td><td class="right">${r[3]}</td><td class="right"><b>${r[4]}</b></td><td><button class="tiny-btn" type="button" data-modal="contractWizard">View</button></td></tr>`).join("");
+    }
+
+    function renderCoop(){
+      $("#coopRows").innerHTML = coopRows.map((r,i)=>`<tr><td><b>${r[0]}</b></td><td>${r[1]}</td><td class="right"><b>${r[2]}</b></td><td><span class="status ${statusClass(r[3])}">${r[3]}</span></td><td><button class="tiny-btn" type="button" data-modal="${r[1]==="Payout receivable"?"outgrowerPayoutWizard":"coopContributionWizard"}">${r[3]==="funded"?"Route":"Pay"}</button></td></tr>`).join("");
+    }
+
+    function renderLivestock(){
+      $("#livestockCards").innerHTML = livestockCards.map((p,i)=>`<article class="asset-card">
+        <div class="asset-thumb" style="background:${p.color}">${p.mark}<span class="status st-light">${p.meta.split(' • ')[0]}</span></div>
+        <div class="asset-body"><div class="asset-name">${p.name}</div><div class="asset-meta">${p.meta}</div>
+        <div class="asset-metrics"><div><small>Total</small><b>${p.total}</b></div><div><small>Status</small><b><span class="status ${statusClass(p.status)}">${p.status}</span></b></div><div><small>Next action</small><b>${["Co-op payout","Vet visit","Restock feed","Vaccinate","Feed top-up","Receipt"][i]}</b></div><div><small>Priority</small><b>${i===0||i===1?"High":"Normal"}</b></div></div>
+        <div class="asset-actions"><button class="round-btn fill" data-modal="${i===0?"dairyCollections":i===1?"vetBookingWizard":i===2?"feedOrderWizard":"vaccinationPlanner"}" type="button">Open</button><button class="round-btn" data-modal="animalHealth" type="button">Health</button></div></div>
+      </article>`).join("");
+      $("#livestockBars").innerHTML = [["Feed","KES 54,600",86,"#f59e0b"],["Vet & AI","KES 12,600",34,"#0891b2"],["Vaccines","KES 8,400",22,"#10b981"],["Milk income","KES 64,800",74,"#4f46e5"],["Market fees","KES 3,600",18,"#8b5cf6"]].map(r=>`<div class="chart-row"><span>${r[0]}</span><div class="chart-track"><span style="width:${r[2]}%;background:${r[3]}"></span></div><b class="right">${r[1]}</b></div>`).join("");
+    }
+
+    function renderLoans(){
+      $("#loanRows").innerHTML = loanRows.map((r,i)=>`<button class="mini-item" type="button" data-modal="${i===3?"insuranceWizard":i===1?"equipmentLeaseWizard":"loanRepaymentWizard"}"><span class="mini-icon" style="background:${i===3?"var(--pm-warning-soft)":"var(--pm-purple-soft)"};color:${i===3?"var(--pm-warning)":"var(--pm-purple)"}">${r[3]}</span><span style="flex:1"><span class="mini-title">${r[0]}</span><span class="mini-sub">${r[1]}</span></span><span class="status ${statusClass(r[4])}">${r[2]}</span></button>`).join("");
+      $("#loanBars").innerHTML = [["Crop loan","KES 840K",72,"#4f46e5"],["Warehouse finance","KES 560K",48,"#8b5cf6"],["Machinery lease","KES 420K",34,"#10b981"],["Insurance premium","KES 8.2K",12,"#f59e0b"]].map(r=>`<div class="chart-row"><span>${r[0]}</span><div class="chart-track"><span style="width:${r[2]}%;background:${r[3]}"></span></div><b class="right">${r[1]}</b></div>`).join("");
+    }
+
+    function renderSubsidies(){
+      $("#subsidyRows").innerHTML = subsidyRows.map((r,i)=>`<button class="mini-item" type="button" data-modal="${i===0?"voucherRedeemWizard":i===1?"grantApplicationWizard":i===2?"voucherRedeemWizard":"soilTestWizard"}"><span class="mini-icon" style="background:${r[4]==="due"?"var(--pm-warning-soft)":r[4]==="funded"?"var(--pm-purple-soft)":"var(--pm-accent-soft)"};color:${r[4]==="due"?"var(--pm-warning)":r[4]==="funded"?"var(--pm-purple)":"var(--pm-accent)"}">${r[3]}</span><span style="flex:1"><span class="mini-title">${r[0]}</span><span class="mini-sub">${r[1]}</span></span><span class="status ${statusClass(r[4])}">${r[2]}</span></button>`).join("");
+      const steps = [
+        ["Field scouting & soil sampling", "Tomorrow 07:30 • agronomist route confirmed", "done"],
+        ["Planting plan approval", "Budget, seed and labor schedule ready", "done"],
+        ["Rain window monitoring", "Current 5-day rainfall watch", "current"],
+        ["Top-dressing application", "Pending 2 weeks after emergence", "pending"],
+        ["Harvest logistics booking", "Pending maturity forecast", "pending"]
+      ];
+      $("#fieldTrack").innerHTML = steps.map((s,i)=>`<div class="track-step ${s[2]==="pending"?"pending":s[2]==="current"?"current":""}"><div class="track-dot">${s[2]==="done"?"✓":i+1}</div><div><div class="mini-title">${s[0]}</div><div class="mini-sub">${s[1]}</div></div></div>`).join("");
+    }
+
+    const modalTemplates = {
+      agriHealth: {title:"Agricultural Service Health Check", sub:"Supplier rails, buyer routes, co-op statements, insurance and subsidy engines", size:"lg", body: healthBody},
+      notifications: {title:"Agriculture Notifications", sub:"Input deliveries, buyer offers, co-op payouts, insurance and climate alerts", size:"lg", body: notificationsBody},
+      profileSettings: {title:"Farm Profile & Preferences", sub:"Farm identity, locations, beneficiaries, payout rules and budgets", size:"lg", body: profileBody},
+      helpGuide: {title:"Agriculture Payments Help", sub:"Guide to farm inputs, produce sales, outgrower payouts, livestock, agri loans and subsidies", body: helpBody},
+      documentVault: {title:"Agriculture Document Vault", sub:"Farm maps, subsidy approvals, receipts, contracts and insurance documents", size:"lg", body: vaultBody},
+      navAgriculture: {title:"Agriculture Hub", sub:"You are viewing Page 1.14 agricultural payments", body: () => navBody("Agriculture", "Manage inputs, produce sales, cooperative payments, livestock services, agri finance, subsidies and climate support.")},
+      navInsurance: {title:"Insurance Services", sub:"Protection services", body: () => navBody("Insurance", "Crop, livestock and equipment insurance can also be accessed through the insurance module.")},
+      navGov: {title:"Government Payments", sub:"Public services and subsidy linkages", body: () => navBody("Government", "County subsidy, fertilizer voucher and land related payment services connect to the government module.")},
+      navEstate: {title:"Real Estate Services", sub:"Property payments", body: () => navBody("Real Estate", "Property rent, land rates, escrow and portfolio flows are available in the real estate module.")},
+      preferences: {title:"Preferences", sub:"Agriculture dashboard defaults and alerts", body: preferencesBody},
+      supportCenter: {title:"Support Center", sub:"Farm payment help desk and dispute support", size:"lg", body: supportBody},
+      alertsAll: {title:"Agriculture Attention Items", sub:"Prioritized farm finance and operations signals", size:"lg", body: alertsBody},
+      fertilizerShortfall: {title:"Fertilizer Budget Shortfall", sub:"Funding gap before planting window closes", size:"lg", body: () => detailBody("Maize Block A", "KES 18,400 shortfall", "Window closes in 5 days", "Voucher and loan options available")},
+      milkPaymentDelay: {title:"Milk Payment Delay", sub:"Pending dairy cooperative settlement", size:"lg", body: () => detailBody("Ol Kalou Dairy Co-op", "KES 64,800 pending", "4 collection days unreleased", "Escalation available")},
+      weatherRisk: {title:"Weather Risk Advisory", sub:"Rainfall anomaly and action plan", size:"lg", body: weatherBody},
+      smartSuggestions: {title:"Smart Farm Suggestions", sub:"AI-generated actions from yields, budgets, weather and contracts", size:"lg", body: smartBody},
+      inputBasketOptimize: {title:"Optimize Input Basket", sub:"Price, brand and supplier changes to reduce cost", size:"lg", body: inputOptimizeBody},
+      agriCalendar: {title:"Crop Calendar", sub:"Seasonal crop activities and due dates", size:"lg", body: calendarBody},
+      inputCatalog: {title:"Farm Input Catalog", sub:"Seeds, fertilizer, crop protection, irrigation and machinery", size:"xl", body: catalogBody},
+      supplierProfile: {title:"Supplier Profile", sub:"Credit terms, price list, order history and delivery service", size:"lg", body: supplierBody},
+      buyerDirectory: {title:"Buyer Directory", sub:"Off-takers, exporters, millers and aggregators", size:"lg", body: buyerDirectoryBody},
+      buyerOffer: {title:"Buyer Offer Detail", sub:"Off-taker rate, deductions and settlement terms", size:"lg", body: buyerOfferBody},
+      marketPrices: {title:"Market Price Board", sub:"Live price references across commodities and markets", size:"lg", body: marketPriceBody},
+      warehouseReceipt: {title:"Warehouse Receipt Finance", sub:"Store produce, secure financing and settle on sale", size:"lg", body: warehouseBody},
+      contractWizard: {title:"Produce Contract Detail", sub:"View contract terms and milestone deliveries", size:"lg", body: contractBody},
+      coopStatement: {title:"Cooperative & SACCO Statements", sub:"Dues, deductions, payouts and shares", size:"lg", body: coopStatementBody},
+      dairyCollections: {title:"Dairy Collection Summary", sub:"Litres delivered, fat content and payout schedule", size:"lg", body: dairyBody},
+      vaccinationPlanner: {title:"Vaccination Planner", sub:"Schedules, due animals and service bookings", size:"lg", body: vaccineBody},
+      animalHealth: {title:"Animal Health Dashboard", sub:"Vet history, AI cycles, disease watch and treatment costs", size:"lg", body: animalHealthBody},
+      loanOffers: {title:"Agricultural Loan Offers", sub:"Seasonal, equipment and invoice-backed finance options", size:"lg", body: loanOfferBody},
+      climateRisk: {title:"Climate Risk & Crop Advisory", sub:"Rainfall, drought, disease pressure and action guidance", size:"lg", body: climateBody},
+      fieldPlanner: {title:"Field Planner", sub:"Crop calendar, budget, labor and field activity plan", size:"lg", body: fieldPlannerBody},
+      paymentMethods: {title:"Payment Methods", sub:"Wallet, M-Pesa, PesaLink, RTGS and deduction routing", size:"lg", body: paymentMethodsBody},
+      paymentReceipt: {title:"Payment Receipt", sub:"Download, share and repeat a farm payment", size:"lg", body: receiptBody},
+
+      addFarmWizard: {title:"Add Farm Profile", sub:"Register fields, enterprises, beneficiaries and farm structure", size:"xl", wizard:"addFarm"},
+      inputOrderWizard: {title:"Order Farm Inputs", sub:"Select supplier, items, delivery and payment", size:"xl", wizard:"inputOrder"},
+      voucherRedeemWizard: {title:"Redeem Input Voucher", sub:"Validate voucher, match supplier and apply co-pay", size:"lg", wizard:"voucherRedeem"},
+      produceSaleWizard: {title:"Sell Produce", sub:"List produce, choose buyer, route payout and confirm contract", size:"xl", wizard:"produceSale"},
+      autoCollectionWizard: {title:"Automate Collections Routing", sub:"Split produce payouts across wallet, loan and farm budget", size:"lg", wizard:"autoCollection"},
+      coopContributionWizard: {title:"Pay Cooperative / SACCO Dues", sub:"Select group, dues type and payment method", size:"lg", wizard:"coopPay"},
+      outgrowerPayoutWizard: {title:"Outgrower Payout Routing", sub:"Allocate deductions and distribute member proceeds", size:"lg", wizard:"outgrowerPayout"},
+      vetBookingWizard: {title:"Book Veterinary Service", sub:"Choose service, herd, location and appointment slot", size:"lg", wizard:"vetBooking"},
+      feedOrderWizard: {title:"Order Feed & Supplements", sub:"Choose feed plan, supplier and delivery schedule", size:"lg", wizard:"feedOrder"},
+      loanRepaymentWizard: {title:"Repay Agricultural Loan", sub:"Select facility, amount, source and confirmation", size:"lg", wizard:"loanRepay"},
+      insuranceWizard: {title:"Crop / Livestock Insurance", sub:"Quote, cover details, premium and risk triggers", size:"lg", wizard:"insurance"},
+      equipmentLeaseWizard: {title:"Lease Equipment or Machinery", sub:"Tractor, sheller, irrigation or cold-room lease setup", size:"lg", wizard:"equipmentLease"},
+      grantApplicationWizard: {title:"Grant / Subsidy Application", sub:"Apply for county, NGO or value-chain grant support", size:"xl", wizard:"grantApply"},
+      extensionBookingWizard: {title:"Book Extension Officer", sub:"Field advisory, soil, irrigation or disease support visit", size:"lg", wizard:"extension"},
+      soilTestWizard: {title:"Soil Test Booking", sub:"Field selection, sample collection and lab service booking", size:"lg", wizard:"soilTest"}
+    };
+
+    const wizards = {
+      addFarm: [
+        {label:"Identity", html:`<div class="form-grid"><div><label>Farm name</label><input value="GreenHill Mixed Farm"></div><div><label>Farmer role</label><select><option>Owner operator</option><option>Aggregator</option><option>Outgrower</option><option>Co-op member</option></select></div><div><label>County</label><select><option>Nyandarua</option><option>Nakuru</option><option>Kiambu</option><option>Meru</option></select></div><div><label>Mobile</label><input value="0712 345 678"></div></div>`},
+        {label:"Fields", html:`<div class="form-grid"><div><label>Total acreage</label><input value="24 acres"></div><div><label>Main enterprises</label><select><option>Maize + Dairy + Avocado</option><option>Beans + Potatoes</option><option>Horticulture export</option></select></div><div><label>Irrigated area</label><input value="4 acres"></div><div><label>Livestock</label><input value="18 dairy cows, 12 goats"></div></div>`},
+        {label:"Finance", html:`<div class="form-grid"><div><label>Default payout account</label><select><option>PayMo Wallet</option><option>Equity Bank</option></select></div><div><label>Funding priority</label><select><option>Wallet → PesaLink → M-Pesa</option><option>M-Pesa → Wallet</option></select></div><div><label>Seasonal budget</label><input value="KES 1,240,000"></div><div><label>Tax ID / Co-op ID</label><input value="AG-002819"></div></div>`},
+        {label:"Review", html:`<div class="notice success">Farm profile is ready to activate. Input, produce, subsidy and livestock workflows will use this profile by default.</div><div class="table-wrap"><table><tbody><tr><td>Farm</td><td><b>GreenHill Mixed Farm</b></td></tr><tr><td>County</td><td>Nyandarua</td></tr><tr><td>Enterprises</td><td>Maize, Dairy, Avocado</td></tr><tr><td>Seasonal budget</td><td>KES 1,240,000</td></tr></tbody></table></div>`}
+      ],
+      inputOrder: [
+        {label:"Supplier", html:`<div class="form-grid"><div><label>Supplier</label><select><option>Mavuno Inputs Ltd</option><option>GreenFarm Agrovet</option><option>Amiran Kenya</option><option>Unga Farm Care</option></select></div><div><label>Delivery farm block</label><select><option>Maize Block A</option><option>Avocado Orchard</option><option>Dairy Unit</option></select></div></div><div class="notice success">Supplier terms: 14-day credit available up to KES 120,000. Delivery fee waived above KES 50,000.</div>`},
+        {label:"Basket", html:`<div class="table-wrap"><table><thead><tr><th>Item</th><th>Qty</th><th class="right">Price</th></tr></thead><tbody><tr><td>DAP 50kg</td><td>40 bags</td><td class="right">KES 4,200</td></tr><tr><td>CAN 50kg</td><td>60 bags</td><td class="right">KES 3,360</td></tr><tr><td>Hybrid maize seed 10kg</td><td>6 packs</td><td class="right">KES 4,400</td></tr></tbody></table></div><div class="notice info">Voucher eligible items detected. You can apply fertilizer subsidy on DAP and CAN.</div>`},
+        {label:"Delivery", html:`<div class="form-grid"><div><label>Delivery date</label><input type="date" value="2026-06-23"></div><div><label>Contact person</label><input value="Farm manager - Peter W."></div><div><label>Delivery notes</label><input value="Store in dry shed near weighbridge"></div><div><label>Transport</label><select><option>Supplier truck</option><option>Farmer pickup</option></select></div></div>`},
+        {label:"Funding", html:`${paymentMethodHtml()}<div class="notice warn">Voucher KES 28,800 can be applied. Balance after voucher: KES 119,400.</div>`},
+        {label:"Confirm", html:pinSummaryHtml("Farm Input Order", "Mavuno Inputs Ltd", "KES 119,400", "Voucher and supplier reference will be attached to the receipt.")}
+      ],
+      voucherRedeem: [
+        {label:"Voucher", html:`<div class="form-grid"><div><label>Voucher code</label><input value="FERT-2026-8821"></div><div><label>Programme</label><select><option>National Fertilizer Subsidy</option><option>County Seed Support</option></select></div></div><div class="notice success">Voucher valid: KES 28,800, expiring in 9 days.</div>`},
+        {label:"Supplier", html:`<div class="form-grid"><div><label>Approved supplier</label><select><option>Mavuno Inputs Ltd</option><option>GreenFarm Agrovet</option></select></div><div><label>Eligible items</label><input value="DAP, CAN, certified maize seed" readonly></div></div>`},
+        {label:"Co-pay", html:`<div class="table-wrap"><table><tbody><tr><td>Basket total</td><td class="right">KES 148,200</td></tr><tr><td>Voucher value</td><td class="right">- KES 28,800</td></tr><tr><td><b>Farmer co-pay</b></td><td class="right"><b>KES 119,400</b></td></tr></tbody></table></div>${paymentMethodHtml()}`},
+        {label:"Confirm", html:pinSummaryHtml("Voucher Redemption", "FERT-2026-8821", "KES 119,400", "Voucher will be locked after successful redemption.")}
+      ],
+      produceSale: [
+        {label:"Produce", html:`<div class="form-grid"><div><label>Commodity</label><select><option>Maize</option><option>Avocado</option><option>French Beans</option><option>Milk</option></select></div><div><label>Available volume</label><input value="82 bags / 7.38 tonnes"></div><div><label>Quality grade</label><select><option>Grade 1</option><option>Grade 2</option></select></div><div><label>Storage</label><select><option>Warehouse receipt</option><option>On-farm storage</option><option>Fresh pickup</option></select></div></div>`},
+        {label:"Buyer", html:`<div class="table-wrap"><table><thead><tr><th>Buyer</th><th>Rate</th><th>Terms</th><th>Settlement</th></tr></thead><tbody><tr><td>Unga Ltd</td><td>KES 4,200 / 90kg</td><td>Moisture < 13.5%</td><td>T+2</td></tr><tr><td>County Cereal Board</td><td>KES 4,050 / 90kg</td><td>Bulk delivery</td><td>T+5</td></tr><tr><td>Village Aggregator</td><td>KES 3,980 / 90kg</td><td>Pickup today</td><td>Instant</td></tr></tbody></table></div><div class="notice info">Buyer verification, KRA compliance and historical settlement speed are available in the buyer directory.</div>`},
+        {label:"Routing", html:`<div class="form-grid"><div><label>Payout split 1</label><input value="60% to PayMo Wallet"></div><div><label>Payout split 2</label><input value="25% to crop loan"></div><div><label>Payout split 3</label><input value="15% to input budget reserve"></div><div><label>Delivery schedule</label><select><option>Thu 07:00 collection</option><option>Deliver to warehouse Friday</option></select></div></div>`},
+        {label:"Confirm", html:pinSummaryHtml("Produce Sale Contract", "Maize Lot A", "Expected KES 344,400", "Contract note, weighbridge sheet and delivery QR will be generated.")}
+      ],
+      autoCollection: [
+        {label:"Source", html:`<div class="form-grid"><div><label>Income source</label><select><option>Produce buyer payouts</option><option>Dairy cooperative payouts</option><option>Warehouse receipt proceeds</option></select></div><div><label>Frequency</label><select><option>Per payout</option><option>Weekly batch</option></select></div></div>`},
+        {label:"Routing", html:`<div class="table-wrap"><table><thead><tr><th>Destination</th><th>Share</th></tr></thead><tbody><tr><td>Wallet for operating cash</td><td>40%</td></tr><tr><td>Seasonal loan repayment</td><td>35%</td></tr><tr><td>Input reserve budget</td><td>15%</td></tr><tr><td>Savings / MMF</td><td>10%</td></tr></tbody></table></div>`},
+        {label:"Review", html:`<div class="notice success">Automatic collection routing will settle each produce payout instantly according to your configured percentages.</div>`}
+      ],
+      coopPay: [
+        {label:"Group", html:`<div class="form-grid"><div><label>Co-op / SACCO</label><select><option>Ol Kalou Dairy Co-op</option><option>Farmers SACCO Monthly</option><option>Tea Collection Group</option></select></div><div><label>Dues type</label><select><option>Monthly dues</option><option>Share capital</option><option>Emergency fund</option><option>Loan clearance</option></select></div></div>`},
+        {label:"Amount", html:`<div class="form-grid"><div><label>Amount</label><input value="KES 5,000"></div><div><label>Reference month</label><select><option>June 2026</option><option>July 2026</option></select></div></div>${paymentMethodHtml()}`},
+        {label:"Confirm", html:pinSummaryHtml("Co-op Contribution", "Farmers SACCO", "KES 5,000", "Share capital and monthly statement update after payment.")}
+      ],
+      outgrowerPayout: [
+        {label:"Batch", html:`<div class="form-grid"><div><label>Group</label><select><option>Outgrower Group A</option></select></div><div><label>Payout amount</label><input value="KES 84,200"></div></div>`},
+        {label:"Deductions", html:`<div class="table-wrap"><table><tbody><tr><td>Gross payout</td><td class="right">KES 84,200</td></tr><tr><td>Input deduction</td><td class="right">KES 18,400</td></tr><tr><td>Group dues</td><td class="right">KES 2,500</td></tr><tr><td><b>Net member distribution</b></td><td class="right"><b>KES 63,300</b></td></tr></tbody></table></div>`},
+        {label:"Confirm", html:pinSummaryHtml("Outgrower Distribution", "Group A", "KES 63,300 net", "Statements will show gross, deductions and net per member.")}
+      ],
+      vetBooking: [
+        {label:"Service", html:`<div class="form-grid"><div><label>Service type</label><select><option>Pregnancy check</option><option>Emergency treatment</option><option>Vaccination</option><option>AI service</option></select></div><div><label>Animal group</label><select><option>Dairy herd</option><option>Goat unit</option><option>Calves</option></select></div></div>`},
+        {label:"Visit", html:`<div class="form-grid"><div><label>Date</label><input type="date" value="2026-06-24"></div><div><label>Time window</label><select><option>08:00-10:00</option><option>14:00-16:00</option></select></div><div><label>Vet provider</label><select><option>County Vet Officer</option><option>Private Vet - Dr. Kamau</option></select></div><div><label>Estimated fee</label><input value="KES 4,800"></div></div>`},
+        {label:"Confirm", html:pinSummaryHtml("Veterinary Booking", "Dairy Herd", "KES 4,800", "Visit booking, calendar reminder and case note will be created.")}
+      ],
+      feedOrder: [
+        {label:"Feed Plan", html:`<div class="form-grid"><div><label>Supplier</label><select><option>Unga Farm Care</option><option>Sidai Agri Vet</option></select></div><div><label>Category</label><select><option>Dairy meal</option><option>Calf pellets</option><option>Mineral lick</option><option>Hay bales</option></select></div></div>`},
+        {label:"Order", html:`<div class="form-grid"><div><label>Quantity</label><input value="30 bags"></div><div><label>Delivery</label><select><option>Tomorrow 09:00</option><option>Pick up myself</option></select></div><div><label>Total</label><input value="KES 54,600"></div><div><label>Credit terms</label><select><option>Pay now</option><option>7-day supplier credit</option></select></div></div>`},
+        {label:"Confirm", html:pinSummaryHtml("Feed Order", "Unga Farm Care", "KES 54,600", "Feed cost will also update dairy unit budget automatically.")}
+      ],
+      loanRepay: [
+        {label:"Facility", html:`<div class="form-grid"><div><label>Loan</label><select><option>Seasonal Crop Loan - KCB M-Pesa Agri</option><option>Warehouse Receipt Finance</option><option>Tractor Lease</option></select></div><div><label>Outstanding</label><input value="KES 840,000" readonly></div></div><div class="notice success">Next due amount is KES 48,000 on Jun 28, 2026.</div>`},
+        {label:"Amount", html:`<div class="form-grid"><div><label>Payment amount</label><input value="KES 48,000"></div><div><label>Allocation</label><select><option>Scheduled installment</option><option>Extra principal</option><option>Partial payment</option></select></div></div>${paymentMethodHtml()}`},
+        {label:"Confirm", html:pinSummaryHtml("Agricultural Loan Repayment", "Seasonal Crop Loan", "KES 48,000", "Loan balance and next due date will update after lender confirmation.")}
+      ],
+      insurance: [
+        {label:"Cover", html:`<div class="form-grid"><div><label>Cover type</label><select><option>Crop weather cover</option><option>Livestock mortality</option><option>Dairy cattle medical</option><option>Equipment cover</option></select></div><div><label>Provider</label><select><option>ACRE Africa</option><option>Kilimo Salama</option><option>CIC Agri</option></select></div></div>`},
+        {label:"Exposure", html:`<div class="form-grid"><div><label>Acreage / units</label><input value="12 acres"></div><div><label>Cover amount</label><input value="KES 820,000"></div><div><label>Premium</label><input value="KES 8,200"></div><div><label>Trigger</label><select><option>Rainfall deficit + excess rain</option><option>Livestock death / disease</option></select></div></div>`},
+        {label:"Confirm", html:pinSummaryHtml("Agricultural Insurance Premium", "Crop Weather Cover", "KES 8,200", "Policy schedule and trigger details will be saved to vault.")}
+      ],
+      equipmentLease: [
+        {label:"Equipment", html:`<div class="form-grid"><div><label>Asset</label><select><option>Tractor with plough</option><option>Maize sheller</option><option>Cold room unit</option><option>Drip irrigation kit</option></select></div><div><label>Term</label><select><option>1 season</option><option>12 months</option><option>24 months</option></select></div></div>`},
+        {label:"Pricing", html:`<div class="form-grid"><div><label>Deposit</label><input value="KES 120,000"></div><div><label>Monthly lease</label><input value="KES 38,000"></div><div><label>Maintenance package</label><select><option>Included</option><option>Farmer pays separately</option></select></div><div><label>Insurance</label><select><option>Required and bundled</option></select></div></div>`},
+        {label:"Confirm", html:pinSummaryHtml("Equipment Lease", "Tractor with plough", "KES 120,000 deposit", "Lease agreement, insurance note and asset schedule will be generated.")}
+      ],
+      grantApply: [
+        {label:"Programme", html:`<div class="form-grid"><div><label>Programme</label><select><option>County Irrigation Matching Grant</option><option>Women in Agribusiness Grant</option><option>Climate Smart Farming Support</option></select></div><div><label>Farm profile</label><select><option>GreenHill Mixed Farm</option></select></div></div>`},
+        {label:"Need", html:`<div class="form-grid"><div><label>Requested amount</label><input value="KES 120,000"></div><div><label>Use of funds</label><input value="Drip lines, tank stand, valves"></div><div><label>Farmer contribution</label><input value="KES 80,000"></div><div><label>Timeline</label><input value="45 days"></div></div>`},
+        {label:"Evidence", html:`<div class="notice info">Attach title, lease or farm agreement, budget, quotations and production records. This demo records the workflow in-page.</div><div class="form-grid"><div><label>Quotation file</label><input value="irrigation_quote.pdf"></div><div><label>Farm budget</label><input value="season_budget.xlsx"></div></div>`},
+        {label:"Review", html:`<div class="notice success">Grant application is ready. Scoring factors: acreage, irrigation gap, contribution ratio, yield history and vulnerability.</div>`}
+      ],
+      extension: [
+        {label:"Visit Type", html:`<div class="form-grid"><div><label>Officer type</label><select><option>Agronomist</option><option>Vet officer</option><option>Irrigation technician</option><option>Mechanization specialist</option></select></div><div><label>Field / enterprise</label><select><option>Maize Block A</option><option>Dairy Unit</option><option>Avocado Orchard</option></select></div></div>`},
+        {label:"Schedule", html:`<div class="form-grid"><div><label>Date</label><input type="date" value="2026-06-25"></div><div><label>Time</label><select><option>08:00-10:00</option><option>11:00-13:00</option><option>14:00-16:00</option></select></div><div><label>Issue</label><input value="Top dressing timing and disease scouting"></div><div><label>Service fee</label><input value="KES 2,200"></div></div>`},
+        {label:"Confirm", html:pinSummaryHtml("Extension Booking", "Maize Block A", "KES 2,200", "Visit summary and recommendations will be stored in your field planner.")}
+      ],
+      soilTest: [
+        {label:"Field", html:`<div class="form-grid"><div><label>Field</label><select><option>Maize Block A</option><option>Avocado Orchard</option><option>Bean Plot</option></select></div><div><label>Acres</label><input value="8 acres"></div></div>`},
+        {label:"Sampling", html:`<div class="form-grid"><div><label>Collection date</label><input type="date" value="2026-06-26"></div><div><label>Sample points</label><input value="12 composite points"></div><div><label>Lab package</label><select><option>Standard NPK + pH</option><option>Full micronutrient panel</option></select></div><div><label>Fee</label><input value="KES 3,800"></div></div>`},
+        {label:"Confirm", html:pinSummaryHtml("Soil Test Booking", "Maize Block A", "KES 3,800", "Sample collection sheet and lab timeline will be generated.")}
+      ]
+    };
+
+    function openModal(key){
+      const t = modalTemplates[key];
+      if(!t){ showToast("Workflow opened successfully."); return; }
+      $("#modalBox").className = "modal " + (t.size || "");
+      $("#modalTitle").textContent = t.title;
+      $("#modalSubtitle").textContent = t.sub || "";
+      currentStep = 0;
+      activeWizard = t.wizard || null;
+      if(activeWizard) renderWizard();
+      else {
+        $("#stepWrap").innerHTML = "";
+        $("#modalBody").innerHTML = typeof t.body === "function" ? t.body() : t.body;
+        $("#modalFoot").innerHTML = `<button class="btn" type="button" data-close>Close</button><button class="btn primary" type="button" data-action="save">Save changes</button>`;
+        bindTabs();
+      }
+      $("#modalBackdrop").classList.add("open");
+      $("#modalBackdrop").setAttribute("aria-hidden", "false");
+      document.body.classList.add("no-scroll");
+    }
+
+    function renderWizard(){
+      const steps = wizards[activeWizard];
+      $("#stepWrap").innerHTML = `<div class="steps">${steps.map((s,i)=>`<div class="step ${i===currentStep?"active":i<currentStep?"done":""}"><span class="num">${i<currentStep?"✓":i+1}</span><span>${s.label}</span></div>${i<steps.length-1?`<div class="step-line ${i<currentStep?"done":""}"></div>`:""}`).join("")}</div>`;
+      $("#modalBody").innerHTML = steps[currentStep].html;
+      $("#modalFoot").innerHTML = `<button class="btn" type="button" ${currentStep===0?"data-close":"data-step-back"}>${currentStep===0?"Cancel":"Back"}</button><button class="btn primary" type="button" data-step-next>${currentStep===steps.length-1?"Complete workflow":"Continue"}</button>`;
+    }
+
+    function completeWizard(){
+      $("#modalBody").innerHTML = `<div style="text-align:center;padding:30px"><div style="width:72px;height:72px;border-radius:999px;background:var(--pm-accent-soft);color:var(--pm-accent);display:grid;place-items:center;margin:0 auto 14px;font-size:28px;font-weight:900">OK</div><h3>Workflow completed</h3><p style="color:var(--pm-muted)">The request was validated, recorded in your farm timeline and queued for supplier, buyer, lender or programme confirmation.</p><div class="progress" style="margin-top:18px"><span style="width:100%;background-image:linear-gradient(90deg,var(--pm-primary),var(--pm-primary-light),var(--pm-primary));background-size:200% 100%;animation:shimmer 1.4s infinite"></span></div></div>`;
+      $("#stepWrap").innerHTML = "";
+      $("#modalFoot").innerHTML = `<button class="btn primary" type="button" data-close>Done</button>`;
+      showToast("Workflow completed successfully.");
+    }
+
+    function closeModal(){
+      $("#modalBackdrop").classList.remove("open");
+      $("#modalBackdrop").setAttribute("aria-hidden", "true");
+      document.body.classList.remove("no-scroll");
+    }
+
+    function showToast(msg){
+      const t = $("#toast"); t.textContent = msg; t.classList.add("show");
+      clearTimeout(window.toastTimer); window.toastTimer = setTimeout(()=>t.classList.remove("show"), 2200);
+    }
+
+    function bindTabs(){
+      $$(".modal-tab").forEach(btn => btn.onclick = () => {
+        $$(".modal-tab").forEach(b=>b.classList.remove("active"));
+        $$(".tab-panel").forEach(p=>p.classList.remove("active"));
+        btn.classList.add("active");
+        $("#"+btn.dataset.tab).classList.add("active");
+      });
+    }
+
+    function paymentMethodHtml(){
+      return `<h4 style="margin:0 0 10px">Payment method</h4>
+        <div class="payment-method selected"><b>PayMo Wallet</b><span class="mini-sub">Balance KES 482,000, best for small and medium farm payments</span></div>
+        <div class="payment-method"><b>PesaLink Bank Transfer</b><span class="mini-sub">Instant bank route, good for buyers and cooperative settlements</span></div>
+        <div class="payment-method"><b>M-Pesa STK Push</b><span class="mini-sub">Ideal for fast field purchases and small supplier orders</span></div>
+        <div class="payment-method"><b>RTGS / Large Value</b><span class="mini-sub">Use for produce contracts, equipment leases and grant co-pay</span></div>`;
+    }
+    function pinSummaryHtml(service, account, total, note){
+      return `<div class="notice info">${note}</div>
+        <div class="stat-grid">
+          <div class="stat-box"><small>Service</small><strong>${service}</strong></div>
+          <div class="stat-box"><small>Account</small><strong>${account}</strong></div>
+          <div class="stat-box"><small>Total</small><strong>${total}</strong></div>
+          <div class="stat-box"><small>Security</small><strong>PIN</strong></div>
+        </div>
+        <div class="pin-row"><input maxlength="1"><input maxlength="1"><input maxlength="1"><input maxlength="1"></div>`;
+    }
+    function miniRows(rows){
+      return `<div class="mini-list" style="margin-top:12px">${rows.map((r,i)=>`<div class="mini-item"><span class="mini-icon" style="background:var(--pm-surface-2);color:var(--pm-primary)">${String(i+1).padStart(2,"0")}</span><span class="mini-title" style="font-weight:700">${r}</span></div>`).join("")}</div>`;
+    }
+    function tableRows(rows){
+      return `<div class="table-wrap"><table><tbody>${rows.map(r=>`<tr><td>${r[0]}</td><td class="right"><b>${r[1]}</b></td></tr>`).join("")}</tbody></table></div>`;
+    }
+
+    function healthBody(){ return `<div class="stat-grid"><div class="stat-box"><small>Supplier rails</small><strong>OK</strong></div><div class="stat-box"><small>Buyer settlement</small><strong>98.8%</strong></div><div class="stat-box"><small>Voucher engine</small><strong>Live</strong></div><div class="stat-box"><small>Insurance sync</small><strong>OK</strong></div></div><h4>Diagnostics</h4>${miniRows(["Input supplier routing passed","Produce buyer payout routing passed","Co-op statement fetch passed","Livestock service booking calendar passed","Agri loan and insurance lookup passed","Subsidy voucher validation passed"])}`; }
+    function notificationsBody(){ return `<div class="modal-tabs"><button class="modal-tab active" data-tab="n1">Operations</button><button class="modal-tab" data-tab="n2">Finance</button><button class="modal-tab" data-tab="n3">Climate</button></div><div id="n1" class="tab-panel active">${miniRows(["Tractor hire slot confirmed for Thu 08:00","French beans collection scheduled Friday","Vet booking reminder for dairy herd","Soil sample pickup in 2 days"])}</div><div id="n2" class="tab-panel">${miniRows(["Fertilizer voucher expires in 9 days","Co-op payout KES 64,800 delayed","Crop loan installment due Jun 28","Avocado buyer raised offer to KES 74/kg"])}</div><div id="n3" class="tab-panel">${miniRows(["Rain anomaly risk this week","High fungal disease pressure alert","Advisory: apply top-dress after expected rain","Cold night warning for avocado orchard"])}</div>`; }
+    function profileBody(){ return `<div class="modal-tabs"><button class="modal-tab active" data-tab="p1">Farm</button><button class="modal-tab" data-tab="p2">Beneficiaries</button><button class="modal-tab" data-tab="p3">Budgets</button></div><div id="p1" class="tab-panel active"><div class="form-grid"><div><label>Farm profile</label><input value="GreenHill Mixed Farm"></div><div><label>County</label><input value="Nyandarua"></div><div><label>Main enterprises</label><input value="Maize, Dairy, Avocado"></div><div><label>Default wallet</label><select><option>PayMo Wallet</option><option>Equity Bank</option></select></div></div></div><div id="p2" class="tab-panel">${miniRows(["Peter W. - farm manager, can approve up to KES 20,000","Brian K. - accountant, can route buyer payouts","Mary N. - view-only for subsidy programmes"])}</div><div id="p3" class="tab-panel">${miniRows(["Input budget KES 286,000","Livestock operating budget KES 74,000","Seasonal field labor budget KES 118,000","Loan repayment reserve KES 94,600"])}</div>`; }
+    function helpBody(){ return `<div class="notice info">Every button opens a complete workflow, detail view, or multi-step wizard.</div>${miniRows(["Order farm inputs with vouchers and delivery scheduling.","Sell produce and split payouts between wallet, loan and reserve.","Pay cooperative dues and manage outgrower deductions.","Book vets, order feed and track dairy collections.","Repay agri loans, manage leases and crop cover.","Apply for grants, redeem subsidies and schedule extension visits."])}`; }
+    function navBody(title, text){ return `<div class="notice info"><b>${title}</b><br>${text}</div><button class="btn primary" type="button" data-close>Continue</button>`; }
+    function preferencesBody(){ return `<label><input type="checkbox" checked> Show due farm payments first</label><br><label><input type="checkbox" checked> Auto-split produce payouts to loan and reserve</label><br><label><input type="checkbox" checked> Notify on rainfall anomaly and disease pressure</label><br><label><input type="checkbox"> Auto-download weighbridge sheets</label>`; }
+    function supportBody(){ return `<div class="stat-grid"><div class="stat-box"><small>Open cases</small><strong>3</strong></div><div class="stat-box"><small>Resolved 30d</small><strong>14</strong></div><div class="stat-box"><small>Avg response</small><strong>9m</strong></div><div class="stat-box"><small>SLA</small><strong>97%</strong></div></div>${miniRows(["Supplier delivered wrong input batch","Buyer settlement lower than contract rate","Co-op payout delayed","Voucher redemption failed at supplier POS"])}`; }
+    function vaultBody(){ return `<div class="modal-tabs"><button class="modal-tab active" data-tab="v1">Farm Docs</button><button class="modal-tab" data-tab="v2">Receipts</button><button class="modal-tab" data-tab="v3">Contracts</button></div><div id="v1" class="tab-panel active">${miniRows(["Farm profile registration","Field map - GreenHill Mixed Farm","Soil test result - Maize Block A","Insurance policy schedule - crop cover"])}</div><div id="v2" class="tab-panel">${miniRows(["Input receipt - Mavuno Inputs","Dairy feed receipt - Unga Farm Care","Loan repayment receipt - Crop Loan","Voucher redemption receipt - Fertilizer Subsidy"])}</div><div id="v3" class="tab-panel">${miniRows(["Produce contract - Unga Ltd","Avocado buyer MoU","Outgrower group payout schedule","Irrigation grant approval letter"])}</div>`; }
+    function alertsBody(){ return `${detailBody("Agriculture Inbox","11 signals","6 payments due this week","3 buyer and weather alerts")}<div class="table-wrap"><table><thead><tr><th>Signal</th><th>Type</th><th>Action</th></tr></thead><tbody><tr><td>Fertilizer shortfall</td><td>Inputs</td><td>Fund or redeem voucher</td></tr><tr><td>Milk payout delayed</td><td>Co-op</td><td>Escalate statement</td></tr><tr><td>Rain anomaly</td><td>Climate</td><td>Adjust field plan</td></tr></tbody></table></div>`; }
+    function detailBody(a,b,c,d){ return `<div class="stat-grid"><div class="stat-box"><small>Scope</small><strong>${a}</strong></div><div class="stat-box"><small>Signal</small><strong>${b}</strong></div><div class="stat-box"><small>Status</small><strong>${c}</strong></div><div class="stat-box"><small>Next</small><strong>${d}</strong></div></div><h4>Suggested resolution</h4>${miniRows(["Review amount, route and supporting detail","Choose recommended next action","Authorize payment, dispute or reminder","Track supplier, buyer or programme response"])}`; }
+    function weatherBody(){ return `<div class="notice warn">A 5-day rainfall anomaly could affect top-dressing timing and fungal pressure in maize and beans.</div><div class="stat-grid"><div class="stat-box"><small>Rainfall probability</small><strong>74%</strong></div><div class="stat-box"><small>Disease risk</small><strong>Moderate</strong></div><div class="stat-box"><small>Irrigation need</small><strong>Low</strong></div><div class="stat-box"><small>Advisory confidence</small><strong>88%</strong></div></div>${miniRows(["Delay fungicide spray until post-rain window","Move top dressing 24h after effective rainfall","Check drainage in low-lying bean section","Book extension support if leaf spots increase"])}`; }
+    function smartBody(){ return `<div class="stat-grid"><div class="stat-box"><small>Cost savings</small><strong>KES 12,600</strong></div><div class="stat-box"><small>Collection lift</small><strong>+KES 48K</strong></div><div class="stat-box"><small>Risk reduction</small><strong>3 actions</strong></div><div class="stat-box"><small>Confidence</small><strong>91%</strong></div></div>${miniRows(["Optimize fertilizer supplier mix across 3 blocks","Auto-route produce collections to debt and working capital","Add weather cover before next rainfall cycle","Bundle feed delivery with mineral blocks to reduce transport cost"])}`; }
+    function inputOptimizeBody(){ return `<div class="table-wrap"><table><thead><tr><th>Item</th><th>Current supplier</th><th>Suggested</th><th class="right">Saving</th></tr></thead><tbody><tr><td>DAP 50kg</td><td>Mavuno Inputs</td><td>County Co-op Store</td><td class="right">KES 6,400</td></tr><tr><td>CAN 50kg</td><td>Mavuno Inputs</td><td>Same supplier, use voucher</td><td class="right">KES 4,800</td></tr><tr><td>Fungicide bundle</td><td>GreenFarm Agrovet</td><td>Buy as combo pack</td><td class="right">KES 1,400</td></tr></tbody></table></div><div class="notice success">Estimated saving KES 12,600 without reducing target yield assumptions.</div>`; }
+    function calendarBody(){ return `<div class="track-list">${[["Plant land prep","This week"],["Seed delivery","Tomorrow"],["Planting window","Next 5 days"],["Top dressing","2 weeks after emergence"],["Scouting & spray","Weekly"],["Harvest prep","September"]].map((s,i)=>`<div class="track-step ${i>2?"pending":""}"><div class="track-dot">${i<2?"✓":i+1}</div><div><div class="mini-title">${s[0]}</div><div class="mini-sub">${s[1]}</div></div></div>`).join("")}</div>`; }
+    function catalogBody(){ return `<div class="table-wrap"><table><thead><tr><th>Category</th><th>Items</th><th>Lead time</th><th>Payment options</th></tr></thead><tbody><tr><td>Fertilizer</td><td>DAP, CAN, NPK, foliar feeds</td><td>1-3 days</td><td>Wallet, voucher, supplier credit</td></tr><tr><td>Seed</td><td>Maize, beans, potato, vegetables</td><td>1-2 days</td><td>Wallet, card, co-op deduction</td></tr><tr><td>Crop protection</td><td>Herbicides, fungicides, insecticides</td><td>Same day</td><td>Wallet, M-Pesa</td></tr><tr><td>Irrigation</td><td>Drip kits, pipes, pumps, tanks</td><td>3-10 days</td><td>Grant, lease, bank transfer</td></tr><tr><td>Mechanization</td><td>Tractor, plough, sheller, planter</td><td>Slot based</td><td>Hire, lease, deduction on sale</td></tr></tbody></table></div>`; }
+    function supplierBody(){ return `<div class="stat-grid"><div class="stat-box"><small>Supplier</small><strong>Mavuno Inputs Ltd</strong></div><div class="stat-box"><small>Credit limit</small><strong>KES 120,000</strong></div><div class="stat-box"><small>Avg delivery</small><strong>1.4 days</strong></div><div class="stat-box"><small>Price score</small><strong>88/100</strong></div></div>${miniRows(["Supports voucher redemption","Provides agronomist support for large orders","Offers truck delivery and off-loading","Last 6 orders completed without dispute"])}`; }
+    function buyerDirectoryBody(){ return `<div class="table-wrap"><table><thead><tr><th>Buyer</th><th>Commodity</th><th>Settlement</th><th>Rating</th></tr></thead><tbody><tr><td>Unga Ltd</td><td>Maize</td><td>T+2</td><td>4.7/5</td></tr><tr><td>VegPro Kenya</td><td>French beans</td><td>T+5</td><td>4.5/5</td></tr><tr><td>Avocado EPZ</td><td>Avocado</td><td>T+3</td><td>4.6/5</td></tr><tr><td>Dairy Co-op</td><td>Milk</td><td>Weekly</td><td>4.1/5</td></tr></tbody></table></div>`; }
+    function buyerOfferBody(){ return `<div class="stat-grid"><div class="stat-box"><small>Buyer</small><strong>Unga Ltd</strong></div><div class="stat-box"><small>Rate</small><strong>KES 4,200</strong></div><div class="stat-box"><small>Quality</small><strong>Moisture < 13.5%</strong></div><div class="stat-box"><small>Settlement</small><strong>T+2</strong></div></div>${miniRows(["Requires clean grain and stitched bags","Weighbridge at buyer site or partner warehouse","Can pre-finance transport from final invoice","Penalty applies for moisture above threshold"])}`; }
+    function marketPriceBody(){ return `<div class="chart-bars">${[["Maize / 90kg","KES 4,200",76,"#f59e0b"],["Beans / 90kg","KES 8,800",62,"#10b981"],["Potato / 50kg","KES 2,650",48,"#8b5cf6"],["Milk / L","KES 49",54,"#0891b2"],["Avocado / kg","KES 74",58,"#4f46e5"]].map(r=>`<div class="chart-row"><span>${r[0]}</span><div class="chart-track"><span style="width:${r[2]}%;background:${r[3]}"></span></div><b class="right">${r[1]}</b></div>`).join("")}</div><div class="notice info">Prices reflect blended references from farmgate, wholesale and contract buyers.</div>`; }
+    function warehouseBody(){ return `<div class="stat-grid"><div class="stat-box"><small>Stored lot</small><strong>82 bags maize</strong></div><div class="stat-box"><small>Receipt finance</small><strong>KES 560,000</strong></div><div class="stat-box"><small>Storage fee</small><strong>KES 14,200</strong></div><div class="stat-box"><small>Release</small><strong>On sale</strong></div></div>${miniRows(["Warehouse receipt verified","Advance tied to lot sale settlement","Can top up finance if price improves","Storage conditions monitored daily"])}`; }
+    function contractBody(){ return `<div class="table-wrap"><table><tbody><tr><td>Buyer</td><td><b>Unga Ltd</b></td></tr><tr><td>Commodity</td><td>Maize Lot A - 82 bags</td></tr><tr><td>Rate</td><td>KES 4,200 per 90kg</td></tr><tr><td>Settlement</td><td>T+2 to wallet and loan split</td></tr><tr><td>Quality clause</td><td>Moisture below 13.5%</td></tr></tbody></table></div><div class="notice success">Contract active. Delivery QR and weighbridge references will be issued after confirmation.</div>`; }
+    function coopStatementBody(){ return `<div class="table-wrap"><table><thead><tr><th>Programme</th><th>Dues</th><th>Deductions</th><th>Payouts</th></tr></thead><tbody><tr><td>Farmers SACCO</td><td>KES 5,000/mo</td><td>Loan: KES 2,500</td><td>Bonus pending</td></tr><tr><td>Ol Kalou Dairy Co-op</td><td>KES 2,500/mo</td><td>Feed advance: KES 18,400</td><td>KES 64,800 pending</td></tr><tr><td>Outgrower Group A</td><td>KES 0</td><td>Input recovery active</td><td>KES 84,200 batch</td></tr></tbody></table></div>`; }
+    function dairyBody(){ return `<div class="stat-grid"><div class="stat-box"><small>Week litres</small><strong>1,322 L</strong></div><div class="stat-box"><small>Rate</small><strong>KES 49/L</strong></div><div class="stat-box"><small>Fat avg</small><strong>4.1%</strong></div><div class="stat-box"><small>Payout due</small><strong>KES 64,800</strong></div></div>${miniRows(["Monday 312L, Tuesday 328L, Wednesday 344L, Thursday 338L","Payout usually settles every Friday","Feed deduction may be netted from payout","Quality bonus available above 4.2% fat"])}`; }
+    function vaccineBody(){ return `<div class="track-list">${[["FMD round 1","Completed last month","done"],["Deworm calves","Completed this week","done"],["LSD vaccine","Due in 5 days","current"],["Brucellosis test","Pending for 6 heifers","pending"]].map((s,i)=>`<div class="track-step ${s[2]==="pending"?"pending":s[2]==="current"?"current":""}"><div class="track-dot">${s[2]==="done"?"✓":i+1}</div><div><div class="mini-title">${s[0]}</div><div class="mini-sub">${s[1]}</div></div></div>`).join("")}</div>`; }
+    function animalHealthBody(){ return `<div class="stat-grid"><div class="stat-box"><small>Recent cases</small><strong>3</strong></div><div class="stat-box"><small>AI success</small><strong>67%</strong></div><div class="stat-box"><small>Vet cost MTD</small><strong>KES 12,600</strong></div><div class="stat-box"><small>Medication stock</small><strong>Low</strong></div></div>${miniRows(["2 cows due for pregnancy check","Mineral block stock below 5 units","1 calf treatment case closed","No new mastitis alerts in 14 days"])}`; }
+    function loanOfferBody(){ return `<div class="table-wrap"><table><thead><tr><th>Offer</th><th>Amount</th><th>Pricing</th><th>Use case</th></tr></thead><tbody><tr><td>Seasonal crop loan</td><td>KES 1.2M</td><td>14.5% p.a.</td><td>Inputs + labor</td></tr><tr><td>Warehouse receipt finance</td><td>Up to 70% value</td><td>1.6% monthly</td><td>Working capital</td></tr><tr><td>Tractor lease</td><td>KES 2.8M asset</td><td>Deposit + 24 months</td><td>Mechanization</td></tr><tr><td>Dairy herd cover loan</td><td>KES 420K</td><td>12.9% p.a.</td><td>Livestock expansion</td></tr></tbody></table></div>`; }
+    function climateBody(){ return `<div class="stat-grid"><div class="stat-box"><small>Rainfall</small><strong>74%</strong></div><div class="stat-box"><small>Drought risk</small><strong>Low</strong></div><div class="stat-box"><small>Disease pressure</small><strong>Moderate</strong></div><div class="stat-box"><small>Advisory</small><strong>Top-dress after rain</strong></div></div>${miniRows(["Prepare drainage in low spots for maize block A","Scout beans for rust after rainfall","Delay fungicide application to 24h after rain","Review crop cover trigger levels with insurer"])}`; }
+    function fieldPlannerBody(){ return `<div class="table-wrap"><table><thead><tr><th>Field</th><th>Stage</th><th>Next activity</th><th>Budget</th></tr></thead><tbody><tr><td>Maize Block A</td><td>Land prep</td><td>Fertilizer delivery + planting</td><td>KES 186,000</td></tr><tr><td>Avocado Orchard</td><td>Fruit set</td><td>Foliar nutrition + scouting</td><td>KES 48,000</td></tr><tr><td>Dairy Unit</td><td>Production</td><td>Feed restock + AI cycle</td><td>KES 74,000</td></tr></tbody></table></div>`; }
+    function paymentMethodsBody(){ return `<div class="modal-tabs"><button class="modal-tab active" data-tab="pm1">Methods</button><button class="modal-tab" data-tab="pm2">Routing</button><button class="modal-tab" data-tab="pm3">Security</button></div><div id="pm1" class="tab-panel active">${paymentMethodHtml()}</div><div id="pm2" class="tab-panel">${miniRows(["Inputs: wallet, voucher then supplier credit","Produce sales: buyer payout split to wallet, loan and reserve","Large contracts: PesaLink or RTGS with milestone confirmations","Co-op deductions: settle against payout before disbursement"])}</div><div id="pm3" class="tab-panel">${miniRows(["PIN required above KES 5,000","Dual approval above KES 250,000","Voucher redemption locks after use","Buyer and supplier beneficiaries are verified before settlement"])}</div>`; }
+    function receiptBody(){ return `<div class="notice success">Receipt verified and stored in your agriculture document vault.</div><div class="stat-grid"><div class="stat-box"><small>Ref</small><strong>AG-44821</strong></div><div class="stat-box"><small>Type</small><strong>Input Order</strong></div><div class="stat-box"><small>Amount</small><strong>KES 119,400</strong></div><div class="stat-box"><small>Status</small><strong>Success</strong></div></div>${miniRows(["Download PDF receipt","Share with farm manager","Repeat similar order","Tag to seasonal budget"])}`; }
+
+    document.addEventListener("click", (e) => {
+      const modalBtn = e.target.closest("[data-modal]");
+      if(modalBtn){ openModal(modalBtn.dataset.modal); return; }
+      if(e.target.closest("[data-close], #modalClose") || e.target.id === "modalBackdrop"){ closeModal(); return; }
+      const stepNext = e.target.closest("[data-step-next]");
+      if(stepNext){ const steps = wizards[activeWizard]; if(currentStep < steps.length - 1){ currentStep++; renderWizard(); } else completeWizard(); return; }
+      if(e.target.closest("[data-step-back]")){ currentStep = Math.max(0,currentStep-1); renderWizard(); return; }
+      const action = e.target.closest("[data-action]");
+      if(action){ showToast("Action completed and saved to your agriculture timeline."); return; }
+    });
+
+    document.addEventListener("keydown", (e) => { if(e.key === "Escape") closeModal(); });
+    $("#menuBtn").addEventListener("click", () => $("#sidebar").classList.toggle("open"));
+    $("#globalSearch").addEventListener("input", (e) => {
+      const q = e.target.value.toLowerCase();
+      $$(".asset-card, .mini-item, .card, .table-wrap tr").forEach(el => {
+        if(el.closest('.section-head') || el.tagName === 'THEAD') return;
+        if(el.textContent.toLowerCase().includes(q)) el.style.display = '';
+        else if(el.classList.contains('asset-card') || el.classList.contains('mini-item') || el.tagName === 'TR') el.style.display = 'none';
+      });
+    });
+    $("#inputSearch").addEventListener("input", (e) => {
+      const q = e.target.value.toLowerCase();
+      $$("#inputCards .asset-card").forEach(el => el.style.display = el.textContent.toLowerCase().includes(q) ? '' : 'none');
+    });
+
+    renderInputs();
+    renderProduce();
+    renderCoop();
+    renderLivestock();
+    renderLoans();
+    renderSubsidies();
+  </script>
+</body>
+</html>

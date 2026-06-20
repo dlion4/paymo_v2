@@ -1,0 +1,760 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PayMo - Travel, Transport & Hospitality</title>
+  <style>
+    :root {
+      --pm-primary: #4f46e5;
+      --pm-primary-dark: #3730a3;
+      --pm-primary-light: #818cf8;
+      --pm-accent: #10b981;
+      --pm-accent-soft: #d1fae5;
+      --pm-warning: #f59e0b;
+      --pm-warning-soft: #fef3c7;
+      --pm-danger: #ef4444;
+      --pm-danger-soft: #fee2e2;
+      --pm-info: #3b82f6;
+      --pm-info-soft: #dbeafe;
+      --pm-purple: #8b5cf6;
+      --pm-purple-soft: #ede9fe;
+      --pm-bg: #f5f1ec;
+      --pm-bg-2: #eee8df;
+      --pm-surface: #ffffff;
+      --pm-surface-2: #faf7f3;
+      --pm-ink: #1a1f2e;
+      --pm-ink-soft: #4b5563;
+      --pm-muted: #9ca3af;
+      --pm-border: #e5e2dc;
+      --pm-border-2: #d4d0c8;
+      --pm-gradient-hero: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #ec4899 100%);
+      --pm-gradient-slate: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+      --pm-gradient-travel: linear-gradient(135deg, #0f766e 0%, #0891b2 45%, #4f46e5 100%);
+      --pm-gradient-sand: linear-gradient(135deg, #f59e0b 0%, #fb7185 100%);
+      --pm-shadow-sm: 0 1px 2px rgba(26, 31, 46, 0.04);
+      --pm-shadow-md: 0 4px 12px rgba(26, 31, 46, 0.06);
+      --pm-shadow-lg: 0 10px 30px rgba(26, 31, 46, 0.08);
+      --pm-shadow-xl: 0 20px 50px rgba(26, 31, 46, 0.12);
+      --pm-r-sm: 8px;
+      --pm-r-md: 14px;
+      --pm-r-lg: 20px;
+      --pm-r-xl: 28px;
+      --pm-font: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { min-height: 100%; margin: 0; }
+    body {
+      font-family: var(--pm-font);
+      color: var(--pm-ink);
+      background:
+        radial-gradient(1200px 600px at -10% -20%, rgba(79, 70, 229, .08), transparent 60%),
+        radial-gradient(1000px 520px at 108% 4%, rgba(8, 145, 178, .07), transparent 58%),
+        radial-gradient(820px 460px at 42% 116%, rgba(16, 185, 129, .07), transparent 58%),
+        var(--pm-bg);
+      font-size: 14px;
+      line-height: 1.45;
+      overflow-x: hidden;
+    }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    a { color: inherit; text-decoration: none; }
+    .no-scroll { overflow: hidden; }
+
+    @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.22); opacity: .58; } }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes scaleIn { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: scale(1); } }
+    @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+
+    .app { display: flex; min-height: 100vh; }
+    .sidebar {
+      position: sticky; top: 0; z-index: 80; width: 88px; height: 100vh; flex: 0 0 88px;
+      background: var(--pm-gradient-slate); display: flex; flex-direction: column; align-items: center; padding: 20px 12px;
+    }
+    .logo { width: 48px; height: 48px; border-radius: 15px; background: var(--pm-gradient-hero); color: #fff; display: grid; place-items: center; font-weight: 900; font-size: 22px; box-shadow: var(--pm-shadow-lg); margin-bottom: 24px; }
+    .nav { width: 100%; display: flex; flex-direction: column; gap: 5px; flex: 1; }
+    .nav button { position: relative; width: 100%; height: 48px; border: 0; border-radius: 13px; color: rgba(255,255,255,.62); background: transparent; display: grid; place-items: center; transition: .2s ease; }
+    .nav button:hover, .nav button.active { color: #fff; background: var(--pm-primary); box-shadow: var(--pm-shadow-md); }
+    .nav-icon { width: 22px; height: 22px; display: grid; place-items: center; font-size: 10px; font-weight: 900; border: 1px solid rgba(255,255,255,.27); border-radius: 6px; }
+    .nav .dot { position: absolute; top: 8px; right: 10px; width: 8px; height: 8px; border: 2px solid #334155; background: var(--pm-danger); border-radius: 999px; animation: pulse 2s infinite; }
+    .nav-bottom { padding-top: 12px; border-top: 1px solid rgba(255,255,255,.1); }
+
+    .main { flex: 1; min-width: 0; }
+    .topbar { position: sticky; top: 0; z-index: 60; border-bottom: 1px solid var(--pm-border); background: rgba(245,241,236,.86); backdrop-filter: blur(18px); padding: 14px 30px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+    .menu-btn { display: none; }
+    .title h1 { margin: 0; font-size: 20px; letter-spacing: -.03em; }
+    .title p { margin: 1px 0 0; color: var(--pm-muted); font-size: 12px; }
+    .search { position: relative; flex: 1; max-width: 440px; }
+    .search input { width: 100%; height: 40px; border: 1px solid var(--pm-border); border-radius: var(--pm-r-md); padding: 0 14px 0 38px; background: #fff; outline: 0; }
+    .search:before { content: "S"; position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: var(--pm-muted); font-size: 11px; font-weight: 900; }
+    .search input:focus { border-color: var(--pm-primary); box-shadow: 0 0 0 3px rgba(79,70,229,.15); }
+    .actions { display: flex; align-items: center; gap: 8px; }
+    .icon-btn, .profile-btn, .btn, .tiny-btn { border: 1px solid var(--pm-border); background: #fff; color: var(--pm-ink-soft); border-radius: 12px; transition: .2s ease; }
+    .icon-btn { width: 40px; height: 40px; position: relative; display: grid; place-items: center; font-size: 11px; font-weight: 900; }
+    .icon-btn:hover, .profile-btn:hover, .btn:hover, .tiny-btn:hover { transform: translateY(-1px); box-shadow: var(--pm-shadow-sm); }
+    .counter { position: absolute; top: -6px; right: -6px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; background: var(--pm-danger); color: #fff; font-size: 10px; display: flex; align-items: center; justify-content: center; border: 2px solid var(--pm-bg); }
+    .profile-btn { height: 42px; display: flex; align-items: center; gap: 9px; padding: 5px 11px 5px 5px; }
+    .avatar { width: 32px; height: 32px; border-radius: 999px; background: var(--pm-gradient-hero); color: #fff; display: grid; place-items: center; font-weight: 900; font-size: 12px; }
+    .profile-name { display: block; font-size: 12px; font-weight: 900; color: var(--pm-ink); text-align: left; }
+    .profile-role { display: block; font-size: 10px; color: var(--pm-muted); text-align: left; }
+
+    .page { padding: 22px 30px 42px; }
+    .page-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
+    .crumb { color: var(--pm-muted); font-size: 12px; margin-bottom: 3px; }
+    .page-head h2 { margin: 0; font-size: 25px; letter-spacing: -.04em; }
+    .page-head p { margin: 4px 0 0; color: var(--pm-ink-soft); font-size: 13px; }
+    .head-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+    .btn { padding: 9px 13px; font-weight: 800; font-size: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; white-space: nowrap; }
+    .btn.primary { color: #fff; border-color: transparent; background: var(--pm-gradient-hero); }
+    .btn.travel { color: #fff; border-color: transparent; background: var(--pm-gradient-travel); }
+    .btn.sand { color: #fff; border-color: transparent; background: var(--pm-gradient-sand); }
+    .btn.danger { color: #fff; border-color: transparent; background: var(--pm-danger); }
+    .btn.success { color: #fff; border-color: transparent; background: var(--pm-accent); }
+    .tiny-btn { padding: 6px 9px; font-size: 11px; font-weight: 800; }
+
+    .grid { display: grid; gap: 14px; }
+    .hero-grid { grid-template-columns: 1.5fr .85fr .85fr .85fr; margin-bottom: 14px; }
+    .three-grid { grid-template-columns: repeat(3, 1fr); }
+    .two-grid { grid-template-columns: 1fr 1fr; }
+    .four-grid { grid-template-columns: repeat(4, 1fr); }
+    .five-grid { grid-template-columns: repeat(5, 1fr); }
+    .six-grid { grid-template-columns: repeat(6, 1fr); }
+
+    .card, .section { background: #fff; border: 1px solid var(--pm-border); border-radius: var(--pm-r-lg); box-shadow: var(--pm-shadow-sm); }
+    .card { padding: 16px; }
+    .section { margin-bottom: 18px; overflow: hidden; }
+    .section-head { padding: 17px 18px 12px; border-bottom: 1px solid var(--pm-border); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .section-title h3 { margin: 0; font-size: 16px; letter-spacing: -.02em; }
+    .section-title p { margin: 2px 0 0; font-size: 12px; color: var(--pm-muted); }
+    .section-body { padding: 16px; }
+    .hero-card { min-height: 156px; color: #fff; background: var(--pm-gradient-travel); position: relative; overflow: hidden; }
+    .hero-card:after { content: ""; position: absolute; width: 180px; height: 180px; right: -60px; top: -64px; background: rgba(255,255,255,.12); border-radius: 999px; }
+    .hero-card h3 { margin: 10px 0 4px; font-size: 24px; letter-spacing: -.04em; }
+    .hero-card p { margin: 0 0 18px; opacity: .85; font-size: 12px; }
+    .live-dot { width: 11px; height: 11px; border-radius: 999px; background: #22c55e; display: inline-block; animation: pulse 2s infinite; }
+    .metric-label { color: var(--pm-muted); font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: .04em; }
+    .metric-value { margin-top: 2px; font-size: 24px; line-height: 1.1; font-weight: 900; letter-spacing: -.05em; }
+    .metric-sub { margin-top: 8px; display: inline-flex; font-size: 11px; padding: 4px 7px; border-radius: 999px; background: var(--pm-accent-soft); color: var(--pm-accent); font-weight: 900; }
+    .progress { height: 8px; border-radius: 999px; background: var(--pm-border); overflow: hidden; }
+    .progress span { display: block; height: 100%; border-radius: 999px; background: var(--pm-primary); }
+    .barset { margin-top: 18px; display: flex; align-items: end; gap: 4px; height: 34px; }
+    .barset i { flex: 1; border-radius: 4px 4px 0 0; background: linear-gradient(180deg, var(--pm-primary-light), var(--pm-primary)); }
+    .row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .muted { color: var(--pm-muted); }
+    .mini-list { display: grid; gap: 9px; }
+    .mini-item { display: flex; gap: 10px; align-items: center; padding: 8px; border-radius: 12px; border: 1px solid transparent; transition: .2s ease; text-align: left; width: 100%; background: transparent; }
+    .mini-item:hover { background: var(--pm-surface-2); border-color: var(--pm-border); }
+    .mini-icon { width: 31px; height: 31px; border-radius: 10px; display: grid; place-items: center; font-weight: 900; font-size: 11px; flex: 0 0 auto; }
+    .mini-title { display: block; font-size: 12px; font-weight: 900; }
+    .mini-sub { display: block; font-size: 10px; color: var(--pm-muted); }
+    .quick-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+    .travel-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+    .travel-card { border: 1px solid var(--pm-border); border-radius: 18px; background: #fff; overflow: hidden; transition: .2s ease; }
+    .travel-card:hover { transform: translateY(-2px); box-shadow: var(--pm-shadow-md); }
+    .travel-thumb { height: 94px; color: #fff; display: grid; place-items: center; font-size: 26px; font-weight: 900; position: relative; }
+    .travel-thumb .status { position: absolute; top: 10px; right: 10px; }
+    .travel-body { padding: 13px; }
+    .travel-name { font-weight: 900; font-size: 13px; }
+    .travel-meta { color: var(--pm-muted); font-size: 11px; margin-top: 1px; }
+    .travel-metrics { margin-top: 11px; padding-top: 10px; border-top: 1px dashed var(--pm-border); display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+    .travel-metrics small { display: block; color: var(--pm-muted); font-size: 9px; }
+    .travel-metrics b { font-size: 11px; }
+    .travel-actions { display: flex; gap: 6px; margin-top: 12px; }
+    .round-btn { flex: 1; height: 32px; border-radius: 10px; border: 1px solid var(--pm-border); background: #fff; color: var(--pm-primary); font-size: 10px; font-weight: 900; }
+    .round-btn.fill { background: var(--pm-primary); color: #fff; border-color: transparent; }
+    .status { display: inline-flex; align-items: center; gap: 4px; padding: 4px 7px; border-radius: 999px; font-size: 10px; font-weight: 900; text-transform: capitalize; }
+    .status:before { content: ""; width: 6px; height: 6px; border-radius: 999px; background: currentColor; }
+    .st-booked { background: var(--pm-accent-soft); color: var(--pm-accent); }
+    .st-due { background: var(--pm-warning-soft); color: var(--pm-warning); }
+    .st-overdue { background: var(--pm-danger-soft); color: var(--pm-danger); }
+    .st-upcoming { background: var(--pm-info-soft); color: var(--pm-info); }
+    .st-hold { background: var(--pm-purple-soft); color: var(--pm-purple); }
+    .st-light { background: rgba(255,255,255,.25); color: #fff; }
+
+    .filter-row { display: flex; gap: 7px; overflow-x: auto; padding: 12px 16px; border-bottom: 1px solid var(--pm-border); }
+    .chip { border: 1px solid var(--pm-border); background: #fff; color: var(--pm-ink-soft); border-radius: 999px; padding: 7px 11px; font-size: 11px; font-weight: 900; white-space: nowrap; }
+    .chip.active { border-color: var(--pm-primary); background: var(--pm-primary); color: #fff; }
+    .toolbar { display: flex; gap: 9px; align-items: center; flex-wrap: wrap; }
+    .field { position: relative; }
+    .field input, .field select, .field textarea, .modal input, .modal select, .modal textarea { width: 100%; border: 1px solid var(--pm-border); border-radius: 11px; background: #fff; color: var(--pm-ink); padding: 10px 12px; outline: 0; }
+    .field input { min-width: 230px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; }
+    .modal label { display: block; font-size: 11px; color: var(--pm-muted); font-weight: 900; margin: 0 0 5px; }
+    .chart-bars { display: grid; gap: 10px; }
+    .chart-row { display: grid; grid-template-columns: 138px 1fr 92px; gap: 10px; align-items: center; font-size: 12px; }
+    .chart-track { height: 9px; border-radius: 999px; background: var(--pm-border); overflow: hidden; }
+    .chart-track span { display: block; height: 100%; border-radius: 999px; }
+    .table-wrap { overflow-x: auto; border: 1px solid var(--pm-border); border-radius: 14px; }
+    table { width: 100%; border-collapse: collapse; min-width: 840px; }
+    th, td { padding: 12px 13px; border-bottom: 1px solid var(--pm-border); text-align: left; font-size: 12px; }
+    th { background: var(--pm-surface-2); color: var(--pm-muted); text-transform: uppercase; font-size: 10px; letter-spacing: .04em; }
+    tr:last-child td { border-bottom: 0; }
+    .right { text-align: right; }
+
+    .trip-timeline { display: grid; gap: 0; position: relative; padding-left: 8px; }
+    .trip-step { display: grid; grid-template-columns: 30px 1fr; gap: 12px; padding-bottom: 16px; position: relative; }
+    .trip-step:before { content: ""; position: absolute; left: 14px; top: 26px; bottom: -2px; width: 2px; background: var(--pm-border); }
+    .trip-step:last-child:before { display: none; }
+    .trip-dot { width: 28px; height: 28px; border-radius: 999px; display: grid; place-items: center; font-size: 11px; font-weight: 900; background: var(--pm-accent-soft); color: var(--pm-accent); }
+    .trip-step.pending .trip-dot { background: var(--pm-border); color: var(--pm-muted); }
+    .trip-step.current .trip-dot { background: var(--pm-warning-soft); color: var(--pm-warning); }
+
+    .modal-backdrop { position: fixed; inset: 0; z-index: 200; background: rgba(15,23,42,.55); backdrop-filter: blur(5px); display: none; align-items: center; justify-content: center; padding: 18px; }
+    .modal-backdrop.open { display: flex; }
+    .modal { width: min(780px, 100%); max-height: 92vh; background: #fff; border-radius: 22px; box-shadow: var(--pm-shadow-xl); overflow: hidden; display: flex; flex-direction: column; animation: scaleIn .2s ease; }
+    .modal.lg { width: min(990px, 100%); }
+    .modal.xl { width: min(1190px, 100%); }
+    .modal-head { padding: 17px 20px; border-bottom: 1px solid var(--pm-border); display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+    .modal-head h3 { margin: 0; font-size: 18px; letter-spacing: -.02em; }
+    .modal-head p { margin: 2px 0 0; color: var(--pm-muted); font-size: 12px; }
+    .modal-close { width: 34px; height: 34px; border-radius: 11px; border: 1px solid var(--pm-border); background: #fff; font-weight: 900; color: var(--pm-muted); }
+    .modal-body { padding: 20px; overflow-y: auto; }
+    .modal-foot { padding: 14px 20px; border-top: 1px solid var(--pm-border); background: var(--pm-surface-2); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .steps { padding: 13px 20px; border-bottom: 1px solid var(--pm-border); background: var(--pm-surface-2); display: flex; gap: 8px; align-items: center; }
+    .step { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 900; color: var(--pm-muted); }
+    .step .num { width: 27px; height: 27px; border-radius: 999px; display: grid; place-items: center; background: var(--pm-border); color: var(--pm-muted); }
+    .step.active, .step.done { color: var(--pm-primary); }
+    .step.active .num, .step.done .num { background: var(--pm-primary); color: #fff; }
+    .step-line { flex: 1; height: 2px; background: var(--pm-border); border-radius: 999px; }
+    .step-line.done { background: var(--pm-primary); }
+    .modal-tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--pm-border); margin: -20px -20px 18px; padding: 0 20px; overflow-x: auto; }
+    .modal-tab { border: 0; background: transparent; padding: 13px 12px; font-size: 12px; font-weight: 900; color: var(--pm-muted); border-bottom: 2px solid transparent; }
+    .modal-tab.active { color: var(--pm-primary); border-color: var(--pm-primary); }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; animation: fadeIn .2s ease; }
+    .notice { padding: 13px; border-radius: 14px; font-size: 12px; margin-bottom: 14px; }
+    .notice.info { background: var(--pm-info-soft); color: #1d4ed8; }
+    .notice.warn { background: var(--pm-warning-soft); color: #92400e; }
+    .notice.danger { background: var(--pm-danger-soft); color: #991b1b; }
+    .notice.success { background: var(--pm-accent-soft); color: #047857; }
+    .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .stat-box { border: 1px solid var(--pm-border); border-radius: 14px; padding: 13px; background: #fff; }
+    .stat-box small { display: block; color: var(--pm-muted); font-size: 10px; text-transform: uppercase; font-weight: 900; letter-spacing: .04em; }
+    .stat-box strong { display: block; margin-top: 3px; font-size: 18px; }
+    .payment-method { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid var(--pm-border); border-radius: 14px; margin-bottom: 9px; cursor: pointer; }
+    .payment-method.selected { border-color: var(--pm-primary); background: rgba(79,70,229,.04); }
+    .pin-row { display: flex; justify-content: center; gap: 10px; margin: 15px 0; }
+    .pin-row input { width: 48px; height: 48px; text-align: center; font-size: 22px; font-weight: 900; }
+    .toast { position: fixed; right: 18px; bottom: 18px; z-index: 260; background: #111827; color: #fff; border-radius: 14px; padding: 12px 14px; min-width: 220px; box-shadow: var(--pm-shadow-xl); display: none; animation: fadeIn .2s ease; font-size: 12px; font-weight: 800; }
+    .toast.show { display: block; }
+
+    @media (max-width: 1280px) {
+      .travel-grid { grid-template-columns: repeat(3, 1fr); }
+      .hero-grid { grid-template-columns: 1fr 1fr; }
+      .five-grid, .six-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 900px) {
+      .sidebar { position: fixed; transform: translateX(-100%); transition: .25s ease; }
+      .sidebar.open { transform: translateX(0); }
+      .menu-btn { display: grid; }
+      .topbar { padding: 12px 15px; }
+      .title { display: none; }
+      .profile-text { display: none; }
+      .page { padding: 18px 14px 34px; }
+      .page-head { flex-direction: column; }
+      .head-actions { justify-content: flex-start; }
+      .hero-grid, .three-grid, .two-grid, .four-grid { grid-template-columns: 1fr; }
+      .five-grid, .six-grid { grid-template-columns: 1fr 1fr; }
+      .travel-grid { grid-template-columns: repeat(2, 1fr); }
+      .stat-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 560px) {
+      .actions .hide-mobile { display: none; }
+      .travel-grid, .five-grid, .six-grid, .form-grid, .stat-grid { grid-template-columns: 1fr; }
+      .section-head { flex-direction: column; align-items: flex-start; }
+      .chart-row { grid-template-columns: 92px 1fr 66px; }
+      .modal-foot { flex-direction: column-reverse; align-items: stretch; }
+      .modal-foot .btn { width: 100%; }
+      .step span:not(.num) { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <div class="logo">P</div>
+      <nav class="nav">
+        <button type="button" onclick="location.href='page1-1.html'"><span class="nav-icon">CC</span></button>
+        <button type="button" onclick="location.href='page1-2.html'"><span class="nav-icon">UT</span></button>
+        <button type="button" onclick="location.href='page1-3.html'"><span class="nav-icon">TV</span></button>
+        <button type="button" onclick="location.href='page1-9.html'"><span class="nav-icon">RE</span></button>
+        <button class="active" type="button" data-modal="navTravel"><span class="nav-icon">TR</span><span class="dot"></span></button>
+      </nav>
+      <nav class="nav nav-bottom">
+        <button type="button" data-modal="preferences"><span class="nav-icon">ST</span></button>
+        <button type="button" data-modal="supportCenter"><span class="nav-icon">HP</span></button>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <button class="icon-btn menu-btn" type="button" id="menuBtn">MN</button>
+        <div class="title">
+          <h1>Travel, Transport & Hospitality</h1>
+          <p>Flights, hotels, rides, public transport, fuel, extras and trip wallet</p>
+        </div>
+        <div class="search"><input id="globalSearch" type="search" placeholder="Search trips, hotels, airlines, ride history, tickets..."></div>
+        <div class="actions">
+          <button class="icon-btn hide-mobile" type="button" data-modal="travelHealth">HC</button>
+          <button class="icon-btn" type="button" data-modal="notifications">NT<span class="counter">11</span></button>
+          <button class="icon-btn hide-mobile" type="button" data-modal="helpGuide">?</button>
+          <button class="profile-btn" type="button" data-modal="profileSettings">
+            <span class="avatar">AK</span><span class="profile-text"><span class="profile-name">Amina K.</span><span class="profile-role">Frequent Traveler</span></span>
+          </button>
+        </div>
+      </header>
+
+      <section class="page">
+        <div class="page-head">
+          <div>
+            <div class="crumb">Home / Services Hub / Travel, Transport & Hospitality</div>
+            <h2>PAGE 1.12 - Travel, Transport & Hospitality</h2>
+            <p>Book and pay for flights, hotels, rides, public transport, fuel, parking, extras, and manage itineraries and loyalty from one dashboard.</p>
+          </div>
+          <div class="head-actions">
+            <button class="btn" type="button" data-modal="travelHealth">Health Check</button>
+            <button class="btn" type="button" data-modal="itineraryCenter">Itinerary</button>
+            <button class="btn travel" type="button" data-modal="flightBookingWizard">Book Flight</button>
+            <button class="btn sand" type="button" data-modal="hotelBookingWizard">Book Stay</button>
+          </div>
+        </div>
+
+        <div class="grid hero-grid">
+          <article class="card hero-card">
+            <span>Travel wallet is live <span class="live-dot"></span></span>
+            <h3>7 active bookings</h3>
+            <p>Flights, hotel stays, ride allocations, bus tickets, tolls, fuel cards and travel extras all tracked in one journey center.</p>
+            <button class="btn" type="button" data-modal="flightBookingWizard">Book flight</button>
+            <button class="btn" type="button" data-modal="hotelBookingWizard">Reserve hotel</button>
+            <button class="btn" type="button" data-modal="ridePaymentWizard">Pay ride</button>
+          </article>
+          <article class="card">
+            <div class="metric-label">Upcoming travel spend</div>
+            <div class="metric-value">KES 184,200</div>
+            <div class="metric-sub" style="background:var(--pm-warning-soft);color:var(--pm-warning)">4 trips due soon</div>
+            <div class="barset"><i style="height:42%"></i><i style="height:72%"></i><i style="height:52%"></i><i style="height:86%"></i><i style="height:46%"></i><i style="height:58%"></i><i style="height:80%"></i></div>
+          </article>
+          <article class="card">
+            <div class="metric-label">Loyalty points value</div>
+            <div class="metric-value">KES 12,480</div>
+            <div class="metric-sub">Skywards, Bonga, hotel nights</div>
+            <div style="margin-top:18px" class="progress"><span style="width:68%;background:linear-gradient(90deg,var(--pm-primary),var(--pm-accent))"></span></div>
+            <div style="margin-top:9px" class="row"><small>Tier progress</small><b>68%</b></div>
+          </article>
+          <article class="card">
+            <div class="metric-label">Trip punctuality</div>
+            <div class="metric-value">96/100</div>
+            <div class="metric-sub">on-time check-ins and payments</div>
+            <div style="margin-top:16px" class="row"><span class="muted">Active rides</span><b>2 live</b></div>
+            <div class="progress"><span style="width:96%;background:var(--pm-accent)"></span></div>
+          </article>
+        </div>
+
+        <div class="grid three-grid" style="margin-bottom:16px">
+          <article class="card">
+            <div class="row" style="margin-bottom:10px"><b>Attention Required</b><button class="tiny-btn" data-modal="alertsAll" type="button">View all</button></div>
+            <div class="mini-list">
+              <button class="mini-item" type="button" data-modal="flightCheckinAlert"><span class="mini-icon" style="background:var(--pm-warning-soft);color:var(--pm-warning)">FL</span><span style="flex:1"><span class="mini-title">Kenya Airways check-in opens in 2h</span><span class="mini-sub">KQ 203 Nairobi → Mombasa, seat not selected</span></span><span class="tiny-btn">Check-in</span></button>
+              <button class="mini-item" type="button" data-modal="hotelBalanceAlert"><span class="mini-icon" style="background:var(--pm-danger-soft);color:var(--pm-danger)">HT</span><span style="flex:1"><span class="mini-title">Hotel balance due before arrival</span><span class="mini-sub">Sarova Whitesands - KES 28,000 outstanding</span></span><span class="tiny-btn">Pay</span></button>
+              <button class="mini-item" type="button" data-modal="ridePolicyAlert"><span class="mini-icon" style="background:var(--pm-info-soft);color:var(--pm-info)">RD</span><span style="flex:1"><span class="mini-title">Ride policy threshold nearing</span><span class="mini-sub">Airport commute budget at 82% this month</span></span><span class="tiny-btn">Review</span></button>
+            </div>
+          </article>
+          <article class="card">
+            <div class="row" style="margin-bottom:10px"><b>Smart Suggestions</b><button class="tiny-btn" data-modal="smartSuggestions" type="button">AI</button></div>
+            <div class="mini-list">
+              <button class="mini-item" type="button" data-modal="bundleRoaming"><span class="mini-icon" style="background:var(--pm-accent-soft);color:var(--pm-accent)">RM</span><span style="flex:1"><span class="mini-title">Activate roaming bundle for Tanzania trip</span><span class="mini-sub">Estimated savings KES 1,280 on data</span></span><span class="tiny-btn">Setup</span></button>
+              <button class="mini-item" type="button" data-modal="hotelUpgradeOffer"><span class="mini-icon" style="background:var(--pm-purple-soft);color:var(--pm-purple)">HG</span><span style="flex:1"><span class="mini-title">Upgrade to airport hotel package</span><span class="mini-sub">Breakfast + transfer saves KES 2,400</span></span><span class="tiny-btn">View</span></button>
+              <button class="mini-item" type="button" data-modal="fuelPlanOffer"><span class="mini-icon" style="background:var(--pm-warning-soft);color:var(--pm-warning)">FP</span><span style="flex:1"><span class="mini-title">Fuel plan for road trip eligible</span><span class="mini-sub">Set route cap and card controls before trip</span></span><span class="tiny-btn">Plan</span></button>
+            </div>
+          </article>
+          <article class="card">
+            <div style="margin-bottom:10px"><b>Quick Actions</b><p style="margin:2px 0 0;color:var(--pm-muted);font-size:11px">Frequent transport and hospitality workflows</p></div>
+            <div class="quick-grid">
+              <button class="tiny-btn" type="button" data-modal="flightBookingWizard">Flight</button>
+              <button class="tiny-btn" type="button" data-modal="hotelBookingWizard">Hotel</button>
+              <button class="tiny-btn" type="button" data-modal="ridePaymentWizard">Ride</button>
+              <button class="tiny-btn" type="button" data-modal="busRailWizard">Bus / Rail</button>
+              <button class="tiny-btn" type="button" data-modal="fuelParkingWizard">Fuel / Parking</button>
+              <button class="tiny-btn" type="button" data-modal="travelWalletWizard">Travel Wallet</button>
+            </div>
+          </article>
+        </div>
+
+        <section class="section">
+          <div class="section-head">
+            <div class="section-title"><h3>1.12.1 - Flights & Airline Payments</h3><p>Airline booking, baggage, seat selection, meal add-ons, itinerary changes and check-in readiness.</p></div>
+            <div class="toolbar"><button class="btn" type="button" data-modal="airlineDirectory">Airlines</button><button class="btn travel" type="button" data-modal="flightBookingWizard">Book flight</button></div>
+          </div>
+          <div class="section-body">
+            <div class="grid four-grid" style="margin-bottom:14px">
+              <article class="card"><div class="metric-label">Active flights</div><div class="metric-value">3 trips</div><div class="row"><span class="muted">Next departure</span><b>Tomorrow 06:30</b></div></article>
+              <article class="card"><div class="metric-label">Flight spend MTD</div><div class="metric-value">KES 86,400</div><div class="row"><span class="muted">Saved with points</span><b>KES 4,200</b></div></article>
+              <article class="card"><div class="metric-label">Add-ons due</div><div class="metric-value">2 pending</div><div class="row"><span class="muted">Seats + baggage</span><b>KES 8,600</b></div></article>
+              <article class="card"><div class="metric-label">Check-ins pending</div><div class="metric-value">1 open</div><div class="row"><span class="muted">Window opens</span><b>In 2 hours</b></div></article>
+            </div>
+            <div class="travel-grid" id="flightCards"></div>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-head">
+            <div class="section-title"><h3>1.12.2 - Hotels, Accommodation & Hospitality</h3><p>Book stays, settle balances, pay deposits, manage check-in windows and hospitality extras.</p></div>
+            <div class="toolbar"><button class="btn" type="button" data-modal="hotelDirectory">Hotels</button><button class="btn sand" type="button" data-modal="hotelBookingWizard">Reserve stay</button></div>
+          </div>
+          <div class="section-body">
+            <div class="grid two-grid">
+              <article class="card"><div class="row"><b>Booked Stays</b><button class="tiny-btn" type="button" data-modal="hospitalityInvoices">Invoices</button></div><div class="travel-grid" id="hotelCards" style="grid-template-columns:repeat(2,1fr);margin-top:12px"></div></article>
+              <article class="card"><div class="row"><b>Hospitality Budget & Extras</b><button class="tiny-btn" type="button" data-modal="mealVoucherWizard">Meal vouchers</button></div><div class="stat-grid" style="margin-top:12px"><div class="stat-box"><small>Accommodation</small><strong>KES 58,000</strong></div><div class="stat-box"><small>Pending</small><strong>KES 28,000</strong></div><div class="stat-box"><small>Transfers</small><strong>KES 6,400</strong></div><div class="stat-box"><small>Meals</small><strong>KES 9,200</strong></div></div><div class="chart-bars" id="hotelBars" style="margin-top:14px"></div></article>
+            </div>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-head">
+            <div class="section-title"><h3>1.12.3 - Ride-Hailing, Taxi & Local Mobility</h3><p>Uber, Bolt, Little and airport transfers with policy controls, receipts and recurring routes.</p></div>
+            <div class="toolbar"><button class="btn" type="button" data-modal="rideHistory">Ride history</button><button class="btn primary" type="button" data-modal="ridePaymentWizard">Pay ride</button></div>
+          </div>
+          <div class="section-body">
+            <div class="grid three-grid">
+              <article class="card"><div class="metric-label">Rides this month</div><div class="metric-value">42</div><div class="row"><span class="muted">Airport rides</span><b>9</b></div></article>
+              <article class="card"><div class="metric-label">Ride spend MTD</div><div class="metric-value">KES 21,840</div><div class="row"><span class="muted">Avg ride</span><b>KES 520</b></div></article>
+              <article class="card"><div class="metric-label">Policy compliance</div><div class="metric-value">91%</div><div class="row"><span class="muted">Out-of-policy</span><b style="color:var(--pm-danger)">3 rides</b></div></article>
+            </div>
+            <div class="table-wrap" style="margin-top:14px"><table><thead><tr><th>Ride</th><th>Provider</th><th>Route</th><th class="right">Fare</th><th>Status</th><th>Action</th></tr></thead><tbody id="rideRows"></tbody></table></div>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-head">
+            <div class="section-title"><h3>1.12.4 - Bus, Rail, Ferry & Public Transport</h3><p>Intercity bus tickets, SGR rail, commuter rail, ferry tickets and pass management.</p></div>
+            <div class="toolbar"><button class="btn" type="button" data-modal="operatorDirectory">Operators</button><button class="btn travel" type="button" data-modal="busRailWizard">Book ticket</button></div>
+          </div>
+          <div class="section-body">
+            <div class="grid two-grid">
+              <article class="card"><div class="row"><b>Upcoming Public Transport Tickets</b><button class="tiny-btn" type="button" data-modal="ticketWallet">Ticket wallet</button></div><div class="mini-list" id="ticketRows" style="margin-top:12px"></div></article>
+              <article class="card"><div class="row"><b>Operator Spend Split</b><button class="tiny-btn" type="button" data-modal="publicTransportAnalytics">Analytics</button></div><div class="chart-bars" id="publicBars" style="margin-top:14px"></div></article>
+            </div>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-head">
+            <div class="section-title"><h3>1.12.5 - Fuel, Parking, Tolls & Vehicle Travel Payments</h3><p>Fuel cards, QR at pump, tolls, parking, road-trip budgets and service stop payments.</p></div>
+            <div class="toolbar"><button class="btn" type="button" data-modal="routePlanner">Road trip planner</button><button class="btn sand" type="button" data-modal="fuelParkingWizard">Pay fuel / parking</button></div>
+          </div>
+          <div class="section-body">
+            <div class="grid three-grid">
+              <article class="card"><div class="row"><b>Fuel Cards & Wallets</b><button class="tiny-btn" type="button" data-modal="fuelCardModal">Manage</button></div><div class="mini-list" id="fuelRows" style="margin-top:12px"></div></article>
+              <article class="card"><div class="row"><b>Tolls & Parking</b><button class="tiny-btn" type="button" data-modal="parkingPassWizard">Pass</button></div><div class="mini-list" id="parkingRows" style="margin-top:12px"></div></article>
+              <article class="card"><div class="row"><b>Road Trip Budget</b><button class="tiny-btn" type="button" data-modal="fuelPlanOffer">Plan</button></div><div class="stat-grid" style="margin-top:12px"><div class="stat-box"><small>Distance</small><strong>482 km</strong></div><div class="stat-box"><small>Fuel est.</small><strong>KES 8,420</strong></div><div class="stat-box"><small>Tolls</small><strong>KES 1,200</strong></div><div class="stat-box"><small>Parking</small><strong>KES 800</strong></div></div></article>
+            </div>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-head">
+            <div class="section-title"><h3>1.12.6 - Itinerary, Loyalty, Travel Wallet & Trip Extras</h3><p>Unified itinerary, travel wallet top-ups, roaming, forex, meal vouchers, lounge and protection add-ons.</p></div>
+            <div class="toolbar"><button class="chip active" data-loyalty="all" type="button">All</button><button class="chip" data-loyalty="points" type="button">Points</button><button class="chip" data-loyalty="wallet" type="button">Wallet</button><button class="chip" data-loyalty="extras" type="button">Extras</button></div>
+          </div>
+          <div class="section-body">
+            <div class="grid two-grid">
+              <article class="card"><div class="row"><b>Itinerary Center</b><button class="tiny-btn" type="button" data-modal="itineraryCenter">Open</button></div><div class="trip-timeline" id="tripTimeline" style="margin-top:14px"></div></article>
+              <article class="card"><div class="row"><b>Loyalty & Wallet</b><button class="tiny-btn" type="button" data-modal="travelWalletWizard">Top up</button></div><div class="stat-grid" style="margin-top:12px"><div class="stat-box"><small>Travel wallet</small><strong>KES 34,200</strong></div><div class="stat-box"><small>Air points</small><strong>28,400</strong></div><div class="stat-box"><small>Hotel nights</small><strong>3</strong></div><div class="stat-box"><small>Roaming budget</small><strong>KES 4,500</strong></div></div><div class="chart-bars" id="loyaltyBars" style="margin-top:14px"></div></article>
+            </div>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="modalBackdrop" aria-hidden="true">
+    <div class="modal" id="modalBox" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-head"><div><h3 id="modalTitle">Modal title</h3><p id="modalSubtitle">Modal subtitle</p></div><button class="modal-close" type="button" id="modalClose">X</button></div>
+      <div id="stepWrap"></div>
+      <div class="modal-body" id="modalBody"></div>
+      <div class="modal-foot" id="modalFoot"></div>
+    </div>
+  </div>
+  <div class="toast" id="toast">Action completed</div>
+
+  <script>
+    const $ = (sel) => document.querySelector(sel);
+    const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+
+    const flights = [
+      {name:"KQ 203 Nairobi → Mombasa", airline:"Kenya Airways", date:"Tomorrow 06:30", fare:"KES 24,800", status:"upcoming", mark:"KQ", color:"linear-gradient(135deg,#ef4444,#7c3aed)"},
+      {name:"Jambojet JX 845 Kisumu → Nairobi", airline:"Jambojet", date:"Jul 12 18:10", fare:"KES 9,600", status:"booked", mark:"JX", color:"linear-gradient(135deg,#f59e0b,#fb7185)"},
+      {name:"Fly540 W4 118 Nairobi → Eldoret", airline:"Fly540", date:"Aug 03 09:00", fare:"KES 12,200", status:"hold", mark:"F5", color:"linear-gradient(135deg,#0f766e,#10b981)"},
+      {name:"KQ 111 Nairobi → Dubai", airline:"Kenya Airways", date:"Sep 21 22:40", fare:"KES 86,500", status:"booked", mark:"DXB", color:"linear-gradient(135deg,#0891b2,#4f46e5)"}
+    ];
+    const hotels = [
+      {name:"Sarova Whitesands", meta:"Mombasa - 2 nights", amount:"KES 42,000", status:"due", mark:"SW", color:"linear-gradient(135deg,#0891b2,#4f46e5)"},
+      {name:"Trademark Hotel", meta:"Nairobi - 1 night", amount:"KES 18,400", status:"booked", mark:"TM", color:"linear-gradient(135deg,#7c3aed,#ec4899)"},
+      {name:"Villa Rosa Kempinski", meta:"Nairobi - hold deposit", amount:"KES 28,000", status:"hold", mark:"VR", color:"linear-gradient(135deg,#f59e0b,#fb7185)"},
+      {name:"Serena Kampala", meta:"Kampala - 3 nights", amount:"UGX eqv 32,600", status:"booked", mark:"SK", color:"linear-gradient(135deg,#0f766e,#10b981)"}
+    ];
+    const rides = [
+      ["Airport pickup","Uber","JKIA → Karen","KES 2,450","Upcoming"],
+      ["Office commute","Bolt","Westlands → CBD","KES 740","Paid"],
+      ["Client meeting","Little","Upper Hill → Kilimani","KES 680","Paid"],
+      ["Late night return","Uber","CBD → Runda","KES 1,980","Policy review"],
+      ["Hotel shuttle","Faras","Airport → Sarova Whitesands","KES 3,200","Pending"]
+    ];
+    const tickets = [
+      ["SGR Madaraka Express","Nairobi → Mombasa","Jul 09 08:00","KES 3,000","Upcoming"],
+      ["Easy Coach","Nairobi → Kisumu","Jul 14 21:00","KES 2,200","Booked"],
+      ["Likoni Ferry Pass","Mombasa commute wallet","Always-on","KES 800 bal","Active"],
+      ["Commuter Rail","Nairobi CBD → Syokimau","Weekdays","KES 1,200 pass","Active"]
+    ];
+    const fuelRows = [
+      ["Shell Card","Family SUV - KES 14,200 available","FC","upcoming"],
+      ["Total Card","Road trip wallet - KES 8,900","TC","booked"],
+      ["QR at Pump","6 stations near route","QR","hold"]
+    ];
+    const parkingRows = [
+      ["Nairobi Expressway","Trips this month 8","KES 3,220 used","upcoming"],
+      ["County Parking","Nairobi CBD season pass","Expires in 12 days","due"],
+      ["Airport Parking","JKIA Terminal 1A","Booking hold","hold"]
+    ];
+
+    let currentStep = 0;
+    let activeWizard = null;
+
+    function statusClass(s){
+      const v = (s || "").toLowerCase();
+      if(v.includes("booked") || v.includes("paid") || v.includes("active")) return "st-booked";
+      if(v.includes("due") || v.includes("pending") || v.includes("upcoming")) return "st-due";
+      if(v.includes("over") || v.includes("policy")) return "st-overdue";
+      if(v.includes("hold")) return "st-hold";
+      return "st-upcoming";
+    }
+
+    function renderCards(){
+      $("#flightCards").innerHTML = flights.map((f,i)=>`<article class="travel-card"><div class="travel-thumb" style="background:${f.color}">${f.mark}<span class="status st-light">${f.airline}</span></div><div class="travel-body"><div class="travel-name">${f.name}</div><div class="travel-meta">${f.date}</div><div class="travel-metrics"><div><small>Fare</small><b>${f.fare}</b></div><div><small>Status</small><b><span class="status ${statusClass(f.status)}">${f.status}</span></b></div><div><small>Extras</small><b>${i===0?"Seat pending":"Included"}</b></div><div><small>Check-in</small><b>${i===0?"Soon":"Ready later"}</b></div></div><div class="travel-actions"><button class="round-btn fill" data-flight="${i}" data-flight-action="manage" type="button">Manage</button><button class="round-btn" data-flight="${i}" data-flight-action="extras" type="button">Extras</button></div></div></article>`).join("");
+      $("#hotelCards").innerHTML = hotels.map((h,i)=>`<article class="travel-card"><div class="travel-thumb" style="background:${h.color}">${h.mark}<span class="status st-light">Stay</span></div><div class="travel-body"><div class="travel-name">${h.name}</div><div class="travel-meta">${h.meta}</div><div class="travel-metrics"><div><small>Amount</small><b>${h.amount}</b></div><div><small>Status</small><b><span class="status ${statusClass(h.status)}">${h.status}</span></b></div></div><div class="travel-actions"><button class="round-btn fill" data-hotel="${i}" data-hotel-action="manage" type="button">Manage</button><button class="round-btn" data-hotel="${i}" data-hotel-action="pay" type="button">Pay</button></div></div></article>`).join("");
+      $("#hotelBars").innerHTML = [["Room",68,"#4f46e5"],["Meals",18,"#10b981"],["Transfers",9,"#f59e0b"],["Taxes",5,"#8b5cf6"]].map(r=>`<div class="chart-row"><span>${r[0]}</span><div class="chart-track"><span style="width:${r[1]}%;background:${r[2]}"></span></div><b class="right">${r[1]}%</b></div>`).join("");
+      $("#rideRows").innerHTML = rides.map((r,i)=>`<tr><td><b>${r[0]}</b></td><td>${r[1]}</td><td>${r[2]}</td><td class="right"><b>${r[3]}</b></td><td><span class="status ${statusClass(r[4])}">${r[4]}</span></td><td><button class="tiny-btn" type="button" data-modal="rideReceipt">Receipt</button></td></tr>`).join("");
+      $("#ticketRows").innerHTML = tickets.map((t,i)=>`<button class="mini-item" type="button" data-modal="ticketDetail"><span class="mini-icon" style="background:${i%2?"var(--pm-info-soft)":"var(--pm-accent-soft)"};color:${i%2?"var(--pm-info)":"var(--pm-accent)"}">${t[0].slice(0,2).toUpperCase()}</span><span style="flex:1"><span class="mini-title">${t[0]}</span><span class="mini-sub">${t[1]} - ${t[2]}</span></span><span class="status ${statusClass(t[4])}">${t[4]}</span></button>`).join("");
+      $("#publicBars").innerHTML = [["SGR","KES 6,800",54,"#4f46e5"],["Bus","KES 4,400",36,"#10b981"],["Ferry","KES 800",18,"#f59e0b"],["Rail Pass","KES 1,200",12,"#8b5cf6"]].map(r=>`<div class="chart-row"><span>${r[0]}</span><div class="chart-track"><span style="width:${r[2]}%;background:${r[3]}"></span></div><b class="right">${r[1]}</b></div>`).join("");
+      $("#fuelRows").innerHTML = fuelRows.map((r,i)=>`<button class="mini-item" type="button" data-modal="fuelCardModal"><span class="mini-icon" style="background:var(--pm-warning-soft);color:var(--pm-warning)">${r[2]}</span><span style="flex:1"><span class="mini-title">${r[0]}</span><span class="mini-sub">${r[1]}</span></span><span class="status ${statusClass(r[3])}">${r[3]}</span></button>`).join("");
+      $("#parkingRows").innerHTML = parkingRows.map((r,i)=>`<button class="mini-item" type="button" data-modal="fuelParkingWizard"><span class="mini-icon" style="background:${i===0?"var(--pm-info-soft)":i===1?"var(--pm-warning-soft)":"var(--pm-purple-soft)"};color:${i===0?"var(--pm-info)":i===1?"var(--pm-warning)":"var(--pm-purple)"}">${r[0].slice(0,2).toUpperCase()}</span><span style="flex:1"><span class="mini-title">${r[0]}</span><span class="mini-sub">${r[1]}</span></span><span class="status ${statusClass(r[3])}">${r[2]}</span></button>`).join("");
+      $("#tripTimeline").innerHTML = [
+        ["Flight booked","KQ 203 Nairobi → Mombasa confirmed","done"],
+        ["Hotel reserved","Sarova Whitesands deposit secured","done"],
+        ["Check-in window opens","Tomorrow 04:30, seat not selected","current"],
+        ["Airport transfer","Uber pickup scheduled 03:45","pending"],
+        ["Roaming bundle","Activate before border crossing","pending"]
+      ].map((s,i)=>`<div class="trip-step ${s[2]==="pending"?"pending":s[2]==="current"?"current":""}"><div class="trip-dot">${s[2]==="done"?"✓":i+1}</div><div><div class="mini-title">${s[0]}</div><div class="mini-sub">${s[1]}</div></div></div>`).join("");
+      $("#loyaltyBars").innerHTML = [["Air points","KES 8,400",62,"#4f46e5"],["Hotel nights","KES 2,600",22,"#10b981"],["Bonga","KES 1,480",16,"#f59e0b"]].map(r=>`<div class="chart-row"><span>${r[0]}</span><div class="chart-track"><span style="width:${r[2]}%;background:${r[3]}"></span></div><b class="right">${r[1]}</b></div>`).join("");
+    }
+
+    const modalTemplates = {
+      travelHealth: {title:"Travel Payment Health Check", sub:"Airline booking rails, hotel settlement, ride receipts and transport tickets", size:"lg", body: healthBody},
+      notifications: {title:"Travel Notifications", sub:"Check-ins, balance due, itinerary changes and ride updates", size:"lg", body: notificationsBody},
+      profileSettings: {title:"Travel Profile & Preferences", sub:"Traveler details, seat preferences, passport info and policy limits", size:"lg", body: profileBody},
+      helpGuide: {title:"Travel Help Center", sub:"Guide to flights, stays, rides, public transport and extras", body: helpBody},
+      preferences: {title:"Preferences", sub:"Travel dashboard defaults and notifications", body: preferencesBody},
+      supportCenter: {title:"Support Center", sub:"Travel disputes, refunds and itinerary support", size:"lg", body: supportBody},
+      navTravel: {title:"Travel Hub", sub:"You are viewing Page 1.12 travel, transport & hospitality", body: () => navBody("Travel", "Manage flights, hotels, rides, public transport, fuel, tolls, travel wallet and extras.")},
+      itineraryCenter: {title:"Itinerary Center", sub:"Unified trip view across all booked services", size:"xl", body: itineraryBody},
+      alertsAll: {title:"Travel Attention Items", sub:"Prioritized upcoming actions", size:"lg", body: alertsBody},
+      flightCheckinAlert: {title:"Flight Check-in Alert", sub:"Check-in window, seats and extras", size:"lg", body: () => detailBody("KQ 203", "Check-in opens in 2 hours", "Seat not selected", "Suggested action: check in and add baggage")},
+      hotelBalanceAlert: {title:"Hotel Balance Due", sub:"Pre-arrival balance settlement", size:"lg", body: () => detailBody("Sarova Whitesands", "KES 28,000 outstanding", "Arrival in 2 days", "Pay balance to avoid check-in delays")},
+      ridePolicyAlert: {title:"Ride Policy Threshold", sub:"Monthly airport commute spend nearing cap", size:"lg", body: () => detailBody("Airport Ride Budget", "82% of monthly cap used", "3 rides out-of-policy", "Review recurring route settings")},
+      smartSuggestions: {title:"Smart Travel Suggestions", sub:"AI recommendations based on trips, usage and timing", size:"lg", body: smartBody},
+      bundleRoaming: {title:"Roaming Bundle Recommendation", sub:"Activate roaming before travel", size:"lg", body: roamingBody},
+      hotelUpgradeOffer: {title:"Hotel Upgrade Offer", sub:"Bundle accommodation with transfer and breakfast", size:"lg", body: hotelOfferBody},
+      fuelPlanOffer: {title:"Fuel Plan Offer", sub:"Pre-trip controls for fuel and parking", size:"lg", body: fuelOfferBody},
+      flightBookingWizard: {title:"Book Flight", sub:"Search, select, add extras, pay and confirm", size:"xl", wizard:"flightBook"},
+      airlineDirectory: {title:"Airline Directory", sub:"Local, regional and international airlines", size:"lg", body: airlineBody},
+      flightManage: {title:"Manage Flight", sub:"Seats, baggage, meals, refund and check-in", size:"lg", body: flightManageBody},
+      flightExtrasWizard: {title:"Flight Extras", sub:"Seats, bags, meals and lounge access", size:"lg", wizard:"flightExtras"},
+      hotelBookingWizard: {title:"Book Hotel / Stay", sub:"Search stay, choose room, extras and confirm payment", size:"xl", wizard:"hotelBook"},
+      hotelDirectory: {title:"Hotel & Hospitality Directory", sub:"Hotels, serviced apartments and resorts", size:"lg", body: hotelDirectoryBody},
+      hospitalityInvoices: {title:"Hospitality Invoices", sub:"Deposits, balances, taxes and extras", size:"lg", body: hospitalityInvoicesBody},
+      mealVoucherWizard: {title:"Meal Voucher & Hospitality Extras", sub:"Issue meal, shuttle and lounge vouchers", size:"lg", wizard:"mealVoucher"},
+      ridePaymentWizard: {title:"Ride Payment", sub:"Pay for ride, set app, route and receipt handling", size:"lg", wizard:"ridePay"},
+      rideHistory: {title:"Ride History & Replay", sub:"Routes, receipts, providers and monthly analytics", size:"lg", body: rideHistoryBody},
+      rideReceipt: {title:"Ride Receipt", sub:"Download, categorize and reimburse", size:"lg", body: rideReceiptBody},
+      busRailWizard: {title:"Book Bus / Rail / Ferry", sub:"Select operator, seat, passenger and pay", size:"lg", wizard:"busRail"},
+      operatorDirectory: {title:"Operator Directory", sub:"Bus, rail and ferry operators", size:"lg", body: operatorBody},
+      ticketWallet: {title:"Ticket Wallet", sub:"QR tickets, booking refs and cancellations", size:"lg", body: ticketWalletBody},
+      ticketDetail: {title:"Ticket Detail", sub:"Seat, boarding time and baggage notes", size:"lg", body: ticketDetailBody},
+      publicTransportAnalytics: {title:"Public Transport Analytics", sub:"Spend by operator, route and time", size:"lg", body: publicAnalyticsBody},
+      fuelParkingWizard: {title:"Fuel, Parking & Toll Payment", sub:"Choose category, amount, method and controls", size:"lg", wizard:"fuelPark"},
+      routePlanner: {title:"Road Trip Planner", sub:"Distance, fuel estimate, stops and tolls", size:"lg", body: routePlannerBody},
+      fuelCardModal: {title:"Fuel Cards & Pump QR", sub:"Balances, limits and station controls", size:"lg", body: fuelCardBody},
+      parkingPassWizard: {title:"Parking Pass & Toll Setup", sub:"Season passes, airport parking and toll wallet", size:"lg", wizard:"parkingPass"},
+      travelWalletWizard: {title:"Travel Wallet & FX", sub:"Top up travel wallet, set FX and funding rules", size:"lg", wizard:"travelWallet"},
+      travelWalletDetail: {title:"Travel Wallet Detail", sub:"Balances, FX conversions and limits", size:"lg", body: walletDetailBody},
+      rateLimitPolicy: {title:"Travel Policy Limits", sub:"Caps for rides, hotels, baggage and parking", size:"lg", body: policyBody}
+    };
+
+    const wizards = {
+      flightBook: [
+        {label:"Route", html:`<div class="form-grid"><div><label>From</label><select><option>Nairobi (NBO)</option><option>Mombasa (MBA)</option><option>Kisumu (KIS)</option></select></div><div><label>To</label><select><option>Mombasa (MBA)</option><option>Kampala (EBB)</option><option>Dubai (DXB)</option></select></div><div><label>Departure</label><input type="date" value="2026-07-09"></div><div><label>Passengers</label><select><option>1 adult</option><option>2 adults</option></select></div></div>`},
+        {label:"Flight", html:`<div class="mini-list"><button class="mini-item"><span class="mini-icon" style="background:var(--pm-danger-soft);color:var(--pm-danger)">KQ</span><span style="flex:1"><span class="mini-title">Kenya Airways - KQ 203</span><span class="mini-sub">06:30 → 07:35 direct, economy flex</span></span><b>KES 24,800</b></button><button class="mini-item"><span class="mini-icon" style="background:var(--pm-warning-soft);color:var(--pm-warning)">JX</span><span style="flex:1"><span class="mini-title">Jambojet - JX 421</span><span class="mini-sub">09:10 → 10:15 direct, light fare</span></span><b>KES 18,900</b></button></div>`},
+        {label:"Extras", html:`<div class="form-grid"><div><label>Seat</label><select><option>Auto-assign free seat</option><option>Window + KES 1,200</option><option>Aisle + KES 1,000</option></select></div><div><label>Baggage</label><select><option>Cabin only</option><option>20kg + KES 3,200</option></select></div><div><label>Meal</label><select><option>No meal</option><option>Standard + KES 900</option><option>Vegetarian + KES 900</option></select></div><div><label>Lounge</label><select><option>No lounge</option><option>JKIA lounge + KES 4,500</option></select></div></div>`},
+        {label:"Pay", html:paymentMethodHtml()},
+        {label:"Confirm", html:pinSummaryHtml("Flight Booking", "KQ 203 Nairobi → Mombasa", "KES 29,100", "E-ticket and itinerary will be issued immediately after payment.")}
+      ],
+      flightExtras: [
+        {label:"Select", html:`<div class="form-grid"><div><label>Seat</label><select><option>12A Window - KES 1,200</option><option>14C Aisle - KES 1,000</option></select></div><div><label>Extra bag</label><select><option>None</option><option>20kg - KES 3,200</option><option>30kg - KES 4,800</option></select></div></div>`},
+        {label:"Review", html:`<div class="table-wrap"><table><tbody><tr><td>Seat</td><td class="right">KES 1,200</td></tr><tr><td>Baggage</td><td class="right">KES 3,200</td></tr><tr><td><b>Total</b></td><td class="right"><b>KES 4,400</b></td></tr></tbody></table></div>`},
+        {label:"Confirm", html:pinSummaryHtml("Flight Extras", "KQ 203", "KES 4,400", "Updated e-ticket and boarding extras will be reissued.")}
+      ],
+      hotelBook: [
+        {label:"Search", html:`<div class="form-grid"><div><label>Destination</label><input value="Mombasa"></div><div><label>Property type</label><select><option>Hotel</option><option>Serviced apartment</option><option>Resort</option></select></div><div><label>Check-in</label><input type="date" value="2026-07-09"></div><div><label>Check-out</label><input type="date" value="2026-07-11"></div></div>`},
+        {label:"Room", html:`<div class="mini-list"><button class="mini-item"><span class="mini-icon" style="background:var(--pm-info-soft);color:var(--pm-info)">SW</span><span style="flex:1"><span class="mini-title">Sarova Whitesands - Deluxe Ocean View</span><span class="mini-sub">2 nights, breakfast included</span></span><b>KES 42,000</b></button><button class="mini-item"><span class="mini-icon" style="background:var(--pm-accent-soft);color:var(--pm-accent)">PR</span><span style="flex:1"><span class="mini-title">PrideInn Paradise - Standard Room</span><span class="mini-sub">2 nights, half board</span></span><b>KES 36,400</b></button></div>`},
+        {label:"Extras", html:`<div class="form-grid"><div><label>Airport transfer</label><select><option>No transfer</option><option>Shared transfer + KES 2,400</option><option>Private transfer + KES 4,800</option></select></div><div><label>Meal plan</label><select><option>Breakfast only</option><option>Half board + KES 6,000</option><option>Full board + KES 10,800</option></select></div><div><label>Early check-in</label><select><option>No</option><option>Yes + KES 3,000</option></select></div><div><label>Late checkout</label><select><option>No</option><option>Yes + KES 3,000</option></select></div></div>`},
+        {label:"Pay", html:paymentMethodHtml()},
+        {label:"Confirm", html:pinSummaryHtml("Hotel Booking", "Sarova Whitesands", "KES 50,400", "Confirmation voucher, tax invoice and transfer details will be issued.")}
+      ],
+      mealVoucher: [
+        {label:"Guests", html:`<div class="form-grid"><div><label>Recipient</label><select><option>Amina Kariuki</option><option>Guest 2</option><option>Team of 4</option></select></div><div><label>Voucher type</label><select><option>Meal voucher</option><option>Lounge voucher</option><option>Airport transfer</option></select></div></div>`},
+        {label:"Value", html:`<div class="form-grid"><div><label>Amount</label><input value="KES 4,000"></div><div><label>Validity</label><select><option>Today only</option><option>48 hours</option></select></div></div><div class="notice info">Voucher code is sent by SMS and email and can be redeemed at approved merchants.</div>`},
+        {label:"Confirm", html:pinSummaryHtml("Hospitality Voucher", "Meal voucher", "KES 4,000", "Voucher is generated instantly and linked to the itinerary.")}
+      ],
+      ridePay: [
+        {label:"Provider", html:`<div class="form-grid"><div><label>Ride app</label><select><option>Uber</option><option>Bolt</option><option>Little</option><option>Faras</option></select></div><div><label>Route</label><input value="JKIA → Karen"></div><div><label>Trip reference</label><input value="UBR-482910"></div><div><label>Fare</label><input value="KES 2,450"></div></div>`},
+        {label:"Rules", html:`<div class="form-grid"><div><label>Receipt handling</label><select><option>Save to trip wallet</option><option>Email only</option></select></div><div><label>Category</label><select><option>Personal travel</option><option>Airport ride</option><option>Business trip</option></select></div></div><div class="notice info">Fare cap for airport rides is KES 3,000. This ride is within policy.</div>`},
+        {label:"Method", html:paymentMethodHtml()},
+        {label:"Confirm", html:pinSummaryHtml("Ride Payment", "Uber JKIA → Karen", "KES 2,450", "Receipt will be linked to your itinerary and monthly transport analytics.")}
+      ],
+      busRail: [
+        {label:"Operator", html:`<div class="form-grid"><div><label>Mode</label><select><option>SGR Rail</option><option>Bus</option><option>Ferry</option></select></div><div><label>Operator</label><select><option>Madaraka Express</option><option>Easy Coach</option><option>Likoni Ferry</option></select></div><div><label>From</label><input value="Nairobi"></div><div><label>To</label><input value="Mombasa"></div></div>`},
+        {label:"Seat", html:`<div class="form-grid"><div><label>Date</label><input type="date" value="2026-07-09"></div><div><label>Seat class</label><select><option>Economy - KES 3,000</option><option>First class - KES 4,500</option></select></div><div><label>Passenger</label><input value="Amina Kariuki"></div><div><label>Luggage</label><select><option>Standard</option><option>Extra bag + KES 500</option></select></div></div>`},
+        {label:"Method", html:paymentMethodHtml()},
+        {label:"Confirm", html:pinSummaryHtml("Public Transport Ticket", "Madaraka Express", "KES 3,000", "QR ticket and boarding instructions will be saved to your ticket wallet.")}
+      ],
+      fuelPark: [
+        {label:"Category", html:`<div class="form-grid"><div><label>Category</label><select><option>Fuel top-up</option><option>Parking fee</option><option>Toll payment</option><option>Airport parking</option></select></div><div><label>Provider / station</label><input value="Shell Karen"></div><div><label>Vehicle / pass</label><input value="KDK 482Q"></div><div><label>Amount</label><input value="KES 4,800"></div></div>`},
+        {label:"Controls", html:`<div class="form-grid"><div><label>Limit rule</label><select><option>Fuel only, cap KES 2,500/day</option><option>Any station on route</option></select></div><div><label>Route tag</label><select><option>Road trip</option><option>Commute</option><option>Airport</option></select></div></div><div class="notice info">Parking and toll payments can be attached to a trip itinerary for a complete cost report.</div>`},
+        {label:"Method", html:paymentMethodHtml()},
+        {label:"Confirm", html:pinSummaryHtml("Fuel / Parking Payment", "Shell Karen", "KES 4,800", "Receipt is linked to the trip and vehicle analytics.")}
+      ],
+      parkingPass: [
+        {label:"Pass", html:`<div class="form-grid"><div><label>Pass type</label><select><option>Nairobi CBD seasonal pass</option><option>JKIA airport parking</option><option>Expressway commuter wallet</option></select></div><div><label>Duration</label><select><option>1 month</option><option>1 week</option><option>Per trip</option></select></div></div>`},
+        {label:"Value", html:`<div class="form-grid"><div><label>Amount</label><input value="KES 6,000"></div><div><label>Vehicle</label><input value="KDK 482Q"></div></div>`},
+        {label:"Confirm", html:pinSummaryHtml("Parking / Toll Pass", "Nairobi seasonal pass", "KES 6,000", "Pass is activated immediately and saved to your transport wallet.")}
+      ],
+      travelWallet: [
+        {label:"Wallet", html:`<div class="form-grid"><div><label>Wallet currency</label><select><option>KES</option><option>USD</option><option>TZS</option><option>UGX</option></select></div><div><label>Top-up amount</label><input value="KES 20,000"></div></div>`},
+        {label:"FX", html:`<div class="form-grid"><div><label>Convert portion?</label><select><option>No conversion</option><option>Convert KES 10,000 to USD</option><option>Convert KES 5,000 to TZS</option></select></div><div><label>Spending rule</label><select><option>Use wallet first for travel payments</option><option>Use wallet for hotels only</option></select></div></div><div class="notice info">Travel wallet can be used for flights, stays, rides, tickets and roaming bundles.</div>`},
+        {label:"Confirm", html:pinSummaryHtml("Travel Wallet Top-up", "PayMo Travel Wallet", "KES 20,000", "Wallet balance updates immediately and can be allocated to trip categories.")}
+      ]
+    };
+
+    function openModal(key){
+      const t = modalTemplates[key];
+      if(!t){ showToast("Workflow opened successfully."); return; }
+      $("#modalBox").className = "modal " + (t.size || "");
+      $("#modalTitle").textContent = t.title;
+      $("#modalSubtitle").textContent = t.sub || "";
+      currentStep = 0;
+      activeWizard = t.wizard || null;
+      if(activeWizard) renderWizard();
+      else {
+        $("#stepWrap").innerHTML = "";
+        $("#modalBody").innerHTML = typeof t.body === "function" ? t.body() : t.body;
+        $("#modalFoot").innerHTML = `<button class="btn" type="button" data-close>Close</button><button class="btn primary" type="button" data-action="save">Save changes</button>`;
+        bindTabs();
+      }
+      $("#modalBackdrop").classList.add("open");
+      $("#modalBackdrop").setAttribute("aria-hidden", "false");
+      document.body.classList.add("no-scroll");
+    }
+    function renderWizard(){
+      const steps = wizards[activeWizard];
+      $("#stepWrap").innerHTML = `<div class="steps">${steps.map((s,i)=>`<div class="step ${i===currentStep?"active":i<currentStep?"done":""}"><span class="num">${i<currentStep?"✓":i+1}</span><span>${s.label}</span></div>${i<steps.length-1?`<div class="step-line ${i<currentStep?"done":""}"></div>`:""}`).join("")}</div>`;
+      $("#modalBody").innerHTML = steps[currentStep].html;
+      $("#modalFoot").innerHTML = `<button class="btn" type="button" ${currentStep===0?"data-close":"data-step-back"}>${currentStep===0?"Cancel":"Back"}</button><button class="btn primary" type="button" data-step-next>${currentStep===steps.length-1?"Complete workflow":"Continue"}</button>`;
+    }
+    function completeWizard(){
+      $("#modalBody").innerHTML = `<div style="text-align:center;padding:30px"><div style="width:72px;height:72px;border-radius:999px;background:var(--pm-accent-soft);color:var(--pm-accent);display:grid;place-items:center;margin:0 auto 14px;font-size:28px;font-weight:900">OK</div><h3>Workflow completed</h3><p style="color:var(--pm-muted)">The request was validated, recorded in your travel timeline and queued for confirmation.</p><div class="progress" style="margin-top:18px"><span style="width:100%;background-image:linear-gradient(90deg,var(--pm-primary),var(--pm-primary-light),var(--pm-primary));background-size:200% 100%;animation:shimmer 1.4s infinite"></span></div></div>`;
+      $("#stepWrap").innerHTML = "";
+      $("#modalFoot").innerHTML = `<button class="btn primary" type="button" data-close>Done</button>`;
+      showToast("Workflow completed successfully.");
+    }
+    function closeModal(){
+      $("#modalBackdrop").classList.remove("open");
+      $("#modalBackdrop").setAttribute("aria-hidden", "true");
+      document.body.classList.remove("no-scroll");
+    }
+    function showToast(msg){
+      const t = $("#toast"); t.textContent = msg; t.classList.add("show");
+      clearTimeout(window.toastTimer); window.toastTimer = setTimeout(()=>t.classList.remove("show"), 2200);
+    }
+    function bindTabs(){
+      $$(".modal-tab").forEach(btn => btn.onclick = () => {
+        $$(".modal-tab").forEach(b=>b.classList.remove("active"));
+        $$(".tab-panel").forEach(p=>p.classList.remove("active"));
+        btn.classList.add("active"); $("#"+btn.dataset.tab).classList.add("active");
+      });
+    }
+    function paymentMethodHtml(){ return `<h4 style="margin:0 0 10px">Payment method</h4><div class="payment-method selected"><b>PayMo Travel Wallet</b><span class="mini-sub">Balance KES 34,200, optimized for trip spend</span></div><div class="payment-method"><b>M-Pesa STK Push</b><span class="mini-sub">Best for small and mid-size local payments</span></div><div class="payment-method"><b>PesaLink Bank Transfer</b><span class="mini-sub">Instant hotel and airline settlement</span></div><div class="payment-method"><b>Visa / Mastercard</b><span class="mini-sub">Recommended for international merchants</span></div>`; }
+    function pinSummaryHtml(service, account, total, note){ return `<div class="notice info">${note}</div><div class="stat-grid"><div class="stat-box"><small>Service</small><strong>${service}</strong></div><div class="stat-box"><small>Reference</small><strong>${account}</strong></div><div class="stat-box"><small>Total</small><strong>${total}</strong></div><div class="stat-box"><small>Security</small><strong>PIN</strong></div></div><div class="pin-row"><input maxlength="1"><input maxlength="1"><input maxlength="1"><input maxlength="1"></div>`; }
+    function miniRows(rows){ return `<div class="mini-list" style="margin-top:12px">${rows.map((r,i)=>`<div class="mini-item"><span class="mini-icon" style="background:var(--pm-surface-2);color:var(--pm-primary)">${String(i+1).padStart(2,"0")}</span><span class="mini-title" style="font-weight:700">${r}</span></div>`).join("")}</div>`; }
+    function tableRows(rows){ return `<div class="table-wrap"><table><tbody>${rows.map(r=>`<tr><td>${r[0]}</td><td class="right"><b>${r[1]}</b></td></tr>`).join("")}</tbody></table></div>`; }
+    function navBody(title, text){ return `<div class="notice info"><b>${title}</b><br>${text}</div><button class="btn primary" type="button" data-close>Continue</button>`; }
+
+    function healthBody(){ return `<div class="stat-grid"><div class="stat-box"><small>Airline rails</small><strong>OK</strong></div><div class="stat-box"><small>Hotel settlement</small><strong>99.3%</strong></div><div class="stat-box"><small>Ride receipts</small><strong>Synced</strong></div><div class="stat-box"><small>Ticket QR</small><strong>Ready</strong></div></div><h4>Diagnostics</h4>${miniRows(["Airline booking and refund flow passed","Hotel pre-authorization and balance settlement passed","Ride API and receipt sync passed","SGR / bus ticket issue passed","Fuel / toll wallet available","Travel wallet FX conversion active"])} `; }
+    function notificationsBody(){ return `<div class="modal-tabs"><button class="modal-tab active" data-tab="n1">Trips</button><button class="modal-tab" data-tab="n2">Hospitality</button><button class="modal-tab" data-tab="n3">Transport</button></div><div id="n1" class="tab-panel active">${miniRows(["KQ 203 check-in opens in 2h","Seat selection pending for KQ 203","Jambojet change fee discounted today"])}</div><div id="n2" class="tab-panel">${miniRows(["Sarova Whitesands balance due before arrival","Trademark Hotel invoice ready","Meal voucher expires tonight"])}</div><div id="n3" class="tab-panel">${miniRows(["Uber airport pickup scheduled","County parking pass expires in 12 days","Expressway toll wallet low balance"])}</div>`; }
+    function profileBody(){ return `<div class="modal-tabs"><button class="modal-tab active" data-tab="p1">Traveler</button><button class="modal-tab" data-tab="p2">Documents</button><button class="modal-tab" data-tab="p3">Policies</button></div><div id="p1" class="tab-panel active"><div class="form-grid"><div><label>Full name</label><input value="Amina Kariuki"></div><div><label>Preferred seat</label><select><option>Window</option><option>Aisle</option></select></div><div><label>Meal preference</label><select><option>Standard</option><option>Vegetarian</option></select></div><div><label>Frequent flyer number</label><input value="KQ-884210"></div></div></div><div id="p2" class="tab-panel">${miniRows(["Passport - valid until 2030","National ID - verified","Yellow fever card - uploaded","Travel insurance policy linked"])}</div><div id="p3" class="tab-panel">${miniRows(["Airport ride cap KES 3,000","Hotel per-night cap KES 22,000","Baggage extras allowed if under KES 5,000","Use travel wallet before other methods"])}</div>`; }
+    function helpBody(){ return `<div class="notice info">Every control on this page opens a filled detail modal, action view or multi-step booking/payment wizard.</div>${miniRows(["Book flights with seats, bags, meals and lounge extras.","Reserve hotels, settle balances and generate hospitality vouchers.","Pay rides, bus tickets, rail, ferry, fuel, tolls and parking.","Manage itinerary, roaming, travel wallet, loyalty and receipts.","Avoid dead ends with guided steps and meaningful next actions."])} `; }
+    function preferencesBody(){ return `<label><input type="checkbox" checked> Show upcoming departures first</label><br><label><input type="checkbox" checked> Use Travel Wallet first for all local travel payments</label><br><label><input type="checkbox" checked> Save all travel receipts to itinerary</label><br><label><input type="checkbox"> Auto-suggest roaming before border travel</label>`; }
+    function supportBody(){ return `<div class="stat-grid"><div class="stat-box"><small>Open cases</small><strong>3</strong></div><div class="stat-box"><small>Refunds pending</small><strong>2</strong></div><div class="stat-box"><small>Avg response</small><strong>11m</strong></div><div class="stat-box"><small>SLA</small><strong>97%</strong></div></div>${miniRows(["Flight change or cancellation support","Hotel invoice or charge mismatch","Ride receipt dispute","Ticket reschedule or refund request"])}`; }
+    function itineraryBody(){ return `<div class="trip-timeline">${["Flight booked|KQ 203 Nairobi → Mombasa|done","Hotel booked|Sarova Whitesands 2 nights|done","Check-in opens|Tomorrow 04:30|current","Airport transfer|Uber pickup scheduled|pending","Roaming activation|Recommended before trip|pending"].map((s,i)=>{const p=s.split("|");return `<div class="trip-step ${p[2]==="pending"?"pending":p[2]==="current"?"current":""}"><div class="trip-dot">${p[2]==="done"?"✓":i+1}</div><div><div class="mini-title">${p[0]}</div><div class="mini-sub">${p[1]}</div></div></div>`;}).join("")}</div><div class="grid four-grid" style="margin-top:14px"><button class="card" data-modal="flightManage">Flight</button><button class="card" data-modal="hotelBookingWizard">Hotel</button><button class="card" data-modal="ridePaymentWizard">Ride</button><button class="card" data-modal="travelWalletWizard">Wallet</button></div>`; }
+    function alertsBody(){ return `${detailBody("Travel Inbox","11 active signals","4 due soon","2 changes require approval")}<div class="table-wrap"><table><thead><tr><th>Item</th><th>Type</th><th>Action</th></tr></thead><tbody><tr><td>KQ 203 check-in</td><td>Flight</td><td>Check in</td></tr><tr><td>Sarova balance</td><td>Hotel</td><td>Pay balance</td></tr><tr><td>Airport ride budget</td><td>Ride</td><td>Review cap</td></tr></tbody></table></div>`; }
+    function detailBody(a,b,c,d){ return `<div class="stat-grid"><div class="stat-box"><small>Scope</small><strong>${a}</strong></div><div class="stat-box"><small>Signal</small><strong>${b}</strong></div><div class="stat-box"><small>Status</small><strong>${c}</strong></div><div class="stat-box"><small>Next</small><strong>${d}</strong></div></div><h4>Suggested resolution</h4>${miniRows(["Open the trip or booking detail","Review outstanding extras or balance","Authorize payment or update booking","Track confirmation and receipts"])}`; }
+    function smartBody(){ return `<div class="stat-grid"><div class="stat-box"><small>Savings</small><strong>KES 3,680</strong></div><div class="stat-box"><small>Timing wins</small><strong>4</strong></div><div class="stat-box"><small>Unused perks</small><strong>3</strong></div><div class="stat-box"><small>Confidence</small><strong>92%</strong></div></div>${miniRows(["Activate roaming before border crossing","Use hotel bundle with breakfast and transfer","Preload expressway and parking wallet before road trip","Redeem points for baggage rather than seat selection"])}`; }
+    function roamingBody(){ return `<div class="notice success">Tanzania trip detected in your itinerary. A 7-day roaming bundle is recommended.</div>${tableRows([["Bundle","7 days / 5GB / calls"],["Cost","KES 2,200"],["Estimated normal spend","KES 3,480"],["Estimated savings","KES 1,280"]])}<div class="grid two-grid" style="margin-top:12px"><button class="btn primary" data-action="activate-roaming">Activate bundle</button><button class="btn" data-modal="travelWalletWizard">Use travel wallet</button></div>`; }
+    function hotelOfferBody(){ return `<div class="notice info">Upgrade your Sarova stay with breakfast and airport transfer.</div>${tableRows([["Current room","KES 42,000"],["Breakfast + transfer bundle","KES 44,400"],["Standalone extras cost","KES 46,800"],["Savings","KES 2,400"]])}`; }
+    function fuelOfferBody(){ return `<div class="notice info">Set a route-specific plan for fuel, tolls and parking before your road trip.</div>${miniRows(["Assign card to trip only","Cap fuel at KES 8,500","Preload toll wallet with KES 1,200","Set parking wallet at KES 800"])}`; }
+    function airlineBody(){ return `<div class="mini-list">${["Kenya Airways","Jambojet","Fly540","Uganda Airlines","Precision Air","RwandAir","Ethiopian Airlines","Emirates","Qatar Airways"].map((a,i)=>`<div class="mini-item"><span class="mini-icon" style="background:${i%3===0?"var(--pm-danger-soft)":i%3===1?"var(--pm-info-soft)":"var(--pm-accent-soft)"};color:${i%3===0?"var(--pm-danger)":i%3===1?"var(--pm-info)":"var(--pm-accent)"}">${a.slice(0,2).toUpperCase()}</span><span style="flex:1"><span class="mini-title">${a}</span><span class="mini-sub">Booking, extras and refunds supported</span></span></div>`).join("")}</div>`; }
+    function flightManageBody(){ return `<div class="stat-grid"><div class="stat-box"><small>Flight</small><strong>KQ 203</strong></div><div class="stat-box"><small>Passenger</small><strong>Amina K.</strong></div><div class="stat-box"><small>Departure</small><strong>06:30</strong></div><div class="stat-box"><small>Status</small><strong>Check-in soon</strong></div></div><div class="grid four-grid" style="margin-top:14px"><button class="card" data-modal="flightExtrasWizard">Add extras</button><button class="card" data-action="checkin">Check-in</button><button class="card" data-action="change-flight">Change flight</button><button class="card" data-action="cancel-flight">Cancel / refund</button></div>`; }
+    function hotelDirectoryBody(){ return `<div class="travel-grid" style="grid-template-columns:repeat(3,1fr)">${hotels.map(h=>`<article class="travel-card"><div class="travel-thumb" style="background:${h.color}">${h.mark}</div><div class="travel-body"><div class="travel-name">${h.name}</div><div class="travel-meta">${h.meta}</div><div class="travel-actions"><button class="round-btn fill" data-modal="hotelBookingWizard">Book</button></div></div></article>`).join("")}</div>`; }
+    function hospitalityInvoicesBody(){ return `<div class="table-wrap"><table><thead><tr><th>Property</th><th>Type</th><th class="right">Amount</th><th>Status</th><th>Action</th></tr></thead><tbody><tr><td>Sarova Whitesands</td><td>Deposit</td><td class="right">KES 14,000</td><td><span class="status st-booked">Paid</span></td><td><button class="tiny-btn" data-modal="travelWalletDetail">Receipt</button></td></tr><tr><td>Sarova Whitesands</td><td>Balance</td><td class="right">KES 28,000</td><td><span class="status st-due">Due</span></td><td><button class="tiny-btn" data-modal="hotelBookingWizard">Pay</button></td></tr><tr><td>Trademark Hotel</td><td>Tax invoice</td><td class="right">KES 18,400</td><td><span class="status st-booked">Settled</span></td><td><button class="tiny-btn" data-action="download">Download</button></td></tr></tbody></table></div>`; }
+    function rideHistoryBody(){ return `<div class="table-wrap"><table><thead><tr><th>Date</th><th>Provider</th><th>Route</th><th class="right">Fare</th><th>Tag</th></tr></thead><tbody><tr><td>Jun 18</td><td>Uber</td><td>JKIA → Karen</td><td class="right">KES 2,450</td><td>Airport</td></tr><tr><td>Jun 17</td><td>Bolt</td><td>Westlands → CBD</td><td class="right">KES 740</td><td>Commute</td></tr><tr><td>Jun 16</td><td>Little</td><td>Upper Hill → Kilimani</td><td class="right">KES 680</td><td>Business</td></tr><tr><td>Jun 15</td><td>Uber</td><td>CBD → Runda</td><td class="right">KES 1,980</td><td>Policy review</td></tr></tbody></table></div>`; }
+    function rideReceiptBody(){ return `<div class="notice success">Ride receipt synced successfully to travel records.</div>${tableRows([["Provider","Uber"],["Reference","UBR-482910"],["Route","JKIA → Karen"],["Fare","KES 2,450"],["Category","Airport ride"]])}`; }
+    function operatorBody(){ return `<div class="mini-list">${["Madaraka Express","Easy Coach","Guardian Coach","Modern Coast","Likoni Ferry","Commuter Rail"].map((o,i)=>`<div class="mini-item"><span class="mini-icon" style="background:${i%2?"var(--pm-accent-soft)":"var(--pm-info-soft)"};color:${i%2?"var(--pm-accent)":"var(--pm-info)"}">${o.slice(0,2).toUpperCase()}</span><span style="flex:1"><span class="mini-title">${o}</span><span class="mini-sub">Booking and ticket wallet supported</span></span></div>`).join("")}</div>`; }
+    function ticketWalletBody(){ return `<div class="notice info">All tickets are stored with QR codes and boarding times.</div>${miniRows(["SGR Madaraka Express - Jul 09 - QR ready","Easy Coach - Jul 14 - seat 12A","Likoni Ferry pass - active","Commuter rail pass - weekdays only"])} `; }
+    function ticketDetailBody(){ return `${tableRows([["Operator","Madaraka Express"],["Route","Nairobi → Mombasa"],["Date","Jul 09 08:00"],["Class","Economy"],["Seat","14C"],["Fare","KES 3,000"]])}<div class="grid two-grid" style="margin-top:12px"><button class="btn primary" data-action="show-qr">Show QR</button><button class="btn" data-action="reschedule">Reschedule</button></div>`; }
+    function publicAnalyticsBody(){ return `<div class="stat-grid"><div class="stat-box"><small>Tickets MTD</small><strong>6</strong></div><div class="stat-box"><small>Spend MTD</small><strong>KES 12,400</strong></div><div class="stat-box"><small>Rail share</small><strong>54%</strong></div><div class="stat-box"><small>Avg fare</small><strong>KES 2,067</strong></div></div>${miniRows(["Rail is currently the largest public transport category","Bus fares are 18% lower when booked 7+ days early","Ferry spend is stable for daily commute","Weekend intercity travel drives the highest transport cost"])}`; }
+    function routePlannerBody(){ return `${tableRows([["Route","Nairobi → Naivasha → Nakuru"],["Distance","482 km"],["Fuel estimate","KES 8,420"],["Tolls","KES 1,200"],["Parking","KES 800"],["Stops","2 planned"]])}<div class="grid two-grid" style="margin-top:12px"><button class="btn primary" data-modal="fuelParkingWizard">Fund trip</button><button class="btn" data-modal="fuelCardModal">Assign fuel card</button></div>`; }
+    function fuelCardBody(){ return `<div class="stat-grid"><div class="stat-box"><small>Shell Card</small><strong>KES 14,200</strong></div><div class="stat-box"><small>Total Card</small><strong>KES 8,900</strong></div><div class="stat-box"><small>Toll wallet</small><strong>KES 2,100</strong></div><div class="stat-box"><small>Parking pass</small><strong>12 days left</strong></div></div>${miniRows(["Assign card to specific trip","Restrict category to fuel only","Enable QR at pump","Review route receipts and liters/km"])}`; }
+    function walletDetailBody(){ return `<div class="stat-grid"><div class="stat-box"><small>Wallet balance</small><strong>KES 34,200</strong></div><div class="stat-box"><small>USD pocket</small><strong>USD 180</strong></div><div class="stat-box"><small>TZS pocket</small><strong>TZS 84,000</strong></div><div class="stat-box"><small>Available for rides</small><strong>KES 9,800</strong></div></div>${miniRows(["Use wallet first for local travel","Convert KES before FX rates widen","Set category budgets for flights, hotels, rides and extras","Link wallet to itinerary center"])}`; }
+    function policyBody(){ return `${tableRows([["Airport ride cap","KES 3,000"],["Hotel nightly cap","KES 22,000"],["Baggage extras threshold","KES 5,000"],["Parking monthly cap","KES 8,000"],["Fuel road trip cap","KES 8,500"]])}`; }
+
+    document.addEventListener("click", (e) => {
+      const modalBtn = e.target.closest("[data-modal]");
+      if(modalBtn){ openModal(modalBtn.dataset.modal); return; }
+      if(e.target.closest("[data-close], #modalClose") || e.target.id === "modalBackdrop"){ closeModal(); return; }
+      const stepNext = e.target.closest("[data-step-next]");
+      if(stepNext){ const steps = wizards[activeWizard]; if(currentStep < steps.length - 1){ currentStep++; renderWizard(); } else completeWizard(); return; }
+      if(e.target.closest("[data-step-back]")){ currentStep = Math.max(0,currentStep-1); renderWizard(); return; }
+      const loyalty = e.target.closest("[data-loyalty]");
+      if(loyalty){ $$("[data-loyalty]").forEach(b=>b.classList.remove("active")); loyalty.classList.add("active"); return; }
+      const flight = e.target.closest("[data-flight-action]");
+      if(flight){ if(flight.dataset.flightAction === "extras") openModal("flightExtrasWizard"); else openModal("flightManage"); return; }
+      const hotel = e.target.closest("[data-hotel-action]");
+      if(hotel){ if(hotel.dataset.hotelAction === "pay") openModal("hotelBookingWizard"); else openModal("hospitalityInvoices"); return; }
+      const action = e.target.closest("[data-action]");
+      if(action){ showToast("Action completed and saved to your travel timeline."); return; }
+    });
+    document.addEventListener("keydown", (e) => { if(e.key === "Escape") closeModal(); });
+    $("#menuBtn").addEventListener("click", () => $("#sidebar").classList.toggle("open"));
+    $("#globalSearch").addEventListener("input", (e) => {
+      const q = e.target.value.toLowerCase();
+      $$(".travel-card, .mini-item, tr").forEach(el => {
+        if(el.closest('thead')) return;
+        el.style.display = el.textContent.toLowerCase().includes(q) ? "" : "none";
+      });
+    });
+
+    renderCards();
+  </script>
+</body>
+</html>

@@ -1,0 +1,837 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PayMo - Real Estate & Property Payments</title>
+  <style>
+    :root {
+      --pm-primary: #4f46e5;
+      --pm-primary-dark: #3730a3;
+      --pm-primary-light: #818cf8;
+      --pm-accent: #10b981;
+      --pm-accent-soft: #d1fae5;
+      --pm-warning: #f59e0b;
+      --pm-warning-soft: #fef3c7;
+      --pm-danger: #ef4444;
+      --pm-danger-soft: #fee2e2;
+      --pm-info: #3b82f6;
+      --pm-info-soft: #dbeafe;
+      --pm-purple: #8b5cf6;
+      --pm-purple-soft: #ede9fe;
+      --pm-bg: #f5f1ec;
+      --pm-bg-2: #eee8df;
+      --pm-surface: #ffffff;
+      --pm-surface-2: #faf7f3;
+      --pm-ink: #1a1f2e;
+      --pm-ink-soft: #4b5563;
+      --pm-muted: #9ca3af;
+      --pm-border: #e5e2dc;
+      --pm-border-2: #d4d0c8;
+      --pm-gradient-hero: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #ec4899 100%);
+      --pm-gradient-slate: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+      --pm-shadow-sm: 0 1px 2px rgba(26, 31, 46, 0.04);
+      --pm-shadow-md: 0 4px 12px rgba(26, 31, 46, 0.06);
+      --pm-shadow-lg: 0 10px 30px rgba(26, 31, 46, 0.08);
+      --pm-shadow-xl: 0 20px 50px rgba(26, 31, 46, 0.12);
+      --pm-r-sm: 8px;
+      --pm-r-md: 14px;
+      --pm-r-lg: 20px;
+      --pm-r-xl: 28px;
+      --pm-font: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { min-height: 100%; margin: 0; }
+    body {
+      font-family: var(--pm-font);
+      color: var(--pm-ink);
+      background:
+        radial-gradient(1200px 600px at -10% -20%, rgba(79, 70, 229, .08), transparent 60%),
+        radial-gradient(1000px 520px at 108% 4%, rgba(236, 72, 153, .06), transparent 58%),
+        radial-gradient(820px 460px at 42% 116%, rgba(16, 185, 129, .07), transparent 58%),
+        var(--pm-bg);
+      font-size: 14px;
+      line-height: 1.45;
+      overflow-x: hidden;
+    }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    .no-scroll { overflow: hidden; }
+
+    @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.22); opacity: .58; } }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes scaleIn { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: scale(1); } }
+    @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+
+    .app { display: flex; min-height: 100vh; }
+    .sidebar {
+      position: sticky; top: 0; z-index: 80; width: 88px; height: 100vh; flex: 0 0 88px;
+      background: var(--pm-gradient-slate); display: flex; flex-direction: column; align-items: center; padding: 20px 12px;
+    }
+    .logo { width: 48px; height: 48px; border-radius: 15px; background: var(--pm-gradient-hero); color: #fff; display: grid; place-items: center; font-weight: 900; font-size: 22px; box-shadow: var(--pm-shadow-lg); margin-bottom: 24px; }
+    .nav { width: 100%; display: flex; flex-direction: column; gap: 5px; flex: 1; }
+    .nav button { position: relative; width: 100%; height: 48px; border: 0; border-radius: 13px; color: rgba(255,255,255,.62); background: transparent; display: grid; place-items: center; transition: .2s ease; }
+    .nav button:hover, .nav button.active { color: #fff; background: var(--pm-primary); box-shadow: var(--pm-shadow-md); }
+    .nav-icon { width: 22px; height: 22px; display: grid; place-items: center; font-size: 10px; font-weight: 900; border: 1px solid rgba(255,255,255,.27); border-radius: 6px; }
+    .nav .dot { position: absolute; top: 8px; right: 10px; width: 8px; height: 8px; border: 2px solid #334155; background: var(--pm-danger); border-radius: 999px; animation: pulse 2s infinite; }
+    .nav-bottom { padding-top: 12px; border-top: 1px solid rgba(255,255,255,.1); }
+
+    .main { flex: 1; min-width: 0; }
+    .topbar { position: sticky; top: 0; z-index: 60; border-bottom: 1px solid var(--pm-border); background: rgba(245,241,236,.86); backdrop-filter: blur(18px); padding: 14px 30px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+    .menu-btn { display: none; }
+    .title h1 { margin: 0; font-size: 20px; letter-spacing: -.03em; }
+    .title p { margin: 1px 0 0; color: var(--pm-muted); font-size: 12px; }
+    .search { position: relative; flex: 1; max-width: 440px; }
+    .search input { width: 100%; height: 40px; border: 1px solid var(--pm-border); border-radius: var(--pm-r-md); padding: 0 14px 0 38px; background: #fff; outline: 0; }
+    .search:before { content: "S"; position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: var(--pm-muted); font-size: 11px; font-weight: 900; }
+    .search input:focus { border-color: var(--pm-primary); box-shadow: 0 0 0 3px rgba(79,70,229,.15); }
+    .actions { display: flex; align-items: center; gap: 8px; }
+    .icon-btn, .profile-btn, .btn, .tiny-btn { border: 1px solid var(--pm-border); background: #fff; color: var(--pm-ink-soft); border-radius: 12px; transition: .2s ease; }
+    .icon-btn { width: 40px; height: 40px; position: relative; display: grid; place-items: center; font-size: 11px; font-weight: 900; }
+    .icon-btn:hover, .profile-btn:hover, .btn:hover, .tiny-btn:hover { transform: translateY(-1px); box-shadow: var(--pm-shadow-sm); }
+    .counter { position: absolute; top: -6px; right: -6px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; background: var(--pm-danger); color: #fff; font-size: 10px; display: flex; align-items: center; justify-content: center; border: 2px solid var(--pm-bg); }
+    .profile-btn { height: 42px; display: flex; align-items: center; gap: 9px; padding: 5px 11px 5px 5px; }
+    .avatar { width: 32px; height: 32px; border-radius: 999px; background: var(--pm-gradient-hero); color: #fff; display: grid; place-items: center; font-weight: 900; font-size: 12px; }
+    .profile-name { display: block; font-size: 12px; font-weight: 900; color: var(--pm-ink); text-align: left; }
+    .profile-role { display: block; font-size: 10px; color: var(--pm-muted); text-align: left; }
+
+    .page { padding: 22px 30px 42px; }
+    .page-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
+    .crumb { color: var(--pm-muted); font-size: 12px; margin-bottom: 3px; }
+    .page-head h2 { margin: 0; font-size: 25px; letter-spacing: -.04em; }
+    .page-head p { margin: 4px 0 0; color: var(--pm-ink-soft); font-size: 13px; }
+    .head-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+     .btn { padding: 9px 13px; font-weight: 800; font-size: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; white-space: nowrap; }
+     .btn.primary { color: #fff; border-color: transparent; background: var(--pm-gradient-hero); }
+     .btn.danger { color: #fff; border-color: transparent; background: var(--pm-danger); }
+     .btn.success { color: #fff; border-color: transparent; background: var(--pm-accent); }
+     .tiny-btn { padding: 6px 9px; font-size: 11px; font-weight: 800; }
+ 
+     .grid { display: grid; gap: 14px; }
+     .hero-grid { grid-template-columns: 1.5fr .85fr .85fr .85fr; margin-bottom: 14px; }
+     .three-grid { grid-template-columns: repeat(3, 1fr); }
+     .two-grid { grid-template-columns: 1fr 1fr; }
+     .four-grid { grid-template-columns: repeat(4, 1fr); }
+     .five-grid { grid-template-columns: repeat(5, 1fr); }
+     .six-grid { grid-template-columns: repeat(6, 1fr); }
+ 
+     .card, .section { background: #fff; border: 1px solid var(--pm-border); border-radius: var(--pm-r-lg); box-shadow: var(--pm-shadow-sm); }
+     .card { padding: 16px; }
+     .section { margin-bottom: 18px; overflow: hidden; }
+     .section-head { padding: 17px 18px 12px; border-bottom: 1px solid var(--pm-border); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+     .section-title h3 { margin: 0; font-size: 16px; letter-spacing: -.02em; }
+     .section-title p { margin: 2px 0 0; font-size: 12px; color: var(--pm-muted); }
+     .section-body { padding: 16px; }
+     .hero-card { min-height: 156px; color: #fff; background: var(--pm-gradient-hero); position: relative; overflow: hidden; }
+     .hero-card:after { content: ""; position: absolute; width: 180px; height: 180px; right: -60px; top: -64px; background: rgba(255,255,255,.12); border-radius: 999px; }
+     .hero-card h3 { margin: 10px 0 4px; font-size: 24px; letter-spacing: -.04em; }
+     .hero-card p { margin: 0 0 18px; opacity: .82; font-size: 12px; }
+     .live-dot { width: 11px; height: 11px; border-radius: 999px; background: #22c55e; display: inline-block; animation: pulse 2s infinite; }
+     .metric-label { color: var(--pm-muted); font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: .04em; }
+     .metric-value { margin-top: 2px; font-size: 24px; line-height: 1.1; font-weight: 900; letter-spacing: -.05em; }
+     .metric-sub { margin-top: 8px; display: inline-flex; font-size: 11px; padding: 4px 7px; border-radius: 999px; background: var(--pm-accent-soft); color: var(--pm-accent); font-weight: 900; }
+     .progress { height: 8px; border-radius: 999px; background: var(--pm-border); overflow: hidden; }
+     .progress span { display: block; height: 100%; border-radius: 999px; background: var(--pm-primary); }
+     .barset { margin-top: 18px; display: flex; align-items: end; gap: 4px; height: 34px; }
+     .barset i { flex: 1; border-radius: 4px 4px 0 0; background: linear-gradient(180deg, var(--pm-primary-light), var(--pm-primary)); }
+     .row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+     .muted { color: var(--pm-muted); }
+     .mini-list { display: grid; gap: 9px; }
+     .mini-item { display: flex; gap: 10px; align-items: center; padding: 8px; border-radius: 12px; border: 1px solid transparent; transition: .2s ease; text-align: left; width: 100%; background: transparent; }
+     .mini-item:hover { background: var(--pm-surface-2); border-color: var(--pm-border); }
+     .mini-icon { width: 31px; height: 31px; border-radius: 10px; display: grid; place-items: center; font-weight: 900; font-size: 11px; flex: 0 0 auto; }
+     .mini-title { display: block; font-size: 12px; font-weight: 900; }
+     .mini-sub { display: block; font-size: 10px; color: var(--pm-muted); }
+     .quick-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+ 
+     .property-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; }
+     .property-card { position: relative; min-height: 172px; padding: 13px; border: 1px solid var(--pm-border); border-radius: 17px; background: #fff; transition: .2s ease; overflow: hidden; }
+     .property-card:hover { transform: translateY(-2px); box-shadow: var(--pm-shadow-md); }
+     .property-top { display: flex; align-items: flex-start; justify-content: space-between; }
+     .property-mark { width: 34px; height: 34px; border-radius: 11px; color: #fff; display: grid; place-items: center; font-size: 11px; font-weight: 900; }
+     .property-name { margin: 12px 0 1px; font-weight: 900; font-size: 12px; line-height: 1.2; }
+     .property-meta { color: var(--pm-muted); font-size: 10px; }
+     .property-metrics { margin-top: 11px; padding-top: 10px; border-top: 1px dashed var(--pm-border); display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+     .property-metrics small { display: block; color: var(--pm-muted); font-size: 9px; }
+     .property-metrics b { font-size: 11px; }
+     .property-actions { position: absolute; inset: 0; background: rgba(255,255,255,.94); opacity: 0; display: grid; place-items: center; transition: .18s ease; }
+     .property-card:hover .property-actions { opacity: 1; }
+     .round-btn { width: 38px; height: 38px; border-radius: 13px; border: 1px solid var(--pm-border); background: #fff; color: var(--pm-primary); font-size: 10px; font-weight: 900; }
+     .status { display: inline-flex; align-items: center; gap: 4px; padding: 4px 7px; border-radius: 999px; font-size: 10px; font-weight: 900; text-transform: capitalize; }
+     .status:before { content: ""; width: 6px; height: 6px; border-radius: 999px; background: currentColor; }
+     .st-current { background: var(--pm-accent-soft); color: var(--pm-accent); }
+     .st-due { background: var(--pm-warning-soft); color: var(--pm-warning); }
+     .st-overdue { background: var(--pm-danger-soft); color: var(--pm-danger); }
+     .st-auto { background: var(--pm-info-soft); color: var(--pm-info); }
+     .st-paused { background: var(--pm-purple-soft); color: var(--pm-purple); }
+ 
+     .filter-row { display: flex; gap: 7px; overflow-x: auto; padding: 12px 16px; border-bottom: 1px solid var(--pm-border); }
+     .chip { border: 1px solid var(--pm-border); background: #fff; color: var(--pm-ink-soft); border-radius: 999px; padding: 7px 11px; font-size: 11px; font-weight: 900; white-space: nowrap; }
+     .chip.active { border-color: var(--pm-primary); background: var(--pm-primary); color: #fff; }
+     .toolbar { display: flex; gap: 9px; align-items: center; flex-wrap: wrap; }
+     .field { position: relative; }
+     .field input, .field select, .field textarea, .modal input, .modal select, .modal textarea { width: 100%; border: 1px solid var(--pm-border); border-radius: 11px; background: #fff; color: var(--pm-ink); padding: 10px 12px; outline: 0; }
+     .field input { min-width: 230px; }
+     .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; }
+     .modal label { display: block; font-size: 11px; color: var(--pm-muted); font-weight: 900; margin: 0 0 5px; }
+ 
+     .chart-bars { display: grid; gap: 10px; }
+     .chart-row { display: grid; grid-template-columns: 124px 1fr 86px; gap: 10px; align-items: center; font-size: 12px; }
+     .chart-track { height: 9px; border-radius: 999px; background: var(--pm-border); overflow: hidden; }
+     .chart-track span { display: block; height: 100%; border-radius: 999px; }
+     .table-wrap { overflow-x: auto; border: 1px solid var(--pm-border); border-radius: 14px; }
+     table { width: 100%; border-collapse: collapse; min-width: 790px; }
+     th, td { padding: 12px 13px; border-bottom: 1px solid var(--pm-border); text-align: left; font-size: 12px; }
+     th { background: var(--pm-surface-2); color: var(--pm-muted); text-transform: uppercase; font-size: 10px; letter-spacing: .04em; }
+     tr:last-child td { border-bottom: 0; }
+     .right { text-align: right; }
+     .ledger-row { display: grid; grid-template-columns: 42px 1fr 120px 118px 120px; gap: 10px; align-items: center; padding: 12px; border: 1px solid var(--pm-border); border-radius: 14px; background: #fff; transition: .2s ease; }
+     .ledger-row:hover { box-shadow: var(--pm-shadow-sm); transform: translateY(-1px); }
+     .calendar-strip { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+     .day-card { border: 1px solid var(--pm-border); border-radius: 14px; padding: 10px; background: #fff; min-height: 112px; }
+     .day-date { font-size: 10px; color: var(--pm-muted); font-weight: 900; text-transform: uppercase; }
+     .day-amount { font-weight: 900; margin: 8px 0 4px; }
+     .split-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+ 
+     .modal-backdrop { position: fixed; inset: 0; z-index: 200; background: rgba(15,23,42,.55); backdrop-filter: blur(5px); display: none; align-items: center; justify-content: center; padding: 18px; }
+     .modal-backdrop.open { display: flex; }
+     .modal { width: min(780px, 100%); max-height: 92vh; background: #fff; border-radius: 22px; box-shadow: var(--pm-shadow-xl); overflow: hidden; display: flex; flex-direction: column; animation: scaleIn .2s ease; }
+     .modal.lg { width: min(990px, 100%); }
+     .modal.xl { width: min(1190px, 100%); }
+     .modal-head { padding: 17px 20px; border-bottom: 1px solid var(--pm-border); display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+     .modal-head h3 { margin: 0; font-size: 18px; letter-spacing: -.02em; }
+     .modal-head p { margin: 2px 0 0; color: var(--pm-muted); font-size: 12px; }
+     .modal-close { width: 34px; height: 34px; border-radius: 11px; border: 1px solid var(--pm-border); background: #fff; font-weight: 900; color: var(--pm-muted); }
+     .modal-body { padding: 20px; overflow-y: auto; }
+     .modal-foot { padding: 14px 20px; border-top: 1px solid var(--pm-border); background: var(--pm-surface-2); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+     .steps { padding: 13px 20px; border-bottom: 1px solid var(--pm-border); background: var(--pm-surface-2); display: flex; gap: 8px; align-items: center; }
+     .step { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 900; color: var(--pm-muted); }
+     .step .num { width: 27px; height: 27px; border-radius: 999px; display: grid; place-items: center; background: var(--pm-border); color: var(--pm-muted); }
+     .step.active, .step.done { color: var(--pm-primary); }
+     .step.active .num, .step.done .num { background: var(--pm-primary); color: #fff; }
+     .step-line { flex: 1; height: 2px; background: var(--pm-border); border-radius: 999px; }
+     .step-line.done { background: var(--pm-primary); }
+     .modal-tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--pm-border); margin: -20px -20px 18px; padding: 0 20px; overflow-x: auto; }
+     .modal-tab { border: 0; background: transparent; padding: 13px 12px; font-size: 12px; font-weight: 900; color: var(--pm-muted); border-bottom: 2px solid transparent; }
+     .modal-tab.active { color: var(--pm-primary); border-color: var(--pm-primary); }
+     .tab-panel { display: none; }
+     .tab-panel.active { display: block; animation: fadeIn .2s ease; }
+     .notice { padding: 13px; border-radius: 14px; font-size: 12px; margin-bottom: 14px; }
+     .notice.info { background: var(--pm-info-soft); color: #1d4ed8; }
+     .notice.warn { background: var(--pm-warning-soft); color: #92400e; }
+     .notice.danger { background: var(--pm-danger-soft); color: #991b1b; }
+     .notice.success { background: var(--pm-accent-soft); color: #047857; }
+     .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+     .stat-box { border: 1px solid var(--pm-border); border-radius: 14px; padding: 13px; background: #fff; }
+     .stat-box small { display: block; color: var(--pm-muted); font-size: 10px; text-transform: uppercase; font-weight: 900; letter-spacing: .04em; }
+     .stat-box strong { display: block; margin-top: 3px; font-size: 18px; }
+     .payment-method { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid var(--pm-border); border-radius: 14px; margin-bottom: 9px; cursor: pointer; }
+     .payment-method.selected { border-color: var(--pm-primary); background: rgba(79,70,229,.04); }
+     .pin-row { display: flex; justify-content: center; gap: 10px; margin: 15px 0; }
+     .pin-row input { width: 48px; height: 48px; text-align: center; font-size: 22px; font-weight: 900; }
+     .toast { position: fixed; right: 18px; bottom: 18px; z-index: 260; background: #111827; color: #fff; border-radius: 14px; padding: 12px 14px; min-width: 220px; box-shadow: var(--pm-shadow-xl); display: none; animation: fadeIn .2s ease; font-size: 12px; font-weight: 800; }
+     .toast.show { display: block; }
+ 
+     @media (max-width: 1280px) {
+       .property-grid { grid-template-columns: repeat(4, 1fr); }
+       .hero-grid { grid-template-columns: 1fr 1fr; }
+       .five-grid, .six-grid { grid-template-columns: repeat(3, 1fr); }
+     }
+     @media (max-width: 900px) {
+       .sidebar { position: fixed; transform: translateX(-100%); transition: .25s ease; }
+       .sidebar.open { transform: translateX(0); }
+       .menu-btn { display: grid; }
+       .topbar { padding: 12px 15px; }
+       .title { display: none; }
+       .profile-text { display: none; }
+       .page { padding: 18px 14px 34px; }
+       .page-head { flex-direction: column; }
+       .head-actions { justify-content: flex-start; }
+       .hero-grid, .three-grid, .two-grid, .four-grid { grid-template-columns: 1fr; }
+       .five-grid, .six-grid, .split-grid { grid-template-columns: 1fr 1fr; }
+       .property-grid { grid-template-columns: repeat(2, 1fr); }
+       .stat-grid { grid-template-columns: 1fr 1fr; }
+       .calendar-strip { grid-template-columns: 1fr 1fr; }
+       .ledger-row { grid-template-columns: 38px 1fr; }
+       .ledger-row > div:nth-child(n 3) { grid-column: 2; }
+     }
+     @media (max-width: 560px) {
+       .actions .hide-mobile { display: none; }
+       .property-grid, .five-grid, .six-grid, .form-grid, .stat-grid, .calendar-strip, .split-grid { grid-template-columns: 1fr; }
+       .section-head { flex-direction: column; align-items: flex-start; }
+       .chart-row { grid-template-columns: 92px 1fr 66px; }
+       .modal-foot { flex-direction: column-reverse; align-items: stretch; }
+       .modal-foot .btn { width: 100%; }
+       .step span:not(.num) { display: none; }
+     }
+   </style>
+ </head>
+ <body>
+   <div class="app">
+     <aside class="sidebar" id="sidebar">
+       <div class="logo">P</div>
+       <nav class="nav">
+         <button type="button" onclick="location.href='page1-1.html'" title="Command Center"><span class="nav-icon">CC</span></button>
+         <button type="button" onclick="location.href='page1-2.html'" title="Utilities"><span class="nav-icon">UT</span></button>
+         <button type="button" onclick="location.href='page1-3.html'" title="TV Internet"><span class="nav-icon">TV</span></button>
+         <button class="active" type="button" data-modal="navRealEstate" title="Real Estate"><span class="nav-icon">RE</span><span class="dot"></span></button>
+         <button type="button" data-modal="navInsurance"><span class="nav-icon">IN</span></button>
+         <button type="button" data-modal="navGov"><span class="nav-icon">GV</span></button>
+         <button type="button" data-modal="navEducation"><span class="nav-icon">ED</span></button>
+         <button type="button" data-modal="navTransport"><span class="nav-icon">TR</span></button>
+       </nav>
+       <nav class="nav nav-bottom">
+         <button type="button" data-modal="preferences"><span class="nav-icon">ST</span></button>
+         <button type="button" data-modal="supportCenter"><span class="nav-icon">HP</span></button>
+       </nav>
+     </aside>
+ 
+     <main class="main">
+       <header class="topbar">
+         <button class="icon-btn menu-btn" type="button" id="menuBtn">MN</button>
+         <div class="title">
+           <h1>Real Estate & Property Payments</h1>
+           <p>Rent, deposits, mortgages, rates, conveyancing and estate operations</p>
+         </div>
+         <div class="search"><input id="globalSearch" type="search" placeholder="Search property, tenancy, landlord, title, invoice..."></div>
+         <div class="actions">
+           <button class="icon-btn hide-mobile" type="button" data-modal="propertyHealth">HC</button>
+           <button class="icon-btn" type="button" data-modal="notifications">NT<span class="counter">11</span></button>
+           <button class="icon-btn hide-mobile" type="button" data-modal="helpGuide">?</button>
+           <button class="profile-btn" type="button" data-modal="profileSettings">
+             <span class="avatar">AK</span><span class="profile-text"><span class="profile-name">Amina K.</span><span class="profile-role">Property Owner</span></span>
+           </button>
+         </div>
+       </header>
+ 
+       <section class="page">
+         <div class="page-head">
+           <div>
+             <div class="crumb">Home / Services Hub / Real Estate & Property Payments</div>
+             <h2>PAGE 1.9 - Real Estate & Property Payments</h2>
+             <p>Handle rent collection, security deposits, mortgages, land rates, conveyancing, estate service charges and tenant operations.</p>
+           </div>
+           <div class="head-actions">
+             <button class="btn" type="button" data-modal="propertyHealth">Health Check</button>
+             <button class="btn" type="button" data-modal="propertyLedgerFull">Ledger</button>
+             <button class="btn" type="button" data-modal="rentCalendar">Rent Calendar</button>
+             <button class="btn primary" type="button" data-modal="onboardPropertyWizard">Onboard Property</button>
+           </div>
+         </div>
+ 
+         <div class="grid hero-grid">
+           <article class="card hero-card">
+             <span>Property payment center is live <span class="live-dot"></span></span>
+             <h3>26 linked properties</h3>
+             <p>Residential, commercial and mixed-use units with rent billing, rates, mortgages, leases, deposits and legal fee workflows.</p>
+             <button class="btn" type="button" data-modal="rentCollectionWizard">Collect rent</button>
+             <button class="btn" type="button" data-modal="depositWizard">Record deposit</button>
+             <button class="btn" type="button" data-modal="landRatesWizard">Pay land rates</button>
+           </article>
+           <article class="card">
+             <div class="metric-label">Due in 7 days</div>
+             <div class="metric-value">KES 482,900</div>
+             <div class="metric-sub" style="background:var(--pm-warning-soft);color:var(--pm-warning)">19 obligations due</div>
+             <div class="barset"><i style="height:28%"></i><i style="height:48%"></i><i style="height:39%"></i><i style="height:86%"></i><i style="height:42%"></i><i style="height:64%"></i><i style="height:76%"></i></div>
+           </article>
+           <article class="card">
+             <div class="metric-label">Collection rate</div>
+             <div class="metric-value">93.8%</div>
+             <div class="metric-sub">MTD across 84 units</div>
+             <div style="margin-top:18px" class="progress"><span style="width:94%;background:linear-gradient(90deg,var(--pm-primary),var(--pm-accent))"></span></div>
+             <div style="margin-top:9px" class="row"><small>Arrears</small><b>KES 228,400</b></div>
+           </article>
+           <article class="card">
+             <div class="metric-label">Automation coverage</div>
+             <div class="metric-value">68%</div>
+             <div class="metric-sub">standing orders, auto-invoices</div>
+             <div style="margin-top:16px" class="row"><span class="muted">Late fee rules</span><b style="color:var(--pm-accent)">14 active</b></div>
+             <div class="progress"><span style="width:68%;background:var(--pm-info)"></span></div>
+           </article>
+         </div>
+ 
+         <div class="grid three-grid" style="margin-bottom:16px">
+           <article class="card">
+             <div class="row" style="margin-bottom:10px"><b>Attention Required</b><button class="tiny-btn" data-modal="alertsAll" type="button">View all</button></div>
+             <div class="mini-list">
+               <button class="mini-item" type="button" data-modal="rentArrearsAlert"><span class="mini-icon" style="background:var(--pm-danger-soft);color:var(--pm-danger)">RA</span><span style="flex:1"><span class="mini-title">4 units entered 30  day arrears</span><span class="mini-sub">Automated reminders sent, escalation rules due today</span></span><span class="tiny-btn">Open</span></button>
+               <button class="mini-item" type="button" data-modal="titleTransferAlert"><span class="mini-icon" style="background:var(--pm-warning-soft);color:var(--pm-warning)">TT</span><span style="flex:1"><span class="mini-title">Title transfer stamp duty outstanding</span><span class="mini-sub">Ardhisasa reference expires in 3 days</span></span><span class="tiny-btn">Review</span></button>
+               <button class="mini-item" type="button" data-modal="mortgageInstallmentAlert"><span class="mini-icon" style="background:var(--pm-info-soft);color:var(--pm-info)">MG</span><span style="flex:1"><span class="mini-title">Mortgage installment requires funding</span><span class="mini-sub">KES 124,000 due in 2 days, wallet insufficient</span></span><span class="tiny-btn">Fund</span></button>
+             </div>
+           </article>
+           <article class="card">
+             <div class="row" style="margin-bottom:10px"><b>Smart Suggestions</b><button class="tiny-btn" data-modal="smartSuggestions" type="button">AI</button></div>
+             <div class="mini-list">
+               <button class="mini-item" type="button" data-modal="splitRentWizard"><span class="mini-icon" style="background:var(--pm-accent-soft);color:var(--pm-accent)">SR</span><span style="flex:1"><span class="mini-title">Split office rent by cost center</span><span class="mini-sub">4 departments can settle their share separately</span></span><span class="tiny-btn">Split</span></button>
+               <button class="mini-item" type="button" data-modal="autopayMortgageWizard"><span class="mini-icon" style="background:var(--pm-purple-soft);color:var(--pm-purple)">AM</span><span style="flex:1"><span class="mini-title">Enable mortgage autopay with cap buffer</span><span class="mini-sub">Avoid late penalty and improve loan profile</span></span><span class="tiny-btn">Setup</span></button>
+               <button class="mini-item" type="button" data-modal="leaseRenewalOffer"><span class="mini-icon" style="background:var(--pm-warning-soft);color:var(--pm-warning)">LR</span><span style="flex:1"><span class="mini-title">Lease renewal batch ready</span><span class="mini-sub">6 tenants qualify for digital renewal and deposit roll-over</span></span><span class="tiny-btn">View</span></button>
+             </div>
+           </article>
+           <article class="card">
+             <div style="margin-bottom:10px"><b>Quick Actions</b><p style="margin:2px 0 0;color:var(--pm-muted);font-size:11px">Frequent property payment workflows</p></div>
+             <div class="quick-grid">
+               <button class="tiny-btn" type="button" data-modal="rentCollectionWizard">Collect Rent</button>
+               <button class="tiny-btn" type="button" data-modal="depositWizard">Deposit</button>
+               <button class="tiny-btn" type="button" data-modal="maintenanceChargeWizard">Service Charge</button>
+               <button class="tiny-btn" type="button" data-modal="landRatesWizard">Land Rates</button>
+               <button class="tiny-btn" type="button" data-modal="conveyancingWizard">Conveyancing</button>
+               <button class="tiny-btn" type="button" data-modal="evictionNoticeWizard">Notice</button>
+             </div>
+           </article>
+         </div>
+ 
+         <section class="section">
+           <div class="section-head">
+             <div class="section-title"><h3>1.9.1 - Rent, Lease & Tenancy Payments</h3><p>Collect rent, manage leases, automate invoicing, track arrears and support flexible tenant payment arrangements.</p></div>
+             <div class="toolbar"><button class="btn" type="button" data-modal="tenancyDirectory">Tenants</button><button class="btn primary" type="button" data-modal="rentCollectionWizard">Collect rent</button></div>
+           </div>
+           <div class="section-body">
+             <div class="grid four-grid">
+               <article class="card"><div class="metric-label">Active units</div><div class="metric-value">84</div><div class="row"><span class="muted">Occupied</span><b>79</b></div><div class="row"><span class="muted">Vacant</span><b>5</b></div></article>
+               <article class="card"><div class="metric-label">Rent due now</div><div class="metric-value">KES 228,400</div><div class="row"><span class="muted">Overdue</span><b style="color:var(--pm-danger)">KES 84,200</b></div><div class="row"><span class="muted">Collected today</span><b>KES 41,000</b></div></article>
+               <article class="card"><div class="metric-label">Lease renewals</div><div class="metric-value">6 upcoming</div><div class="row"><span class="muted">In 30 days</span><b>4</b></div><div class="row"><span class="muted">Digitally ready</span><b>6</b></div></article>
+               <article class="card"><div class="metric-label">Payment plans</div><div class="metric-value">9 active</div><div class="row"><span class="muted">Default risk</span><b style="color:var(--pm-warning)">Medium</b></div><div class="row"><span class="muted">Next follow-up</span><b>Today</b></div></article>
+             </div>
+             <div class="property-grid" id="rentProperties" style="margin-top:14px"></div>
+           </div>
+         </section>
+ 
+         <section class="section">
+           <div class="section-head">
+             <div class="section-title"><h3>1.9.2 - Security Deposits, Escrow & Refunds</h3><p>Receive, ring-fence and refund deposits with conditions, inspections and audit trails.</p></div>
+             <div class="toolbar"><button class="btn" type="button" data-modal="escrowAccounts">Escrow</button><button class="btn primary" type="button" data-modal="depositWizard">Record deposit</button></div>
+           </div>
+           <div class="section-body">
+             <div class="grid three-grid">
+               <article class="card"><div class="row"><b>Held Deposits</b><button class="tiny-btn" type="button" data-modal="depositLedger">Ledger</button></div><div class="chart-bars" id="depositBars" style="margin-top:14px"></div></article>
+               <article class="card"><div class="row"><b>Refund Queue</b><button class="tiny-btn" type="button" data-modal="refundQueue">Queue</button></div><div class="mini-list" style="margin-top:12px"><button class="mini-item" type="button" data-modal="refundWizard"><span class="mini-icon" style="background:var(--pm-accent-soft);color:var(--pm-accent)">RF</span><span style="flex:1"><span class="mini-title">Apt B12 move-out refund</span><span class="mini-sub">KES 28,000 net after repairs review</span></span><span class="tiny-btn">Process</span></button><button class="mini-item" type="button" data-modal="inspectionReport"><span class="mini-icon" style="background:var(--pm-warning-soft);color:var(--pm-warning)">IN</span><span style="flex:1"><span class="mini-title">Inspection pending before release</span><span class="mini-sub">Photos and meter readings needed</span></span><span class="tiny-btn">Open</span></button></div></article>
+               <article class="card"><div class="row"><b>Escrow Workflows</b><button class="tiny-btn" type="button" data-modal="escrowReleaseWizard">Release</button></div><div class="mini-list" style="margin-top:12px"><button class="mini-item" type="button" data-modal="escrowReleaseWizard"><span class="mini-icon" style="background:var(--pm-info-soft);color:var(--pm-info)">ES</span><span style="flex:1"><span class="mini-title">Off-plan unit reservation</span><span class="mini-sub">KES 500,000 held until legal approval</span></span><span class="status st-auto">Escrow</span></button><button class="mini-item" type="button" data-modal="developerMilestone"><span class="mini-icon" style="background:var(--pm-purple-soft);color:var(--pm-purple)">DM</span><span style="flex:1"><span class="mini-title">Milestone release request</span><span class="mini-sub">Foundation certificate uploaded</span></span><span class="tiny-btn">Review</span></button></div></article>
+             </div>
+           </div>
+         </section>
+ 
+         <section class="section">
+           <div class="section-head">
+             <div class="section-title"><h3>1.9.3 - Mortgages, Loans & Financing</h3><p>Track mortgage installments, principal/interest, refinancing and flexible autopay arrangements.</p></div>
+             <div class="toolbar"><button class="btn" type="button" data-modal="mortgageAnalytics">Analytics</button><button class="btn primary" type="button" data-modal="mortgagePayWizard">Pay mortgage</button></div>
+           </div>
+           <div class="section-body">
+             <div class="grid two-grid">
+               <article class="card">
+                 <div class="row"><b>Mortgage Portfolio</b><button class="tiny-btn" type="button" data-modal="mortgageDirectory">Accounts</button></div>
+                 <div class="property-grid" id="mortgageAccounts" style="grid-template-columns:repeat(3,1fr);margin-top:12px"></div>
+               </article>
+               <article class="card">
+                 <div class="row"><b>Installment Breakdown</b><button class="tiny-btn" type="button" data-modal="amortizationTable">Amortization</button></div>
+                 <div class="chart-bars" id="mortgageBars" style="margin-top:14px"></div>
+                 <div class="notice info" style="margin-top:14px">You can split mortgage payments across wallet, bank transfer and direct debit without breaking installment reconciliation.</div>
+               </article>
+             </div>
+           </div>
+         </section>
+ 
+         <section class="section">
+           <div class="section-head"><div class="section-title"><h3>1.9.4 - Property Taxes, Rates & Public Real Estate Fees</h3><p>Pay county land rates, ground rent, Ardhisasa charges, valuation, permits and stamp duty.</p></div><div class="toolbar"><button class="btn" type="button" data-modal="ratesDirectory">Directory</button><button class="btn primary" type="button" data-modal="landRatesWizard">Pay rates</button></div></div>
+           <div class="section-body">
+             <div class="grid three-grid">
+               <article class="card"><div class="row"><b>Rates & Ground Rent</b><button class="tiny-btn" type="button" data-modal="groundRentWizard">Ground rent</button></div><div class="mini-list" id="ratesRows" style="margin-top:12px"></div></article>
+               <article class="card"><div class="row"><b>Ardhisasa & Land Services</b><button class="tiny-btn" type="button" data-modal="ardhisasaCases">Cases</button></div><div class="mini-list" style="margin-top:12px"><button class="mini-item" type="button" data-modal="stampDutyWizard"><span class="mini-icon" style="background:var(--pm-primary);color:#fff">SD</span><span style="flex:1"><span class="mini-title">Stamp duty payment</span><span class="mini-sub">Transfer reference ARD-89210, KES 184,000 due</span></span><span class="tiny-btn">Pay</span></button><button class="mini-item" type="button" data-modal="landSearchWizard"><span class="mini-icon" style="background:var(--pm-info-soft);color:var(--pm-info)">LS</span><span style="flex:1"><span class="mini-title">Land search fee</span><span class="mini-sub">Title verification and downloadable receipt</span></span><span class="tiny-btn">Open</span></button></div></article>
+               <article class="card"><div class="row"><b>Permits & Valuation</b><button class="tiny-btn" type="button" data-modal="valuationWizard">Valuation</button></div><div class="mini-list" style="margin-top:12px"><button class="mini-item" type="button" data-modal="permitWizard"><span class="mini-icon" style="background:var(--pm-warning-soft);color:var(--pm-warning)">BP</span><span style="flex:1"><span class="mini-title">Building permit renewal</span><span class="mini-sub">County review fee and inspection booking</span></span><span class="tiny-btn">Pay</span></button><button class="mini-item" type="button" data-modal="valuationWizard"><span class="mini-icon" style="background:var(--pm-accent-soft);color:var(--pm-accent)">VL</span><span style="flex:1"><span class="mini-title">Property valuation request</span><span class="mini-sub">Bank-ready valuation fee workflow</span></span><span class="tiny-btn">Start</span></button></div></article>
+             </div>
+           </div>
+         </section>
+ 
+         <section class="section">
+           <div class="section-head"><div class="section-title"><h3>1.9.5 - Conveyancing, Legal & Closing Costs</h3><p>Track legal fees, professional disbursements, title transfer costs and document milestones.</p></div><div class="toolbar"><button class="btn" type="button" data-modal="legalDirectory">Professionals</button><button class="btn primary" type="button" data-modal="conveyancingWizard">Open conveyancing flow</button></div></div>
+           <div class="section-body">
+             <div class="grid two-grid">
+               <article class="card">
+                 <div class="row"><b>Closing Cost Checklist</b><button class="tiny-btn" type="button" data-modal="closingChecklist">Checklist</button></div>
+                 <div class="split-grid" style="margin-top:12px">
+                   <button class="card" type="button" data-modal="legalFeeWizard"><b>Legal Fees</b><p class="mini-sub">Advocate invoice, retainer and stage payments.</p></button>
+                   <button class="card" type="button" data-modal="stampDutyWizard"><b>Stamp Duty</b><p class="mini-sub">Transfer tax, valuation and receipts.</p></button>
+                   <button class="card" type="button" data-modal="titleTransferWizard"><b>Title Transfer</b><p class="mini-sub">Milestones, document uploads and handover.</p></button>
+                 </div>
+               </article>
+               <article class="card">
+                 <div class="row"><b>Document Milestones</b><button class="tiny-btn" type="button" data-modal="documentRoom">Data room</button></div>
+                 <div class="mini-list" style="margin-top:12px"><button class="mini-item" type="button" data-modal="documentRoom"><span class="mini-icon" style="background:var(--pm-surface-2);color:var(--pm-primary)">01</span><span style="flex:1"><span class="mini-title">Sale agreement signed</span><span class="mini-sub">Buyer, seller and advocate copies uploaded</span></span><span class="status st-current">Done</span></button><button class="mini-item" type="button" data-modal="documentRoom"><span class="mini-icon" style="background:var(--pm-surface-2);color:var(--pm-primary)">02</span><span style="flex:1"><span class="mini-title">Valuation report received</span><span class="mini-sub">Bank accepts report for mortgage release</span></span><span class="status st-current">Done</span></button><button class="mini-item" type="button" data-modal="documentRoom"><span class="mini-icon" style="background:var(--pm-surface-2);color:var(--pm-warning)">03</span><span style="flex:1"><span class="mini-title">Stamp duty pending</span><span class="mini-sub">Must be paid before transfer submission</span></span><span class="status st-due">Due</span></button><button class="mini-item" type="button" data-modal="documentRoom"><span class="mini-icon" style="background:var(--pm-surface-2);color:var(--pm-danger)">04</span><span style="flex:1"><span class="mini-title">Transfer registration incomplete</span><span class="mini-sub">County acknowledgment not yet issued</span></span><span class="status st-overdue">Risk</span></button></div>
+               </article>
+             </div>
+           </div>
+         </section>
+ 
+         <section class="section">
+           <div class="section-head"><div class="section-title"><h3>1.9.6 - Property Ledger, Calendar & Tenant Operations</h3><p>Unified property ledger, due-date calendar, maintenance charges, penalties, notices and reconciliations.</p></div><div class="toolbar"><button class="chip active" data-ledger="all" type="button">All</button><button class="chip" data-ledger="rent" type="button">Rent</button><button class="chip" data-ledger="deposit" type="button">Deposit</button><button class="chip" data-ledger="tax" type="button">Rates</button><button class="chip" data-ledger="legal" type="button">Legal</button></div></div>
+           <div class="section-body">
+             <div class="grid two-grid">
+               <article class="card"><div class="row"><b>Property Calendar</b><button class="tiny-btn" type="button" data-modal="rentCalendar">Open full</button></div><div class="calendar-strip" id="calendarStrip" style="margin-top:12px"></div></article>
+               <article class="card"><div class="row"><b>Ledger Summary</b><button class="tiny-btn" type="button" data-modal="propertyLedgerFull">Open ledger</button></div><div class="stat-grid" style="margin-top:12px"><div class="stat-box"><small>Unpaid</small><strong>12</strong></div><div class="stat-box"><small>Overdue</small><strong>4</strong></div><div class="stat-box"><small>Escrow</small><strong>3</strong></div><div class="stat-box"><small>Notices</small><strong>2</strong></div></div><div class="chart-bars" id="ledgerBars" style="margin-top:14px"></div></article>
+             </div>
+             <div style="margin-top:14px" id="propertyLedger"></div>
+           </div>
+         </section>
+       </section>
+     </main>
+   </div>
+ 
+   <div class="modal-backdrop" id="modalBackdrop" aria-hidden="true">
+     <div class="modal" id="modalBox" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+       <div class="modal-head"><div><h3 id="modalTitle">Modal title</h3><p id="modalSubtitle">Modal subtitle</p></div><button class="modal-close" type="button" id="modalClose">X</button></div>
+       <div id="stepWrap"></div>
+       <div class="modal-body" id="modalBody"></div>
+       <div class="modal-foot" id="modalFoot"></div>
+     </div>
+   </div>
+   <div class="toast" id="toast">Action completed</div>
+ 
+   <script>
+     const $ = (sel) => document.querySelector(sel);
+     const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+ 
+     const rentProperties = [
+       {name:"Kilimani Flats A1", code:"RENT-001", type:"Residential", due:"KES 28,000", status:"due", mark:"KF", color:"#4f46e5"},
+       {name:"Westlands Office 2B", code:"RENT-002", type:"Commercial", due:"KES 120,000", status:"current", mark:"WO", color:"#10b981"},
+       {name:"Syokimau Maisonette", code:"RENT-003", type:"Residential", due:"KES 35,000", status:"overdue", mark:"SM", color:"#ef4444"},
+       {name:"Karen Guest Wing", code:"RENT-004", type:"Short Stay", due:"KES 42,000", status:"auto", mark:"KG", color:"#3b82f6"},
+       {name:"Industrial Shed 4", code:"RENT-005", type:"Commercial", due:"KES 88,000", status:"due", mark:"IS", color:"#f59e0b"},
+       {name:"Ruiru Bedsitter Block", code:"RENT-006", type:"Residential", due:"KES 72,000", status:"paused", mark:"RB", color:"#8b5cf6"}
+     ];
+     const mortgageAccounts = [
+       {name:"Stanbic Mortgage", acct:"MORT-44820", due:"KES 124,000", status:"due", mark:"SB", color:"#4f46e5"},
+       {name:"NCBA Home Loan", acct:"MORT-88201", due:"KES 86,500", status:"current", mark:"NC", color:"#10b981"},
+       {name:"HF Group Facility", acct:"MORT-21109", due:"KES 62,200", status:"auto", mark:"HF", color:"#3b82f6"}
+     ];
+     const depositBars = [["Held deposits","KES 2.8M",88,"#4f46e5"],["Escrow reservations","KES 1.4M",52,"#10b981"],["Refunds pending","KES 182K",24,"#f59e0b"],["Repair deductions","KES 64K",12,"#ef4444"]];
+     const mortgageBars = [["Principal","KES 74,200",72,"#10b981"],["Interest","KES 38,800",52,"#f59e0b"],["Insurance","KES 6,400",18,"#8b5cf6"],["Fees","KES 4,600",10,"#ef4444"]];
+     const ratesRows = [["Nairobi land rates","KES 84,000 due Jun 28","Due","NR"],["County ground rent","KES 22,400 annual","Current","GR"],["Ardhisasa title transfer","KES 184,000 stamp duty","Due","AR"],["Building permit renewal","KES 48,500 review fee","Pending","BP"]];
+     const ledgerItems = [
+       {type:"rent", service:"Kilimani Flats A1 Rent", ref:"LED-99241", amount:"KES 28,000", due:"Jun 25", status:"due", icon:"RT"},
+       {type:"deposit", service:"Apt B12 Deposit Refund", ref:"LED-99240", amount:"KES 28,000", due:"Inspection", status:"current", icon:"DP"},
+       {type:"tax", service:"Nairobi Land Rates", ref:"LED-99239", amount:"KES 84,000", due:"Jun 28", status:"due", icon:"LR"},
+       {type:"legal", service:"Advocate Stage Payment", ref:"LED-99238", amount:"KES 120,000", due:"Overdue 1d", status:"overdue", icon:"LG"},
+       {type:"rent", service:"Westlands Office 2B Rent", ref:"LED-99237", amount:"KES 120,000", due:"Paid", status:"current", icon:"RT"}
+     ];
+ 
+     let currentStep = 0;
+     let activeWizard = null;
+ 
+     function statusClass(status){
+       return status === "current" ? "st-current" : status === "due" ? "st-due" : status === "overdue" ? "st-overdue" : status === "auto" ? "st-auto" : "st-paused";
+     }
+ 
+     function renderPropertyCards(){
+       $("#rentProperties").innerHTML = rentProperties.map((a, i) => `<article class="property-card">
+         <div class="property-top"><span class="property-mark" style="background:${a.color}">${a.mark}</span><span class="status ${statusClass(a.status)}">${a.status}</span></div>
+         <div class="property-name">${a.name}</div><div class="property-meta">${a.type} - ${a.code}</div>
+         <div class="property-metrics"><div><small>Due / billed</small><b>${a.due}</b></div><div><small>Occupancy</small><b>${i===5?"92%":"100%"}</b></div><div><small>Tenancy</small><b>${i===3?"Short stay":"Annual"}</b></div><div><small>Last receipt</small><b>${i+2}d ago</b></div></div>
+         <div class="property-actions"><div style="display:flex;gap:7px"><button class="round-btn" data-rent="${i}" data-rent-action="pay" type="button">Pay</button><button class="round-btn" data-rent="${i}" data-rent-action="view" type="button">View</button><button class="round-btn" data-rent="${i}" data-rent-action="manage" type="button">Edit</button></div></div>
+       </article>`).join("");
+ 
+       $("#mortgageAccounts").innerHTML = mortgageAccounts.map((a, i) => `<article class="property-card">
+         <div class="property-top"><span class="property-mark" style="background:${a.color}">${a.mark}</span><span class="status ${statusClass(a.status)}">${a.status}</span></div>
+         <div class="property-name">${a.name}</div><div class="property-meta">${a.acct}</div>
+         <div class="property-metrics"><div><small>Installment</small><b>${a.due}</b></div><div><small>Due date</small><b>Jun ${22 i}</b></div><div><small>Rate</small><b>${12.8 i*1.2}%</b></div><div><small>Term left</small><b>${11-i} yrs</b></div></div>
+         <div class="property-actions"><div style="display:flex;gap:7px"><button class="round-btn" data-mort="${i}" data-mort-action="pay" type="button">Pay</button><button class="round-btn" data-mort="${i}" data-mort-action="view" type="button">View</button><button class="round-btn" data-mort="${i}" data-mort-action="auto" type="button">Auto</button></div></div>
+       </article>`).join("");
+     }
+ 
+     function renderBars(){
+       $("#depositBars").innerHTML = depositBars.map(r => `<div class="chart-row"><span>${r[0]}</span><div class="chart-track"><span style="width:${r[2]}%;background:${r[3]}"></span></div><b class="right">${r[1]}</b></div>`).join("");
+       $("#mortgageBars").innerHTML = mortgageBars.map(r => `<div class="chart-row"><span>${r[0]}</span><div class="chart-track"><span style="width:${r[2]}%;background:${r[3]}"></span></div><b class="right">${r[1]}</b></div>`).join("");
+       $("#ratesRows").innerHTML = ratesRows.map((r,i) => `<button class="mini-item" type="button" data-modal="${i===0?"landRatesWizard":i===1?"groundRentWizard":i===2?"stampDutyWizard":"permitWizard"}"><span class="mini-icon" style="background:${i%2?"var(--pm-info-soft)":"var(--pm-warning-soft)"};color:${i%2?"var(--pm-info)":"var(--pm-warning)"}">${r[3]}</span><span style="flex:1"><span class="mini-title">${r[0]}</span><span class="mini-sub">${r[1]}</span></span><span class="status ${i===3?"st-paused":"st-due"}">${r[2]}</span></button>`).join("");
+       $("#calendarStrip").innerHTML = [["Today","KES 28,000","Kilimani A1","due"],["Fri","KES 62,200","HF Installment","auto"],["Sat","KES 84,000","Land rates","due"],["Sun","No item","Clear","current"],["Mon","KES 120,000","Legal fees","overdue"],["Tue","KES 42,000","Guest Wing","current"],["Wed","KES 22,400","Ground rent","due"]].map(r => `<button class="day-card" type="button" data-modal="rentCalendar"><span class="day-date">${r[0]}</span><div class="day-amount">${r[1]}</div><div class="mini-sub">${r[2]}</div><span class="status ${statusClass(r[3])}" style="margin-top:8px">${r[3]}</span></button>`).join("");
+       $("#ledgerBars").innerHTML = [["Rent","KES 248,000",72,"#4f46e5"],["Deposits","KES 28,000",16,"#10b981"],["Rates","KES 106,400",34,"#f59e0b"],["Legal","KES 120,000",42,"#ef4444"]].map(r=>`<div class="chart-row"><span>${r[0]}</span><div class="chart-track"><span style="width:${r[2]}%;background:${r[3]}"></span></div><b class="right">${r[1]}</b></div>`).join("");
+       renderLedger("all");
+     }
+ 
+     function renderLedger(filter){
+       const data = ledgerItems.filter(b => filter === "all" || b.type === filter);
+       $("#propertyLedger").innerHTML = data.map((b, i) => `<div class="ledger-row"><span class="property-mark" style="background:${i%2?"#3b82f6":"#4f46e5"}">${b.icon}</span><div><b>${b.service}</b><span class="mini-sub">${b.ref}</span></div><div><b>${b.amount}</b><span class="mini-sub">Amount</span></div><div><span class="status ${statusClass(b.status)}">${b.status}</span><span class="mini-sub">${b.due}</span></div><div class="row"><button class="tiny-btn" data-ledger-item="${i}" data-ledger-action="view" type="button">View</button><button class="tiny-btn" data-ledger-item="${i}" data-ledger-action="pay" type="button">Pay</button></div></div>`).join("") || `<div class="notice info">No ledger items match this filter.</div>`;
+     }
+ 
+     const modalTemplates = {
+       propertyHealth: {title:"Property Payment Health Check", sub:"Rent invoicing, mortgage rails, title fees and receipt synchronization", size:"lg", body: propertyHealthBody},
+       notifications: {title:"Property Notifications", sub:"Rent reminders, legal deadlines, escrow updates and mortgage alerts", size:"lg", body: notificationsBody},
+       profileSettings: {title:"Property Profile & Preferences", sub:"Owner profile, household/business roles and property alert settings", size:"lg", body: profileBody},
+       helpGuide: {title:"Property Payments Help", sub:"Guidance for rent, deposits, mortgages, rates and conveyancing workflows", body: helpBody},
+       navRealEstate: {title:"Real Estate & Property Hub", sub:"You are viewing Page 1.9 property payments", body: () => navBody("Real Estate", "Manage rent, deposits, mortgages, land rates, conveyancing and tenant operations from one place.")},
+       navInsurance: {title:"Insurance Services", sub:"Risk protection services", body: () => navBody("Insurance", "Property insurance, landlord cover and asset protection workflows are available in the insurance module.")},
+       navGov: {title:"Government Payments", sub:"Public services and statutory payments", body: () => navBody("Government", "KRA, county fees, Ardhisasa and public records services are available in the government module.")},
+       navEducation: {title:"Education Payments", sub:"School and education services", body: () => navBody("Education", "Pay school fees, university fees and manage education payment plans in the education module.")},
+       navTransport: {title:"Transport Services", sub:"Mobility and vehicle payments", body: () => navBody("Transport", "Parking, fuel, tolls and fleet-related services are available in the transport module.")},
+       preferences: {title:"Preferences", sub:"Property dashboard defaults and notification preferences", body: preferencesBody},
+       supportCenter: {title:"Support Center", sub:"Property payments help desk, legal follow-up and dispute workflows", size:"lg", body: supportBody},
+       alertsAll: {title:"Property Attention Items", sub:"Prioritized rent, legal and mortgage events", size:"lg", body: alertsBody},
+       rentArrearsAlert: {title:"Rent Arrears Alert", sub:"Units entered 30  day arrears", size:"lg", body: () => alertDetail("Rent arrears", "4 units overdue", "KES 84,200 open balance", "Escalation due today")},
+       titleTransferAlert: {title:"Title Transfer Deadline", sub:"Stamp duty and submission risk", size:"lg", body: () => alertDetail("Transfer case ARD-89210", "Stamp duty unpaid", "3 days to expiry", "Pay and upload receipt")},
+       mortgageInstallmentAlert: {title:"Mortgage Funding Alert", sub:"Installment requires funding", size:"lg", body: () => alertDetail("Stanbic Mortgage", "KES 124,000 due", "Wallet below threshold", "Top up or switch method")},
+       smartSuggestions: {title:"Smart Property Suggestions", sub:"AI-driven rent, financing and compliance actions", size:"lg", body: smartBody},
+       splitRentWizard: {title:"Split Rent by Cost Center", sub:"Allocate office rent to multiple internal payers", size:"lg", wizard:"splitRent"},
+       autopayMortgageWizard: {title:"Mortgage Auto-pay Setup", sub:"Schedule installment execution with caps and fallback funding", size:"lg", wizard:"autopayMortgage"},
+       leaseRenewalOffer: {title:"Lease Renewal Batch", sub:"Digital renewals and deposit roll-over", size:"lg", body: leaseOfferBody},
+       onboardPropertyWizard: {title:"Onboard Property", sub:"Register a unit, owner, rent model and payment preferences", size:"xl", wizard:"onboardProperty"},
+       rentCollectionWizard: {title:"Rent Collection", sub:"Invoice, collect, confirm and reconcile rent payments", size:"lg", wizard:"rentCollection"},
+       depositWizard: {title:"Record Security Deposit", sub:"Capture deposit source, terms and holding rules", size:"lg", wizard:"deposit"},
+       maintenanceChargeWizard: {title:"Maintenance / Service Charge", sub:"Create service charge invoices and payment plans", size:"lg", wizard:"maintenanceCharge"},
+       landRatesWizard: {title:"Pay Land Rates", sub:"County rates lookup, reference validation and receipt capture", size:"lg", wizard:"landRates"},
+       conveyancingWizard: {title:"Conveyancing Flow", sub:"Legal, stamp duty, title transfer and closing milestones", size:"xl", wizard:"conveyancing"},
+       evictionNoticeWizard: {title:"Notice Workflow", sub:"Create payment reminder, arrears notice or lease notice", size:"lg", wizard:"notice"},
+       tenancyDirectory: {title:"Tenancy Directory", sub:"Tenants, units, arrears, deposits and renewal status", size:"xl", body: tenancyDirectoryBody},
+       rentReceipt: {title:"Rent Receipt", sub:"Receipt, ledger entry and repeat billing controls", size:"lg", body: receiptBody},
+       escrowAccounts: {title:"Escrow Accounts", sub:"Reservation deposits and conditional releases", size:"lg", body: escrowAccountsBody},
+       depositLedger: {title:"Deposit Ledger", sub:"Held balances, deductions and release history", size:"lg", body: depositLedgerBody},
+       refundQueue: {title:"Refund Queue", sub:"Pending tenant deposit refunds and inspection checks", size:"lg", body: refundQueueBody},
+       refundWizard: {title:"Process Deposit Refund", sub:"Inspection, deduction review and payout", size:"lg", wizard:"refund"},
+       inspectionReport: {title:"Move-out Inspection Report", sub:"Photos, damages, meter readings and deductions", size:"lg", body: inspectionBody},
+       escrowReleaseWizard: {title:"Escrow Release", sub:"Approve milestone-based escrow release", size:"lg", wizard:"escrowRelease"},
+       developerMilestone: {title:"Developer Milestone Review", sub:"Construction milestone evidence and release request", size:"lg", body: developerMilestoneBody},
+       mortgageAnalytics: {title:"Mortgage Analytics", sub:"Portfolio view, installment trends and refinancing opportunities", size:"lg", body: mortgageAnalyticsBody},
+       mortgageDirectory: {title:"Mortgage Accounts", sub:"All active mortgages and financing facilities", size:"lg", body: mortgageDirectoryBody},
+       mortgagePayWizard: {title:"Pay Mortgage", sub:"Installment, principal prepayment and flexible method split", size:"lg", wizard:"mortgagePay"},
+       amortizationTable: {title:"Amortization Table", sub:"Principal and interest schedule", size:"xl", body: amortizationBody},
+       ratesDirectory: {title:"Rates & Fees Directory", sub:"County rates, ground rent and real estate public charges", size:"lg", body: ratesDirectoryBody},
+       groundRentWizard: {title:"Ground Rent Payment", sub:"Reference lookup, annual fee and receipt delivery", size:"lg", wizard:"groundRent"},
+       ardhisasaCases: {title:"Ardhisasa Cases", sub:"Land services references, title matters and fees", size:"lg", body: ardhisasaCasesBody},
+       stampDutyWizard: {title:"Stamp Duty Payment", sub:"Title transfer tax review and payment authorization", size:"lg", wizard:"stampDuty"},
+       landSearchWizard: {title:"Land Search Fee", sub:"Title verification, search request and downloadable receipt", size:"lg", wizard:"landSearch"},
+       valuationWizard: {title:"Property Valuation Request", sub:"Bank-ready valuation fee and scheduling", size:"lg", wizard:"valuation"},
+       permitWizard: {title:"Building Permit / Review Fee", sub:"Permit renewal, inspection booking and fee payment", size:"lg", wizard:"permit"},
+       legalDirectory: {title:"Legal & Professional Directory", sub:"Advocates, surveyors, valuers and agents linked to cases", size:"lg", body: legalDirectoryBody},
+       closingChecklist: {title:"Closing Checklist", sub:"Every item required before transfer completion", size:"lg", body: closingChecklistBody},
+       legalFeeWizard: {title:"Legal Fee Payment", sub:"Advocate invoice review, stage billing and release", size:"lg", wizard:"legalFee"},
+       titleTransferWizard: {title:"Title Transfer Workflow", sub:"Prepare, pay, submit and track transfer milestones", size:"lg", wizard:"titleTransfer"},
+       documentRoom: {title:"Document Room", sub:"Secure store for property payment and legal documents", size:"lg", body: documentRoomBody},
+       propertyLedgerFull: {title:"Property Ledger", sub:"Unified ledger across rent, deposits, taxes and legal fees", size:"xl", body: propertyLedgerBody},
+       rentCalendar: {title:"Rent & Property Calendar", sub:"Due dates, renewals, notices and inspections", size:"xl", body: rentCalendarBody}
+     };
+ 
+     const wizards = {
+       onboardProperty: [
+         {label:"Property", html:`<div class="form-grid"><div><label>Property name</label><input value="Kilimani Flats Block A"></div><div><label>Property type</label><select><option>Residential apartments</option><option>Commercial offices</option><option>Mixed-use</option></select></div><div><label>Location</label><input value="Kilimani, Nairobi"></div><div><label>Total units</label><input value="24"></div></div>`},
+         {label:"Owner", html:`<div class="form-grid"><div><label>Owner / business name</label><input value="Amina Holdings Ltd"></div><div><label>KRA PIN</label><input value="P051229441X"></div><div><label>Collection account</label><input value="PayBill 582390 - KFLATSA"></div><div><label>Rates county</label><select><option>Nairobi County</option><option>Kiambu County</option></select></div></div>`},
+         {label:"Billing", html:`<div class="form-grid"><div><label>Rent cycle</label><select><option>Monthly in advance</option><option>Quarterly</option></select></div><div><label>Late fee rule</label><select><option>5% after day 5</option><option>Fixed KES 2,000</option><option>No late fee</option></select></div><div><label>Deposit rule</label><select><option>1 month rent</option><option>2 months rent</option></select></div><div><label>Invoice channel</label><select><option>SMS + email + in-app</option><option>Email only</option></select></div></div>`},
+         {label:"Review", html:`<div class="notice success">Property setup is ready. Units, tenants and ledger rules can be added immediately after onboarding.</div>`}
+       ],
+       rentCollection: [
+         {label:"Unit", html:`<div class="form-grid"><div><label>Property / unit</label><select><option>Kilimani Flats A1</option><option>Westlands Office 2B</option><option>Syokimau Maisonette</option></select></div><div><label>Tenant</label><select><option>John Mwangi</option><option>Westline Traders Ltd</option><option>Grace Wanjiku</option></select></div></div><div class="notice success">Tenant profile loaded. Current lease and due balance found.</div>`},
+         {label:"Invoice", html:`<div class="table-wrap"><table><tbody><tr><td>Rent</td><td class="right"><b>KES 28,000</b></td></tr><tr><td>Service charge</td><td class="right">KES 3,000</td></tr><tr><td>Parking</td><td class="right">KES 2,500</td></tr><tr><td>Arrears</td><td class="right">KES 0</td></tr><tr><td><b>Total</b></td><td class="right"><b>KES 33,500</b></td></tr></tbody></table></div><div class="notice info">You can send invoice first, collect full payment, or accept structured part-payment.</div>`},
+         {label:"Method", html:paymentMethodHtml()},
+         {label:"PIN", html:pinSummaryHtml("Rent Collection", "Kilimani Flats A1", "KES 33,540.60", "Receipt, tenant statement and property ledger will update automatically.")}
+       ],
+       deposit: [
+         {label:"Source", html:`<div class="form-grid"><div><label>Property / unit</label><select><option>Kilimani Flats A1</option><option>Westlands Office 2B</option></select></div><div><label>Payer</label><input value="John Mwangi"></div><div><label>Deposit amount</label><input value="KES 28,000"></div><div><label>Holding mode</label><select><option>Escrow / ring-fenced</option><option>Main property wallet</option></select></div></div>`},
+         {label:"Terms", html:`<div class="form-grid"><div><label>Refund condition</label><select><option>Subject to inspection and utility clearance</option><option>Automatic after lease close</option></select></div><div><label>Linked utility clearance</label><select><option>Electricity + Water + Keys</option><option>Custom checklist</option></select></div><div style="grid-column:1/-1"><label>Notes</label><textarea rows="4">Deposit is refundable net of approved damages, utility arrears and cleaning costs.</textarea></div></div>`},
+         {label:"Confirm", html:pinSummaryHtml("Security Deposit", "Kilimani Flats A1", "KES 28,000", "Deposit ledger and refund workflow will be created automatically.")}
+       ],
+       maintenanceCharge: [
+         {label:"Charge", html:`<div class="form-grid"><div><label>Property</label><select><option>Kilimani Flats Block A</option><option>Westlands Office Park</option></select></div><div><label>Charge type</label><select><option>Service charge</option><option>Repairs levy</option><option>Security levy</option></select></div><div><label>Amount per unit</label><input value="KES 3,000"></div><div><label>Billing cycle</label><select><option>Monthly</option><option>One-off</option></select></div></div>`},
+         {label:"Allocation", html:`<div class="notice info">24 occupied units selected automatically. Vacant units excluded.</div><div class="table-wrap"><table><thead><tr><th>Units billed</th><th>Total charge</th><th>Due date</th></tr></thead><tbody><tr><td>24</td><td>KES 72,000</td><td>Jun 30</td></tr></tbody></table></div>`},
+         {label:"Issue", html:`<div class="notice success">Invoices will be generated and sent immediately to all selected tenants with ledger entries.</div>`}
+       ],
+       landRates: [
+         {label:"Reference", html:`<div class="form-grid"><div><label>County</label><select><option>Nairobi County</option><option>Kiambu County</option></select></div><div><label>Property reference</label><input value="NBI/LR/44820"></div><div><label>Owner name</label><input value="Amina Holdings Ltd"></div><div><label>Bill fetch</label><select><option>Fetch current rates</option><option>Enter invoice manually</option></select></div></div><div class="notice success">County reference validated. Annual land rates due: KES 84,000.</div>`},
+         {label:"Bill", html:`<div class="table-wrap"><table><tbody><tr><td>Current year rates</td><td class="right"><b>KES 84,000</b></td></tr><tr><td>Penalty / arrears</td><td class="right">KES 0</td></tr><tr><td>Convenience fee</td><td class="right">KES 40.60</td></tr><tr><td><b>Total</b></td><td class="right"><b>KES 84,040.60</b></td></tr></tbody></table></div>`},
+         {label:"Confirm", html:pinSummaryHtml("Land Rates", "NBI/LR/44820", "KES 84,040.60", "County receipt and ledger entry will be stored in the property archive.")}
+       ],
+       conveyancing: [
+         {label:"Case", html:`<div class="form-grid"><div><label>Transaction type</label><select><option>Purchase transfer</option><option>Lease assignment</option><option>Mortgage registration</option></select></div><div><label>Case reference</label><input value="CONV-2026-441"></div><div><label>Property</label><input value="Title NBI/BLK/2244/20"></div><div><label>Law firm</label><select><option>Mwangi & Co Advocates</option><option>Kamau Legal LLP</option></select></div></div>`},
+         {label:"Costs", html:`<div class="table-wrap"><table><tbody><tr><td>Legal fee stage 1</td><td class="right"><b>KES 120,000</b></td></tr><tr><td>Stamp duty</td><td class="right">KES 184,000</td></tr><tr><td>Search & registry</td><td class="right">KES 8,500</td></tr><tr><td>Valuation</td><td class="right">KES 22,000</td></tr><tr><td><b>Total payable now</b></td><td class="right"><b>KES 334,500</b></td></tr></tbody></table></div>`},
+         {label:"Milestones", html:`<div class="notice info">You can pay now, split by milestone, or place funds in escrow until all legal checks pass.</div><label><input type="checkbox" checked> Require document upload before release</label><br><label><input type="checkbox" checked> Notify buyer, seller and advocate</label>`},
+         {label:"Confirm", html:pinSummaryHtml("Conveyancing Flow", "CONV-2026-441", "KES 334,540.60", "All case documents and receipts will update in the secure document room.")}
+       ],
+       notice: [
+         {label:"Notice Type", html:`<div class="form-grid"><div><label>Type</label><select><option>Friendly reminder</option><option>Late rent notice</option><option>Lease renewal notice</option><option>Vacate / non-renewal notice</option></select></div><div><label>Recipient</label><select><option>John Mwangi - A1</option><option>Grace Wanjiku - Maisonette</option></select></div></div>`},
+         {label:"Content", html:`<label>Message</label><textarea rows="5">Dear tenant, this is a reminder that your rent amount of KES 28,000 is due. Please settle through the secure PayMo link attached.</textarea><div class="notice info">PDF notice, SMS summary and email copy can be issued together.</div>`},
+         {label:"Send", html:`<label><input type="checkbox" checked> Send by SMS</label><br><label><input type="checkbox" checked> Send by email</label><br><label><input type="checkbox" checked> Save to tenant timeline</label>`}
+       ],
+       refund: [
+         {label:"Case", html:`<div class="form-grid"><div><label>Unit</label><select><option>Apt B12</option></select></div><div><label>Tenant</label><input value="Jane Njeri"></div><div><label>Original deposit</label><input value="KES 30,000"></div><div><label>Move-out date</label><input type="date" value="2026-06-18"></div></div>`},
+         {label:"Deductions", html:`<div class="table-wrap"><table><tbody><tr><td>Painting touch-up</td><td class="right"><b>KES 1,200</b></td></tr><tr><td>Water balance</td><td class="right">KES 800</td></tr><tr><td>Electricity balance</td><td class="right">KES 0</td></tr><tr><td><b>Net refund</b></td><td class="right"><b>KES 28,000</b></td></tr></tbody></table></div>`},
+         {label:"Release", html:pinSummaryHtml("Deposit Refund", "Apt B12", "KES 28,000", "Tenant receipt, inspection archive and deposit ledger will update automatically.")}
+       ],
+       escrowRelease: [
+         {label:"Escrow", html:`<div class="form-grid"><div><label>Escrow case</label><select><option>Off-plan Unit Reservation - Case ESC-2281</option></select></div><div><label>Release trigger</label><select><option>Foundation milestone</option><option>Valuation complete</option><option>Title docs approved</option></select></div></div>`},
+         {label:"Evidence", html:`<div class="notice info">Uploaded: engineer certificate, site photos, progress report and buyer acknowledgment.</div><div class="stat-grid"><div class="stat-box"><small>Held</small><strong>KES 500,000</strong></div><div class="stat-box"><small>Release now</small><strong>KES 250,000</strong></div><div class="stat-box"><small>Balance held</small><strong>KES 250,000</strong></div><div class="stat-box"><small>Status</small><strong>Ready</strong></div></div>`},
+         {label:"Approve", html:pinSummaryHtml("Escrow Release", "ESC-2281", "KES 250,000", "Release notice goes to buyer, seller and project advocate.")}
+       ],
+       mortgagePay: [
+         {label:"Account", html:`<div class="form-grid"><div><label>Mortgage</label><select><option>Stanbic Mortgage - MORT-44820</option><option>NCBA Home Loan - MORT-88201</option></select></div><div><label>Payment type</label><select><option>Regular installment</option><option>Principal prepayment</option><option>Part-payment</option></select></div></div><div class="notice success">Installment fetched: KES 124,000 due Jun 22.</div>`},
+         {label:"Breakdown", html:`<div class="table-wrap"><table><tbody><tr><td>Principal</td><td class="right"><b>KES 74,200</b></td></tr><tr><td>Interest</td><td class="right">KES 38,800</td></tr><tr><td>Insurance</td><td class="right">KES 6,400</td></tr><tr><td>Fees</td><td class="right">KES 4,600</td></tr><tr><td><b>Total</b></td><td class="right"><b>KES 124,000</b></td></tr></tbody></table></div>`},
+         {label:"Method", html:paymentMethodHtml()},
+         {label:"Confirm", html:pinSummaryHtml("Mortgage Payment", "MORT-44820", "KES 124,040.60", "Installment confirmation and updated amortization will be stored.")}
+       ],
+       groundRent: [
+         {label:"Reference", html:`<div class="form-grid"><div><label>Reference</label><input value="GR-884201"></div><div><label>County / authority</label><select><option>National / County record</option></select></div></div><div class="notice success">Ground rent invoice fetched: KES 22,400 annual.</div>`},
+         {label:"Review", html:`<div class="table-wrap"><table><tbody><tr><td>Annual ground rent</td><td class="right"><b>KES 22,400</b></td></tr><tr><td>Convenience fee</td><td class="right">KES 40.60</td></tr><tr><td><b>Total</b></td><td class="right"><b>KES 22,440.60</b></td></tr></tbody></table></div>`},
+         {label:"Confirm", html:pinSummaryHtml("Ground Rent", "GR-884201", "KES 22,440.60", "Receipt and land reference ledger entry will be saved.")}
+       ],
+       stampDuty: [
+         {label:"Case", html:`<div class="form-grid"><div><label>Ardhisasa / case reference</label><input value="ARD-89210"></div><div><label>Property value</label><input value="KES 4,600,000"></div></div><div class="notice success">Stamp duty computed and validated against case reference.</div>`},
+         {label:"Review", html:`<div class="table-wrap"><table><tbody><tr><td>Stamp duty</td><td class="right"><b>KES 184,000</b></td></tr><tr><td>Portal fee</td><td class="right">KES 40.60</td></tr><tr><td><b>Total</b></td><td class="right"><b>KES 184,040.60</b></td></tr></tbody></table></div>`},
+         {label:"Confirm", html:pinSummaryHtml("Stamp Duty", "ARD-89210", "KES 184,040.60", "Portal receipt will be attached to the transfer case automatically.")}
+       ],
+       landSearch: [
+         {label:"Search", html:`<div class="form-grid"><div><label>Title number</label><input value="NBI/BLK/2244/20"></div><div><label>Search type</label><select><option>Official search</option><option>Ownership verification</option></select></div></div>`},
+         {label:"Fee", html:`<div class="table-wrap"><table><tbody><tr><td>Search fee</td><td class="right"><b>KES 500</b></td></tr><tr><td>Portal fee</td><td class="right">KES 40.60</td></tr><tr><td><b>Total</b></td><td class="right"><b>KES 540.60</b></td></tr></tbody></table></div>`},
+         {label:"Confirm", html:pinSummaryHtml("Land Search", "NBI/BLK/2244/20", "KES 540.60", "Result will be added to document room after authority response.")}
+       ],
+       valuation: [
+         {label:"Property", html:`<div class="form-grid"><div><label>Property</label><input value="Westlands Office 2B"></div><div><label>Purpose</label><select><option>Mortgage</option><option>Sale</option><option>Insurance</option></select></div></div>`},
+         {label:"Schedule", html:`<div class="form-grid"><div><label>Valuer</label><select><option>Prime Valuers Ltd</option><option>Metro Assessors</option></select></div><div><label>Visit slot</label><select><option>Tue 10:00</option><option>Wed 14:00</option></select></div><div><label>Fee</label><input value="KES 22,000"></div><div><label>Report SLA</label><input value="3 business days"></div></div>`},
+         {label:"Confirm", html:pinSummaryHtml("Valuation Fee", "Westlands Office 2B", "KES 22,040.60", "Booking and report SLA will be issued immediately.")}
+       ],
+       permit: [
+         {label:"Permit", html:`<div class="form-grid"><div><label>County</label><select><option>Nairobi County</option></select></div><div><label>Permit type</label><select><option>Building permit renewal</option><option>Inspection review fee</option></select></div><div><label>Property ref</label><input value="NBI/PERM/44820"></div><div><label>Invoice</label><input value="KES 48,500"></div></div>`},
+         {label:"Inspection", html:`<div class="form-grid"><div><label>Inspection booking</label><select><option>Fri 09:00-11:00</option><option>Mon 14:00-16:00</option></select></div><div><label>Contact person</label><input value="Property manager - 0712 222 444"></div></div>`},
+         {label:"Confirm", html:pinSummaryHtml("Permit Fee", "NBI/PERM/44820", "KES 48,540.60", "County acknowledgment and booking reference will be added to the permit case.")}
+       ],
+       legalFee: [
+         {label:"Invoice", html:`<div class="form-grid"><div><label>Law firm</label><select><option>Mwangi & Co Advocates</option><option>Kamau Legal LLP</option></select></div><div><label>Invoice number</label><input value="ADV-4402"></div><div><label>Stage</label><select><option>Retainer</option><option>Due diligence</option><option>Completion</option></select></div><div><label>Amount</label><input value="KES 120,000"></div></div>`},
+         {label:"Approval", html:`<div class="notice info">You can pay fully, split across milestones, or hold in escrow pending document confirmation.</div><label><input type="checkbox" checked> Notify advocate with remittance advice</label><br><label><input type="checkbox" checked> Attach case reference and payer note</label>`},
+         {label:"Confirm", html:pinSummaryHtml("Legal Fee Payment", "ADV-4402", "KES 120,040.60", "Case ledger and document room will update automatically.")}
+       ],
+       titleTransfer: [
+         {label:"Title", html:`<div class="form-grid"><div><label>Title number</label><input value="NBI/BLK/2244/20"></div><div><label>Transfer case</label><input value="TT-2026-991"></div><div><label>Buyer</label><input value="John Mwangi"></div><div><label>Seller</label><input value="Amina Holdings Ltd"></div></div>`},
+         {label:"Requirements", html:`<div class="notice info">Upload agreement, IDs, KRA PINs, valuation report, paid stamp duty receipt and advocate execution pages.</div><label><input type="checkbox" checked> Agreement signed</label><br><label><input type="checkbox" checked> Valuation report uploaded</label><br><label><input type="checkbox"> Stamp duty receipt attached</label>`},
+         {label:"Confirm", html:`<div class="notice success">Once complete, the transfer bundle will be ready for final submission and tracking.</div>`}
+       ],
+       splitRent: [
+         {label:"Invoice", html:`<div class="form-grid"><div><label>Property</label><select><option>Westlands Office 2B</option></select></div><div><label>Total invoice</label><input value="KES 120,000"></div></div>`},
+         {label:"Payers", html:`<div class="table-wrap"><table><thead><tr><th>Department</th><th>Contact</th><th>Share</th></tr></thead><tbody><tr><td>Sales</td><td>0712 111 444</td><td>KES 30,000</td></tr><tr><td>Operations</td><td>0722 555 000</td><td>KES 30,000</td></tr><tr><td>Finance</td><td>0733 120 450</td><td>KES 30,000</td></tr><tr><td>Leadership</td><td>0711 880 990</td><td>KES 30,000</td></tr></tbody></table></div>`},
+         {label:"Send", html:`<div class="notice success">Secure links will be sent and partial receipts will auto-reconcile to one invoice.</div>`}
+       ],
+       autopayMortgage: [
+         {label:"Account", html:`<div class="form-grid"><div><label>Mortgage</label><select><option>Stanbic Mortgage - MORT-44820</option></select></div><div><label>Execution timing</label><select><option>2 days before due date</option><option>On due date</option></select></div></div>`},
+         {label:"Funding", html:`<div class="form-grid"><div><label>Primary</label><select><option>PayMo Wallet</option><option>PesaLink</option></select></div><div><label>Fallback</label><select><option>M-Pesa</option><option>Card</option></select></div><div><label>Low balance buffer</label><input value="KES 10,000"></div><div><label>Alert window</label><input value="72 hours before" ></div></div>`},
+         {label:"Review", html:`<div class="notice success">Auto-pay will pause if installment changes by more than 20% or if funding sources fail all retries.</div>`}
+       ]
+     };
+ 
+     function openModal(key){
+       const t = modalTemplates[key];
+       if(!t){ showToast("Workflow opened successfully."); return; }
+       $("#modalBox").className = "modal "   (t.size || "");
+       $("#modalTitle").textContent = t.title;
+       $("#modalSubtitle").textContent = t.sub || "";
+       currentStep = 0;
+       activeWizard = t.wizard || null;
+       if(activeWizard) renderWizard();
+       else {
+         $("#stepWrap").innerHTML = "";
+         $("#modalBody").innerHTML = typeof t.body === "function" ? t.body() : t.body;
+         $("#modalFoot").innerHTML = `<button class="btn" type="button" data-close>Close</button><button class="btn primary" type="button" data-action="save">Save changes</button>`;
+         bindTabs();
+       }
+       $("#modalBackdrop").classList.add("open");
+       $("#modalBackdrop").setAttribute("aria-hidden", "false");
+       document.body.classList.add("no-scroll");
+     }
+ 
+     function renderWizard(){
+       const steps = wizards[activeWizard];
+       $("#stepWrap").innerHTML = `<div class="steps">${steps.map((s,i)=>`<div class="step ${i===currentStep?"active":i<currentStep?"done":""}"><span class="num">${i<currentStep?"✓":i+1}</span><span>${s.label}</span></div>${i<steps.length-1?`<div class="step-line ${i<currentStep?"done":""}"></div>`:""}`).join("")}</div>`;
+       $("#modalBody").innerHTML = steps[currentStep].html;
+       $("#modalFoot").innerHTML = `<button class="btn" type="button" ${currentStep===0?"data-close":"data-step-back"}>${currentStep===0?"Cancel":"Back"}</button><button class="btn primary" type="button" data-step-next>${currentStep===steps.length-1?"Complete workflow":"Continue"}</button>`;
+     }
+ 
+     function completeWizard(){
+       $("#modalBody").innerHTML = `<div style="text-align:center;padding:30px"><div style="width:72px;height:72px;border-radius:999px;background:var(--pm-accent-soft);color:var(--pm-accent);display:grid;place-items:center;margin:0 auto 14px;font-size:28px;font-weight:900">OK</div><h3>Workflow completed</h3><p style="color:var(--pm-muted)">The property request was validated, receipted and written to the property ledger and case timeline.</p><div class="progress" style="margin-top:18px"><span style="width:100%;background-image:linear-gradient(90deg,var(--pm-primary),var(--pm-primary-light),var(--pm-primary));background-size:200% 100%;animation:shimmer 1.4s infinite"></span></div></div>`;
+       $("#stepWrap").innerHTML = "";
+       $("#modalFoot").innerHTML = `<button class="btn primary" type="button" data-close>Done</button>`;
+       showToast("Workflow completed successfully.");
+     }
+ 
+     function closeModal(){
+       $("#modalBackdrop").classList.remove("open");
+       $("#modalBackdrop").setAttribute("aria-hidden", "true");
+       document.body.classList.remove("no-scroll");
+     }
+     function showToast(msg){
+       const t = $("#toast"); t.textContent = msg; t.classList.add("show");
+       clearTimeout(window.toastTimer); window.toastTimer = setTimeout(()=>t.classList.remove("show"), 2200);
+     }
+     function bindTabs(){
+       $$(".modal-tab").forEach(btn => btn.onclick = () => {
+         $$(".modal-tab").forEach(b=>b.classList.remove("active"));
+         $$(".tab-panel").forEach(p=>p.classList.remove("active"));
+         btn.classList.add("active"); $("#" btn.dataset.tab).classList.add("active");
+       });
+     }
+ 
+     function paymentMethodHtml(){ return `<h4 style="margin:0 0 10px">Payment method</h4><div class="payment-method selected"><b>PayMo Wallet</b><span class="mini-sub">Lowest fee and instant ledger sync</span></div><div class="payment-method"><b>M-Pesa STK Push</b><span class="mini-sub">Prompt to +254 712 345 678</span></div><div class="payment-method"><b>PesaLink Bank Transfer</b><span class="mini-sub">Settlement-ready bank transfer</span></div><div class="payment-method"><b>Card</b><span class="mini-sub">Visa / Mastercard with 3DS</span></div>`; }
+     function pinSummaryHtml(service, account, total, note){ return `<div class="notice info">${note}</div><div class="stat-grid"><div class="stat-box"><small>Service</small><strong>${service}</strong></div><div class="stat-box"><small>Reference</small><strong>${account}</strong></div><div class="stat-box"><small>Total</small><strong>${total}</strong></div><div class="stat-box"><small>Security</small><strong>PIN</strong></div></div><div class="pin-row"><input maxlength="1"><input maxlength="1"><input maxlength="1"><input maxlength="1"></div>`; }
+     function miniRows(rows){ return `<div class="mini-list" style="margin-top:12px">${rows.map((r,i)=>`<div class="mini-item"><span class="mini-icon" style="background:var(--pm-surface-2);color:var(--pm-primary)">${String(i+1).padStart(2,"0")}</span><span class="mini-title" style="font-weight:700">${r}</span></div>`).join("")}</div>`; }
+     function tableRows(rows){ return `<div class="table-wrap"><table><tbody>${rows.map(r=>`<tr><td>${r[0]}</td><td class="right"><b>${r[1]}</b></td></tr>`).join("")}</tbody></table></div>`; }
+ 
+     function propertyHealthBody(){ return `<div class="stat-grid"><div class="stat-box"><small>Rent rails</small><strong>99.2%</strong></div><div class="stat-box"><small>Escrow sync</small><strong>OK</strong></div><div class="stat-box"><small>County refs</small><strong>Verified</strong></div><div class="stat-box"><small>Mortgage rails</small><strong>Available</strong></div></div><h4>Diagnostics</h4>${miniRows(["Rent invoice generation passed", "Tenant reminders and links passed", "Mortgage installment fetch passed", "Land rates reference lookup passed", "Document room receipt sync passed", "Escrow release approvals passed"])} `; }
+     function notificationsBody(){ return `<div class="modal-tabs"><button class="modal-tab active" data-tab="n1">Rent</button><button class="modal-tab" data-tab="n2">Legal</button><button class="modal-tab" data-tab="n3">Finance</button></div><div id="n1" class="tab-panel active">${miniRows(["Kilimani A1 rent due Jun 25", "4 units crossed 30+ day arrears", "Lease renewal batch available for 6 tenants"])} </div><div id="n2" class="tab-panel">${miniRows(["Stamp duty due in 3 days", "Transfer case missing receipt attachment", "Valuation report uploaded by surveyor"])} </div><div id="n3" class="tab-panel">${miniRows(["Mortgage due in 2 days", "Escrow release request pending", "Deposit refund requires inspection sign-off"])} </div>`; }
+     function profileBody(){ return `<div class="modal-tabs"><button class="modal-tab active" data-tab="p1">Owner</button><button class="modal-tab" data-tab="p2">Team</button><button class="modal-tab" data-tab="p3">Alerts</button></div><div id="p1" class="tab-panel active"><div class="form-grid"><div><label>Owner name</label><input value="Amina Holdings Ltd"></div><div><label>Default collection account</label><input value="PayBill 582390"></div><div><label>Portfolio budget</label><input value="KES 900,000 monthly"></div><div><label>Default currency</label><select><option>KES</option><option>USD</option></select></div></div></div><div id="p2" class="tab-panel">${miniRows(["Property manager - can invoice and reconcile", "Finance checker - can approve above KES 100,000", "Advocate liaison - document room only", "Tenant support - notices and reminders only"])} </div><div id="p3" class="tab-panel"><label><input type="checkbox" checked> Rent due reminders</label><br><label><input type="checkbox" checked> Mortgage funding alerts</label><br><label><input type="checkbox" checked> Legal deadline warnings</label><br><label><input type="checkbox" checked> Escrow release approvals</label></div>`; }
+     function helpBody(){ return `<div class="notice info">Every button opens a real workflow, detail modal, action panel or multi-step wizard.</div>${miniRows(["Collect rent and reconcile to property ledger automatically.", "Hold deposits, deduct repairs and refund with approvals.", "Pay land rates, ground rent and Ardhisasa fees with references.", "Track mortgage installments, split funding and schedule autopay.", "Manage legal fees, title transfer milestones and document evidence."])} `; }
+     function navBody(title, text){ return `<div class="notice info"><b>${title}</b><br>${text}</div><button class="btn primary" type="button" data-close>Continue</button>`; }
+     function preferencesBody(){ return `<label><input type="checkbox" checked> Show overdue rent first</label><br><label><input type="checkbox" checked> Save legal receipts to document room automatically</label><br><label><input type="checkbox" checked> Ask approval before deposit refund release</label><br><label><input type="checkbox"> Auto-download all county payment receipts</label>`; }
+     function supportBody(){ return `<div class="stat-grid"><div class="stat-box"><small>Open cases</small><strong>6</strong></div><div class="stat-box"><small>Resolved 30d</small><strong>19</strong></div><div class="stat-box"><small>Avg response</small><strong>11m</strong></div><div class="stat-box"><small>SLA</small><strong>95%</strong></div></div>${miniRows(["Tenant disputed late fee", "Mortgage payment not reflected", "Land rates reference rejected", "Escrow milestone evidence missing", "Deposit deduction disagreement"])} `; }
+     function alertsBody(){ return `${alertDetail("Property operations", "11 attention items", "4 time-sensitive", "2 legal deadlines pending")}<div class="table-wrap"><table><thead><tr><th>Item</th><th>Type</th><th>Action</th></tr></thead><tbody><tr><td>4 units in arrears</td><td>Rent</td><td>Escalate</td></tr><tr><td>Stamp duty deadline</td><td>Legal</td><td>Pay</td></tr><tr><td>Mortgage funding gap</td><td>Finance</td><td>Fund</td></tr></tbody></table></div>`; }
+     function alertDetail(a,b,c,d){ return `<div class="stat-grid"><div class="stat-box"><small>Scope</small><strong>${a}</strong></div><div class="stat-box"><small>Signal</small><strong>${b}</strong></div><div class="stat-box"><small>Impact</small><strong>${c}</strong></div><div class="stat-box"><small>Next</small><strong>${d}</strong></div></div><h4>Suggested resolution</h4>${miniRows(["Review linked property or case detail", "Choose payment, reminder or legal action", "Authorize or schedule the next step", "Track ledger and receipt confirmation"])} `; }
+     function smartBody(){ return `<div class="stat-grid"><div class="stat-box"><small>Automation value</small><strong>KES 18,400</strong></div><div class="stat-box"><small>Risk avoided</small><strong>3 penalties</strong></div><div class="stat-box"><small>Renewal candidates</small><strong>6</strong></div><div class="stat-box"><small>Confidence</small><strong>92%</strong></div></div>${miniRows(["Enable mortgage autopay with 72h low-funding alert", "Convert 4 rent invoices to split-by-department collection", "Roll over deposits to lease renewals where permitted", "Bundle rates, permits and legal reminders into one monthly governance digest"])} `; }
+     function leaseOfferBody(){ return `<div class="notice success">6 tenants qualify for digital renewal. Existing deposit can roll forward after inspection confirmation and rate adjustment.</div><div class="stat-grid"><div class="stat-box"><small>Eligible tenants</small><strong>6</strong></div><div class="stat-box"><small>Avg uplift</small><strong>6%</strong></div><div class="stat-box"><small>Deposit carry-over</small><strong>Allowed</strong></div><div class="stat-box"><small>Window</small><strong>14 days</strong></div></div>`; }
+     function tenancyDirectoryBody(){ return `<div class="table-wrap"><table><thead><tr><th>Tenant</th><th>Unit</th><th>Rent</th><th>Deposit</th><th>Status</th><th>Action</th></tr></thead><tbody><tr><td>John Mwangi</td><td>Kilimani A1</td><td>KES 28,000</td><td>KES 28,000</td><td><span class="status st-due">Due</span></td><td><button class="tiny-btn" data-modal="rentCollectionWizard">Collect</button></td></tr><tr><td>Westline Traders Ltd</td><td>Westlands 2B</td><td>KES 120,000</td><td>KES 240,000</td><td><span class="status st-current">Current</span></td><td><button class="tiny-btn" data-modal="splitRentWizard">Split</button></td></tr><tr><td>Grace Wanjiku</td><td>Syokimau Maisonette</td><td>KES 35,000</td><td>KES 35,000</td><td><span class="status st-overdue">Arrears</span></td><td><button class="tiny-btn" data-modal="evictionNoticeWizard">Notice</button></td></tr></tbody></table></div>`; }
+     function receiptBody(){ return `<div class="notice success">Receipt verified and saved to the property ledger.</div><div class="stat-grid"><div class="stat-box"><small>Ref</small><strong>LED-99241</strong></div><div class="stat-box"><small>Type</small><strong>Rent</strong></div><div class="stat-box"><small>Amount</small><strong>KES 28,000</strong></div><div class="stat-box"><small>Status</small><strong>Success</strong></div></div>${miniRows(["Download PDF receipt", "Share tenant statement", "Repeat next month", "Create autopay rule"])} `; }
+     function escrowAccountsBody(){ return `<div class="table-wrap"><table><thead><tr><th>Case</th><th>Purpose</th><th>Held</th><th>Status</th><th>Action</th></tr></thead><tbody><tr><td>ESC-2281</td><td>Off-plan reservation</td><td>KES 500,000</td><td><span class="status st-auto">Escrow</span></td><td><button class="tiny-btn" data-modal="escrowReleaseWizard">Release</button></td></tr><tr><td>ESC-1920</td><td>Transfer holdback</td><td>KES 180,000</td><td><span class="status st-due">Review</span></td><td><button class="tiny-btn" data-modal="developerMilestone">Inspect</button></td></tr></tbody></table></div>`; }
+     function depositLedgerBody(){ return `<div class="table-wrap"><table><thead><tr><th>Unit</th><th>Tenant</th><th>Held</th><th>Deductions</th><th>Net</th></tr></thead><tbody><tr><td>Apt B12</td><td>Jane Njeri</td><td>KES 30,000</td><td>KES 2,000</td><td>KES 28,000</td></tr><tr><td>Kilimani A1</td><td>John Mwangi</td><td>KES 28,000</td><td>KES 0</td><td>KES 28,000</td></tr></tbody></table></div>`; }
+     function refundQueueBody(){ return `${miniRows(["Apt B12 refund pending inspection sign-off", "Maisonette deposit refund waiting water clearance", "Office suite deposit release needs management approval"])} `; }
+     function inspectionBody(){ return `<div class="stat-grid"><div class="stat-box"><small>Walls</small><strong>Minor wear</strong></div><div class="stat-box"><small>Utilities</small><strong>Clear</strong></div><div class="stat-box"><small>Repairs</small><strong>KES 1,200</strong></div><div class="stat-box"><small>Cleaning</small><strong>KES 800</strong></div></div>${miniRows(["Meter readings captured", "Photos attached", "Keys returned", "Refund can proceed after approval"])} `; }
+     function developerMilestoneBody(){ return `<div class="notice info">Uploaded evidence includes engineer certificate, site photos, progress report and buyer acknowledgment. Review before releasing escrow.</div>${miniRows(["Foundation complete certificate present", "Buyer acknowledgment signed", "Advocate verified the milestone", "Release is set to partial: 50% of held funds"])} `; }
+     function mortgageAnalyticsBody(){ return `<div class="stat-grid"><div class="stat-box"><small>Total monthly debt</small><strong>KES 272,700</strong></div><div class="stat-box"><small>Auto-pay ratio</small><strong>68%</strong></div><div class="stat-box"><small>Avg rate</small><strong>13.4%</strong></div><div class="stat-box"><small>Refinance leads</small><strong>2</strong></div></div>${miniRows(["Stanbic loan has highest interest share", "NCBA facility eligible for prepayment without penalty", "HF group loan already on auto-pay", "Refinance option could reduce annual cost by KES 84,000"])} `; }
+     function mortgageDirectoryBody(){ return `<div class="table-wrap"><table><thead><tr><th>Lender</th><th>Account</th><th>Installment</th><th>Status</th><th>Action</th></tr></thead><tbody>${mortgageAccounts.map((m,i)=>`<tr><td>${m.name}</td><td>${m.acct}</td><td>${m.due}</td><td><span class="status ${statusClass(m.status)}">${m.status}</span></td><td><button class="tiny-btn" data-modal="mortgagePayWizard">Pay</button></td></tr>`).join("")}</tbody></table></div>`; }
+     function amortizationBody(){ return `<div class="table-wrap"><table><thead><tr><th>Month</th><th>Principal</th><th>Interest</th><th>Balance</th></tr></thead><tbody><tr><td>Jun 2026</td><td>KES 74,200</td><td>KES 38,800</td><td>KES 8.2M</td></tr><tr><td>Jul 2026</td><td>KES 74,880</td><td>KES 38,120</td><td>KES 8.13M</td></tr><tr><td>Aug 2026</td><td>KES 75,540</td><td>KES 37,460</td><td>KES 8.06M</td></tr></tbody></table></div>`; }
+     function ratesDirectoryBody(){ return `${miniRows(["Nairobi land rates", "County ground rent", "Ardhisasa stamp duty", "Land search fees", "Building permit review fees", "Valuation and inspection fees"])} `; }
+     function ardhisasaCasesBody(){ return `<div class="table-wrap"><table><thead><tr><th>Case</th><th>Type</th><th>Stage</th><th>Fee</th></tr></thead><tbody><tr><td>ARD-89210</td><td>Transfer</td><td>Stamp duty pending</td><td>KES 184,000</td></tr><tr><td>ARD-88214</td><td>Search</td><td>Ready</td><td>KES 500</td></tr></tbody></table></div>`; }
+     function legalDirectoryBody(){ return `${miniRows(["Mwangi & Co Advocates - conveyancing", "Kamau Legal LLP - dispute and transfer", "Prime Valuers Ltd - valuation", "Metro Surveyors - boundary and title maps"])} `; }
+     function closingChecklistBody(){ return `${miniRows(["Sale agreement executed", "Valuation report accepted", "Stamp duty paid", "Title transfer docs uploaded", "Advocate final invoice paid", "Registry acknowledgment received"])} `; }
+     function documentRoomBody(){ return `<div class="table-wrap"><table><thead><tr><th>Document</th><th>Case</th><th>Status</th><th>Action</th></tr></thead><tbody><tr><td>Sale agreement signed</td><td>CONV-2026-441</td><td><span class="status st-current">Uploaded</span></td><td><button class="tiny-btn">Download</button></td></tr><tr><td>Valuation report</td><td>CONV-2026-441</td><td><span class="status st-current">Uploaded</span></td><td><button class="tiny-btn">Download</button></td></tr><tr><td>Stamp duty receipt</td><td>ARD-89210</td><td><span class="status st-due">Missing</span></td><td><button class="tiny-btn">Upload</button></td></tr></tbody></table></div>`; }
+     function propertyLedgerBody(){ return `<div class="ledger-row"><span class="property-mark" style="background:#4f46e5">RT</span><div><b>Kilimani Flats A1 Rent</b><span class="mini-sub">LED-99241</span></div><div><b>KES 28,000</b></div><div><span class="status st-due">due</span><span class="mini-sub">Jun 25</span></div><div class="row"><button class="tiny-btn" data-modal="rentReceipt">Receipt</button><button class="tiny-btn" data-modal="rentCollectionWizard">Collect</button></div></div><div class="ledger-row"><span class="property-mark" style="background:#10b981">DP</span><div><b>Apt B12 Deposit Refund</b><span class="mini-sub">LED-99240</span></div><div><b>KES 28,000</b></div><div><span class="status st-current">current</span><span class="mini-sub">Inspection</span></div><div class="row"><button class="tiny-btn" data-modal="refundWizard">Refund</button><button class="tiny-btn" data-modal="inspectionReport">Inspect</button></div></div>`; }
+     function rentCalendarBody(){ return `${miniRows(["Jun 25 - Kilimani A1 rent due", "Jun 28 - Land rates due", "Jun 30 - Service charge batch", "Jul 01 - Westlands office invoice", "Jul 03 - Lease renewal reminder", "Jul 05 - Mortgage installment auto-run"])} `; }
+ 
+     function openPropertyView(type, index){
+       const item = type === "rent" ? rentProperties[index] : mortgageAccounts[index];
+       $("#modalBox").className = "modal lg";
+       $("#modalTitle").textContent = item.name;
+       $("#modalSubtitle").textContent = type === "rent" ? `${item.type} - ${item.code}` : `${item.acct}`;
+       $("#stepWrap").innerHTML = "";
+       $("#modalBody").innerHTML = `<div class="stat-grid"><div class="stat-box"><small>Status</small><strong>${item.status}</strong></div><div class="stat-box"><small>Current</small><strong>${item.due}</strong></div><div class="stat-box"><small>Automation</small><strong>${item.status === "paused" ? "Paused" : "Available"}</strong></div><div class="stat-box"><small>Last update</small><strong>2d ago</strong></div></div>${miniRows(["Open ledger and payment history", "Manage reminders and autopay", "Share secure payment request", "Attach legal or tenancy note"])} `;
+       $("#modalFoot").innerHTML = `<button class="btn" type="button" data-close>Close</button><button class="btn" type="button" data-modal="${type === "rent" ? "tenancyDirectory" : "mortgageDirectory"}">Manage</button><button class="btn primary" type="button" data-modal="${type === "rent" ? "rentCollectionWizard" : "mortgagePayWizard"}">Pay now</button>`;
+       $("#modalBackdrop").classList.add("open"); document.body.classList.add("no-scroll");
+     }
+ 
+     document.addEventListener("click", (e) => {
+       const modalBtn = e.target.closest("[data-modal]");
+       if(modalBtn){ openModal(modalBtn.dataset.modal); return; }
+       if(e.target.closest("[data-close], #modalClose") || e.target.id === "modalBackdrop"){ closeModal(); return; }
+       const stepNext = e.target.closest("[data-step-next]");
+       if(stepNext){ const steps = wizards[activeWizard]; if(currentStep < steps.length - 1){ currentStep++; renderWizard(); } else completeWizard(); return; }
+       if(e.target.closest("[data-step-back]")){ currentStep = Math.max(0,currentStep-1); renderWizard(); return; }
+       const ledger = e.target.closest("[data-ledger]");
+       if(ledger){ $$("[data-ledger]").forEach(b=>b.classList.remove("active")); ledger.classList.add("active"); renderLedger(ledger.dataset.ledger); return; }
+       const rent = e.target.closest("[data-rent-action]");
+       if(rent){ const i = Number(rent.dataset.rent); const act = rent.dataset.rentAction; if(act === "pay") openModal("rentCollectionWizard"); if(act === "view") openPropertyView("rent", i); if(act === "manage") openModal("tenancyDirectory"); return; }
+       const mort = e.target.closest("[data-mort-action]");
+       if(mort){ const i = Number(mort.dataset.mort); const act = mort.dataset.mortAction; if(act === "pay") openModal("mortgagePayWizard"); if(act === "view") openPropertyView("mort", i); if(act === "auto") openModal("autopayMortgageWizard"); return; }
+       const ledgerItem = e.target.closest("[data-ledger-action]");
+       if(ledgerItem){ if(ledgerItem.dataset.ledgerAction === "pay") openModal("rentCollectionWizard"); else openModal("propertyLedgerFull"); return; }
+       const action = e.target.closest("[data-action]");
+       if(action){ showToast("Action completed and saved to your property timeline."); return; }
+     });
+     document.addEventListener("keydown", (e) => { if(e.key === "Escape") closeModal(); });
+     $("#menuBtn").addEventListener("click", () => $("#sidebar").classList.toggle("open"));
+     $("#globalSearch").addEventListener("input", (e) => {
+       const q = e.target.value.toLowerCase();
+       $$(".property-card, .ledger-row").forEach(el => el.style.display = el.textContent.toLowerCase().includes(q) ? "" : "none");
+     });
+ 
+     renderPropertyCards();
+     renderBars();
+   </script>
+ </body>
+ </html>

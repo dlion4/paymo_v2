@@ -1,0 +1,763 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PayMo - Government Payments & Public Services</title>
+  <style>
+    :root {
+      --pm-primary: #4f46e5;
+      --pm-primary-dark: #3730a3;
+      --pm-primary-light: #818cf8;
+      --pm-accent: #10b981;
+      --pm-accent-soft: #d1fae5;
+      --pm-warning: #f59e0b;
+      --pm-warning-soft: #fef3c7;
+      --pm-danger: #ef4444;
+      --pm-danger-soft: #fee2e2;
+      --pm-info: #3b82f6;
+      --pm-info-soft: #dbeafe;
+      --pm-purple: #8b5cf6;
+      --pm-purple-soft: #ede9fe;
+      --pm-bg: #f5f1ec;
+      --pm-bg-2: #eee8df;
+      --pm-surface: #ffffff;
+      --pm-surface-2: #faf7f3;
+      --pm-ink: #1a1f2e;
+      --pm-ink-soft: #4b5563;
+      --pm-muted: #9ca3af;
+      --pm-border: #e5e2dc;
+      --pm-border-2: #d4d0c8;
+      --pm-gradient-hero: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #ec4899 100%);
+      --pm-gradient-slate: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+      --pm-shadow-sm: 0 1px 2px rgba(26,31,46,.04);
+      --pm-shadow-md: 0 4px 12px rgba(26,31,46,.06);
+      --pm-shadow-lg: 0 10px 30px rgba(26,31,46,.08);
+      --pm-shadow-xl: 0 20px 50px rgba(26,31,46,.12);
+      --pm-r-md: 14px;
+      --pm-r-lg: 20px;
+      --pm-font: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { min-height: 100%; margin: 0; }
+    body {
+      font-family: var(--pm-font);
+      color: var(--pm-ink);
+      background:
+        radial-gradient(1200px 600px at -10% -20%, rgba(79,70,229,.08), transparent 60%),
+        radial-gradient(1000px 500px at 110% 10%, rgba(236,72,153,.06), transparent 60%),
+        radial-gradient(800px 400px at 50% 120%, rgba(16,185,129,.06), transparent 60%),
+        var(--pm-bg);
+      font-size: 14px;
+      line-height: 1.45;
+      overflow-x: hidden;
+    }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    .no-scroll { overflow: hidden; }
+    @keyframes pulse { 0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.22);opacity:.58} }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes scaleIn { from{opacity:0;transform:scale(.96)} to{opacity:1;transform:scale(1)} }
+    @keyframes shimmer { 0%{background-position:-200% 0}100%{background-position:200% 0} }
+
+    .app { display:flex; min-height:100vh; }
+    .sidebar {
+      position:sticky; top:0; z-index:80; width:88px; height:100vh; flex:0 0 88px;
+      background:var(--pm-gradient-slate); display:flex; flex-direction:column; align-items:center; padding:20px 12px;
+    }
+    .logo { width:48px;height:48px;border-radius:15px;background:var(--pm-gradient-hero);color:#fff;display:grid;place-items:center;font-weight:900;font-size:22px;box-shadow:var(--pm-shadow-lg);margin-bottom:24px; }
+    .nav { width:100%; display:flex; flex-direction:column; gap:5px; flex:1; }
+    .nav button { position:relative; width:100%; height:48px; border:0; border-radius:13px; color:rgba(255,255,255,.62); background:transparent; display:grid; place-items:center; transition:.2s ease; }
+    .nav button:hover, .nav button.active { color:#fff; background:var(--pm-primary); box-shadow:var(--pm-shadow-md); }
+    .nav-icon { width:22px;height:22px;display:grid;place-items:center;font-size:10px;font-weight:900;border:1px solid rgba(255,255,255,.27);border-radius:6px; }
+    .nav .dot { position:absolute; top:8px; right:10px; width:8px;height:8px;border:2px solid #334155;background:var(--pm-danger);border-radius:999px;animation:pulse 2s infinite; }
+    .nav-bottom { padding-top:12px; border-top:1px solid rgba(255,255,255,.1); }
+
+    .main { flex:1; min-width:0; }
+    .topbar { position:sticky; top:0; z-index:60; border-bottom:1px solid var(--pm-border); background:rgba(245,241,236,.86); backdrop-filter:blur(18px); padding:14px 30px; display:flex; align-items:center; justify-content:space-between; gap:20px; }
+    .menu-btn { display:none; }
+    .title h1 { margin:0; font-size:20px; letter-spacing:-.03em; }
+    .title p { margin:1px 0 0; color:var(--pm-muted); font-size:12px; }
+    .search { position:relative; flex:1; max-width:440px; }
+    .search input { width:100%; height:40px; border:1px solid var(--pm-border); border-radius:var(--pm-r-md); padding:0 14px 0 38px; background:#fff; outline:0; }
+    .search:before { content:"S"; position:absolute; left:13px; top:50%; transform:translateY(-50%); color:var(--pm-muted); font-size:11px; font-weight:900; }
+    .actions { display:flex; align-items:center; gap:8px; }
+    .icon-btn, .profile-btn, .btn, .tiny-btn { border:1px solid var(--pm-border); background:#fff; color:var(--pm-ink-soft); border-radius:12px; transition:.2s ease; }
+    .icon-btn { width:40px;height:40px;position:relative;display:grid;place-items:center;font-size:11px;font-weight:900; }
+    .icon-btn:hover, .profile-btn:hover, .btn:hover, .tiny-btn:hover { transform:translateY(-1px); box-shadow:var(--pm-shadow-sm); }
+    .counter { position:absolute; top:-6px; right:-6px; min-width:18px; height:18px; padding:0 5px; border-radius:999px; background:var(--pm-danger); color:#fff; font-size:10px; display:flex; align-items:center; justify-content:center; border:2px solid var(--pm-bg); }
+    .profile-btn { height:42px; display:flex; align-items:center; gap:9px; padding:5px 11px 5px 5px; }
+    .avatar { width:32px;height:32px;border-radius:999px;background:var(--pm-gradient-hero);color:#fff;display:grid;place-items:center;font-weight:900;font-size:12px; }
+    .profile-name { display:block; font-size:12px; font-weight:900; color:var(--pm-ink); }
+    .profile-role { display:block; font-size:10px; color:var(--pm-muted); }
+
+    .page { padding:22px 30px 42px; }
+    .page-head { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:16px; }
+    .crumb { color:var(--pm-muted); font-size:12px; margin-bottom:3px; }
+    .page-head h2 { margin:0; font-size:25px; letter-spacing:-.04em; }
+    .page-head p { margin:4px 0 0; color:var(--pm-ink-soft); font-size:13px; }
+    .head-actions { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+    .btn { padding:9px 13px; font-weight:800; font-size:12px; display:inline-flex; align-items:center; justify-content:center; gap:7px; white-space:nowrap; }
+    .btn.primary { color:#fff; border-color:transparent; background:var(--pm-gradient-hero); }
+    .btn.success { color:#fff; border-color:transparent; background:var(--pm-accent); }
+    .btn.danger { color:#fff; border-color:transparent; background:var(--pm-danger); }
+    .tiny-btn { padding:6px 9px; font-size:11px; font-weight:800; }
+
+    .grid { display:grid; gap:14px; }
+    .hero-grid { grid-template-columns:1.5fr .85fr .85fr .85fr; margin-bottom:14px; }
+    .three-grid { grid-template-columns:repeat(3,1fr); }
+    .two-grid { grid-template-columns:1fr 1fr; }
+    .four-grid { grid-template-columns:repeat(4,1fr); }
+    .five-grid { grid-template-columns:repeat(5,1fr); }
+    .six-grid { grid-template-columns:repeat(6,1fr); }
+
+    .card, .section { background:#fff; border:1px solid var(--pm-border); border-radius:var(--pm-r-lg); box-shadow:var(--pm-shadow-sm); }
+    .card { padding:16px; }
+    .section { margin-bottom:18px; overflow:hidden; }
+    .section-head { padding:17px 18px 12px; border-bottom:1px solid var(--pm-border); display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    .section-title h3 { margin:0; font-size:16px; letter-spacing:-.02em; }
+    .section-title p { margin:2px 0 0; font-size:12px; color:var(--pm-muted); }
+    .section-body { padding:16px; }
+     .hero-card { min-height:156px; color:#fff; background:var(--pm-gradient-hero); position:relative; overflow:hidden; }
+     .hero-card:after { content:""; position:absolute; width:180px; height:180px; right:-60px; top:-64px; background:rgba(255,255,255,.12); border-radius:999px; }
+     .hero-card h3 { margin:10px 0 4px; font-size:24px; letter-spacing:-.04em; }
+     .hero-card p { margin:0 0 18px; opacity:.82; font-size:12px; }
+     .live-dot { width:11px;height:11px;border-radius:999px;background:#22c55e;display:inline-block;animation:pulse 2s infinite; }
+     .metric-label { color:var(--pm-muted); font-size:11px; font-weight:900; text-transform:uppercase; letter-spacing:.04em; }
+     .metric-value { margin-top:2px; font-size:24px; line-height:1.1; font-weight:900; letter-spacing:-.05em; }
+     .metric-sub { margin-top:8px; display:inline-flex; font-size:11px; padding:4px 7px; border-radius:999px; background:var(--pm-accent-soft); color:var(--pm-accent); font-weight:900; }
+     .progress { height:8px; border-radius:999px; background:var(--pm-border); overflow:hidden; }
+     .progress span { display:block; height:100%; border-radius:999px; background:var(--pm-primary); }
+     .barset { margin-top:18px; display:flex; align-items:end; gap:4px; height:34px; }
+     .barset i { flex:1; border-radius:4px 4px 0 0; background:linear-gradient(180deg,var(--pm-primary-light),var(--pm-primary)); }
+     .row { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+     .mini-list { display:grid; gap:9px; }
+     .mini-item { display:flex; gap:10px; align-items:center; padding:8px; border-radius:12px; border:1px solid transparent; transition:.2s ease; text-align:left; width:100%; background:transparent; }
+     .mini-item:hover { background:var(--pm-surface-2); border-color:var(--pm-border); }
+     .mini-icon { width:31px;height:31px;border-radius:10px;display:grid;place-items:center;font-weight:900;font-size:11px;flex:0 0 auto; }
+     .mini-title { display:block; font-size:12px; font-weight:900; }
+     .mini-sub { display:block; font-size:10px; color:var(--pm-muted); }
+     .quick-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+ 
+     .gov-grid { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:10px; }
+     .gov-card { position:relative; min-height:170px; padding:13px; border:1px solid var(--pm-border); border-radius:17px; background:#fff; transition:.2s ease; overflow:hidden; }
+     .gov-card:hover { transform:translateY(-2px); box-shadow:var(--pm-shadow-md); }
+     .gov-top { display:flex; align-items:flex-start; justify-content:space-between; }
+     .gov-mark { width:34px;height:34px;border-radius:11px;color:#fff;display:grid;place-items:center;font-size:11px;font-weight:900; }
+     .gov-name { margin:12px 0 1px; font-weight:900; font-size:12px; line-height:1.2; }
+     .gov-meta { color:var(--pm-muted); font-size:10px; }
+     .gov-metrics { margin-top:11px; padding-top:10px; border-top:1px dashed var(--pm-border); display:grid; grid-template-columns:1fr 1fr; gap:7px; }
+     .gov-metrics small { display:block; color:var(--pm-muted); font-size:9px; }
+     .gov-metrics b { font-size:11px; }
+     .gov-actions { position:absolute; inset:0; background:rgba(255,255,255,.94); opacity:0; display:grid; place-items:center; transition:.18s ease; }
+     .gov-card:hover .gov-actions { opacity:1; }
+     .round-btn { width:38px;height:38px;border-radius:13px;border:1px solid var(--pm-border);background:#fff;color:var(--pm-primary);font-size:10px;font-weight:900; }
+     .status { display:inline-flex; align-items:center; gap:4px; padding:4px 7px; border-radius:999px; font-size:10px; font-weight:900; text-transform:capitalize; }
+     .status:before { content:""; width:6px;height:6px;border-radius:999px;background:currentColor; }
+     .st-active { background:var(--pm-accent-soft); color:var(--pm-accent); }
+     .st-due { background:var(--pm-warning-soft); color:var(--pm-warning); }
+     .st-alert { background:var(--pm-danger-soft); color:var(--pm-danger); }
+     .st-info { background:var(--pm-info-soft); color:var(--pm-info); }
+     .st-paused { background:var(--pm-purple-soft); color:var(--pm-purple); }
+ 
+     .toolbar { display:flex; gap:9px; align-items:center; flex-wrap:wrap; }
+     .filter-row { display:flex; gap:7px; overflow-x:auto; padding:12px 16px; border-bottom:1px solid var(--pm-border); }
+     .chip { border:1px solid var(--pm-border); background:#fff; color:var(--pm-ink-soft); border-radius:999px; padding:7px 11px; font-size:11px; font-weight:900; white-space:nowrap; }
+     .chip.active { border-color:var(--pm-primary); background:var(--pm-primary); color:#fff; }
+     .field { position:relative; }
+     .field input, .field select, .field textarea, .modal input, .modal select, .modal textarea { width:100%; border:1px solid var(--pm-border); border-radius:11px; background:#fff; color:var(--pm-ink); padding:10px 12px; outline:0; }
+     .field input { min-width:230px; }
+     .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:13px; }
+     .modal label { display:block; font-size:11px; color:var(--pm-muted); font-weight:900; margin:0 0 5px; }
+ 
+     .table-wrap { overflow-x:auto; border:1px solid var(--pm-border); border-radius:14px; }
+     table { width:100%; border-collapse:collapse; min-width:790px; }
+     th, td { padding:12px 13px; border-bottom:1px solid var(--pm-border); text-align:left; font-size:12px; }
+     th { background:var(--pm-surface-2); color:var(--pm-muted); text-transform:uppercase; font-size:10px; letter-spacing:.04em; }
+     tr:last-child td { border-bottom:0; }
+     .right { text-align:right; }
+     .chart-bars { display:grid; gap:10px; }
+     .chart-row { display:grid; grid-template-columns:126px 1fr 88px; gap:10px; align-items:center; font-size:12px; }
+     .chart-track { height:9px; border-radius:999px; background:var(--pm-border); overflow:hidden; }
+     .chart-track span { display:block; height:100%; border-radius:999px; }
+     .timeline { position:relative; display:grid; gap:12px; }
+     .timeline:before { content:""; position:absolute; left:10px; top:8px; bottom:8px; width:2px; background:var(--pm-border); }
+     .time-step { position:relative; display:flex; gap:12px; align-items:flex-start; }
+     .time-step i { z-index:1; width:22px; height:22px; border-radius:999px; border:2px solid var(--pm-accent); background:#fff; flex:0 0 auto; }
+     .time-step.pending i { border-color:var(--pm-border-2); }
+ 
+     .modal-backdrop { position:fixed; inset:0; z-index:200; background:rgba(15,23,42,.55); backdrop-filter:blur(5px); display:none; align-items:center; justify-content:center; padding:18px; }
+     .modal-backdrop.open { display:flex; }
+     .modal { width:min(780px,100%); max-height:92vh; background:#fff; border-radius:22px; box-shadow:var(--pm-shadow-xl); overflow:hidden; display:flex; flex-direction:column; animation:scaleIn .2s ease; }
+     .modal.lg { width:min(990px,100%); }
+     .modal.xl { width:min(1190px,100%); }
+     .modal-head { padding:17px 20px; border-bottom:1px solid var(--pm-border); display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+     .modal-head h3 { margin:0; font-size:18px; letter-spacing:-.02em; }
+     .modal-head p { margin:2px 0 0; color:var(--pm-muted); font-size:12px; }
+     .modal-close { width:34px; height:34px; border-radius:11px; border:1px solid var(--pm-border); background:#fff; font-weight:900; color:var(--pm-muted); }
+     .modal-body { padding:20px; overflow-y:auto; }
+     .modal-foot { padding:14px 20px; border-top:1px solid var(--pm-border); background:var(--pm-surface-2); display:flex; align-items:center; justify-content:space-between; gap:12px; }
+     .steps { padding:13px 20px; border-bottom:1px solid var(--pm-border); background:var(--pm-surface-2); display:flex; gap:8px; align-items:center; }
+     .step { display:flex; align-items:center; gap:8px; font-size:11px; font-weight:900; color:var(--pm-muted); }
+     .step .num { width:27px;height:27px;border-radius:999px;display:grid;place-items:center;background:var(--pm-border);color:var(--pm-muted); }
+     .step.active, .step.done { color:var(--pm-primary); }
+     .step.active .num, .step.done .num { background:var(--pm-primary); color:#fff; }
+     .step-line { flex:1; height:2px; background:var(--pm-border); border-radius:999px; }
+     .step-line.done { background:var(--pm-primary); }
+     .modal-tabs { display:flex; gap:4px; border-bottom:1px solid var(--pm-border); margin:-20px -20px 18px; padding:0 20px; overflow-x:auto; }
+     .modal-tab { border:0; background:transparent; padding:13px 12px; font-size:12px; font-weight:900; color:var(--pm-muted); border-bottom:2px solid transparent; }
+     .modal-tab.active { color:var(--pm-primary); border-color:var(--pm-primary); }
+     .tab-panel { display:none; }
+     .tab-panel.active { display:block; animation:fadeIn .2s ease; }
+     .notice { padding:13px; border-radius:14px; font-size:12px; margin-bottom:14px; }
+     .notice.info { background:var(--pm-info-soft); color:#1d4ed8; }
+     .notice.warn { background:var(--pm-warning-soft); color:#92400e; }
+     .notice.danger { background:var(--pm-danger-soft); color:#991b1b; }
+     .notice.success { background:var(--pm-accent-soft); color:#047857; }
+     .stat-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+     .stat-box { border:1px solid var(--pm-border); border-radius:14px; padding:13px; background:#fff; }
+     .stat-box small { display:block; color:var(--pm-muted); font-size:10px; text-transform:uppercase; font-weight:900; letter-spacing:.04em; }
+     .stat-box strong { display:block; margin-top:3px; font-size:18px; }
+     .payment-method { display:flex; align-items:center; gap:12px; padding:12px; border:1px solid var(--pm-border); border-radius:14px; margin-bottom:9px; cursor:pointer; }
+     .payment-method.selected { border-color:var(--pm-primary); background:rgba(79,70,229,.04); }
+     .pin-row { display:flex; justify-content:center; gap:10px; margin:15px 0; }
+     .pin-row input { width:48px; height:48px; text-align:center; font-size:22px; font-weight:900; }
+     .toast { position:fixed; right:18px; bottom:18px; z-index:260; background:#111827; color:#fff; border-radius:14px; padding:12px 14px; min-width:220px; box-shadow:var(--pm-shadow-xl); display:none; animation:fadeIn .2s ease; font-size:12px; font-weight:800; }
+     .toast.show { display:block; }
+ 
+     @media (max-width:1280px) { .gov-grid { grid-template-columns:repeat(4,1fr); } .hero-grid { grid-template-columns:1fr 1fr; } .five-grid,.six-grid{grid-template-columns:repeat(3,1fr)} }
+     @media (max-width:900px) {
+       .sidebar { position:fixed; transform:translateX(-100%); transition:.25s ease; }
+       .sidebar.open { transform:translateX(0); }
+       .menu-btn { display:grid; }
+       .topbar { padding:12px 15px; }
+       .title, .profile-text { display:none; }
+       .page { padding:18px 14px 34px; }
+       .page-head { flex-direction:column; }
+       .head-actions { justify-content:flex-start; }
+       .hero-grid,.three-grid,.two-grid,.four-grid { grid-template-columns:1fr; }
+       .five-grid,.six-grid { grid-template-columns:1fr 1fr; }
+       .gov-grid { grid-template-columns:repeat(2,1fr); }
+       .stat-grid { grid-template-columns:1fr 1fr; }
+     }
+     @media (max-width:560px) {
+       .actions .hide-mobile { display:none; }
+       .gov-grid,.five-grid,.six-grid,.form-grid,.stat-grid { grid-template-columns:1fr; }
+       .section-head { flex-direction:column; align-items:flex-start; }
+       .chart-row { grid-template-columns:94px 1fr 66px; }
+       .modal-foot { flex-direction:column-reverse; align-items:stretch; }
+       .modal-foot .btn { width:100%; }
+       .step span:not(.num) { display:none; }
+     }
+   </style>
+ </head>
+ <body>
+   <div class="app">
+     <aside class="sidebar" id="sidebar">
+       <div class="logo">P</div>
+       <nav class="nav">
+         <button type="button" onclick="location.href='page1-1.html'"><span class="nav-icon">CC</span></button>
+         <button type="button" onclick="location.href='page1-2.html'"><span class="nav-icon">UT</span></button>
+         <button type="button" onclick="location.href='page1-3.html'"><span class="nav-icon">TV</span></button>
+         <button class="active" type="button" data-modal="navGov"><span class="nav-icon">GV</span><span class="dot"></span></button>
+         <button type="button" data-modal="navTax"><span class="nav-icon">TX</span></button>
+         <button type="button" data-modal="navCounty"><span class="nav-icon">CT</span></button>
+       </nav>
+       <nav class="nav nav-bottom">
+         <button type="button" data-modal="preferences"><span class="nav-icon">ST</span></button>
+         <button type="button" data-modal="supportCenter"><span class="nav-icon">HP</span></button>
+       </nav>
+     </aside>
+ 
+     <main class="main">
+       <header class="topbar">
+         <button class="icon-btn menu-btn" type="button" id="menuBtn">MN</button>
+         <div class="title">
+           <h1>Government Payments & Public Services</h1>
+           <p>KRA, NSSF, SHIF, eCitizen, land services, county payments and permits</p>
+         </div>
+         <div class="search"><input id="globalSearch" type="search" placeholder="Search tax type, permit, county service, passport, PIN, invoice..."></div>
+         <div class="actions">
+           <button class="icon-btn hide-mobile" type="button" data-modal="govHealth">HC</button>
+           <button class="icon-btn" type="button" data-modal="notifications">NT<span class="counter">11</span></button>
+           <button class="icon-btn hide-mobile" type="button" data-modal="helpGuide">?</button>
+           <button class="profile-btn" type="button" data-modal="profileSettings"><span class="avatar">AK</span><span class="profile-text"><span class="profile-name">Amina K.</span><span class="profile-role">Citizen / Sole Proprietor</span></span></button>
+         </div>
+       </header>
+ 
+       <section class="page">
+         <div class="page-head">
+           <div>
+             <div class="crumb">Home / Services Hub / Government Payments</div>
+             <h2>PAGE 1.5 - Government Payments & Public Services</h2>
+             <p>Comprehensive citizen and business-facing payment hub for taxes, statutory deductions, eCitizen, land services, counties and public institutions.</p>
+           </div>
+           <div class="head-actions">
+             <button class="btn" type="button" data-modal="govHealth">Health Check</button>
+             <button class="btn" type="button" data-modal="complianceCalendar">Compliance Calendar</button>
+             <button class="btn" type="button" data-modal="govInbox">Government Inbox</button>
+             <button class="btn primary" type="button" data-modal="kraPaymentWizard">Pay Tax Now</button>
+           </div>
+         </div>
+ 
+         <div class="grid hero-grid">
+           <article class="card hero-card">
+             <span>Government service center live <span class="live-dot"></span></span>
+             <h3>27 linked public services</h3>
+             <p>KRA, SHIF, NSSF, eCitizen, Ardhisasa, county permits and education payments managed in one place.</p>
+             <button class="btn" type="button" data-modal="kraPaymentWizard">Pay tax</button>
+             <button class="btn" type="button" data-modal="ecitizenWizard">eCitizen pay</button>
+             <button class="btn" type="button" data-modal="countyPermitWizard">County permit</button>
+           </article>
+           <article class="card">
+             <div class="metric-label">Due this period</div>
+             <div class="metric-value">KES 124,480</div>
+             <div class="metric-sub" style="background:var(--pm-warning-soft);color:var(--pm-warning)">9 obligations pending</div>
+             <div class="barset"><i style="height:28%"></i><i style="height:52%"></i><i style="height:80%"></i><i style="height:60%"></i><i style="height:86%"></i><i style="height:40%"></i><i style="height:68%"></i></div>
+           </article>
+           <article class="card">
+             <div class="metric-label">Compliance score</div>
+             <div class="metric-value">94/100</div>
+             <div class="metric-sub">good standing</div>
+             <div style="margin-top:18px" class="progress"><span style="width:94%;background:linear-gradient(90deg,var(--pm-primary),var(--pm-accent))"></span></div>
+             <div style="margin-top:9px" class="row"><small>Open actions</small><b>3 urgent</b></div>
+           </article>
+           <article class="card">
+             <div class="metric-label">Documents ready</div>
+             <div class="metric-value">18 files</div>
+             <div class="metric-sub">receipts, certificates, returns</div>
+             <div style="margin-top:16px" class="row"><span class="muted">Latest</span><b style="color:var(--pm-accent)">TCC valid</b></div>
+             <div class="progress"><span style="width:88%;background:var(--pm-accent)"></span></div>
+           </article>
+         </div>
+ 
+         <div class="grid three-grid" style="margin-bottom:16px">
+           <article class="card">
+             <div class="row" style="margin-bottom:10px"><b>Attention Required</b><button class="tiny-btn" data-modal="alertsAll" type="button">View all</button></div>
+             <div class="mini-list">
+               <button class="mini-item" type="button" data-modal="alertVat"><span class="mini-icon" style="background:var(--pm-danger-soft);color:var(--pm-danger)">KR</span><span style="flex:1"><span class="mini-title">VAT return due in 2 days</span><span class="mini-sub">VAT obligation ready but not yet submitted or paid</span></span><span class="tiny-btn">Open</span></button>
+               <button class="mini-item" type="button" data-modal="alertShif"><span class="mini-icon" style="background:var(--pm-warning-soft);color:var(--pm-warning)">SH</span><span style="flex:1"><span class="mini-title">SHIF household dependents incomplete</span><span class="mini-sub">2 dependents need ID and relationship validation</span></span><span class="tiny-btn">Fix</span></button>
+               <button class="mini-item" type="button" data-modal="alertPermit"><span class="mini-icon" style="background:var(--pm-info-soft);color:var(--pm-info)">CT</span><span style="flex:1"><span class="mini-title">County business permit renewal</span><span class="mini-sub">Renewal window open, fee estimate ready</span></span><span class="tiny-btn">Renew</span></button>
+             </div>
+           </article>
+           <article class="card">
+             <div class="row" style="margin-bottom:10px"><b>Smart Suggestions</b><button class="tiny-btn" data-modal="smartSuggestions" type="button">AI</button></div>
+             <div class="mini-list">
+               <button class="mini-item" type="button" data-modal="taxBundle"><span class="mini-icon" style="background:var(--pm-accent-soft);color:var(--pm-accent)">TX</span><span style="flex:1"><span class="mini-title">Bundle PAYE   SHIF   NSSF on one date</span><span class="mini-sub">Reduce missed deadlines and simplify payroll month-end</span></span><span class="tiny-btn">Bundle</span></button>
+               <button class="mini-item" type="button" data-modal="tccPrompt"><span class="mini-icon" style="background:var(--pm-purple-soft);color:var(--pm-purple)">TC</span><span style="flex:1"><span class="mini-title">Download Tax Compliance Certificate</span><span class="mini-sub">Your status is compliant and certificate is available</span></span><span class="tiny-btn">View</span></button>
+               <button class="mini-item" type="button" data-modal="countyBundle"><span class="mini-icon" style="background:var(--pm-warning-soft);color:var(--pm-warning)">CP</span><span style="flex:1"><span class="mini-title">Combine permit + parking + rates payment</span><span class="mini-sub">County basket checkout can reduce friction</span></span><span class="tiny-btn">Open</span></button>
+             </div>
+           </article>
+           <article class="card">
+             <div style="margin-bottom:10px"><b>Quick Actions</b><p style="margin:2px 0 0;color:var(--pm-muted);font-size:11px">Frequent public service workflows</p></div>
+             <div class="quick-grid">
+               <button class="tiny-btn" type="button" data-modal="kraPaymentWizard">KRA Tax</button>
+               <button class="tiny-btn" type="button" data-modal="shifWizard">SHIF</button>
+               <button class="tiny-btn" type="button" data-modal="nssfWizard">NSSF</button>
+               <button class="tiny-btn" type="button" data-modal="ecitizenWizard">eCitizen</button>
+               <button class="tiny-btn" type="button" data-modal="ardhisasaWizard">Land Fees</button>
+               <button class="tiny-btn" type="button" data-modal="countyPermitWizard">Permit</button>
+             </div>
+           </article>
+         </div>
+ 
+         <section class="section">
+           <div class="section-head"><div class="section-title"><h3>1.5.1 - Kenya Revenue Authority (KRA) Payments</h3><p>iTax linking, obligation fetch, payment execution, certificate access and tax history.</p></div><div class="toolbar"><button class="btn" data-modal="kraProfile">Linked profile</button><button class="btn" data-modal="kraHistory">Tax history</button><button class="btn primary" data-modal="kraPaymentWizard">Pay KRA</button></div></div>
+           <div class="section-body">
+             <div class="grid four-grid">
+               <article class="card"><div class="metric-label">Linked KRA PIN</div><div class="metric-value">P051883420X</div><div class="row"><span class="muted">Profile</span><b>Individual   sole prop</b></div><div class="row"><span class="muted">TCC</span><b style="color:var(--pm-accent)">Valid</b></div></article>
+               <article class="card"><div class="metric-label">Open obligations</div><div class="metric-value">5</div><div class="row"><span class="muted">Most urgent</span><b style="color:var(--pm-danger)">VAT return</b></div><div class="row"><span class="muted">Due</span><b>2 days</b></div></article>
+               <article class="card"><div class="metric-label">Paid this month</div><div class="metric-value">KES 82,440</div><div class="row"><span class="muted">Largest</span><b>VAT KES 38,200</b></div><div class="row"><span class="muted">Matched</span><b style="color:var(--pm-accent)">100%</b></div></article>
+               <article class="card"><div class="metric-label">Tax documents</div><div class="metric-value">8</div><div class="row"><span class="muted">Latest return</span><b>PAYE May 2026</b></div><div class="row"><span class="muted">Status</span><b>Accepted</b></div></article>
+             </div>
+             <div class="gov-grid" id="kraCards" style="margin-top:14px"></div>
+           </div>
+         </section>
+ 
+         <section class="section">
+           <div class="section-head"><div class="section-title"><h3>1.5.2 - Social Security & Health Contributions</h3><p>NSSF, SHIF, NITA levy and Affordable Housing Levy with calculators and dependent management.</p></div><div class="toolbar"><button class="btn" data-modal="statutoryCalculator">Calculator</button><button class="btn primary" data-modal="statutoryBundleWizard">Pay statutory bundle</button></div></div>
+           <div class="section-body">
+             <div class="grid three-grid">
+               <article class="card"><div class="row"><b>NSSF Contributions</b><button class="tiny-btn" data-modal="nssfWizard" type="button">Pay now</button></div><div class="mini-list" style="margin-top:12px"><button class="mini-item" data-modal="nssfStatement" type="button"><span class="mini-icon" style="background:var(--pm-info-soft);color:var(--pm-info)">NS</span><span style="flex:1"><span class="mini-title">Tier I   Tier II current month</span><span class="mini-sub">Contribution estimate KES 6,480</span></span><span class="status st-due">Due</span></button><button class="mini-item" data-modal="nssfBenefits" type="button"><span class="mini-icon" style="background:var(--pm-accent-soft);color:var(--pm-accent)">BF</span><span style="flex:1"><span class="mini-title">Benefits projection</span><span class="mini-sub">Retirement and withdrawal estimate available</span></span><span class="tiny-btn">View</span></button></div></article>
+               <article class="card"><div class="row"><b>SHIF Contributions</b><button class="tiny-btn" data-modal="shifWizard" type="button">Pay now</button></div><div class="mini-list" style="margin-top:12px"><button class="mini-item" data-modal="shifDependents" type="button"><span class="mini-icon" style="background:var(--pm-warning-soft);color:var(--pm-warning)">DP</span><span style="flex:1"><span class="mini-title">Dependents management</span><span class="mini-sub">2 dependents need verification</span></span><span class="status st-alert">Action</span></button><button class="mini-item" data-modal="shifProviders" type="button"><span class="mini-icon" style="background:var(--pm-info-soft);color:var(--pm-info)">HP</span><span style="flex:1"><span class="mini-title">Empanelled facilities</span><span class="mini-sub">Search providers and pre-auth support</span></span><span class="tiny-btn">Search</span></button></div></article>
+               <article class="card"><div class="row"><b>Other Levies</b><button class="tiny-btn" data-modal="levyBundle" type="button">Manage</button></div><div class="mini-list" style="margin-top:12px"><button class="mini-item" data-modal="housingLevyWizard" type="button"><span class="mini-icon" style="background:var(--pm-purple-soft);color:var(--pm-purple)">HL</span><span style="flex:1"><span class="mini-title">Affordable Housing Levy</span><span class="mini-sub">1.5% employee + 1.5% employer</span></span><span class="tiny-btn">Pay</span></button><button class="mini-item" data-modal="nitaWizard" type="button"><span class="mini-icon" style="background:var(--pm-accent-soft);color:var(--pm-accent)">NT</span><span style="flex:1"><span class="mini-title">NITA Levy</span><span class="mini-sub">Monthly employer levy and grant tracking</span></span><span class="tiny-btn">Open</span></button></div></article>
+             </div>
+           </div>
+         </section>
+ 
+         <section class="section">
+           <div class="section-head"><div class="section-title"><h3>1.5.3 - eCitizen & Government Services</h3><p>Passport, driving license, good conduct, vehicle transfer, business registration and service fees.</p></div><div class="toolbar"><button class="btn" data-modal="ecitizenDirectory">Directory</button><button class="btn primary" data-modal="ecitizenWizard">Pay eCitizen</button></div></div>
+           <div class="section-body">
+             <div class="gov-grid" id="ecitizenCards"></div>
+           </div>
+         </section>
+ 
+         <section class="section">
+           <div class="section-head"><div class="section-title"><h3>1.5.4 - Ardhisasa & Land Services</h3><p>Stamp duty, land rates, ground rent, title processing and lease renewals.</p></div><div class="toolbar"><button class="btn" data-modal="landPortfolio">Portfolio</button><button class="btn primary" data-modal="ardhisasaWizard">Pay land fee</button></div></div>
+           <div class="section-body">
+             <div class="grid two-grid">
+               <article class="card"><div class="row"><b>Land Accounts</b><button class="tiny-btn" data-modal="landAccountWizard" type="button">Add account</button></div><div class="gov-grid" id="landCards" style="grid-template-columns:repeat(3,1fr);margin-top:12px"></div></article>
+               <article class="card"><div class="row"><b>Land Charge Mix</b><button class="tiny-btn" data-modal="landInsights" type="button">Insights</button></div><div class="chart-bars" id="landBars" style="margin-top:14px"></div></article>
+             </div>
+           </div>
+         </section>
+ 
+         <section class="section">
+           <div class="section-head"><div class="section-title"><h3>1.5.5 - County Government Payments</h3><p>Single business permits, parking, rates, market fees and local government obligations.</p></div><div class="toolbar"><div class="field"><input id="countySearch" type="search" placeholder="Search county service"></div><button class="btn" data-modal="countyDirectory">All counties</button><button class="btn primary" data-modal="countyPermitWizard">Pay county</button></div></div>
+           <div class="filter-row" id="countyFilters"></div>
+           <div class="section-body"><div class="gov-grid" id="countyCards"></div></div>
+         </section>
+ 
+         <section class="section">
+           <div class="section-head"><div class="section-title"><h3>1.5.6 - Government Inbox, Calendar & Execution</h3><p>Unified obligations inbox, compliance calendar, recurring public payments and digital receipts.</p></div><div class="toolbar"><button class="btn" data-modal="govInbox">Open inbox</button><button class="btn" data-modal="recurringGovWizard">Recurring setup</button><button class="btn primary" data-modal="bulkGovWizard">Bulk pay</button></div></div>
+           <div class="section-body">
+             <div class="grid two-grid">
+               <article class="card"><div class="row"><b>Compliance Calendar</b><button class="tiny-btn" data-modal="complianceCalendar" type="button">Open</button></div><div class="chart-bars" id="calendarBars" style="margin-top:14px"></div></article>
+               <article class="card"><div class="row"><b>Inbox Summary</b><button class="tiny-btn" data-modal="govInbox" type="button">View all</button></div><div class="stat-grid" style="margin-top:12px"><div class="stat-box"><small>Unread</small><strong>12</strong></div><div class="stat-box"><small>Due soon</small><strong>5</strong></div><div class="stat-box"><small>Overdue</small><strong>1</strong></div><div class="stat-box"><small>Certificates</small><strong>4</strong></div></div></article>
+             </div>
+             <div class="table-wrap" style="margin-top:14px"><table><thead><tr><th>Obligation</th><th>Agency</th><th>Reference</th><th class="right">Amount</th><th>Status</th><th>Action</th></tr></thead><tbody id="govInboxRows"></tbody></table></div>
+           </div>
+         </section>
+       </section>
+     </main>
+   </div>
+ 
+   <div class="modal-backdrop" id="modalBackdrop" aria-hidden="true">
+     <div class="modal" id="modalBox" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+       <div class="modal-head"><div><h3 id="modalTitle">Modal title</h3><p id="modalSubtitle">Modal subtitle</p></div><button class="modal-close" type="button" id="modalClose">X</button></div>
+       <div id="stepWrap"></div>
+       <div class="modal-body" id="modalBody"></div>
+       <div class="modal-foot" id="modalFoot"></div>
+     </div>
+   </div>
+   <div class="toast" id="toast">Action completed</div>
+ 
+   <script>
+     const $ = (s) => document.querySelector(s);
+     const $$ = (s) => Array.from(document.querySelectorAll(s));
+ 
+     const kraCards = [
+       {name:"PAYE", ref:"OBL-PAYE-0526", amount:"KES 24,840", due:"Jun 9", status:"active", mark:"PY", color:"#4f46e5"},
+       {name:"VAT", ref:"OBL-VAT-0526", amount:"KES 38,200", due:"2 days", status:"due", mark:"VT", color:"#ef4444"},
+       {name:"Turnover Tax", ref:"OBL-TOT-0526", amount:"KES 7,800", due:"Jun 20", status:"due", mark:"TT", color:"#f59e0b"},
+       {name:"Withholding Tax", ref:"OBL-WHT-0526", amount:"KES 6,400", due:"Ready", status:"info", mark:"WT", color:"#3b82f6"},
+       {name:"Stamp Duty", ref:"SD-88214", amount:"KES 12,000", due:"As needed", status:"info", mark:"SD", color:"#8b5cf6"},
+       {name:"Tax Compliance", ref:"TCC-2026-1142", amount:"No fee", due:"Available", status:"active", mark:"TC", color:"#10b981"}
+     ];
+     const ecitizenCards = [
+       {name:"Passport Renewal", meta:"Application fee and receipt", amount:"KES 7,550", status:"info", mark:"PP", color:"#4f46e5"},
+       {name:"Driving License", meta:"Renewal and duplicate support", amount:"KES 3,050", status:"active", mark:"DL", color:"#10b981"},
+       {name:"Good Conduct", meta:"Police clearance certificate", amount:"KES 1,050", status:"due", mark:"GC", color:"#f59e0b"},
+       {name:"Vehicle Transfer", meta:"Transfer and logbook fees", amount:"KES 4,600", status:"info", mark:"VT", color:"#3b82f6"},
+       {name:"Business Registration", meta:"Name search and BN registration", amount:"KES 1,150", status:"active", mark:"BR", color:"#8b5cf6"},
+       {name:"Birth Certificate", meta:"Application and reprint services", amount:"KES 250", status:"info", mark:"BC", color:"#06b6d4"}
+     ];
+     const landCards = [
+       {name:"Land Rates", ref:"LR-88204", amount:"KES 18,200", status:"due", mark:"LR", color:"#4f46e5"},
+       {name:"Ground Rent", ref:"GR-29410", amount:"KES 7,400", status:"active", mark:"GR", color:"#10b981"},
+       {name:"Stamp Duty", ref:"SD-40290", amount:"KES 26,000", status:"info", mark:"SD", color:"#f59e0b"}
+     ];
+     const countyCards = [
+       {name:"Nairobi Business Permit", meta:"Single business permit", amount:"KES 15,000", county:"Nairobi", status:"due", mark:"NB", color:"#4f46e5"},
+       {name:"County Parking", meta:"Daily and seasonal parking", amount:"KES 300", county:"Nairobi", status:"active", mark:"PK", color:"#10b981"},
+       {name:"Market Stall Fee", meta:"Monthly county market charge", amount:"KES 2,500", county:"Kiambu", status:"info", mark:"MK", color:"#3b82f6"},
+       {name:"Land Rates", meta:"Annual county land rate", amount:"KES 24,400", county:"Nakuru", status:"due", mark:"LR", color:"#f59e0b"},
+       {name:"Fire Certificate", meta:"Annual safety certificate", amount:"KES 4,200", county:"Mombasa", status:"active", mark:"FC", color:"#8b5cf6"},
+       {name:"Health Permit", meta:"Food handling and health", amount:"KES 1,800", county:"Kisumu", status:"info", mark:"HP", color:"#06b6d4"}
+     ];
+     const govInbox = [
+       ["VAT May 2026", "KRA", "OBL-VAT-0526", "KES 38,200", "Due"],
+       ["SHIF June 2026", "SHIF", "SHIF-884201", "KES 6,820", "Due"],
+       ["NSSF June 2026", "NSSF", "NSSF-11142", "KES 6,480", "Ready"],
+       ["Nairobi Permit Renewal", "Nairobi County", "NCC-PR-024", "KES 15,000", "Due"],
+       ["Passport Renewal", "eCitizen", "EC-PP-4021", "KES 7,550", "Saved"],
+       ["Ground Rent", "Ardhisasa", "GR-29410", "KES 7,400", "Paid"]
+     ];
+ 
+     let activeWizard = null;
+     let currentStep = 0;
+ 
+     function statusClass(s){ return s === "active" ? "st-active" : s === "due" ? "st-due" : s === "alert" ? "st-alert" : s === "paused" ? "st-paused" : "st-info"; }
+ 
+     function renderCards(){
+       $("#kraCards").innerHTML = kraCards.map((c,i)=>`<article class="gov-card"><div class="gov-top"><span class="gov-mark" style="background:${c.color}">${c.mark}</span><span class="status ${statusClass(c.status)}">${c.status}</span></div><div class="gov-name">${c.name}</div><div class="gov-meta">${c.ref}</div><div class="gov-metrics"><div><small>Amount</small><b>${c.amount}</b></div><div><small>Action</small><b>${i===5?"Download":"Pay / file"}</b></div><div><small>Period</small><b>May 2026</b></div><div><small>Status</small><b>${c.status}</b></div></div><div class="gov-actions"><div style="display:flex;gap:7px"><button class="round-btn" data-kra="${i}" data-kra-action="view">View</button><button class="round-btn" data-kra="${i}" data-kra-action="pay">Pay</button><button class="round-btn" data-kra="${i}" data-kra-action="doc">Doc</button></div></div></article>`).join("");
+       $("#ecitizenCards").innerHTML = ecitizenCards.map((c,i)=>`<article class="gov-card"><div class="gov-top"><span class="gov-mark" style="background:${c.color}">${c.mark}</span><span class="status ${statusClass(c.status)}">${c.status}</span></div><div class="gov-name">${c.name}</div><div class="gov-meta">${c.meta}</div><div class="gov-metrics"><div><small>Fee</small><b>${c.amount}</b></div><div><small>Timeline</small><b>${i%2?"Same day":"Apply now"}</b></div><div><small>Receipt</small><b>Digital</b></div><div><small>Action</small><b>Pay</b></div></div><div class="gov-actions"><div style="display:flex;gap:7px"><button class="round-btn" data-ec="${i}" data-ec-action="view">View</button><button class="round-btn" data-ec="${i}" data-ec-action="pay">Pay</button><button class="round-btn" data-ec="${i}" data-ec-action="guide">Guide</button></div></div></article>`).join("");
+       $("#landCards").innerHTML = landCards.map((c,i)=>`<article class="gov-card"><div class="gov-top"><span class="gov-mark" style="background:${c.color}">${c.mark}</span><span class="status ${statusClass(c.status)}">${c.status}</span></div><div class="gov-name">${c.name}</div><div class="gov-meta">${c.ref}</div><div class="gov-metrics"><div><small>Amount</small><b>${c.amount}</b></div><div><small>Scope</small><b>${i===0?"Annual":"Per transaction"}</b></div><div><small>Docs</small><b>Available</b></div><div><small>Action</small><b>Pay</b></div></div><div class="gov-actions"><div style="display:flex;gap:7px"><button class="round-btn" data-land="${i}" data-land-action="view">View</button><button class="round-btn" data-land="${i}" data-land-action="pay">Pay</button><button class="round-btn" data-land="${i}" data-land-action="docs">Docs</button></div></div></article>`).join("");
+       $("#countyCards").innerHTML = countyCards.map((c,i)=>`<article class="gov-card"><div class="gov-top"><span class="gov-mark" style="background:${c.color}">${c.mark}</span><span class="status ${statusClass(c.status)}">${c.status}</span></div><div class="gov-name">${c.name}</div><div class="gov-meta">${c.county} - ${c.meta}</div><div class="gov-metrics"><div><small>Fee</small><b>${c.amount}</b></div><div><small>County</small><b>${c.county}</b></div><div><small>Mode</small><b>Digital</b></div><div><small>Action</small><b>Renew / pay</b></div></div><div class="gov-actions"><div style="display:flex;gap:7px"><button class="round-btn" data-county="${i}" data-county-action="view">View</button><button class="round-btn" data-county="${i}" data-county-action="pay">Pay</button><button class="round-btn" data-county="${i}" data-county-action="bundle">More</button></div></div></article>`).join("");
+       $("#govInboxRows").innerHTML = govInbox.map((r,i)=>`<tr><td><b>${r[0]}</b></td><td>${r[1]}</td><td>${r[2]}</td><td class="right"><b>${r[3]}</b></td><td><span class="status ${r[4]==="Paid"?"st-active":r[4]==="Due"?"st-due":"st-info"}">${r[4]}</span></td><td><button class="tiny-btn" data-inbox-row="${i}">Open</button></td></tr>`).join("");
+       $("#landBars").innerHTML = [["Land rates","KES 24.4K",82,"#4f46e5"],["Ground rent","KES 7.4K",38,"#10b981"],["Stamp duty","KES 26K",74,"#f59e0b"],["Lease renewal","KES 4.8K",22,"#3b82f6"]].map(r=>`<div class="chart-row"><span>${r[0]}</span><div class="chart-track"><span style="width:${r[2]}%;background:${r[3]}"></span></div><b class="right">${r[1]}</b></div>`).join("");
+       $("#calendarBars").innerHTML = [["This week","3 due",52,"#ef4444"],["Next week","4 due",68,"#f59e0b"],["Month end","2 due",34,"#4f46e5"],["Upcoming","6 saved",76,"#10b981"]].map(r=>`<div class="chart-row"><span>${r[0]}</span><div class="chart-track"><span style="width:${r[2]}%;background:${r[3]}"></span></div><b class="right">${r[1]}</b></div>`).join("");
+       $("#countyFilters").innerHTML = ["All","Business permits","Parking","Rates","Markets","Health permits","Fire certs"].map((c,i)=>`<button class="chip ${i===0?"active":""}" data-county-filter="${c}">${c}</button>`).join("");
+     }
+ 
+     const modalTemplates = {
+       govHealth: {title:"Government Service Health Check", sub:"KRA, SHIF, NSSF, eCitizen, Ardhisasa and county payment rails", size:"lg", body: healthBody},
+       notifications: {title:"Government Notifications", sub:"Deadlines, receipts, compliance changes and document alerts", size:"lg", body: notificationsBody},
+       profileSettings: {title:"Citizen & Business Profile", sub:"KRA PINs, dependents, business identity, contact channels and reminders", size:"lg", body: profileBody},
+       helpGuide: {title:"Government Services Help", sub:"Guided assistance for public service payment flows", body: helpBody},
+       preferences: {title:"Preferences", sub:"Government dashboard defaults and delivery options", body: preferencesBody},
+       supportCenter: {title:"Support Center", sub:"Public service help desk, escalation and document support", size:"lg", body: supportBody},
+       navGov: {title:"Government Service Hub", sub:"You are on the Government Payments dashboard", body: () => navBody("Government Payments", "Manage tax, statutory contributions, eCitizen, land fees, permits and county services from one dashboard.")},
+       navTax: {title:"Tax Services", sub:"KRA payment and compliance services", body: () => navBody("Tax Services", "PAYE, VAT, TOT, WHT, stamp duty, TCC and return-linked payment workflows are available here.")},
+       navCounty: {title:"County Services", sub:"County-level fees and permits", body: () => navBody("County Services", "Business permits, parking, land rates, health certificates, market fees and local government payments are available here.")},
+       alertsAll: {title:"Government Attention Items", sub:"Deadlines, missing details and compliance alerts", size:"lg", body: alertsBody},
+       alertVat: {title:"VAT Return Alert", sub:"Return and payment are due soon", size:"lg", body: () => alertDetail("VAT May 2026", "Due in 2 days", "KES 38,200 estimated", "Return filing and payment needed")},
+       alertShif: {title:"SHIF Dependents Incomplete", sub:"Household records need completion", size:"lg", body: shifDependentBody},
+       alertPermit: {title:"County Permit Renewal", sub:"Renewal window is open", size:"lg", body: permitAlertBody},
+       smartSuggestions: {title:"Smart Suggestions", sub:"AI-generated compliance and convenience recommendations", size:"lg", body: smartBody},
+       taxBundle: {title:"Statutory Bundle Suggestion", sub:"PAYE, SHIF and NSSF grouped workflow", size:"lg", body: bundleBody},
+       tccPrompt: {title:"Tax Compliance Certificate", sub:"Download, validity and use cases", size:"lg", body: tccBody},
+       countyBundle: {title:"County Basket Checkout", sub:"Bundle permit, rates and parking payments", size:"lg", body: countyBundleBody},
+       kraProfile: {title:"KRA Linked Profile", sub:"PIN, obligations, certificates and return history", size:"lg", body: kraProfileBody},
+       kraHistory: {title:"KRA Payment History", sub:"All tax payments and matched receipts", size:"xl", body: kraHistoryBody},
+       kraPaymentWizard: {title:"KRA Payment Wizard", sub:"Fetch obligation, review amount, choose method and authorize", size:"lg", wizard:"kraPay"},
+       kraReturnWizard: {title:"Return Filing Helper", sub:"Prepare return-linked payment path", size:"lg", wizard:"returnHelper"},
+       tccDownload: {title:"Download Tax Compliance Certificate", sub:"View validity and export channels", size:"lg", body: tccBody},
+       statutoryCalculator: {title:"Statutory Calculator", sub:"Estimate PAYE, SHIF, NSSF, Housing Levy and NITA", size:"lg", body: calculatorBody},
+       nssfWizard: {title:"NSSF Contribution Payment", sub:"Tier I and Tier II contribution payment flow", size:"lg", wizard:"nssfPay"},
+       shifWizard: {title:"SHIF Contribution Payment", sub:"Household and dependent-linked payment flow", size:"lg", wizard:"shifPay"},
+       nitaWizard: {title:"NITA Levy Payment", sub:"Employer levy and training grant references", size:"lg", wizard:"nitaPay"},
+       housingLevyWizard: {title:"Housing Levy Payment", sub:"Employee and employer contribution workflow", size:"lg", wizard:"housingPay"},
+       statutoryBundleWizard: {title:"Statutory Bundle Payment", sub:"PAYE, SHIF, NSSF and levies in one workflow", size:"xl", wizard:"statBundle"},
+       nssfStatement: {title:"NSSF Statement & History", sub:"Contribution history and downloadable statement", size:"lg", body: nssfStatementBody},
+       nssfBenefits: {title:"NSSF Benefits Projection", sub:"Retirement and withdrawal estimates", size:"lg", body: nssfBenefitsBody},
+       shifDependents: {title:"SHIF Dependents Management", sub:"Add, verify and manage household dependents", size:"lg", body: shifDependentBody},
+       shifProviders: {title:"SHIF Provider Directory", sub:"Empanelled facilities and pre-auth support", size:"lg", body: shifProviderBody},
+       levyBundle: {title:"Levy Management", sub:"NITA and Housing Levy controls", size:"lg", body: levyBody},
+       ecitizenDirectory: {title:"eCitizen Services Directory", sub:"Supported public service payment categories", size:"xl", body: ecitizenDirectoryBody},
+       ecitizenWizard: {title:"eCitizen Payment Wizard", sub:"Choose service, enter application reference, confirm fee and pay", size:"lg", wizard:"ecitizenPay"},
+       goodConductWizard: {title:"Good Conduct Payment", sub:"Police clearance certificate payment flow", size:"lg", wizard:"goodConduct"},
+       dlRenewWizard: {title:"Driving License Payment", sub:"Renewal, duplicate and fee options", size:"lg", wizard:"dlPay"},
+       passportWizard: {title:"Passport Payment", sub:"Application fee and category payment", size:"lg", wizard:"passportPay"},
+       businessRegWizard: {title:"Business Registration Fees", sub:"Name search and registration payments", size:"lg", wizard:"bizRegPay"},
+       landPortfolio: {title:"Land Portfolio", sub:"Rates, rent, title actions and linked properties", size:"lg", body: landPortfolioBody},
+       ardhisasaWizard: {title:"Ardhisasa Payment Wizard", sub:"Stamp duty, rates, rent or title fee payment", size:"lg", wizard:"landPay"},
+       landAccountWizard: {title:"Add Land Account", sub:"Link title, parcel, rates or rent account", size:"lg", wizard:"landAccount"},
+       landInsights: {title:"Land Service Insights", sub:"Charge mix, due calendar and high-value items", size:"lg", body: landInsightBody},
+       titleDocs: {title:"Title & Land Documents", sub:"Receipts, reference numbers and required uploads", size:"lg", body: titleDocsBody},
+       countyDirectory: {title:"County Service Directory", sub:"Browse county collections by service type", size:"xl", body: countyDirectoryBody},
+       countyPermitWizard: {title:"County Payment Wizard", sub:"Permit, parking, rates and other county service payments", size:"lg", wizard:"countyPay"},
+       countyParkingWizard: {title:"County Parking Payment", sub:"Vehicle plate, duration and zone payment", size:"lg", wizard:"parkingPay"},
+       countyRatesWizard: {title:"County Rates Payment", sub:"Land rates, arrears and installment options", size:"lg", wizard:"ratesPay"},
+       marketFeesWizard: {title:"Market Fees Payment", sub:"Stall, hawker and market permit charges", size:"lg", wizard:"marketPay"},
+       govInbox: {title:"Government Inbox", sub:"Unified obligations, certificates, reminders and receipts", size:"xl", body: govInboxBody},
+       complianceCalendar: {title:"Compliance Calendar", sub:"Upcoming returns, levies, permits and due dates", size:"lg", body: complianceBody},
+       recurringGovWizard: {title:"Recurring Government Payment Setup", sub:"Set scheduled payments for recurring public obligations", size:"lg", wizard:"govRecurring"},
+       bulkGovWizard: {title:"Bulk Government Payment", sub:"Upload or prepare a batch for multiple obligations", size:"xl", wizard:"govBulk"},
+       govReceipt: {title:"Government Receipt Center", sub:"Download, share and verify digital receipts", size:"lg", body: receiptBody}
+     };
+ 
+     const wizards = {
+       kraPay: [
+         {label:"PIN", html:`<div class="form-grid"><div><label>KRA PIN</label><input value="P051883420X"></div><div><label>Profile</label><select><option>Individual taxpayer</option><option>Sole proprietor</option></select></div></div><div class="notice success">Profile linked successfully and obligations can be fetched.</div>`},
+         {label:"Obligation", html:`<div class="form-grid"><div><label>Tax type</label><select><option>VAT</option><option>PAYE</option><option>Turnover Tax</option><option>Withholding Tax</option><option>Stamp Duty</option></select></div><div><label>Tax period</label><select><option>May 2026</option><option>Apr 2026</option></select></div></div><div class="notice info">Obligation fetched from KRA. Estimated amount KES 38,200.</div>`},
+         {label:"Payment", html:`<div class="table-wrap"><table><tbody><tr><td>Principal tax</td><td class="right"><b>KES 36,840</b></td></tr><tr><td>Interest / penalty</td><td class="right">KES 1,360</td></tr><tr><td><b>Total</b></td><td class="right"><b>KES 38,200</b></td></tr></tbody></table></div>${paymentMethodHtml()}`},
+         {label:"Confirm", html:pinSummaryHtml("KRA VAT", "OBL-VAT-0526", "KES 38,240.60", "Payment receipt will be matched to KRA obligation and stored in your government inbox.")}
+       ],
+       returnHelper: [
+         {label:"Type", html:`<div class="form-grid"><div><label>Return</label><select><option>VAT return</option><option>PAYE return</option><option>TOT return</option></select></div><div><label>Period</label><select><option>May 2026</option></select></div></div>`},
+         {label:"Prepare", html:`<div class="notice info">Return data summary is shown for review before payment. This is a guided payment helper, not a filing portal.</div><div class="stat-grid"><div class="stat-box"><small>Taxable value</small><strong>KES 312,400</strong></div><div class="stat-box"><small>Tax due</small><strong>KES 38,200</strong></div><div class="stat-box"><small>Penalty</small><strong>KES 0</strong></div><div class="stat-box"><small>Status</small><strong>Ready</strong></div></div>`},
+         {label:"Next step", html:`<div class="notice success">Return summary is ready. Continue to payment or export a working paper for your accountant.</div>`}
+       ],
+       nssfPay: [
+         {label:"Member", html:`<div class="form-grid"><div><label>NSSF number</label><input value="NSSF-1184204"></div><div><label>Period</label><select><option>Jun 2026</option></select></div></div>`},
+         {label:"Contribution", html:`<div class="stat-grid"><div class="stat-box"><small>Tier I</small><strong>KES 540</strong></div><div class="stat-box"><small>Tier II</small><strong>KES 5,940</strong></div><div class="stat-box"><small>Total</small><strong>KES 6,480</strong></div><div class="stat-box"><small>Status</small><strong>Ready</strong></div></div>`},
+         {label:"Confirm", html:pinSummaryHtml("NSSF Contribution", "NSSF-1184204", "KES 6,520.60", "Statement will update after provider confirmation.")}
+       ],
+       shifPay: [
+         {label:"Profile", html:`<div class="form-grid"><div><label>SHIF member no.</label><input value="SHIF-884201"></div><div><label>Household type</label><select><option>Salaried household</option><option>Self-employed</option></select></div></div>`},
+         {label:"Amount", html:`<div class="stat-grid"><div class="stat-box"><small>Gross income basis</small><strong>KES 248,000</strong></div><div class="stat-box"><small>2.75%</small><strong>KES 6,820</strong></div><div class="stat-box"><small>Minimum rule</small><strong>Passed</strong></div><div class="stat-box"><small>Dependents</small><strong>4 listed</strong></div></div>`},
+         {label:"Confirm", html:pinSummaryHtml("SHIF Contribution", "SHIF-884201", "KES 6,860.60", "Household coverage record and receipt will be saved.")}
+       ],
+       nitaPay: [
+         {label:"Employer", html:`<div class="form-grid"><div><label>Employer ID</label><input value="NITA-20411"></div><div><label>Period</label><select><option>Jun 2026</option></select></div></div>`},
+         {label:"Amount", html:`<div class="table-wrap"><table><tbody><tr><td>Payroll base</td><td class="right"><b>KES 248,000</b></td></tr><tr><td>NITA levy</td><td class="right">KES 1,240</td></tr></tbody></table></div>`},
+         {label:"Confirm", html:pinSummaryHtml("NITA Levy", "NITA-20411", "KES 1,280.60", "Levy record will appear in employer compliance summary.")}
+       ],
+       housingPay: [
+         {label:"Period", html:`<div class="form-grid"><div><label>Period</label><select><option>Jun 2026</option></select></div><div><label>Payroll base</label><input value="KES 248,000"></div></div>`},
+         {label:"Breakdown", html:`<div class="stat-grid"><div class="stat-box"><small>Employee 1.5%</small><strong>KES 3,720</strong></div><div class="stat-box"><small>Employer 1.5%</small><strong>KES 3,720</strong></div><div class="stat-box"><small>Total</small><strong>KES 7,440</strong></div><div class="stat-box"><small>Status</small><strong>Ready</strong></div></div>`},
+         {label:"Confirm", html:pinSummaryHtml("Housing Levy", "Jun 2026", "KES 7,480.60", "Receipt will reflect employee and employer portions.")}
+       ],
+       statBundle: [
+         {label:"Select", html:`<label><input type="checkbox" checked> PAYE</label><br><label><input type="checkbox" checked> SHIF</label><br><label><input type="checkbox" checked> NSSF</label><br><label><input type="checkbox" checked> Housing Levy</label><br><label><input type="checkbox"> NITA</label>`},
+         {label:"Preview", html:`<div class="stat-grid"><div class="stat-box"><small>Items</small><strong>4</strong></div><div class="stat-box"><small>Total</small><strong>KES 45,580</strong></div><div class="stat-box"><small>Due</small><strong>Month-end</strong></div><div class="stat-box"><small>Approvals</small><strong>1 needed</strong></div></div>`},
+         {label:"Funding", html:paymentMethodHtml()},
+         {label:"Confirm", html:pinSummaryHtml("Statutory Bundle", "Jun 2026", "KES 45,620.60", "All receipts will be grouped by agency in the inbox.")}
+       ],
+       ecitizenPay: [
+         {label:"Service", html:`<div class="form-grid"><div><label>Service category</label><select><option>Passport renewal</option><option>Driving license</option><option>Good conduct</option><option>Vehicle transfer</option><option>Business registration</option></select></div><div><label>Application ref</label><input value="EC-PP-4021"></div></div>`},
+         {label:"Fee", html:`<div class="notice info">The fee has been mapped to the selected service reference.</div><div class="table-wrap"><table><tbody><tr><td>Service fee</td><td class="right"><b>KES 7,550</b></td></tr><tr><td>Convenience fee</td><td class="right">KES 35</td></tr></tbody></table></div>`},
+         {label:"Confirm", html:pinSummaryHtml("eCitizen Payment", "EC-PP-4021", "KES 7,585.00", "Payment reference and receipt will remain linked to the application.")}
+       ],
+       goodConduct: [
+         {label:"Applicant", html:`<div class="form-grid"><div><label>ID number</label><input value="28441190"></div><div><label>Reference</label><input value="EC-GC-9201"></div></div>`},
+         {label:"Fee", html:`<div class="table-wrap"><table><tbody><tr><td>Certificate fee</td><td class="right"><b>KES 1,050</b></td></tr></tbody></table></div>`},
+         {label:"Confirm", html:pinSummaryHtml("Good Conduct", "EC-GC-9201", "KES 1,085.00", "Receipt will remain attached to police clearance application.")}
+       ],
+       dlPay: [
+         {label:"License", html:`<div class="form-grid"><div><label>DL number</label><input value="DL-882140"></div><div><label>Service</label><select><option>Renewal</option><option>Duplicate</option></select></div></div>`},
+         {label:"Fee", html:`<div class="table-wrap"><table><tbody><tr><td>Service fee</td><td class="right"><b>KES 3,050</b></td></tr></tbody></table></div>`},
+         {label:"Confirm", html:pinSummaryHtml("Driving License", "DL-882140", "KES 3,085.00", "Digital receipt will be stored in eCitizen history.")}
+       ],
+       passportPay: [
+         {label:"Application", html:`<div class="form-grid"><div><label>Application ref</label><input value="EC-PP-4021"></div><div><label>Passport type</label><select><option>32-page ordinary</option><option>48-page ordinary</option><option>64-page ordinary</option></select></div></div>`},
+         {label:"Fee", html:`<div class="table-wrap"><table><tbody><tr><td>Passport fee</td><td class="right"><b>KES 7,550</b></td></tr></tbody></table></div>`},
+         {label:"Confirm", html:pinSummaryHtml("Passport Renewal", "EC-PP-4021", "KES 7,585.00", "Use the receipt for application follow-up.")}
+       ],
+       bizRegPay: [
+         {label:"Business", html:`<div class="form-grid"><div><label>Name search ref</label><input value="BR-10421"></div><div><label>Entity type</label><select><option>Business name</option><option>Limited company</option></select></div></div>`},
+         {label:"Fee", html:`<div class="table-wrap"><table><tbody><tr><td>Registration fee</td><td class="right"><b>KES 1,150</b></td></tr></tbody></table></div>`},
+         {label:"Confirm", html:pinSummaryHtml("Business Registration", "BR-10421", "KES 1,185.00", "Receipt remains linked to the registration record.")}
+       ],
+       landPay: [
+         {label:"Land service", html:`<div class="form-grid"><div><label>Service</label><select><option>Land rates</option><option>Ground rent</option><option>Stamp duty</option><option>Title processing</option></select></div><div><label>Reference</label><input value="LR-88204"></div></div>`},
+         {label:"Charges", html:`<div class="table-wrap"><table><tbody><tr><td>Charge amount</td><td class="right"><b>KES 18,200</b></td></tr><tr><td>Convenience fee</td><td class="right">KES 35</td></tr></tbody></table></div>`},
+         {label:"Confirm", html:pinSummaryHtml("Ardhisasa / Land Service", "LR-88204", "KES 18,235.00", "Receipt will be available in your land account record.")}
+       ],
+       landAccount: [
+         {label:"Property", html:`<div class="form-grid"><div><label>County / area</label><input value="Nairobi / Westlands"></div><div><label>Parcel or title ref</label><input value="LR-88204"></div></div>`},
+         {label:"Link", html:`<div class="form-grid"><div><label>Service type</label><select><option>Land rates</option><option>Ground rent</option><option>Stamp duty</option></select></div><div><label>Nickname</label><input value="Westlands Plot"></div></div>`},
+         {label:"Finish", html:`<div class="notice success">Land account linked successfully. It will now show in your government inbox and calendar.</div>`}
+       ],
+       countyPay: [
+         {label:"County", html:`<div class="form-grid"><div><label>County</label><select><option>Nairobi</option><option>Nakuru</option><option>Mombasa</option><option>Kiambu</option></select></div><div><label>Service</label><select><option>Single business permit</option><option>Parking</option><option>Land rates</option><option>Health permit</option></select></div></div>`},
+         {label:"Reference", html:`<div class="form-grid"><div><label>Reference or account</label><input value="NCC-PR-024"></div><div><label>Amount</label><input value="KES 15,000"></div></div><div class="notice info">Where supported, the county amount is fetched automatically before payment.</div>`},
+         {label:"Confirm", html:pinSummaryHtml("County Payment", "NCC-PR-024", "KES 15,035.00", "Receipt and county reference will be saved to the inbox.")}
+       ],
+       parkingPay: [
+         {label:"Vehicle", html:`<div class="form-grid"><div><label>Plate number</label><input value="KDK 482Q"></div><div><label>County</label><select><option>Nairobi</option><option>Mombasa</option></select></div></div>`},
+         {label:"Duration", html:`<div class="form-grid"><div><label>Parking type</label><select><option>Daily</option><option>Seasonal</option></select></div><div><label>Fee</label><input value="KES 300"></div></div>`},
+         {label:"Confirm", html:pinSummaryHtml("County Parking", "KDK 482Q", "KES 335.00", "Parking confirmation remains searchable by number plate.")}
+       ],
+       ratesPay: [
+         {label:"Property", html:`<div class="form-grid"><div><label>Rates account</label><input value="LR-88204"></div><div><label>County</label><select><option>Nakuru</option><option>Nairobi</option></select></div></div>`},
+         {label:"Amount", html:`<div class="table-wrap"><table><tbody><tr><td>Rates principal</td><td class="right"><b>KES 24,400</b></td></tr><tr><td>Arrears</td><td class="right">KES 0</td></tr></tbody></table></div>`},
+         {label:"Confirm", html:pinSummaryHtml("County Rates", "LR-88204", "KES 24,435.00", "Rates receipt will remain linked to the land account.")}
+       ],
+       marketPay: [
+         {label:"Stall", html:`<div class="form-grid"><div><label>Market / stall ref</label><input value="MK-20411"></div><div><label>County</label><select><option>Kiambu</option><option>Kisumu</option></select></div></div>`},
+         {label:"Fee", html:`<div class="table-wrap"><table><tbody><tr><td>Market fee</td><td class="right"><b>KES 2,500</b></td></tr></tbody></table></div>`},
+         {label:"Confirm", html:pinSummaryHtml("Market Fees", "MK-20411", "KES 2,535.00", "Receipt can be presented to county inspectors.")}
+       ],
+       govRecurring: [
+         {label:"Obligation", html:`<div class="form-grid"><div><label>Service</label><select><option>SHIF contribution</option><option>NSSF contribution</option><option>County parking</option><option>Permit renewal reminder</option></select></div><div><label>Rule</label><select><option>Fixed amount</option><option>Fetch if available</option></select></div></div>`},
+         {label:"Schedule", html:`<div class="form-grid"><div><label>Frequency</label><select><option>Monthly</option><option>Annually</option></select></div><div><label>When</label><select><option>2 days before due</option><option>On due date</option></select></div></div>`},
+         {label:"Funding", html:paymentMethodHtml()},
+         {label:"Review", html:`<div class="notice success">Recurring government payment rule is ready and will appear in your compliance calendar.</div>`}
+       ],
+       govBulk: [
+         {label:"Upload", html:`<div class="notice info">Upload CSV/Excel or paste multiple public obligation rows.</div><textarea rows="5">KRA,OBL-VAT-0526,38200\nSHIF,SHIF-884201,6820\nNSSF,NSSF-1184204,6480</textarea>`},
+         {label:"Validate", html:`<div class="stat-grid"><div class="stat-box"><small>Rows</small><strong>6</strong></div><div class="stat-box"><small>Valid</small><strong>5</strong></div><div class="stat-box"><small>Need fix</small><strong>1</strong></div><div class="stat-box"><small>Total</small><strong>KES 74,200</strong></div></div>`},
+         {label:"Approve", html:`<div class="notice warn">Bulk public payment needs approval because total exceeds your configured threshold.</div>`},
+         {label:"Confirm", html:pinSummaryHtml("Bulk Government Payment", "6 obligations", "KES 74,240.60", "Each receipt will be matched per agency and listed separately.")}
+       ]
+     };
+ 
+     function paymentMethodHtml(){ return `<h4 style="margin:0 0 10px">Payment method</h4><div class="payment-method selected"><b>M-Pesa STK Push</b><span class="mini-sub">Prompt to +254 712 345 678, fee KES 35</span></div><div class="payment-method"><b>PayMo Wallet</b><span class="mini-sub">Balance KES 124,500, fee KES 15</span></div><div class="payment-method"><b>PesaLink</b><span class="mini-sub">Bank transfer, instant settlement, fee KES 40</span></div><div class="payment-method"><b>Visa / Mastercard</b><span class="mini-sub">Card ending 4820, 3DS required</span></div>`; }
+     function pinSummaryHtml(service, ref, total, note){ return `<div class="notice info">${note}</div><div class="stat-grid"><div class="stat-box"><small>Service</small><strong>${service}</strong></div><div class="stat-box"><small>Reference</small><strong>${ref}</strong></div><div class="stat-box"><small>Total</small><strong>${total}</strong></div><div class="stat-box"><small>Security</small><strong>PIN</strong></div></div><div class="pin-row"><input maxlength="1"><input maxlength="1"><input maxlength="1"><input maxlength="1"></div>`; }
+     function miniRows(rows){ return `<div class="mini-list" style="margin-top:12px">${rows.map((r,i)=>`<div class="mini-item"><span class="mini-icon" style="background:var(--pm-surface-2);color:var(--pm-primary)">${String(i+1).padStart(2,"0")}</span><span class="mini-title" style="font-weight:700">${r}</span></div>`).join("")}</div>`; }
+     function tableRows(rows){ return `<div class="table-wrap"><table><tbody>${rows.map(r=>`<tr><td>${r[0]}</td><td class="right"><b>${r[1]}</b></td></tr>`).join("")}</tbody></table></div>`; }
+ 
+     function openModal(key){
+       const t = modalTemplates[key];
+       if(!t){ showToast("Workflow opened successfully."); return; }
+       $("#modalBox").className = "modal "   (t.size || "");
+       $("#modalTitle").textContent = t.title;
+       $("#modalSubtitle").textContent = t.sub || "";
+       activeWizard = t.wizard || null;
+       currentStep = 0;
+       if(activeWizard) renderWizard();
+       else {
+         $("#stepWrap").innerHTML = "";
+         $("#modalBody").innerHTML = typeof t.body === "function" ? t.body() : t.body;
+         $("#modalFoot").innerHTML = `<button class="btn" type="button" data-close>Close</button><button class="btn primary" type="button" data-action="save">Save changes</button>`;
+         bindTabs();
+       }
+       $("#modalBackdrop").classList.add("open");
+       document.body.classList.add("no-scroll");
+     }
+     function renderWizard(){
+       const steps = wizards[activeWizard];
+       $("#stepWrap").innerHTML = `<div class="steps">${steps.map((s,i)=>`<div class="step ${i===currentStep?"active":i<currentStep?"done":""}"><span class="num">${i<currentStep?"✓":i+1}</span><span>${s.label}</span></div>${i<steps.length-1?`<div class="step-line ${i<currentStep?"done":""}"></div>`:""}`).join("")}</div>`;
+       $("#modalBody").innerHTML = steps[currentStep].html;
+       $("#modalFoot").innerHTML = `<button class="btn" type="button" ${currentStep===0?"data-close":"data-step-back"}>${currentStep===0?"Cancel":"Back"}</button><button class="btn primary" type="button" data-step-next>${currentStep===steps.length-1?"Complete workflow":"Continue"}</button>`;
+     }
+     function completeWizard(){
+       $("#modalBody").innerHTML = `<div style="text-align:center;padding:30px"><div style="width:72px;height:72px;border-radius:999px;background:var(--pm-accent-soft);color:var(--pm-accent);display:grid;place-items:center;margin:0 auto 14px;font-size:28px;font-weight:900">OK</div><h3>Workflow completed</h3><p style="color:var(--pm-muted)">The request was validated, recorded in your government timeline and linked to the correct public service reference.</p><div class="progress" style="margin-top:18px"><span style="width:100%;background-image:linear-gradient(90deg,var(--pm-primary),var(--pm-primary-light),var(--pm-primary));background-size:200% 100%;animation:shimmer 1.4s infinite"></span></div></div>`;
+       $("#stepWrap").innerHTML = "";
+       $("#modalFoot").innerHTML = `<button class="btn primary" type="button" data-close>Done</button>`;
+       showToast("Workflow completed successfully.");
+     }
+     function closeModal(){ $("#modalBackdrop").classList.remove("open"); document.body.classList.remove("no-scroll"); }
+     function showToast(msg){ const t=$("#toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(window.toastTimer); window.toastTimer=setTimeout(()=>t.classList.remove("show"),2200); }
+     function bindTabs(){ $$(".modal-tab").forEach(btn=>btn.onclick=()=>{ $$(".modal-tab").forEach(b=>b.classList.remove("active")); $$(".tab-panel").forEach(p=>p.classList.remove("active")); btn.classList.add("active"); $("#"+btn.dataset.tab).classList.add("active"); }); }
+ 
+     function healthBody(){ return `<div class="stat-grid"><div class="stat-box"><small>KRA API</small><strong>99.2%</strong></div><div class="stat-box"><small>eCitizen fetch</small><strong>1.4s</strong></div><div class="stat-box"><small>County routing</small><strong>Ready</strong></div><div class="stat-box"><small>Receipt sync</small><strong>OK</strong></div></div>${miniRows(["KRA obligation fetch healthy", "SHIF amount validation healthy", "NSSF receipt routing healthy", "eCitizen references resolving correctly", "County payment directory available", "Land service fee references available"])} `; }
+     function notificationsBody(){ return `<div class="modal-tabs"><button class="modal-tab active" data-tab="n1">Deadlines</button><button class="modal-tab" data-tab="n2">Docs</button><button class="modal-tab" data-tab="n3">Receipts</button></div><div id="n1" class="tab-panel active">${miniRows(["VAT due in 2 days", "SHIF dependents incomplete", "County permit renewal open", "Land rates reminder available"])} </div><div id="n2" class="tab-panel">${miniRows(["TCC available for download", "Passport receipt stored", "Land rates receipt verified"])} </div><div id="n3" class="tab-panel">${miniRows(["PAYE receipt matched", "NSSF statement updated", "County parking receipt ready"])} </div>`; }
+     function profileBody(){ return `<div class="modal-tabs"><button class="modal-tab active" data-tab="p1">Identity</button><button class="modal-tab" data-tab="p2">Household</button><button class="modal-tab" data-tab="p3">Business</button></div><div id="p1" class="tab-panel active"><div class="form-grid"><div><label>Full name</label><input value="Amina Kariuki"></div><div><label>ID number</label><input value="28441190"></div><div><label>KRA PIN</label><input value="P051883420X"></div><div><label>Phone</label><input value="0712345678"></div></div></div><div id="p2" class="tab-panel">${miniRows(["4 SHIF household members linked", "2 dependents need verification", "Primary email receives all receipts"])} </div><div id="p3" class="tab-panel">${miniRows(["Business name: Kariuki Supplies", "County permit profile active", "TOT and VAT profiles linked"])} </div>`; }
+     function helpBody(){ return `<div class="notice info">All actions here are user-facing public service workflows, not platform admin settings.</div>${miniRows(["Pay KRA obligations with fetched references and matched receipts.", "Manage SHIF, NSSF, Housing Levy and NITA through guided payment flows.", "Use eCitizen for passport, driving license and police clearance related payments.", "Pay land rates, ground rent, county permits, parking and market fees.", "Track obligations and documents in a unified government inbox."])} `; }
+     function preferencesBody(){ return `<label><input type="checkbox" checked> Show urgent obligations first</label><br><label><input type="checkbox" checked> Send deadline reminders 3 days before due</label><br><label><input type="checkbox" checked> Group statutory deductions into one suggested bundle</label><br><label><input type="checkbox"> Auto-download certificates when issued</label>`; }
+     function supportBody(){ return `<div class="stat-grid"><div class="stat-box"><small>Open cases</small><strong>4</strong></div><div class="stat-box"><small>Receipts matched</small><strong>97%</strong></div><div class="stat-box"><small>Avg response</small><strong>9m</strong></div><div class="stat-box"><small>SLA</small><strong>96%</strong></div></div>${miniRows(["KRA payment not reflected", "eCitizen reference mismatch", "County payment receipt missing", "SHIF dependent validation help"])} `; }
+     function navBody(title, text){ return `<div class="notice info"><b>${title}</b><br>${text}</div><button class="btn primary" data-close>Continue</button>`; }
+     function alertsBody(){ return `${alertDetail("Government obligations", "11 active reminders", "5 due soon", "3 require user action")}<div class="table-wrap"><table><thead><tr><th>Item</th><th>Agency</th><th>Action</th></tr></thead><tbody><tr><td>VAT return</td><td>KRA</td><td>Pay / file</td></tr><tr><td>SHIF dependents</td><td>SHIF</td><td>Update</td></tr><tr><td>County permit</td><td>Nairobi County</td><td>Renew</td></tr></tbody></table></div>`; }
+     function alertDetail(a,b,c,d){ return `<div class="stat-grid"><div class="stat-box"><small>Scope</small><strong>${a}</strong></div><div class="stat-box"><small>Signal</small><strong>${b}</strong></div><div class="stat-box"><small>Impact</small><strong>${c}</strong></div><div class="stat-box"><small>Next</small><strong>${d}</strong></div></div>${miniRows(["Open the obligation detail", "Confirm amount or missing information", "Authorize payment or save for later", "Receipt and compliance history update automatically"])} `; }
+     function shifDependentBody(){ return `<div class="notice warn">2 dependents need additional validation before they can be fully recognized in your SHIF profile.</div><div class="table-wrap"><table><thead><tr><th>Name</th><th>Relationship</th><th>Status</th><th>Needed</th></tr></thead><tbody><tr><td>Brian Kariuki</td><td>Spouse</td><td>Pending</td><td>ID copy</td></tr><tr><td>Mary Wanjiku</td><td>Child</td><td>Pending</td><td>Birth cert / guardian link</td></tr></tbody></table></div>`; }
+     function permitAlertBody(){ return `<div class="notice info">The renewal window for your county permit is open. Estimated fee and supporting references are ready.</div><div class="stat-grid"><div class="stat-box"><small>County</small><strong>Nairobi</strong></div><div class="stat-box"><small>Service</small><strong>Business permit</strong></div><div class="stat-box"><small>Estimated fee</small><strong>KES 15,000</strong></div><div class="stat-box"><small>Window</small><strong>Open now</strong></div></div>`; }
+     function smartBody(){ return `<div class="stat-grid"><div class="stat-box"><small>Confidence</small><strong>93%</strong></div><div class="stat-box"><small>Time saved</small><strong>4h / mo</strong></div><div class="stat-box"><small>Missed deadline risk</small><strong>-62%</strong></div><div class="stat-box"><small>Eligible bundles</small><strong>3</strong></div></div>${miniRows(["Bundle PAYE + SHIF   NSSF payment by month-end", "Download TCC now while status is valid", "Convert county parking to recurring weekly payment", "Link land rates account to compliance calendar"])} `; }
+     function bundleBody(){ return `<div class="notice success">Bundling statutory obligations reduces manual steps and helps keep month-end compliance on schedule.</div><div class="table-wrap"><table><tbody><tr><td>PAYE</td><td class="right"><b>KES 24,840</b></td></tr><tr><td>SHIF</td><td class="right"><b>KES 6,820</b></td></tr><tr><td>NSSF</td><td class="right"><b>KES 6,480</b></td></tr><tr><td>Housing Levy</td><td class="right"><b>KES 7,440</b></td></tr><tr><td><b>Total bundle</b></td><td class="right"><b>KES 45,580</b></td></tr></tbody></table></div>`; }
+     function tccBody(){ return `<div class="notice success">Your Tax Compliance Certificate is valid and ready for download.</div><div class="stat-grid"><div class="stat-box"><small>Certificate no.</small><strong>TCC-2026-1142</strong></div><div class="stat-box"><small>Issued</small><strong>Jun 02</strong></div><div class="stat-box"><small>Valid until</small><strong>Sep 02</strong></div><div class="stat-box"><small>Status</small><strong>Active</strong></div></div>${miniRows(["Download PDF certificate", "Share via email or WhatsApp", "Attach to tenders or supplier onboarding", "Re-check compliance before expiry"])} `; }
+     function countyBundleBody(){ return `<div class="notice info">County basket checkout can combine multiple county obligations into one guided payment flow while preserving individual references.</div>${miniRows(["Business permit renewal", "Parking charges", "Land rates", "Health permit"])} `; }
+     function kraProfileBody(){ return `<div class="stat-grid"><div class="stat-box"><small>KRA PIN</small><strong>P051883420X</strong></div><div class="stat-box"><small>Profile</small><strong>Individual + sole prop</strong></div><div class="stat-box"><small>Open obligations</small><strong>5</strong></div><div class="stat-box"><small>TCC</small><strong>Valid</strong></div></div>${miniRows(["VAT, PAYE, TOT and WHT obligations supported", "Tax history matched to receipts", "Compliance certificate available", "Penalty and interest display available where applicable"])} `; }
+     function kraHistoryBody(){ return `<div class="table-wrap"><table><thead><tr><th>Date</th><th>Tax type</th><th>Reference</th><th class="right">Amount</th><th>Status</th></tr></thead><tbody><tr><td>Jun 05</td><td>PAYE</td><td>OBL-PAYE-0526</td><td class="right"><b>KES 24,840</b></td><td><span class="status st-active">Matched</span></td></tr><tr><td>May 21</td><td>TOT</td><td>OBL-TOT-0426</td><td class="right"><b>KES 7,200</b></td><td><span class="status st-active">Matched</span></td></tr><tr><td>Apr 19</td><td>Stamp Duty</td><td>SD-40290</td><td class="right"><b>KES 12,000</b></td><td><span class="status st-active">Matched</span></td></tr></tbody></table></div>`; }
+     function calculatorBody(){ return `<div class="form-grid"><div><label>Gross salary / payroll base</label><input value="248000"></div><div><label>Profile</label><select><option>Salaried employer</option><option>Self-employed</option></select></div></div><div class="stat-grid" style="margin-top:14px"><div class="stat-box"><small>PAYE</small><strong>KES 24,840</strong></div><div class="stat-box"><small>SHIF</small><strong>KES 6,820</strong></div><div class="stat-box"><small>NSSF</small><strong>KES 6,480</strong></div><div class="stat-box"><small>Housing Levy</small><strong>KES 7,440</strong></div></div>`; }
+     function nssfStatementBody(){ return `<div class="table-wrap"><table><thead><tr><th>Period</th><th>Tier I</th><th>Tier II</th><th class="right">Total</th><th>Status</th></tr></thead><tbody><tr><td>May 2026</td><td>KES 540</td><td>KES 5,940</td><td class="right"><b>KES 6,480</b></td><td><span class="status st-active">Paid</span></td></tr><tr><td>Apr 2026</td><td>KES 540</td><td>KES 5,940</td><td class="right"><b>KES 6,480</b></td><td><span class="status st-active">Paid</span></td></tr></tbody></table></div>`; }
+     function nssfBenefitsBody(){ return `<div class="stat-grid"><div class="stat-box"><small>Retirement estimate</small><strong>KES 2.8M</strong></div><div class="stat-box"><small>Withdrawal scenario</small><strong>KES 640K</strong></div><div class="stat-box"><small>Contribution years</small><strong>11</strong></div><div class="stat-box"><small>Status</small><strong>On track</strong></div></div>`; }
+     function shifProviderBody(){ return `<div class="table-wrap"><table><thead><tr><th>Facility</th><th>Location</th><th>Tier</th><th>Support</th></tr></thead><tbody><tr><td>Aga Khan Hospital</td><td>Nairobi</td><td>Referral</td><td>Pre-auth</td></tr><tr><td>MP Shah</td><td>Nairobi</td><td>Referral</td><td>Outpatient + inpatient</td></tr><tr><td>Kenyatta Hospital</td><td>Nairobi</td><td>National</td><td>Specialized care</td></tr></tbody></table></div>`; }
+     function levyBody(){ return `${miniRows(["Housing Levy employee and employer portions are both tracked", "NITA levy and grant references remain available", "Bundle with payroll-related obligations", "Use recurring setup for month-end execution"])} `; }
+     function ecitizenDirectoryBody(){ return `<div class="gov-grid">${ecitizenCards.map(c=>`<article class="gov-card"><div class="gov-top"><span class="gov-mark" style="background:${c.color}">${c.mark}</span><span class="status st-info">service</span></div><div class="gov-name">${c.name}</div><div class="gov-meta">${c.meta}</div></article>`).join("")}</div>`; }
+     function landPortfolioBody(){ return `<div class="stat-grid"><div class="stat-box"><small>Linked land accounts</small><strong>3</strong></div><div class="stat-box"><small>Open charges</small><strong>2</strong></div><div class="stat-box"><small>Highest due</small><strong>KES 26,000</strong></div><div class="stat-box"><small>Last paid</small><strong>Jun 01</strong></div></div>${miniRows(["Westlands Plot - land rates account linked", "Karen title transfer - stamp duty reference saved", "CBD ground rent profile available"])} `; }
+     function landInsightBody(){ return `${miniRows(["Land rates are the most frequent annual property charge", "Stamp duty has the highest single-ticket value", "Ground rent is stable and low risk", "Link all property accounts to the compliance calendar"])} `; }
+     function titleDocsBody(){ return `${miniRows(["Land rates receipt PDF", "Ground rent receipt", "Stamp duty payment confirmation", "Attach title deed copy when required"])} `; }
+     function countyDirectoryBody(){ return `<div class="gov-grid">${["Nairobi","Nakuru","Mombasa","Kiambu","Kisumu","Uasin Gishu","Machakos","Meru","Nyeri","Bungoma","Kakamega","Kericho"].map((c,i)=>`<article class="gov-card"><div class="gov-top"><span class="gov-mark" style="background:${["#4f46e5","#10b981","#3b82f6","#f59e0b"][i%4]}">${c.slice(0,2).toUpperCase()}</span><span class="status st-active">ready</span></div><div class="gov-name">${c} County</div><div class="gov-meta">Permits, parking, rates, certificates</div></article>`).join("")}</div>`; }
+     function govInboxBody(){ return `<div class="modal-tabs"><button class="modal-tab active" data-tab="g1">Obligations</button><button class="modal-tab" data-tab="g2">Certificates</button><button class="modal-tab" data-tab="g3">Receipts</button></div><div id="g1" class="tab-panel active"><div class="table-wrap"><table><thead><tr><th>Item</th><th>Agency</th><th class="right">Amount</th><th>Status</th></tr></thead><tbody>${govInbox.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td class="right"><b>${r[3]}</b></td><td>${r[4]}</td></tr>`).join("")}</tbody></table></div></div><div id="g2" class="tab-panel">${miniRows(["Tax Compliance Certificate", "NSSF statement", "SHIF coverage confirmation", "County permit receipt"])} </div><div id="g3" class="tab-panel">${miniRows(["PAYE receipt", "Passport fee receipt", "Land rates receipt", "County parking receipt"])} </div>`; }
+     function complianceBody(){ return `${miniRows(["Jun 09 - PAYE due", "Jun 12 - SHIF due", "Jun 18 - NSSF due", "Jun 20 - VAT return", "Jun 26 - County permit renewal", "Jul 01 - Parking seasonal option review"])} `; }
+     function receiptBody(){ return `<div class="notice success">Receipt verified and stored in your government inbox.</div><div class="stat-grid"><div class="stat-box"><small>Reference</small><strong>RCPT-20411</strong></div><div class="stat-box"><small>Agency</small><strong>KRA</strong></div><div class="stat-box"><small>Amount</small><strong>KES 38,200</strong></div><div class="stat-box"><small>Status</small><strong>Matched</strong></div></div>${miniRows(["Download PDF", "Share via email or WhatsApp", "Verify against obligation", "Repeat with same reference type"])} `; }
+ 
+     document.addEventListener("click", (e) => {
+       const modalBtn = e.target.closest("[data-modal]");
+       if(modalBtn){ openModal(modalBtn.dataset.modal); return; }
+       if(e.target.closest("[data-close], #modalClose") || e.target.id === "modalBackdrop"){ closeModal(); return; }
+       const next = e.target.closest("[data-step-next]");
+       if(next){ const steps = wizards[activeWizard]; if(currentStep < steps.length - 1){ currentStep++; renderWizard(); } else completeWizard(); return; }
+       if(e.target.closest("[data-step-back]")){ currentStep = Math.max(0, currentStep - 1); renderWizard(); return; }
+       const row = e.target.closest("[data-inbox-row]");
+       if(row){ openModal("govReceipt"); return; }
+       const act = e.target.closest("[data-action]");
+       if(act){ showToast("Changes saved to your government service profile."); return; }
+       const cf = e.target.closest("[data-county-filter]");
+       if(cf){ $$('[data-county-filter]').forEach(b=>b.classList.remove('active')); cf.classList.add('active'); return; }
+       const k = e.target.closest("[data-kra-action]");
+       if(k){ const a = k.dataset.kraAction; if(a === 'pay') openModal('kraPaymentWizard'); else if(a === 'doc') openModal('tccDownload'); else openModal('kraProfile'); return; }
+       const ec = e.target.closest("[data-ec-action]");
+       if(ec){ const a = ec.dataset.ecAction; if(a === 'pay') openModal('ecitizenWizard'); else if(a === 'guide') openModal('ecitizenDirectory'); else openModal('govReceipt'); return; }
+       const land = e.target.closest("[data-land-action]");
+       if(land){ const a = land.dataset.landAction; if(a === 'pay') openModal('ardhisasaWizard'); else if(a === 'docs') openModal('titleDocs'); else openModal('landPortfolio'); return; }
+       const county = e.target.closest("[data-county-action]");
+       if(county){ const a = county.dataset.countyAction; if(a === 'pay') openModal('countyPermitWizard'); else if(a === 'bundle') openModal('countyBundle'); else openModal('countyDirectory'); return; }
+     });
+     document.addEventListener("keydown", (e) => { if(e.key === 'Escape') closeModal(); });
+     $("#menuBtn").addEventListener("click", ()=>$("#sidebar").classList.toggle("open"));
+     $("#globalSearch").addEventListener("input", (e)=>{
+       const q = e.target.value.toLowerCase();
+       $$(".gov-card").forEach(el => el.style.display = el.textContent.toLowerCase().includes(q) ? "" : "none");
+     });
+     $("#countySearch").addEventListener("input", (e)=>{
+       const q = e.target.value.toLowerCase();
+       $$("#countyCards .gov-card").forEach(el => el.style.display = el.textContent.toLowerCase().includes(q) ? "" : "none");
+     });
+ 
+     renderCards();
+   </script>
+ </body>
+ </html>
