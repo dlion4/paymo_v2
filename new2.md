@@ -221,7 +221,1279 @@ for sections than require the user to onboard a service or a business or utility
 - Tax optimization: Allowable expense identification, Capital allowances computation (wear and tear, industrial building), Loss carry-forward tracking, Transfer pricing documentation for related-party transactions, Tax health score and risk assessment
 
 ---
+## **PAGE 3.9 — VIRTUAL ACCOUNTS & SUB-ACCOUNTS**
 
+**Purpose:** Programmatic account creation for clients, merchants, corporate treasury, and use-case segregation — enabling automated reconciliation, multi-tenancy, and white-label banking infrastructure.
+
+### Section 1 — Virtual Account Manager
+
+- **Comprehensive virtual account listing:**
+  - Grid view with filters: account number, name, currency, balance, status, creation date, linked parent
+  - Status indicators: Active, Dormant, Frozen, Closed, Pending activation
+  - Quick actions: view details, edit, freeze, unfreeze, close, generate statement
+  - Bulk operations: bulk freeze, bulk close, bulk statement generation
+- **Account details panel:**
+  - Virtual account number (locally formatted per country: Kenya KES account, Nigeria NGN account, etc.)
+  - IBAN for EUR accounts, sort code for GBP accounts, routing number for USD accounts
+  - Currency and balance with real-time update
+  - Linked parent account with hierarchy visualization
+  - Transaction history with search, filter, export
+  - Account permissions and access control
+- **Balance monitoring:**
+  - Real-time balance with low balance alerts
+  - Balance trend chart (daily, weekly, monthly)
+  - Balance reconciliation with expected vs. actual
+  - Float management for agent networks and merchant collections
+
+### Section 2 — Virtual Account Creation
+
+- **Single virtual account creation:**
+  - Account name and description with naming convention enforcement
+  - Currency selection: KES, USD, EUR, GBP, UGX, TZS, RWF, ZAR, NGN, GHS (and 15+ more)
+  - Jurisdiction selection with regulatory compliance check
+  - Account purpose: collections, disbursements, escrow, savings, operational
+  - KYC/KYB linkage for compliance tracking
+- **Bulk virtual account creation:**
+  - CSV/Excel upload with template: name, currency, jurisdiction, purpose, initial balance
+  - Validation: naming uniqueness, currency availability, jurisdiction compliance
+  - Batch execution with progress tracking and error handling
+  - Bulk notification to account holders with credentials
+- **Auto-creation rules:**
+  - Trigger-based creation: new merchant onboarding → auto-create collection account
+  - New employee → auto-create payroll sub-account
+  - New project → auto-create project escrow account
+  - Template-based creation with pre-configured settings
+
+### Section 3 — Account Allocation & Sweep Rules
+
+- **Auto-allocation of incoming transfers:**
+  - Rule-based allocation: by amount range, by sender, by reference pattern, by time of day
+  - Percentage allocation: split incoming funds across multiple accounts
+  - Priority allocation: primary account first, overflow to secondary
+  - Allocation rule testing with simulation
+- **Sweep rules to parent account:**
+  - Threshold sweep: sweep when balance exceeds X amount
+  - Time-based sweep: sweep daily at specific time, weekly, monthly
+  - Percentage sweep: sweep 80% to parent, retain 20% in sub-account
+  - Conditional sweep: sweep only if parent account balance below threshold
+  - Sweep scheduling with calendar view and exception handling
+- **Reserve/hold amount configuration:**
+  - Minimum balance requirement with auto-top-up from parent
+  - Reserve amount for chargebacks, refunds, disputes
+  - Hold amount for pending settlements (T+1, T+2)
+  - Escrow hold with release conditions (milestone, date, event)
+- **Interest allocation (if applicable):**
+  - Interest rate configuration per virtual account
+  - Interest calculation method: daily balance, average balance, minimum balance
+  - Interest crediting frequency: monthly, quarterly, annually
+  - Interest allocation: retain in sub-account or sweep to parent
+
+### Section 4 — Multi-Tenancy Management
+
+- **Client workspace isolation:**
+  - Dedicated workspace per client with custom URL (clientname.paymo.co.ke)
+  - Data isolation: transactions, accounts, users, reports completely segregated
+  - Resource allocation: API rate limits, storage, concurrent users per tenant
+  - Tenant-level audit trail with immutable logging
+- **White-label configuration per tenant:**
+  - Custom branding: logo, colors, fonts, favicon, email templates
+  - Custom domain with SSL certificate management
+  - Custom mobile app white-label (iOS/Android)
+  - Custom support contact information and help center
+  - Custom fee structure and pricing display
+- **Tenant-level reporting and analytics:**
+  - Isolated dashboards with tenant-specific KPIs
+  - Tenant transaction analytics with comparison to tenant peers
+  - Tenant revenue reporting with commission calculation
+  - Tenant user analytics with engagement metrics
+- **Tenant billing and fee configuration:**
+  - Per-tenant fee structure: per-transaction, monthly subscription, revenue share
+  - Minimum monthly fee with true-up calculation
+  - Volume-based tiered pricing with automatic tier migration
+  - Invoice generation and collection from tenant
+  - Tenant payment history and credit limit management
+
+### Section 5 — Virtual IBAN & Dedicated Account Numbers
+
+- **IBAN generation per virtual account:**
+  - EUR IBAN generation with country code, check digits, bank code, account number
+  - GBP sort code and account number generation
+  - USD ACH routing number and account number
+  - Local account number formats per country (Kenya bank account, Nigeria NUBAN, Ghana GHIBAN)
+- **Account verification status:**
+  - KYC verification status per account
+  - Regulatory approval status (CBK, CBN, BoU, etc.)
+  - Account activation status with pending actions
+  - Verification document storage and audit
+- **Routing information management:**
+  - SWIFT BIC code for international transfers
+  - Local clearing codes (Kenya Bankers Clearing House, Nigeria NIBSS, Ghana GHIPSS)
+  - Correspondent bank details for USD/EUR/GBP
+  - Routing information validation and update
+
+### Section 6 — Reconciliation & Reporting
+
+- **Automated reconciliation:**
+  - Transaction matching between virtual account and parent account
+  - External reconciliation: bank statement vs. virtual account records
+  - Discrepancy identification with root cause analysis
+  - Reconciliation report generation with exception handling
+- **Virtual account statements:**
+  - Monthly statement with transaction details, fees, interest
+  - Real-time statement generation for any date range
+  - Statement formats: PDF, CSV, MT940, CAMT.053
+  - Statement delivery: email, API, SFTP, webhook
+- **Virtual account analytics:**
+  - Transaction volume and value per virtual account
+  - Balance trend and utilization analysis
+  - Fee analysis per account with cost optimization recommendations
+  - dormant account identification with auto-close suggestion
+
+---
+## **PAGE 3.10 — OPEN BANKING & ACCOUNT AGGREGATION**
+
+**Purpose:** Connect external bank accounts, mobile money wallets, and PSPs for data aggregation and payment initiation — leveraging Kenya's open banking evolution and PesaLink's 80+ institution network.
+
+
+### section 0 - paymo wallet
+    - has paymo account as primary wallet in local currency and he user can switch to or transfer to his other linked accounts or virtual accounts
+    -has a user wallet ID
+### Section 1 — Connected Accounts Dashboard
+
+- **List of user-linked external accounts:**
+  - Kenyan banks: KCB, Equity, Co-operative, Standard Chartered, ABSA, NCBA, Stanbic, I&M, DTB, Family Bank, Chase Bank, 40+ banks via PesaLink or direct API
+  - Mobile money: M-Pesa, Airtel Money, T-Kash, Equitel Money
+  - International banks: via SWIFT or open banking APIs
+  - Fintech wallets: PayPal, Wise, Payoneer, Skrill
+  - Account details: institution name, account type, masked account number, current balance, last sync time
+  - Connection health status: green (healthy), amber (sync delayed), red (disconnected)
+  - Re-authentication triggers when consent expires or credentials change
+- **Account grouping and organization:**
+  - Custom account groups (e.g., "Personal", "Business", "Savings", "Investment")
+  - Account nicknaming for easy identification
+  - Favorite accounts for quick access
+  - Account reordering with drag-and-drop
+
+### Section 2 — Account Linking Flow
+
+- **Bank search and selection:**
+  - Searchable directory of 80+ Kenyan financial institutions (banks, SACCOs, MFIs, telcos)
+  - Institution details: logo, supported features (balance, transactions, payment initiation)
+  - Popular institutions quick access
+  - Recently linked institutions
+- **Connection methods:**
+  - **OAuth 2.0 (Open Banking):** Redirect to bank's authorization page, consent scope selection, token-based ongoing access
+  - **Credential-based (Screen Scraping):** Secure credential entry with encryption, MFA handling, periodic re-authentication
+  - **PesaLink Alias:** Link via registered mobile number alias (no credentials needed)
+  - **Manual verification:** Micro-deposit verification for account ownership confirmation
+- **Consent management:**
+  - Data scope selection: balance only, transactions, payment initiation, account details
+  - Consent duration: 30 days, 90 days, 1 year, indefinite
+  - Consent renewal reminders before expiry
+  - Granular consent: per account, per data type, per use case
+- **Multi-factor authentication handling:**
+  - OTP via SMS/email
+  - Bank app push notification
+  - Hardware token support
+  - Biometric authentication (where supported by bank)
+
+### Section 3 — Account Data Aggregation
+
+- **Consolidated balance view across all accounts:**
+  - Total balance in base currency (KES) with FX conversion
+  - Breakdown by institution type: banks, mobile money, international, fintech
+  - Breakdown by currency: KES, USD, EUR, GBP, etc.
+  - Net worth calculation: assets (all accounts) minus liabilities (loans, credit cards)
+  - Balance trend over time (daily, weekly, monthly)
+- **Transaction aggregation and categorization:**
+  - All transactions from linked accounts in unified feed
+  - Auto-categorization: income, utilities, food, transport, entertainment, healthcare, education, savings, investment
+  - Merchant identification and logo matching
+  - Transaction search: by amount, date, merchant, category, account
+  - Transaction filtering: by account, category, date range, amount range
+  - Transaction export: PDF, CSV, Excel for accounting
+- **Cash position across institutions:**
+  - Liquidity dashboard: available cash vs. committed cash
+  - Cash flow forecasting based on historical patterns
+  - Low balance alerts per account with threshold configuration
+  - Overdraft alerts and penalty avoidance
+
+### Section 4 — Payment Initiation Services (PIS)
+
+- **Initiate payment from linked account:**
+  - Select source account (linked bank or mobile money)
+  - Payee management: saved payees, recent payees, new payee
+  - Amount and currency selection with FX conversion if needed
+  - Payment reference and description
+  - Payment authorization via bank app or USSD (strong customer
+
+
+### Section 4 — Payment Initiation Services (PIS) (Continued)
+
+- **Payment authorization mechanisms:**
+  - Bank app push notification (most common for Kenyan banks)
+  - USSD authorization code (*number# style for feature phones)
+  - OTP via SMS to registered bank phone number
+  - Biometric authorization (fingerprint/face ID where bank app supports)
+  - Hardware token for high-value transactions
+  - Soft token via bank app for medium-value transactions
+- **Payment execution and tracking:**
+  - Real-time payment status: pending authorization → authorized → processing → completed/failed
+  - Payment reference number generation with cross-reference to bank reference
+  - Receipt generation with bank confirmation details
+  - Failed payment handling with specific error codes from bank
+  - Automatic retry for transient failures (timeout, network issues)
+  - Notification to user on completion via SMS, push, email, WhatsApp
+- **PesaLink-specific PIS features:**
+  - Alias-based payments (use phone number instead of account number)
+  - Real-time 24/7 execution (no banking hours limitation)
+  - Amount range: KES 10 to KES 999,999 per transaction
+  - Instant confirmation (<5 seconds typical)
+  - No charge for P2P, nominal fee for P2B
+  - Integration with 50+ Kenyan banks and financial institutions
+- **CBK FPS Payment Initiation:**
+  - ISO 20022 message format for standardized payment instructions
+  - Request-to-Pay (R2P) functionality for merchant collections
+  - Standing order setup via FPS for recurring payments
+  - Bulk payment initiation for corporate payroll
+  - Real-time settlement with finality
+  - Cross-bank payment without needing beneficiary bank details (alias resolution)
+
+### Section 5 — Data Permissions & Consent Management
+
+- **Active consent dashboard:**
+  - Visual list of all active consents per linked account
+  - Consent details: institution, data scope, consent date, expiry date, status
+  - Color-coded expiry warnings: green (>30 days), amber (7-30 days), red (<7 days)
+  - One-click consent renewal with pre-filled previous scope
+  - Bulk consent renewal for multiple accounts
+- **Granular consent control:**
+  - Per-data-type toggles: balance, transactions, payment initiation, account details, beneficiary details
+  - Per-use-case consent: personal finance management, payment initiation, credit scoring, fraud detection
+  - Per-time-period consent: one-time, 30 days, 90 days, 1 year, ongoing
+  - Revocation with immediate effect and confirmation to data provider
+  - Partial revocation (remove specific data type while keeping others)
+- **Consent audit trail:**
+  - Complete history of all consent grants, modifications, renewals, revocations
+  - Timestamp, IP address, device fingerprint for each consent action
+  - Regulatory compliance reporting for ODPC (Office of Data Protection Commissioner)
+  - Data subject access request (DSAR) fulfillment tracking
+  - Third-party data sharing consent tracking
+
+### Section 6 — Financial Health & Insights Engine
+
+- **Net worth tracking:**
+  - Real-time net worth calculation across all linked accounts
+  - Asset breakdown: cash, investments, property (manual entry), retirement accounts
+  - Liability breakdown: loans, credit cards, mortgages, overdrafts
+  - Net worth trend over time with goal setting
+  - Comparison to demographic peers (anonymized benchmarking)
+- **Spending analysis:**
+  - Auto-categorization of all transactions from linked accounts
+  - Category spending trends: monthly, quarterly, yearly
+  - Merchant-level spending analysis
+  - Anomaly detection (unusual spending patterns, potential fraud)
+  - Budget vs. actual tracking per category
+  - Savings rate calculation and optimization suggestions
+- **Cash flow forecasting:**
+  - Predicted income based on historical salary patterns
+  - Predicted expenses based on recurring bills and historical spending
+  - Upcoming large payments alert (rent, school fees, insurance premiums)
+  - Low balance prediction with days-until-empty calculation
+  - Recommended transfer amounts to avoid overdraft
+- **Financial goal tracking:**
+  - Emergency fund goal (3-6 months expenses)
+  - Short-term savings goals (vacation, gadget, emergency)
+  - Medium-term goals (car, wedding, business capital)
+  - Long-term goals (house, retirement, children's education)
+  - Progress tracking with milestone celebrations
+  - Automated savings recommendations based on cash flow
+
+### Section 7 — Credit Score & Financial Identity
+
+- **Alternative credit scoring:**
+  - Transaction history-based credit score (using M-Pesa, bank, utility payment data)
+  - Cash flow-based creditworthiness assessment
+  - Income stability scoring
+  - Payment behavior scoring (on-time utility payments, loan repayments)
+  - Savings discipline scoring
+  - Credit score trend over time with improvement recommendations
+- **Credit report integration:**
+  - TransUnion CRB report fetch (with customer consent)
+  - Metropol CRB report fetch
+  - Creditinfo CRB report fetch
+  - Unified credit report display with all bureau data
+  - Dispute incorrect listings directly from PayMo
+  - Clearance certificate application and payment
+- **Financial identity verification:**
+  - KRA PIN verification and tax compliance status
+  - NSSF/SHIF number verification
+  - Employment verification via transaction patterns
+  - Address verification via utility bill payments
+  - Identity matching across multiple data sources
+  - Fraud risk score based on behavioral biometrics
+
+
+---
+## **PAGE 3.11 — MULTI-CURRENCY TREASURY & FOREX OPERATIONS**
+
+**Purpose:** Comprehensive foreign exchange management, multi-currency wallet operations, and treasury functions supporting Kenya Shilling (KES), Ugandan Shilling (UGX), Tanzanian Shilling (TZS), Rwandan Franc (RWF), USD, GBP, EUR, and cryptocurrency bridges for the African market.
+
+### Section 1 — Multi-Currency Wallet Management
+
+- **Currency portfolio dashboard:**
+  - Real-time balances across 25+ currencies with KES as base reporting currency
+  - African currencies priority: KES, UGX, TZS, RWF, BIF, SSP, ETB, GHS, NGN, ZAR, ZMW
+  - Global reserve currencies: USD, EUR, GBP, CHF, JPY, CNY, AED, CAD, AUD
+  - Cryptocurrency support: USDC, USDT (stablecoins for remittance corridors), BTC, ETH
+  - Wallet segregation: Nostro accounts, Vostro accounts, pooled omnibus accounts
+  - Currency strength indicators and volatility alerts against Kenyan Shilling
+  - Realized and unrealized P&L tracking per currency pair
+  - Liquidity forecasting across currency buckets (7-day, 30-day, 90-day horizons)
+
+- **Currency conversion engines:**
+  - Real-time FX rate feeds from Central Bank of Kenya (CBK indicative rates), Reuters, Bloomberg
+  - Mid-market rate calculation with transparent spread disclosure (CBK compliance)
+  - Automated conversion for cross-currency transactions (e.g., UGX to TZS via KES or USD bridge)
+  - Bulk conversion scheduling for treasury optimization (TWAP, VWAP strategies)
+  - Forward contract booking for future dated conversions (hedging)
+  - Natural hedging identification (matching inflows and outflows in same currency)
+  - Micro-conversion optimization for mobile money (small value, high frequency)
+  - Rate locking mechanisms for quoted transactions (valid for 15 minutes)
+
+### Section 2 — Foreign Exchange Trading & Hedging
+
+- **FX trading desk integration:**
+  - Interbank trading participation (Kenya Forex Market)
+  - Electronic trading platform connectivity (Reuters Dealing, 360T, Bloomberg FXGO)
+  - Spot trading, forward contracts, non-deliverable forwards (NDFs) for restricted currencies
+  - Swap arrangements for liquidity management (Tom-Next rolls)
+  - Limit order management: stop-loss, take-profit, OCO (One Cancels Other)
+  - Trading position limits and exposure monitoring against CBK prudential limits
+  - Mark-to-market valuation of FX positions (revalued daily at CBK rates)
+  - Trading blotter maintenance for audit and regulatory examination
+
+- **Hedging and risk mitigation:**
+  - Natural hedge optimization across East African Community (EAC) operations
+  - Financial hedging instruments: forwards, options, collars for importer/exporter clients
+  - Netting arrangements for multinational corporate clients with multi-country operations
+  - Currency correlation analysis (KES vs USD, KES vs EAC currencies)
+  - Value at Risk (VaR) calculations for FX portfolio (parametric, historical, Monte Carlo)
+  - Stress testing scenarios: 10% KES devaluation, EAC currency shocks, USD shortage scenarios
+  - Hedging effectiveness testing (IAS 39/IFRS 9 compliance)
+  - Documentation and hedge accounting memo generation
+
+### Section 3 — Cross-Border Settlement Rails
+
+- **Regional African settlement:**
+  - East African Payment System (EAPS) integration for KES, UGX, TZS, RWF settlements
+  - Regional Payment and Settlement System (REPSS) connectivity
+  - Pan-African Payment and Settlement System (PAPSS) integration for intra-African trade
+  - SADC-RTGS connectivity for Southern Africa operations
+  - West African Monetary Zone (WAMZ) integration preparation
+  - Central Bank Digital Currency (CBDC) readiness (e-CNY, Nigeria e-Naira, Ghana e-Cedi bridges)
+  - African Export-Import Bank (Afreximbank) settlement arrangements
+  - Local currency settlement (LCS) agreements with regional banks (avoid USD conversion)
+
+- **Global settlement infrastructure:**
+  - SWIFT gpi (Global Payments Innovation) for fast cross-border USD/EUR/GBP transfers
+  - TARGET2 for EUR settlements, CHAPS for GBP, Fedwire for USD
+  - SEPA Instant Credit Transfer for European corridors
+  - CLS Bank participation for FX settlement risk mitigation (Herstatt risk)
+  - Correspondent banking network: Citi, Standard Chartered, Deutsche Bank, JP Morgan
+  - Nostro account reconciliation automation across multiple correspondent banks
+  - Cut-off time management across time zones (Nairobi, London, New York, Singapore)
+  - Same-day value dating for priority corridors (UK, USA, UAE remittance routes)
+
+### Section 4 — Treasury Risk Management & Compliance
+
+- **Treasury operations control:**
+  - Deal confirmation matching (front office vs. back office verification)
+  - Settlement risk monitoring (Herstatt risk metrics)
+  - Counterparty credit limit management for interbank FX lines
+  - Unauthorized trading detection and prevention ( rogue trader controls)
+  - Treasury P&L attribution analysis (position taking vs. customer flows)
+  - End-of-day reconciliation: cash positions, FX positions, nostro balances
+  - Treasury audit trail: every rate quote, every trade, every cancellation logged
+  - Segregation of duties: traders, dealers, settlements officers distinct roles
+
+- **Regulatory FX compliance:**
+  - CBK Foreign Exchange Guidelines compliance monitoring (Form A, Form B for imports/exports)
+  - Retention money monitoring for export proceeds (mandatory repatriation rules)
+  - 40% export proceeds surrender requirement automation (if reintroduced by CBK)
+  - Import documentation verification: IDF (Import Declaration Form), customs entries
+  - Foreign currency exposure reporting to CBK (monthly returns)
+  - Capital Flows Management measures compliance (macroprudential controls)
+  - Sanctions screening for counterparty banks (avoiding sanctioned Russian, Iranian, North Korean banks)
+  - FATF grey list monitoring (Kenya was grey-listed; enhanced due diligence on flows)
+
+
+
+### Section 5 — Corporate Treasury Services
+
+- **Multi-currency business accounts:**
+  - Domiciliary accounts for importers/exporters (USD, EUR, GBP, CNY)
+  - East African currency accounts for regional traders (UGX, TZS, RWF)
+  - Collection accounts in multiple jurisdictions (pooling structures)
+  - Notional pooling across African subsidiaries (cash concentration)
+  - Zero balancing accounts (ZBA) for subsidiary funding
+  - Virtual account management (VAM) for segregating client funds
+  - Escrow services in multiple currencies for trade transactions
+  - Favorable exchange rates for corporate clients based on volume tiers
+
+- **Trade finance treasury:**
+  - Letter of Credit (LC) confirmation and discounting in multiple currencies
+  - Export bill discounting and negotiation
+  - Forfaiting and factoring currency risk management
+  - Supply chain finance in supplier's local currency
+  - Documentary collection handling (D/P, D/A)
+  - Bank Guarantee issuance (performance bonds, bid bonds) in EUR/USD for international tenders
+  - Pre-shipment and post-shipment finance currency matching
+  - Trade risk insurance integration (Aftrading, ATI - African Trade Insurance Agency)
+
+### Section 5 — Retail Forex & Remittance Services
+
+- **Personal foreign exchange:**
+  - Online FX purchase for travel, education, medical treatment (Form A processing)
+  - Prepaid multi-currency travel cards (USD, EUR, GBP) for Kenyan travelers
+  - Cash currency ordering for international travel (notes delivery to branches/agents)
+  - Western Union, MoneyGram, Ria, WorldRemit receiving in KES or foreign currency
+  - Inward remittance crediting directly to M-Pesa or bank account
+  - Exchange rate alerts for diaspora customers (rate threshold notifications)
+  - Recurring remittance setups for monthly family support (standing instructions)
+  - Competitive spreads for large retail conversions (above KES 500,000)
+
+- **Diaspora banking services:**
+  - Dedicated diaspora account opening (Kenya citizens abroad)
+  - Foreign currency mortgage products (USD-denominated mortgages for property in Kenya)
+  - Dual-currency debit cards (auto-convert at point of sale)
+  - Tax consulting referrals (KRA compliance for foreign income)
+  - Investment advisory for diaspora (Treasury bills, bonds, NSE stocks)
+  - Power of attorney processing for property management in Kenya
+  - Time-zone sensitive customer service (UK, USA, Gulf time zones)
+  - Diaspora remittance cost calculator (transparent fee disclosure)
+
+### Section  — Liquidity Management & Funding
+
+- **Intraday liquidity monitoring:**
+  - Real-time liquidity position across all settlement accounts (RTGS, ACH, Mobile Money)
+  - Intraday overdraft facility management with CBK (Standing Lending Facility)
+  - Liquidity Coverage Ratio (LCR) monitoring (High Quality Liquid Assets / Net Cash Outflows)
+  - Net Stable Funding Ratio (NSFR) calculations per Basel III
+  - Intraday credit line utilization with correspondent banks
+  - Auto-sweeping between current accounts and money market instruments
+  - End-of-day liquidity forecasting (next 3 days, next week)
+  - Contingency funding plan (CFP) triggers and activation protocols
+
+- **Funding and capital markets:**
+  - Interbank borrowing/lending (Kenya Interbank Offered Rate - KIBOR)
+  - Repurchase agreement (Repo) market participation (CBK Repos, interbank Repos)
+  - Treasury bills and bonds trading (primary market auctions, secondary market)
+  - Commercial paper issuance for short-term funding
+  - Medium Term Note (MTN) programs for institutional funding
+  - Depositor preference and bail-in readiness (Banking Act compliance)
+  - Lender of Last Resort (LOLR) facility utilization procedures with CBK
+  - Capital adequacy monitoring (CET1, Tier 1, Total Capital ratios)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Here are the 3 additional pages for Dashboard 3, exhaustively detailed:
+
+---
+
+## **PAGE 3.12 — BUSINESS ONBOARDING & KYB/KYC CENTER**
+
+**Purpose:** Multi-step, comprehensive onboarding and verification system for all business types — registered companies, sole proprietors, online businesses, local brick-and-mortar shops, partnerships, cooperatives, and NGOs. Handles identity verification, regulatory compliance, risk scoring, and approval workflows with full audit trails.
+
+---
+
+### Section 3.12.1 — Business Type Selection & Eligibility
+
+- **Business type wizard:**
+  - Step 1: Select business structure:
+    - Registered Limited Company (Private/Public)
+    - Sole Proprietorship
+    - Partnership (General/Limited)
+    - Cooperative Society / SACCO
+    - Non-Governmental Organization (NGO)
+    - Trust
+    - Branch of Foreign Company
+    - Online Business / E-commerce (no physical premises)
+    - Local Brick-and-Mortar Shop / Market Stall
+    - Freelancer / Independent Contractor
+    - Unregistered Informal Business (micro-entrepreneur)
+  - Step 2: Eligibility pre-check:
+    - Age verification (director/owner ≥18 years)
+    - Sanctions list screening (UN, OFAC, EU, local terror lists)
+    - Politically Exposed Person (PEP) initial screening
+    - Negative media screening (adverse news check)
+    - Existing business duplicate detection (name, KRA PIN, registration number)
+    - Geolocation risk assessment (high-risk jurisdictions, conflict zones)
+    - Industry risk classification (high-risk: gaming, crypto, precious metals, money services)
+    - Instant eligibility result: Proceed, Conditional, Manual Review, Rejected with reason
+
+- **Business profile pre-fill:**
+  - Auto-populate from government databases where available (BRS, KRA iTax)
+  - Import from existing PayMo personal account (if owner has verified personal account)
+  - Suggest corrections for mismatched data
+  - Save draft and resume later (30-day retention)
+
+---
+
+### Section 3.12.2 — Multi-Step KYB Verification Flow
+
+**Step 1 — Business Identity Verification**
+
+- **Registered companies:**
+  - Certificate of Incorporation upload (CR1/CR2 from BRS)
+  - Company registration number validation against BRS database
+  - Company name, date of incorporation, registered address auto-extraction via OCR
+  - CR12 form (list of directors) upload and validation
+  - Memorandum and Articles of Association upload
+  - Company PIN certificate upload and KRA iTax validation
+  - Annual Returns filing status check (last 3 years)
+  - Company seal/letterhead upload for signature verification
+
+- **Sole proprietorships:**
+  - Business name registration certificate (Form BN/1 from BRS)
+  - Trade license/permit from county government
+  - Owner's national ID (Huduma Namba / old ID / passport) front and back
+  - Owner's KRA PIN certificate
+  - Passport photo of owner (live capture with liveness detection)
+  - Business premises photo (exterior with visible signage, interior with stock/operations)
+  - GPS-tagged location verification (must match declared address)
+  - Utility bill or tenancy agreement as address proof
+
+- **Partnerships:**
+  - Partnership deed/registration certificate
+  - All partners' ID verification (same as sole proprietor per partner)
+  - All partners' KRA PIN certificates
+  - Partnership resolution authorizing PayMo account opening
+  - Profit-sharing agreement (if not in deed)
+  - Each partner's PEP/sanctions screening
+
+- **Online businesses:**
+  - Domain ownership verification (DNS TXT record or WHOIS)
+  - Website/app screenshot and URL validation
+  - Social media business page verification (Facebook, Instagram, TikTok, X)
+  - E-commerce platform store link (Jumia, Shopify, WooCommerce, etc.)
+  - Delivery/fulfillment proof (courier contracts, warehouse photos)
+  - Customer review screenshot (minimum 10 reviews for established businesses)
+  - Payment processor history (M-Pesa PayBill, Till statements last 3 months)
+  - No physical premises declaration with alternative address proof
+
+- **Local brick-and-mortar / market stalls:**
+  - County single business permit
+  - Market stall allocation letter (from county/market management)
+  - Physical location GPS verification (must be within declared market/county)
+  - Stock/inventory photo with timestamp
+  - Neighbor merchant reference (2 references with contact details)
+  - Hawker license (if applicable)
+  - Trade association membership (optional but boosts trust score)
+
+- **Cooperatives / SACCOs:**
+  - Cooperative registration certificate
+  - By-laws and registration documents
+  - Board resolution authorizing PayMo relationship
+  - Minimum member count verification
+  - Regulatory body registration (SASRA for deposit-taking SACCOs)
+  - Annual audit report (last 2 years)
+
+- **NGOs / Trusts:**
+  - NGO Coordination Board registration certificate
+  - Trust deed and registration
+  - Board of trustees/directors list with ID verification
+  - Source of funds declaration (donor funding, grants, membership fees)
+  - Beneficial ownership declaration (who controls the organization)
+  - Anti-money laundering policy upload (mandatory for NGOs)
+
+---
+
+**Step 2 — Director / Beneficial Owner Verification**
+
+- **Director identification (per director):**
+  - Full name, date of birth, nationality, occupation
+  - National ID / passport upload with OCR extraction
+  - Address verification (utility bill, bank statement, tenancy agreement)
+  - Live selfie with liveness detection (blink, turn head, smile)
+  - Biometric face match against ID photo
+  - Phone number verification (OTP + SIM registration check)
+  - Email verification with domain check (reject free email domains for directors)
+  - Digital signature capture (for authorization documents)
+
+- **Beneficial ownership declaration:**
+  - UBO declaration form (per CBK regulations — ≥10% ownership or control)
+  - Ownership structure diagram (visual tree for complex holdings)
+  - Ultimate beneficial owner tracing (through shell companies, trusts, nominees)
+  - Source of wealth declaration for each UBO
+  - Source of funds for business operations
+  - PEP status per UBO (domestic, foreign, family member, close associate)
+  - Sanctions screening per UBO (UN, OFAC, EU, HMT, local lists)
+  - Adverse media screening (news, court records, regulatory actions)
+
+- **Risk scoring per director/UBO:**
+  - Low risk: Kenyan resident, no PEP, no sanctions, clear media
+  - Medium risk: Foreign national, minor PEP connection, minor adverse media
+  - High risk: PEP, sanctions-adjacent, significant adverse media, high-risk jurisdiction
+  - Prohibited: Sanctions-listed, terrorism-linked, fraud conviction
+
+---
+
+**Step 3 — Business Operations & Financial Verification**
+
+- **Operational verification:**
+  - Business description and activity code (ISIC/KNBS classification)
+  - Expected monthly transaction volume and value
+  - Primary source of funds (sales, investments, loans, grants, donations)
+  - Primary use of funds (supplier payments, payroll, rent, inventory, transfers)
+  - Customer base description (B2B, B2C, government, international)
+  - Geographic scope of operations (local, national, regional, international)
+  - Seasonal business declaration (if applicable)
+  - High-value transaction threshold declaration (expected >KES 1M transactions)
+
+- **Financial verification:**
+  - Bank statement upload (last 3-6 months from primary business account)
+  - M-Pesa PayBill/Till statements (last 3 months, if existing)
+  - Audited financial statements (for companies >KES 10M turnover)
+  - Tax returns (last 2 years, if applicable)
+  - Sales/invoices sample (last 3 months)
+  - Supplier contracts or purchase orders
+  - Rental/lease agreement for business premises
+  - Payroll records (if applicable)
+
+- **Online business specific:**
+  - Payment gateway transaction history
+  - Platform analytics (visitor count, conversion rate, average order value)
+  - Chargeback rate disclosure
+  - Refund policy upload
+  - Terms and conditions upload
+  - Privacy policy upload
+
+---
+
+**Step 4 — Compliance & Risk Assessment**
+
+- **Regulatory compliance checks:**
+  - KRA tax compliance certificate (TCC) status and expiry
+  - NSSF/SHIF/NITA registration (if employer)
+  - County business permit validity and renewal date
+  - Industry-specific licenses (food handler, health, NEMA, NCA, etc.)
+  - CBK licensing requirements (if money services, forex, lending)
+  - Data Protection Act 2019 compliance attestation
+  - Anti-money laundering (AML) policy acknowledgment
+  - Counter-terrorism financing (CTF) compliance declaration
+
+- **Risk assessment engine:**
+  - Automated risk scoring (0-100) based on:
+    - Business structure complexity
+    - Industry risk category
+    - Geographic risk
+    - Transaction pattern expectations
+    - Director/UBO risk profiles
+    - Documentation completeness
+    - Financial transparency
+  - Risk tier assignment:
+    - Low risk (0-30): Standard onboarding, minimal ongoing monitoring
+    - Medium risk (31-60): Enhanced due diligence, quarterly review
+    - High risk (61-85): Enhanced due diligence, monthly review, transaction limits
+    - Prohibited (86-100): Rejection, referral to compliance officer
+  - Automated recommendation: Approve, Approve with Limits, Manual Review, Reject
+
+---
+
+**Step 5 — Approval Workflow & Account Activation**
+
+- **Automated approval routing:**
+  - Low risk: Auto-approval (minutes)
+  - Medium risk: Junior compliance officer review (same day)
+  - High risk: Senior compliance officer + manager review (1-3 business days)
+  - Complex structures: Compliance committee review (3-5 business days)
+
+- **Digital approval process:**
+  - Review queue with full application dossier
+  - Side-by-side document comparison (uploaded vs. database records)
+  - Red flags highlighting for reviewer attention
+  - Request for additional information (RFI) with deadline tracking
+  - Approval with conditions (transaction limits, restricted features, enhanced monitoring)
+  - Rejection with detailed reason and appeal pathway
+  - Digital signature by approving officer with timestamp and audit hash
+
+- **Account activation:**
+  - Approved businesses receive:
+    - PayMo business wallet
+    - M-Pesa PayBill number (if collections enabled)
+    - M-Pesa Till number (if retail enabled)
+    - Virtual account numbers for bank transfers
+    - API credentials (if developer access requested)
+    - Welcome kit: onboarding guide, fee schedule, support contacts
+  - Activation confirmation with digital certificate
+  - First transaction tutorial and walkthrough
+  - Dedicated account manager assignment (for high-value businesses)
+
+---
+
+### Section 3.12.3 — Ongoing Monitoring & Re-KYB
+
+- **Periodic re-verification:**
+  - Annual full re-KYB (all documents refreshed)
+  - Bi-annual director/UBO re-screening (PEP, sanctions, adverse media)
+  - Quarterly financial health check (bank statement refresh for high-risk)
+  - Trigger-based re-KYB:
+    - Change in directors or UBOs
+    - Change in business address
+    - Significant change in transaction pattern
+    - Regulatory action or adverse media
+    - Approaching transaction limits
+    - Expiry of licenses/permits/TCC
+
+- **Monitoring alerts:**
+  - License/permit expiry warnings (90, 60, 30, 7 days)
+  - TCC expiry and renewal tracking
+  - Annual returns filing deadline alerts
+  - Director change detection (BRS monitoring)
+  - Adverse media monitoring (continuous automated screening)
+  - Transaction pattern anomaly alerts
+  - Cross-border activity monitoring (if unexpected)
+
+- **Compliance score:**
+  - Dynamic score (0-100) based on:
+    - Document currency
+    - Filing timeliness
+    - Transaction transparency
+    - Regulatory standing
+    - Risk profile stability
+  - Score impact on features: Higher score = higher limits, lower fees, faster settlements
+  - Score improvement recommendations
+
+---
+
+### Section 3.12.4 — Sub-Account & Branch Onboarding
+
+- **Branch onboarding:**
+  - Parent business approval required
+  - Branch-specific KYC (simplified: address, permit, manager ID)
+  - Branch-specific PayBill/Till allocation
+  - Branch-level transaction routing and reconciliation
+  - Branch performance dashboard for parent business
+
+- **Sub-merchant onboarding (for aggregators/platforms):**
+  - Platform business acts as master merchant
+  - Sub-merchant simplified onboarding (basic ID, bank details, business description)
+  - Sub-merchant transaction routing through master merchant
+  - Sub-merchant settlement scheduling
+  - Sub-merchant compliance monitoring delegated to master merchant with oversight
+
+---
+
+## **PAGE 3.13 — SUPPORT, DISPUTES & REFUNDS CENTER**
+
+**Purpose:** Unified hub for all business support needs — technical issues, transaction disputes, refund requests, chargeback management, and escalation pathways. Designed for fast resolution with clear SLAs, transparent status tracking, and comprehensive self-service tools.
+
+---
+
+### Section 3.13.1 — Self-Service Support & Knowledge Base
+
+- **Intelligent help center:**
+  - Searchable knowledge base by topic: Collections, Disbursements, Payroll, Invoicing, APIs, Cards, Security, Compliance, Fees, Integrations
+  - AI-powered chatbot with natural language query handling
+  - Contextual help: Suggested articles based on current page/feature being used
+  - Video tutorials: Screen recordings for complex workflows (bulk disbursement, payroll setup, API integration)
+  - Step-by-step guided wizards for common tasks
+  - FAQ organized by business type (SME, corporate, NGO, sole proprietor)
+  - Glossary of financial and technical terms
+  - Fee calculator with transparent breakdown for any transaction type
+
+- **Diagnostic tools:**
+  - Transaction status checker (enter reference number, get real-time status)
+  - M-Pesa PayBill/Till health check (connectivity, settlement status, limits)
+  - API endpoint health dashboard (uptime, response time, error rate)
+  - Webhook delivery tester (send test payload, verify endpoint response)
+  - Settlement reconciliation helper (upload bank statement, auto-match)
+  - Payment link tester (simulate customer checkout flow)
+  - Sandbox environment access for testing without live transactions
+
+- **Community & resources:**
+  - Developer community forum (Q&A, best practices, code sharing)
+  - Partner success stories and case studies
+  - Monthly webinar schedule (live + recorded)
+  - Product changelog and feature announcements
+  - Regulatory updates (KRA, CBK, county government changes)
+  - Download center: API documentation, CSV templates, integration guides, compliance forms
+
+---
+
+### Section 3.13.2 — Ticket-Based Support System
+
+- **Ticket creation:**
+  - Categorized intake: Technical Issue, Transaction Problem, Account Access, Billing/ Fees, Compliance, Feature Request, Integration Help, General Inquiry
+  - Priority selection: Low, Medium, High, Critical (with auto-suggestion based on category)
+  - Smart form fields that adapt based on category:
+    - Transaction Problem: Transaction reference, amount, date, expected vs. actual outcome
+    - Technical Issue: API endpoint, error code, timestamp, request/response logs
+    - Account Access: Issue type (login, MFA, password, locked out), last successful access
+    - Billing: Invoice number, disputed amount, fee type
+  - File attachments: Screenshots, logs, documents, videos (up to 50MB)
+  - Auto-suggestion of relevant knowledge base articles before submission
+  - Ticket auto-routing based on category and business tier
+
+- **Ticket management:**
+  - Ticket dashboard: All tickets with status, priority, age, assigned agent
+  - Status tracking: Open → Acknowledged → In Progress → Awaiting Your Response → Resolved → Closed
+  - SLA timers visible per ticket (time to first response, time to resolution)
+  - Internal notes visible to business (transparency on investigation steps)
+  - Agent handoff tracking (if escalated to specialist)
+  - Bulk ticket operations for enterprise clients
+  - Ticket merge (combine related issues)
+  - Ticket reopen (within 7 days of closure)
+
+- **SLA commitments by business tier:**
+  - Standard (free): First response 24 hours, resolution 5 business days
+  - Premium (paid): First response 4 hours, resolution 1 business day
+  - Enterprise (dedicated): First response 1 hour, resolution 4 hours
+  - Critical (all tiers): First response 30 minutes, resolution 2 hours (24/7)
+
+- **Communication channels:**
+  - In-app messaging (primary, with read receipts)
+  - Email thread (auto-synced with in-app)
+  - SMS updates for critical tickets
+  - WhatsApp Business integration (optional)
+  - Scheduled callback request with time slot selection
+  - Video call escalation for complex technical issues
+  - Screen sharing for integration debugging
+
+---
+
+### Section 3.13.3 — Transaction Dispute Management
+
+- **Dispute initiation:**
+  - Dispute types:
+    - Customer claims unauthorized transaction
+    - Customer claims goods/services not received
+    - Customer claims goods/services not as described
+    - Duplicate charge / double billing
+    - Incorrect amount charged
+    - Refund not processed
+    - Settlement not received
+    - Chargeback from card network
+    - M-Pesa reversal failure
+    - Fraudulent transaction (confirmed fraud)
+  - Dispute form:
+    - Transaction selection from history (auto-populated)
+    - Dispute reason with detailed description
+    - Evidence upload: Invoice, delivery proof, communication logs, product photos, terms & conditions
+    - Customer communication history (if applicable)
+    - Expected resolution: Full refund, partial refund, no refund, re-process
+  - Dispute fee disclosure (if applicable per network rules)
+  - Pre-submission validation: Check SLA eligibility, evidence completeness
+
+- **Dispute workflow & tracking:**
+  - Status pipeline:
+    - Filed → Under Review → Evidence Requested → Evidence Submitted → Under Investigation → Merchant Response → Arbitration → Resolved
+  - Timeline per stage with SLA:
+    - Filed to Acknowledgment: 24 hours
+    - Evidence review: 3 business days
+    - Investigation: 5-10 business days (complex cases up to 45 days)
+    - Merchant response window: 7 days
+    - Arbitration (if needed): 10-15 business days
+  - Real-time status updates with push/email notifications
+  - Evidence request and response portal
+  - Side-by-side evidence comparison view
+  - Automated decision support for reviewer (risk score, pattern analysis)
+
+- **Card chargeback specific:**
+  - Chargeback reason code mapping (Visa/Mastercard codes)
+  - Chargeback defense documentation checklist
+  - Representment filing (fight the chargeback with evidence)
+  - Arbitration escalation (if representment rejected)
+  - Chargeback win/loss tracking and analytics
+  - Chargeback ratio monitoring (alert if approaching 1% threshold)
+  - Pre-arbitration and arbitration fee transparency
+  - Chargeback prevention alerts (unusual pattern detection)
+
+- **M-Pesa dispute specific:**
+  - M-Pesa reversal request initiation
+  - Safaricom dispute escalation pathway
+  - STK Push failure investigation
+  - PayBill/Till number misrouting resolution
+  - B2C/B2B disbursement failure investigation
+  - M-Pesa statement reconciliation support
+
+- **Dispute resolution outcomes:**
+  - Full refund to customer
+  - Partial refund (negotiated settlement)
+  - No refund (merchant defense successful)
+  - Reversal to original payment method
+  - Credit to PayMo wallet
+  - Goodwill gesture (business retention)
+  - Appeal process for rejected disputes
+
+---
+
+### Section 3.13.4 — Refund Processing Center
+
+- **Refund initiation:**
+  - Refund sources:
+    - Customer request (voluntary)
+    - Dispute resolution (mandated)
+    - Duplicate payment auto-detection
+    - Overcharge correction
+    - Service cancellation
+    - Product return
+    - Fraud refund
+  - Refund form:
+    - Original transaction selection (auto-populated)
+    - Refund amount: Full or partial (with reason for partial)
+    - Refund reason category with free-text explanation
+    - Refund method: Original payment method, PayMo wallet, M-Pesa, bank transfer
+    - Customer notification preference
+    - Approval workflow trigger (if amount exceeds user limit)
+
+- **Refund approval workflow:**
+  - Auto-refund: ≤KES 1,000, pre-approved merchant, no dispute history
+  - Single approval: KES 1,001 – 50,000 (Finance Manager)
+  - Dual approval: KES 50,001 – 500,000 (Finance Manager + Director)
+  - Committee approval: >KES 500,000 (CFO + compliance sign-off)
+  - Auto-escalation if approver unavailable (delegation rules)
+  - Digital approval with timestamp, IP, device fingerprint
+
+- **Refund execution & tracking:**
+  - Real-time refund status: Pending Approval → Approved → Processing → Completed / Failed
+  - Per-transaction refund timeline estimate
+  - Refund to M-Pesa: Instant (if B2C)
+  - Refund to bank: 1-3 business days (EFT/RTGS)
+  - Refund to card: 5-10 business days (network rules)
+  - Failed refund handling: Auto-retry, manual intervention queue, alternative method suggestion
+  - Refund receipt generation with original transaction linkage
+  - Customer notification: SMS, email, push, WhatsApp
+  - Refund analytics: Volume, value, reasons, approval time, success rate
+
+- **Bulk refund processing:**
+  - CSV upload: Transaction reference, refund amount, reason, customer notification
+  - Template validation and error highlighting
+  - Batch approval workflow
+  - Progress tracking with per-item status
+  - Consolidated reporting
+
+- **Refund policy management:**
+  - Business-defined refund policy upload
+  - Automated refund eligibility check against policy
+  - Policy template generator (industry-specific)
+  - Customer-facing refund policy display at checkout
+
+---
+
+### Section 3.13.5 — Escalation & Emergency Support
+
+- **Escalation pathways:**
+  - Level 1: Support agent (standard resolution)
+  - Level 2: Technical specialist / senior agent
+  - Level 3: Engineering team / product manager
+  - Level 4: Executive escalation (C-suite for enterprise clients)
+  - External escalation: Safaricom, card networks, KRA, CBK, ODPC
+
+- **Emergency protocols:**
+  - Critical incident definition: Complete service outage, fraud outbreak, data breach, regulatory action
+  - 24/7 emergency hotline (dedicated number)
+  - War room activation for SEV1 incidents
+  - Customer communication templates per incident type
+  - Post-incident review and RCA publication
+  - Service credit calculation for SLA breaches
+
+- **Regulatory complaint handling:**
+  - CBK complaint filing assistance
+  - KRA dispute support
+  - ODPC data protection complaint handling
+  - Consumer protection tribunal preparation
+  - Legal referral network (pre-vetted law firms)
+
+---
+
+## **PAGE 3.14 — SETTINGS, ACCOUNT DETAILS & ADMINISTRATION**
+
+**Purpose:** Centralized configuration hub for business account settings, user management, security controls, notification preferences, integration settings, and administrative functions. Exhaustive control with granular permissions and audit trails.
+
+---
+
+### Section 3.14.1 — Business Profile & Account Details
+
+- **Core business information:**
+  - Legal business name (locked after verification, change requires re-KYB)
+  - Trading name / DBA (editable with approval)
+  - Business registration number (locked)
+  - KRA PIN (locked)
+  - Business email (primary, billing, support, separate contacts)
+  - Business phone (primary, support, emergency)
+  - Physical address (headquarters, billing, shipping, separate)
+  - GPS coordinates (verified during onboarding, change requires re-verification)
+  - Website, social media handles
+  - Business description and industry classification (editable with re-verification if significant change)
+  - Business logo and brand assets (upload, crop, preview)
+
+- **Account identifiers:**
+  - PayMo business account number
+  - M-Pesa PayBill number(s) with account number format
+  - M-Pesa Till number(s)
+  - Virtual account numbers (per currency)
+  - API Client ID and environment endpoints
+  - Webhook endpoint URLs
+  - Card BIN (if card program enabled)
+
+- **Document repository:**
+  - All uploaded KYB documents with expiry dates
+  - Document version history
+  - Renewal reminders (90, 60, 30, 7 days before expiry)
+  - Secure download with audit log
+  - Document sharing with authorized users (accountant, auditor, lawyer)
+
+---
+
+### Section 3.14.2 — User & Team Management
+
+- **User directory:**
+  - All users with roles, departments, status, last login
+  - Quick actions: Edit, Deactivate, Reset MFA, View Activity, Delete
+  - User profile: Name, email, phone, role, department, approval limits, session status
+  - Bulk user operations: Import CSV, Export, Bulk deactivate, Bulk role change
+
+- **Role & permission configuration:**
+  - Predefined roles: Owner, Admin, Finance Manager, Accountant, HR Manager, Sales Manager, Procurement Officer, Viewer, Developer, Support Agent
+  - Custom role builder:
+    - Module access toggles (Collections, Disbursements, Payroll, Invoicing, Treasury, Reports, Settings, API, Cards)
+    - Action permissions: View, Create, Edit, Delete, Approve, Execute, Export, Configure
+    - Data scope: All data, Department-only, Own data, None
+    - Feature limits: Max approval amount, max transaction amount, max batch size
+    - Time-based restrictions: Business hours only, weekend access, holiday access
+    - Geographic restrictions: IP whitelist, country whitelist
+  - Role cloning and template saving
+  - Role assignment history with audit trail
+
+- **User onboarding & offboarding:**
+  - Invite user: Email, role, department, approval limit, MFA requirement
+  - Invitation link with expiry (24 hours) and secure token
+  - First-login mandatory MFA setup
+  - Department and cost center assignment
+  - Approval limit configuration with amount tiers
+  - Offboarding checklist: Revoke sessions, disable API keys, reassign approvals, transfer ownership of recurring tasks, archive activity logs
+  - Offboarding confirmation with audit trail
+
+- **Session & device management:**
+  - Active sessions list: User, device, IP, location, login time, last activity
+  - Remote logout any session
+  - Force password reset
+  - Device fingerprinting and trusted device management
+  - Suspicious device alerts
+  - Login history: 90 days default, 7 years for audit
+
+---
+
+### Section 3.14.3 — Security & Authentication Settings
+
+- **Authentication policies:**
+  - Password policy: Minimum length, complexity, expiry (30/60/90 days), history (no last 5)
+  - MFA enforcement: Optional, Recommended, Mandatory (per role)
+  - MFA methods: SMS OTP, Email OTP, Authenticator app (TOTP), Hardware security key (FIDO2/WebAuthn), Biometric (fingerprint/face ID on mobile)
+  - MFA backup codes: Generate, download, regenerate
+  - Login methods: Password + MFA, Magic link, SSO (SAML 2.0, OAuth 2.0, OIDC)
+  - SSO configuration: Identity provider setup (Azure AD, Google Workspace, Okta, OneLogin), attribute mapping, JIT provisioning, SCIM user sync
+
+- **Access controls:**
+  - IP whitelist / blacklist (per user, per role, global)
+  - Country access restrictions
+  - Time-based access (business hours enforcement)
+  - Concurrent session limits (1, 2, 5, unlimited per user)
+  - Idle timeout configuration (5, 15, 30, 60 minutes)
+  - Account lockout: Failed attempts (3, 5, 10), lockout duration (15 min, 1 hour, 24 hours), auto-unlock vs. manual
+
+- **API security:**
+  - API key rotation schedule (30, 60, 90 days)
+  - IP whitelist for API access
+  - Request signing requirement (HMAC-SHA256)
+  - Webhook signature verification
+  - Rate limit configuration (per project, per endpoint)
+  - API access logs and anomaly detection
+
+- **Data security:**
+  - Data encryption at rest (AES-256) and in transit (TLS 1.3)
+  - Data retention policy configuration
+  - Data deletion request handling (GDPR/ODPC right to erasure)
+  - Data export request (right to portability)
+  - Audit log retention: 7 years (configurable per jurisdiction)
+  - Backup and disaster recovery settings
+
+---
+
+### Section 3.14.4 — Notification & Communication Preferences
+
+- **Notification channels:**
+  - In-app push notifications (primary)
+  - SMS (primary phone, backup phone)
+  - Email (primary, billing, support, alerts)
+  - WhatsApp Business (optional opt-in)
+  - Slack/Teams integration (for enterprise)
+  - Webhook notifications (for developers)
+
+- **Event-based notification configuration:**
+  - Transaction events: Successful payment, Failed payment, Refund processed, Chargeback received, Settlement completed, Disbursement completed
+  - Security events: Login from new device, Password changed, MFA disabled, API key rotated, Suspicious activity detected
+  - Business events: Invoice paid, Invoice overdue, Payroll executed, Payroll failed, Bulk disbursement completed, Report ready
+  - Compliance events: License expiry approaching, KYC renewal due, Tax filing deadline, Compliance score change
+  - System events: Scheduled maintenance, API deprecation, Feature release, Service outage
+
+- **Per-channel frequency:**
+  - Real-time (immediate)
+  - Hourly digest
+  - Daily digest (morning summary)
+  - Weekly digest (Monday morning)
+  - Monthly digest (1st of month)
+  - Only critical (suppress non-urgent)
+
+- **Quiet hours:**
+  - Do-not-disturb schedule (e.g., 10 PM – 6 AM)
+  - Critical override (security alerts always push through)
+  - Weekend mode (reduced notifications)
+
+---
+
+### Section 3.14.5 — Integration & API Settings
+
+- **API project management:**
+  - Project list with environment (sandbox/production)
+  - Project creation and deletion
+  - Client ID / Client Secret management
+  - Scope configuration per project
+  - OAuth 2.0 redirect URI configuration
+  - Webhook endpoint configuration per event type
+  - Webhook retry policy and dead letter queue settings
+  - Sandbox reset (clear test data)
+
+- **Third-party integrations:**
+  - Accounting software: QuickBooks, Xero, Sage, SAP, Oracle NetSuite
+  - E-commerce platforms: Shopify, WooCommerce, Magento, PrestaShop, OpenCart
+  - CRM: Salesforce, HubSpot, Zoho
+  - HR systems: Workday, SAP SuccessFactors, BambooHR
+  - Communication: Slack, Microsoft Teams, WhatsApp Business API
+  - Analytics: Google Analytics, Mixpanel, Amplitude
+  - Connection status, sync frequency, error logs, re-sync triggers
+
+- **Webhook management:**
+  - Endpoint URL validation (HTTPS only, TLS 1.2+)
+  - Event subscription toggles per endpoint
+  - Payload format selection (standard, compact, custom)
+  - Signature verification secret rotation
+  - Delivery log: Success, failure, retry count, latency
+  - Failed delivery alert threshold configuration
+
+---
+
+### Section 3.14.6 — Billing, Fees & Plan Management
+
+- **Fee schedule:**
+  - Current fee schedule display (per transaction type, per tier)
+  - Historical fee schedule changes
+  - Fee calculator for any hypothetical transaction
+  - Volume-based tier progress (current volume, next tier threshold, projected savings)
+  - Fee comparison: Current vs. alternative pricing plans
+
+- **Pricing plan selection:**
+  - Plan tiers: Starter (free, limited), Growth (monthly subscription), Enterprise (custom pricing)
+  - Per-plan feature matrix
+  - Plan upgrade/downgrade with proration
+  - Custom plan negotiation request
+  - Annual vs. monthly billing toggle
+  - Plan trial period management
+
+- **Billing & invoicing:**
+  - Billing contact and address
+  - Payment method for subscription: M-Pesa, bank transfer, card, PayMo wallet
+  - Invoice history with PDF download
+  - Auto-pay setup for subscription
+  - Billing dispute initiation
+  - Tax invoice compliance (e-TIMS integration)
+
+- **Transaction limits:**
+  - Per-transaction limits (by type, by method)
+  - Daily limits
+  - Monthly limits
+  - Limit increase request with justification and supporting documents
+  - Limit utilization dashboard (current vs. limit, % used, reset date)
+
+---
+
+### Section 3.14.7 — Account Lifecycle Management
+
+- **Account status:**
+  - Active, Suspended, Dormant, Under Review, Closed
+  - Status change history with reason and approver
+  - Self-suspension (temporary, with reactivation)
+  - Dormancy warning (90 days no activity) and reactivation
+
+- **Account closure:**
+  - Closure request form with reason
+  - Outstanding obligations check (pending transactions, unsettled funds, active subscriptions, open disputes)
+  - Balance settlement: Transfer to linked bank, M-Pesa, or nominated account
+  - Data retention confirmation (7 years per regulation)
+  - Final statement generation
+  - Closure confirmation with certificate
+  - Reactivation window (30 days) before permanent deletion
+
+- **Data management:**
+  - Data export: Full account data package (transactions, documents, reports, messages)
+  - Data deletion request (right to erasure, with regulatory exceptions)
+  - Data portability: Standard formats (CSV, JSON, OFX, MT940)
+  - Archive settings: Auto-archive transactions older than X years
+
+---
+
+**END OF 3 ADDITIONAL PAGES**
 ================================================================================
 DASHBOARD 4: PAYMO DEVELOPER PORTAL — APIs, Integration & Technical Operations
 ================================================================================
