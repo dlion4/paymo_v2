@@ -1,0 +1,890 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💸</text></svg>" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PayMo BaaS — Customer &amp; Account Management | 1.14</title>
+  <meta name="description" content="PayMo BaaS Customer & Account Management — KYC, Risk, Linked Accounts, Transaction History." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="master.css">
+  <style>
+    .customer-grid { display: grid; grid-template-columns: 380px 1fr; gap: 20px; }
+    @media (max-width: 1100px) { .customer-grid { grid-template-columns: 1fr; } }
+    .customer-list { max-height: 620px; overflow-y: auto; }
+    .cust-row { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border: 1px solid var(--pm-border); border-radius: var(--pm-r-md); margin-bottom: 8px; cursor: pointer; transition: all .2s; background: var(--pm-surface); }
+    .cust-row:hover { background: var(--pm-surface-2); transform: translateX(2px); }
+    .cust-row.selected { border-color: var(--pm-primary); box-shadow: var(--pm-shadow-glow); }
+    .cust-avatar { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 15px; flex-shrink: 0; }
+    .cust-main { flex: 1; min-width: 0; }
+    .cust-name { font-weight: 700; font-size: 14px; }
+    .cust-meta { font-size: 11px; color: var(--pm-muted); }
+    .cust-badges { display: flex; gap: 6px; flex-wrap: wrap; }
+    .cust-stats { text-align: right; }
+    .cust-stats .bal { font-family: var(--pm-font-display); font-weight: 700; font-size: 15px; }
+    .cust-stats .txs { font-size: 11px; color: var(--pm-muted); }
+    
+    .detail-tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--pm-border); margin-bottom: 16px; }
+    .detail-tabs .dtab { padding: 10px 18px; font-size: 13px; font-weight: 600; cursor: pointer; color: var(--pm-ink-soft); border-bottom: 3px solid transparent; }
+    .detail-tabs .dtab.active { color: var(--pm-primary); border-color: var(--pm-primary); }
+    
+    .kyc-step { display: none; }
+    .kyc-step.active { display: block; }
+    .step-header { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+    .step-num { width: 32px; height: 32px; border-radius: 50%; background: var(--pm-primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+    
+    .risk-meter { height: 10px; background: var(--pm-bg-2); border-radius: 999px; overflow: hidden; }
+    .risk-meter > div { height: 100%; border-radius: 999px; transition: width .4s; }
+    .risk-low { background: #10B981; }
+    .risk-med { background: #F59E0B; }
+    .risk-high { background: #EF4444; }
+    
+    .linked-acc { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid var(--pm-border); border-radius: var(--pm-r-md); margin-bottom: 8px; }
+    .linked-acc .icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 700; color: white; }
+    
+    .activity-log { max-height: 320px; overflow-y: auto; }
+    .activity-item { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--pm-border); }
+    .activity-item:last-child { border-bottom: none; }
+    .activity-item .dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 6px; }
+    
+    .filter-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+    .filter-chip { padding: 6px 14px; border-radius: var(--pm-r-pill); border: 1px solid var(--pm-border); background: var(--pm-surface); font-size: 12px; font-weight: 600; cursor: pointer; }
+    .filter-chip.active { background: var(--pm-primary); color: white; border-color: var(--pm-primary); }
+    
+    .section-title { font-family: var(--pm-font-display); font-size: 15px; font-weight: 700; margin: 18px 0 10px; }
+    
+    .mobile-stack { display: grid; grid-template-columns: 1fr; gap: 20px; }
+    @media (min-width: 1100px) { .mobile-stack { grid-template-columns: 380px 1fr; } }
+    
+    .stat-mini { background: var(--pm-surface-2); border-radius: var(--pm-r-md); padding: 12px 14px; }
+    .stat-mini .v { font-family: var(--pm-font-display); font-size: 20px; font-weight: 700; }
+  </style>
+</head>
+<body>
+  <div class="pm-app">
+    <!-- Sidebar -->
+    <aside class="pm-sidebar">
+      <div class="pm-sidebar-logo">P</div>
+      <nav class="pm-sidebar-nav" id="sideNav">
+        <button class="pm-nav-item" data-nav="customers" title="Customers"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></button>
+        <button class="pm-nav-item active" data-nav="customers" title="Customer Management"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></button>
+        <button class="pm-nav-item" data-nav="accounts" title="Linked Accounts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"/><path d="M3 10h18"/><path d="M5 6l7-3 7 3"/><path d="M4 10v11"/><path d="M20 10v11"/></svg></button>
+        <button class="pm-nav-item" data-nav="kyc" title="KYC Management"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></button>
+        <button class="pm-nav-item" data-nav="risk" title="Risk &amp; Compliance"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></button>
+      </nav>
+    </aside>
+
+    <main class="pm-main">
+      <!-- Header -->
+      <header class="pm-header">
+        <div class="pm-header-title">
+          <h1>Customer &amp; Account Management</h1>
+          <p>1.14 — KYC, Risk Scoring, Linked Accounts &amp; Transaction History</p>
+        </div>
+        <div class="pm-header-search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="globalSearch" placeholder="Search customers, phones, KYC IDs…" />
+        </div>
+        <div class="pm-header-actions">
+          <div class="pm-system-status"><span class="dot"></span> All systems normal</div>
+          <button class="pm-header-btn" id="notifBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="counter">12</span></button>
+          <button class="pm-profile-btn" id="profileBtn"><div class="pm-avatar">JM</div><div class="pm-profile-info"><div class="name">Joseph Mwangi</div><div class="role">Chief Operations Officer</div></div></button>
+        </div>
+      </header>
+
+      <div class="pm-content">
+        <!-- KPI Strip -->
+        <div class="kpi-row" style="grid-template-columns:repeat(5,1fr);">
+          <div class="kpi kpi-balance" onclick="CM.openStatsModal('total')">
+            <div class="kpi-label">Total Customers</div>
+            <div class="kpi-value">12,847</div>
+            <div class="kpi-tag up">+142 this week</div>
+          </div>
+          <div class="kpi kpi-volume" onclick="CM.openStatsModal('kyc')">
+            <div class="kpi-label">KYC Verified</div>
+            <div class="kpi-value">11,204</div>
+            <div class="kpi-tag up">87.2%</div>
+          </div>
+          <div class="kpi kpi-success" onclick="CM.openStatsModal('risk')">
+            <div class="kpi-label">Low Risk</div>
+            <div class="kpi-value">9,812</div>
+            <div class="kpi-tag up">76.4%</div>
+          </div>
+          <div class="kpi kpi-settle" onclick="CM.openStatsModal('accounts')">
+            <div class="kpi-label">Linked Accounts</div>
+            <div class="kpi-value">31,482</div>
+            <div class="kpi-tag up">+312 today</div>
+          </div>
+          <div class="kpi kpi-banks" onclick="CM.openStatsModal('pending')">
+            <div class="kpi-label">Pending Review</div>
+            <div class="kpi-value">187</div>
+            <div class="kpi-tag down">14 critical</div>
+          </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="customer-grid mobile-stack">
+          <!-- Customer List -->
+          <div class="pm-card">
+            <div class="pm-card-head">
+              <div>
+                <h2 class="pm-card-title"><span class="emoji">👥</span> Customer Directory</h2>
+                <p class="pm-card-sub">12,847 total · 187 pending</p>
+              </div>
+              <div class="pm-card-actions">
+                <button class="btn-pm primary" onclick="CM.openCreateCustomer()">+ New</button>
+                <button class="btn-pm" onclick="CM.openBulkActions()">Bulk</button>
+              </div>
+            </div>
+
+            <div class="filter-row" id="statusFilters">
+              <div class="filter-chip active" data-filter="all">All</div>
+              <div class="filter-chip" data-filter="verified">Verified</div>
+              <div class="filter-chip" data-filter="pending">Pending KYC</div>
+              <div class="filter-chip" data-filter="flagged">Flagged</div>
+              <div class="filter-chip" data-filter="business">Business</div>
+            </div>
+
+            <div class="customer-list" id="customerList"></div>
+          </div>
+
+          <!-- Detail Panel -->
+          <div class="pm-card" id="detailPanel">
+            <div id="detailEmpty">
+              <div style="text-align:center; padding:60px 20px; color:var(--pm-muted);">
+                <div style="font-size:42px; margin-bottom:16px;">👤</div>
+                <div style="font-weight:700; font-size:15px; color:var(--pm-ink);">Select a customer</div>
+                <p style="margin-top:8px; font-size:13px;">Click any row on the left to view full profile, linked accounts, risk score and transaction history.</p>
+              </div>
+            </div>
+
+            <div id="detailContent" style="display:none;">
+              <div class="pm-card-head" style="margin-bottom:0;">
+                <div id="detailHeader"></div>
+                <div class="pm-card-actions">
+                  <button class="btn-pm" onclick="CM.openEditCustomer()">Edit</button>
+                  <button class="btn-pm primary" onclick="CM.openActionMenu()">Actions</button>
+                </div>
+              </div>
+
+              <div class="detail-tabs" id="detailTabs">
+                <div class="dtab active" data-tab="overview">Overview</div>
+                <div class="dtab" data-tab="accounts">Accounts</div>
+                <div class="dtab" data-tab="transactions">Transactions</div>
+                <div class="dtab" data-tab="kyc">KYC</div>
+                <div class="dtab" data-tab="risk">Risk</div>
+                <div class="dtab" data-tab="activity">Activity</div>
+              </div>
+
+              <!-- Tab Contents -->
+              <div id="tab-overview"></div>
+              <div id="tab-accounts" style="display:none;"></div>
+              <div id="tab-transactions" style="display:none;"></div>
+              <div id="tab-kyc" style="display:none;"></div>
+              <div id="tab-risk" style="display:none;"></div>
+              <div id="tab-activity" style="display:none;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Stats Row -->
+        <div class="three-col">
+          <div class="pm-card">
+            <div class="pm-card-head"><h2 class="pm-card-title"><span class="emoji">📈</span> Top 5 Customers by Volume</h2></div>
+            <div id="topCustomers"></div>
+          </div>
+          <div class="pm-card">
+            <div class="pm-card-head"><h2 class="pm-card-title"><span class="emoji">⚠️</span> High Risk Customers</h2></div>
+            <div id="highRiskList"></div>
+          </div>
+          <div class="pm-card">
+            <div class="pm-card-head"><h2 class="pm-card-title"><span class="emoji">🆕</span> Recent Onboarding</h2></div>
+            <div id="recentOnboard"></div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- ====================== MODALS ====================== -->
+  <div class="pm-modal-backdrop" id="modalBackdrop">
+    <div class="pm-modal" id="modalEl">
+      <div class="pm-modal-head">
+        <div><h3 id="modalTitle"></h3><p id="modalSubtitle"></p></div>
+        <button class="pm-close-btn" onclick="CM.closeModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+      <div class="pm-modal-body" id="modalBody"></div>
+      <div class="pm-modal-foot" id="modalFoot"></div>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script>
+  /* ============================================================
+     CUSTOMER MANAGEMENT — Comprehensive JS (20+ Modals)
+     ============================================================ */
+  const CM = {
+    customers: [
+      {id:1, name:"Wanjiku Mwangi", phone:"+254712445902", email:"wanjiku.m@gmail.com", kyc:"KYC-44128", status:"verified", type:"individual", risk:12, volume:2400000, txCount:184, joined:"2024-03-12", avatar:"#10B981", riskLevel:"low", accounts:3, lastActive:"2m ago"},
+      {id:2, name:"James Odhiambo", phone:"+254722334455", email:"james.odhiambo@me.com", kyc:"KYC-44129", status:"pending", type:"individual", risk:48, volume:185000, txCount:31, joined:"2025-01-08", avatar:"#F59E0B", riskLevel:"med", accounts:1, lastActive:"4h ago"},
+      {id:3, name:"Equity Logistics Ltd", phone:"+254733221100", email:"ops@equitylogistics.co.ke", kyc:"KYC-44130", status:"verified", type:"business", risk:19, volume:18200000, txCount:742, joined:"2023-11-02", avatar:"#3B82F6", riskLevel:"low", accounts:5, lastActive:"14m ago"},
+      {id:4, name:"Mama Njeri Stores", phone:"+254701998877", email:"njeri.stores@gmail.com", kyc:"KYC-44131", status:"verified", type:"individual", risk:8, volume:880000, txCount:97, joined:"2024-08-19", avatar:"#10B981", riskLevel:"low", accounts:2, lastActive:"1d ago"},
+      {id:5, name:"Patrick Kiprono", phone:"+254745667788", email:"p.kiprono@outlook.com", kyc:"KYC-44132", status:"flagged", type:"individual", risk:91, volume:1200000, txCount:64, joined:"2024-12-01", avatar:"#EF4444", riskLevel:"high", accounts:2, lastActive:"3h ago"},
+      {id:6, name:"Acacia Tech Co.", phone:"+254788112233", email:"finance@acaciatech.io", kyc:"KYC-44133", status:"verified", type:"business", risk:22, volume:32700000, txCount:1193, joined:"2023-05-14", avatar:"#8B5CF6", riskLevel:"low", accounts:7, lastActive:"now"},
+      {id:7, name:"Faith Achieng", phone:"+254712334455", email:"faith.achieng@icloud.com", kyc:"KYC-44134", status:"verified", type:"individual", risk:14, volume:142000, txCount:29, joined:"2025-02-03", avatar:"#10B981", riskLevel:"low", accounts:1, lastActive:"5d ago"},
+      {id:8, name:"Brian Mutiso", phone:"+254722556677", email:"brian.mutiso@gmail.com", kyc:"KYC-44135", status:"pending", type:"individual", risk:55, volume:0, txCount:0, joined:"2025-02-18", avatar:"#F59E0B", riskLevel:"med", accounts:0, lastActive:"—"},
+      {id:9, name:"Nairobi Coffee Exports", phone:"+254733445566", email:"procurement@nce.co.ke", kyc:"KYC-44136", status:"verified", type:"business", risk:27, volume:8740000, txCount:312, joined:"2024-01-22", avatar:"#0EA5E9", riskLevel:"low", accounts:4, lastActive:"2h ago"},
+      {id:10, name:"Grace Wanjiku", phone:"+254701223344", email:"grace.wanjiku@live.com", kyc:"KYC-44137", status:"flagged", type:"individual", risk:78, volume:650000, txCount:41, joined:"2024-10-11", avatar:"#EF4444", riskLevel:"high", accounts:2, lastActive:"1h ago"},
+    ],
+    currentCustomer: null,
+    currentTab: "overview",
+    filters: { status: "all", search: "" },
+
+    toast(msg, type = "success") {
+      const c = document.getElementById("toastContainer");
+      const t = document.createElement("div");
+      t.className = `toast ${type}`;
+      t.innerHTML = `<span>${type === "success" ? "✅" : type === "error" ? "❌" : "⚠️"}</span><div>${msg}</div>`;
+      c.appendChild(t);
+      setTimeout(() => { t.style.transition = "all .3s"; t.style.opacity = "0"; setTimeout(() => t.remove(), 300); }, 3200);
+    },
+
+    openModal({ title, sub = "", body, foot = "", wide = false }) {
+      document.getElementById("modalTitle").textContent = title;
+      document.getElementById("modalSubtitle").textContent = sub;
+      document.getElementById("modalBody").innerHTML = body;
+      document.getElementById("modalFoot").innerHTML = foot;
+      document.getElementById("modalEl").classList.toggle("wide", wide);
+      document.getElementById("modalBackdrop").classList.add("open");
+    },
+    closeModal() { document.getElementById("modalBackdrop").classList.remove("open"); },
+
+    /* ========== RENDER CUSTOMER LIST ========== */
+    renderCustomerList(filtered = null) {
+      const container = document.getElementById("customerList");
+      let list = filtered || this.customers;
+
+      if (this.filters.status !== "all") {
+        list = list.filter(c => {
+          if (this.filters.status === "verified") return c.status === "verified";
+          if (this.filters.status === "pending") return c.status === "pending";
+          if (this.filters.status === "flagged") return c.status === "flagged";
+          if (this.filters.status === "business") return c.type === "business";
+          return true;
+        });
+      }
+      if (this.filters.search) {
+        const q = this.filters.search.toLowerCase();
+        list = list.filter(c => c.name.toLowerCase().includes(q) || c.phone.includes(q) || c.kyc.toLowerCase().includes(q));
+      }
+
+      container.innerHTML = list.map(c => `
+        <div class="cust-row ${this.currentCustomer && this.currentCustomer.id === c.id ? 'selected' : ''}" onclick="CM.selectCustomer(${c.id})">
+          <div class="cust-avatar" style="background:${c.avatar}">${c.name.split(" ").map(x => x[0]).join("").slice(0,2)}</div>
+          <div class="cust-main">
+            <div class="cust-name">${c.name}</div>
+            <div class="cust-meta">${c.phone} · ${c.kyc}</div>
+            <div class="cust-badges" style="margin-top:4px;">
+              <span class="status-pill ${c.status}">${c.status}</span>
+              <span class="status-pill ${c.type === "business" ? "online" : "completed"}">${c.type}</span>
+            </div>
+          </div>
+          <div class="cust-stats">
+            <div class="bal">KES ${(c.volume / 1000000).toFixed(1)}M</div>
+            <div class="txs">${c.txCount} txs</div>
+            <div style="margin-top:4px;"><span class="status-pill ${c.riskLevel}">${c.risk}</span></div>
+          </div>
+        </div>
+      `).join("") || `<div class="no-results">No customers found.</div>`;
+    },
+
+    /* ========== SELECT CUSTOMER ========== */
+    selectCustomer(id) {
+      this.currentCustomer = this.customers.find(c => c.id === id);
+      document.getElementById("detailEmpty").style.display = "none";
+      document.getElementById("detailContent").style.display = "block";
+      this.renderDetailHeader();
+      this.switchTab("overview");
+      this.renderCustomerList();
+    },
+
+    renderDetailHeader() {
+      const c = this.currentCustomer;
+      document.getElementById("detailHeader").innerHTML = `
+        <div style="display:flex; align-items:center; gap:14px;">
+          <div class="cust-avatar" style="background:${c.avatar}; width:52px; height:52px; font-size:18px;">${c.name.split(" ").map(x => x[0]).join("").slice(0,2)}</div>
+          <div>
+            <div style="font-weight:700; font-size:18px;">${c.name}</div>
+            <div style="font-size:12px; color:var(--pm-muted);">${c.phone} · ${c.email}</div>
+            <div style="margin-top:4px;"><span class="status-pill ${c.status}">${c.status}</span> <span class="status-pill ${c.type === "business" ? "online" : "completed"}">${c.type}</span> <span class="status-pill ${c.riskLevel}">${c.risk} risk</span></div>
+          </div>
+        </div>
+      `;
+    },
+
+    /* ========== TABS ========== */
+    initTabs() {
+      document.getElementById("detailTabs").addEventListener("click", (e) => {
+        const tab = e.target.closest(".dtab");
+        if (!tab) return;
+        document.querySelectorAll("#detailTabs .dtab").forEach(t => t.classList.remove("active"));
+        tab.classList.add("active");
+        this.switchTab(tab.dataset.tab);
+      });
+    },
+
+    switchTab(tab) {
+      this.currentTab = tab;
+      ["overview", "accounts", "transactions", "kyc", "risk", "activity"].forEach(t => {
+        const el = document.getElementById("tab-" + t);
+        if (el) el.style.display = t === tab ? "block" : "none";
+      });
+      const c = this.currentCustomer;
+      if (!c) return;
+
+      if (tab === "overview") this.renderOverview(c);
+      if (tab === "accounts") this.renderAccounts(c);
+      if (tab === "transactions") this.renderTransactions(c);
+      if (tab === "kyc") this.renderKYC(c);
+      if (tab === "risk") this.renderRisk(c);
+      if (tab === "activity") this.renderActivity(c);
+    },
+
+    /* ========== TAB CONTENTS ========== */
+    renderOverview(c) {
+      const html = `
+        <div class="detail-grid">
+          <div class="detail-row"><span class="l">Customer ID</span><span class="v">${c.kyc}</span></div>
+          <div class="detail-row"><span class="l">Joined</span><span class="v">${c.joined}</span></div>
+          <div class="detail-row"><span class="l">Last Active</span><span class="v">${c.lastActive}</span></div>
+          <div class="detail-row"><span class="l">Linked Accounts</span><span class="v">${c.accounts}</span></div>
+          <div class="detail-row"><span class="l">Total Volume</span><span class="v">KES ${(c.volume/1000000).toFixed(1)}M</span></div>
+          <div class="detail-row"><span class="l">Transactions</span><span class="v">${c.txCount}</span></div>
+        </div>
+        <div class="section-title">Quick Stats</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;">
+          <div class="stat-mini"><div class="l">Avg Ticket</div><div class="v">KES ${(c.volume / Math.max(c.txCount,1) / 1000).toFixed(0)}K</div></div>
+          <div class="stat-mini"><div class="l">Success Rate</div><div class="v" style="color:#10B981;">98.7%</div></div>
+          <div class="stat-mini"><div class="l">Risk Score</div><div class="v">${c.risk}/100</div></div>
+        </div>
+        <div class="section-title">Notes</div>
+        <textarea style="width:100%; height:80px; border:1px solid var(--pm-border); border-radius:8px; padding:10px;" placeholder="Add internal note..."></textarea>
+        <button class="btn-pm primary" style="margin-top:8px;" onclick="CM.saveNote()">Save Note</button>
+      `;
+      document.getElementById("tab-overview").innerHTML = html;
+    },
+
+    renderAccounts(c) {
+      const accounts = [
+        {type:"M-Pesa", number:c.phone, bal:Math.floor(c.volume*0.3), status:"active", last:"2m ago"},
+        {type:"KCB Bank", number:"0123****"+(1000+c.id), bal:Math.floor(c.volume*0.45), status:"active", last:"14m ago"},
+        {type:"Equity Bank", number:"0019****"+(2000+c.id), bal:Math.floor(c.volume*0.25), status:c.accounts>2?"active":"inactive", last:"3d ago"},
+      ].slice(0, c.accounts);
+      
+      let html = `<div style="margin-bottom:12px;"><button class="btn-pm primary" onclick="CM.openLinkAccount()">+ Link New Account</button></div>`;
+      html += accounts.map(a => `
+        <div class="linked-acc">
+          <div class="icon" style="background:${a.type.includes("M-Pesa")?"#10B981":"#3B82F6"};">${a.type[0]}</div>
+          <div style="flex:1;">
+            <div style="font-weight:700;">${a.type} · ${a.number}</div>
+            <div style="font-size:12px; color:var(--pm-muted);">Last used ${a.last}</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-family:var(--pm-font-display); font-weight:700;">KES ${(a.bal/1000000).toFixed(1)}M</div>
+            <span class="status-pill ${a.status}">${a.status}</span>
+          </div>
+          <button class="btn-pm" onclick="CM.openAccountDetail('${a.type}', '${a.number}')">Manage</button>
+        </div>
+      `).join("");
+      document.getElementById("tab-accounts").innerHTML = html;
+    },
+
+    renderTransactions(c) {
+      const txs = [
+        {ref:"PM26KE"+(1000+c.id), rail:"M-Pesa", amt:"+KES 125,000", status:"completed", date:"Today 14:32"},
+        {ref:"PM26KE"+(1100+c.id), rail:"PesaLink", amt:"-KES 45,000", status:"completed", date:"Today 11:04"},
+        {ref:"PM26US"+(1200+c.id), rail:"SWIFT", amt:"+USD 2,400", status:"processing", date:"Yesterday"},
+        {ref:"PM26KE"+(1300+c.id), rail:"RTGS", amt:"-KES 890,000", status:"completed", date:"Feb 18"},
+      ];
+      let html = `<div class="filter-row"><div class="filter-chip active">All</div><div class="filter-chip">Completed</div><div class="filter-chip">Processing</div></div>`;
+      html += `<table class="pm-table"><thead><tr><th>Ref</th><th>Rail</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead><tbody>`;
+      html += txs.map(t => `<tr><td><span class="ref">${t.ref}</span></td><td>${t.rail}</td><td><span class="amt ${t.amt.startsWith("+")?"in":"out"}">${t.amt}</span></td><td><span class="status-pill ${t.status}">${t.status}</span></td><td>${t.date}</td></tr>`).join("");
+      html += `</tbody></table><button class="btn-pm" style="margin-top:12px;" onclick="CM.openFullTxHistory()">View Full History →</button>`;
+      document.getElementById("tab-transactions").innerHTML = html;
+    },
+
+    renderKYC(c) {
+      let html = `
+        <div class="section-title">KYC Status</div>
+        <div class="linked-acc"><div class="icon" style="background:#10B981;">✓</div><div style="flex:1;"><div style="font-weight:700;">KYC Verified — ${c.kyc}</div><div style="font-size:12px;">Completed on ${c.joined}</div></div><button class="btn-pm" onclick="CM.openKYCModal()">View Documents</button></div>
+        <div class="section-title">Verification Steps</div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <span class="status-pill completed">National ID</span>
+          <span class="status-pill completed">Selfie</span>
+          <span class="status-pill completed">Proof of Address</span>
+          <span class="status-pill ${c.status === "verified" ? "completed" : "processing"}">PEP Check</span>
+        </div>
+      `;
+      if (c.status === "pending") {
+        html += `<button class="btn-pm primary" style="margin-top:14px;" onclick="CM.startKYCWorkflow()">Start KYC Verification →</button>`;
+      }
+      if (c.status === "flagged") {
+        html += `<button class="btn-pm danger" style="margin-top:14px;" onclick="CM.openComplianceAction()">Open Compliance Review</button>`;
+      }
+      document.getElementById("tab-kyc").innerHTML = html;
+    },
+
+    renderRisk(c) {
+      const color = c.riskLevel === "low" ? "#10B981" : c.riskLevel === "med" ? "#F59E0B" : "#EF4444";
+      let html = `
+        <div style="margin-bottom:20px;">
+          <div style="display:flex; justify-content:space-between; margin-bottom:6px;"><span style="font-weight:600;">Risk Score</span><span style="font-weight:700; color:${color};">${c.risk}/100</span></div>
+          <div class="risk-meter"><div style="width:${c.risk}%; background:${color};"></div></div>
+        </div>
+        <div class="section-title">Risk Factors</div>
+        <div class="kv"><div class="a" style="background:#10B981;">✓</div><div class="b"><div class="t">No sanctions hits</div></div></div>
+        <div class="kv"><div class="a" style="background:#F59E0B;">!</div><div class="b"><div class="t">Velocity flag — 4 large tx in 48h</div></div></div>
+        <div class="kv"><div class="a" style="background:#10B981;">✓</div><div class="b"><div class="t">Device fingerprint stable</div></div></div>
+        <div class="kv"><div class="a" style="background:#EF4444;">!</div><div class="b"><div class="t">IP change detected (Nairobi → Mombasa)</div></div></div>
+        <button class="btn-pm primary" style="margin-top:14px;" onclick="CM.openRiskAssessment()">Run Full Risk Assessment</button>
+      `;
+      document.getElementById("tab-risk").innerHTML = html;
+    },
+
+    renderActivity(c) {
+      const activities = [
+        {icon:"✅", color:"#10B981", t:"KYC documents verified", ts:"Feb 18, 2025"},
+        {icon:"🔗", color:"#3B82F6", t:"New bank account linked (KCB)", ts:"Feb 10, 2025"},
+        {icon:"💸", color:"#8B5CF6", t:"Large transfer flagged & reviewed", ts:"Jan 29, 2025"},
+        {icon:"📝", color:"#F59E0B", t:"Compliance note added by Lucy Otieno", ts:"Jan 12, 2025"},
+        {icon:"🔄", color:"#0EA5E9", t:"Profile updated — phone number changed", ts:"Dec 28, 2024"},
+      ];
+      let html = `<div class="activity-log">`;
+      html += activities.map(a => `<div class="activity-item"><div class="dot" style="background:${a.color}"></div><div style="flex:1;"><div style="font-weight:600;">${a.t}</div><div style="font-size:11px; color:var(--pm-muted);">${a.ts}</div></div></div>`).join("");
+      html += `</div><button class="btn-pm" style="margin-top:12px;" onclick="CM.openFullActivity()">View Full Activity Log</button>`;
+      document.getElementById("tab-activity").innerHTML = html;
+    },
+
+    /* ========== 20+ FUNCTIONAL MODALS ========== */
+
+    openCreateCustomer() {
+      this.openModal({
+        title: "Create New Customer",
+        sub: "Individual or Business",
+        body: `
+          <div class="tab-row"><button class="tab active" onclick="this.parentElement.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));this.classList.add('active');document.getElementById('custType').value='individual'">Individual</button><button class="tab" onclick="this.parentElement.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));this.classList.add('active');document.getElementById('custType').value='business'">Business</button></div>
+          <input type="hidden" id="custType" value="individual">
+          <div class="form-grid-2">
+            <div class="form-row"><label>Full Name / Company</label><input id="newName" placeholder="Wanjiku Mwangi"></div>
+            <div class="form-row"><label>Phone Number</label><input id="newPhone" value="+2547"></div>
+            <div class="form-row"><label>Email</label><input id="newEmail" type="email"></div>
+            <div class="form-row"><label>ID / Registration No.</label><input id="newID" placeholder="28456123"></div>
+          </div>
+        `,
+        foot: `<button class="btn-pm" onclick="CM.closeModal()">Cancel</button><button class="btn-pm primary" onclick="CM.createCustomer()">Create Customer</button>`
+      });
+    },
+
+    createCustomer() {
+      const name = document.getElementById("newName").value || "New Customer";
+      const phone = document.getElementById("newPhone").value || "+254700000000";
+      const email = document.getElementById("newEmail").value || "new@customer.com";
+      const id = document.getElementById("newID").value || "KYC-" + Date.now().toString().slice(-5);
+      const type = document.getElementById("custType").value;
+
+      const newCust = {
+        id: Date.now(), name, phone, email, kyc: id, status: "pending", type,
+        risk: 45, volume: 0, txCount: 0, joined: new Date().toISOString().split("T")[0],
+        avatar: type === "business" ? "#3B82F6" : "#F59E0B", riskLevel: "med", accounts: 0, lastActive: "now"
+      };
+      this.customers.unshift(newCust);
+      this.closeModal();
+      this.renderCustomerList();
+      this.toast("Customer created successfully");
+      setTimeout(() => this.selectCustomer(newCust.id), 300);
+    },
+
+    openEditCustomer() {
+      const c = this.currentCustomer;
+      this.openModal({
+        title: "Edit Customer",
+        body: `
+          <div class="form-grid-2">
+            <div class="form-row"><label>Full Name</label><input id="editName" value="${c.name}"></div>
+            <div class="form-row"><label>Phone</label><input id="editPhone" value="${c.phone}"></div>
+            <div class="form-row"><label>Email</label><input id="editEmail" value="${c.email}"></div>
+            <div class="form-row"><label>KYC ID</label><input value="${c.kyc}" readonly></div>
+          </div>
+        `,
+        foot: `<button class="btn-pm" onclick="CM.closeModal()">Cancel</button><button class="btn-pm primary" onclick="CM.saveCustomerEdit()">Save Changes</button>`
+      });
+    },
+
+    saveCustomerEdit() {
+      const c = this.currentCustomer;
+      c.name = document.getElementById("editName").value;
+      c.phone = document.getElementById("editPhone").value;
+      c.email = document.getElementById("editEmail").value;
+      this.closeModal();
+      this.renderDetailHeader();
+      this.renderCustomerList();
+      this.toast("Customer updated");
+    },
+
+    openLinkAccount() {
+      this.openModal({
+        title: "Link New Account",
+        sub: "M-Pesa, Bank, or Card",
+        body: `
+          <div class="form-grid-2">
+            <div class="form-row"><label>Account Type</label><select id="accType"><option>M-Pesa</option><option>KCB Bank</option><option>Equity Bank</option><option>Co-op Bank</option><option>Stanbic</option></select></div>
+            <div class="form-row"><label>Phone / Account Number</label><input id="accNumber" placeholder="0712... or 0123..."></div>
+            <div class="form-row"><label>Account Name</label><input id="accName" value="${this.currentCustomer.name}"></div>
+            <div class="form-row"><label>Initial Balance</label><input id="accBal" value="0"></div>
+          </div>
+        `,
+        foot: `<button class="btn-pm" onclick="CM.closeModal()">Cancel</button><button class="btn-pm primary" onclick="CM.linkAccount()">Link Account</button>`
+      });
+    },
+
+    linkAccount() {
+      const c = this.currentCustomer;
+      c.accounts++;
+      this.closeModal();
+      this.toast("Account linked successfully");
+      this.switchTab("accounts");
+    },
+
+    openAccountDetail(type, number) {
+      this.openModal({
+        title: `${type} Account`,
+        sub: number,
+        wide: true,
+        body: `
+          <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:16px;">
+            <div class="liq-sum-card"><div class="l">Balance</div><div class="v">KES 1.24M</div></div>
+            <div class="liq-sum-card"><div class="l">Last Transaction</div><div class="v">Today 14:32</div></div>
+            <div class="liq-sum-card"><div class="l">Status</div><div class="v" style="color:#10B981;">● Active</div></div>
+          </div>
+          <div class="section-title">Recent Activity on this Account</div>
+          <table class="pm-table"><thead><tr><th>Date</th><th>Description</th><th>Amount</th></tr></thead>
+          <tbody><tr><td>Today</td><td>Received from Safaricom</td><td class="amt in">+KES 125,000</td></tr><tr><td>Feb 18</td><td>Transfer to Equity</td><td class="amt out">-KES 45,000</td></tr></tbody></table>
+        `,
+        foot: `<button class="btn-pm" onclick="CM.closeModal()">Close</button><button class="btn-pm danger" onclick="CM.toast('Account unlinked'); CM.closeModal();">Unlink Account</button>`
+      });
+    },
+
+    openKYCModal() {
+      const c = this.currentCustomer;
+      this.openModal({
+        title: "KYC Documents",
+        sub: c.kyc,
+        body: `
+          <div class="section-title">Submitted Documents</div>
+          <div class="kv"><div class="a" style="background:#10B981;">ID</div><div class="b"><div class="t">National ID — Front & Back</div><div class="d">Uploaded ${c.joined}</div></div><button class="btn-pm">View</button></div>
+          <div class="kv"><div class="a" style="background:#10B981;">📷</div><div class="b"><div class="t">Selfie with ID</div><div class="d">Uploaded ${c.joined}</div></div><button class="btn-pm">View</button></div>
+          <div class="kv"><div class="a" style="background:#10B981;">🏠</div><div class="b"><div class="t">Proof of Address (Utility Bill)</div><div class="d">Uploaded ${c.joined}</div></div><button class="btn-pm">View</button></div>
+          <div class="section-title">Verification History</div>
+          <div class="activity-item"><div class="dot" style="background:#10B981"></div><div>Document verified by system — Feb 18</div></div>
+          <div class="activity-item"><div class="dot" style="background:#3B82F6"></div><div>Manual review completed by Compliance — Feb 18</div></div>
+        `,
+        foot: `<button class="btn-pm" onclick="CM.closeModal()">Close</button>`
+      });
+    },
+
+    startKYCWorkflow() {
+      this.closeModal();
+      this.openModal({
+        title: "KYC Verification — Step 1 of 3",
+        sub: "Document Upload",
+        body: `
+          <div class="kyc-step active">
+            <div class="step-header"><div class="step-num">1</div><div><b>Upload Documents</b><div style="font-size:12px; color:var(--pm-muted);">National ID + Selfie</div></div></div>
+            <div class="form-row"><label>National ID (Front)</label><input type="file"></div>
+            <div class="form-row"><label>National ID (Back)</label><input type="file"></div>
+            <div class="form-row"><label>Selfie holding ID</label><input type="file"></div>
+          </div>
+        `,
+        foot: `<button class="btn-pm" onclick="CM.closeModal()">Cancel</button><button class="btn-pm primary" onclick="CM.nextKYCStep(2)">Continue →</button>`
+      });
+    },
+
+    nextKYCStep(step) {
+      this.closeModal();
+      if (step === 2) {
+        this.openModal({
+          title: "KYC Verification — Step 2 of 3",
+          sub: "Address Verification",
+          body: `
+            <div class="kyc-step active">
+              <div class="step-header"><div class="step-num">2</div><div><b>Proof of Address</b></div></div>
+              <div class="form-row"><label>Utility Bill / Bank Statement</label><input type="file"></div>
+              <div class="form-row"><label>Address Line 1</label><input value="123 Nairobi Street"></div>
+              <div class="form-row"><label>City</label><input value="Nairobi"></div>
+            </div>
+          `,
+          foot: `<button class="btn-pm" onclick="CM.closeModal()">Cancel</button><button class="btn-pm primary" onclick="CM.nextKYCStep(3)">Continue →</button>`
+        });
+      } else if (step === 3) {
+        this.openModal({
+          title: "KYC Verification — Step 3 of 3",
+          sub: "Review & Submit",
+          body: `
+            <div class="kyc-step active">
+              <div class="step-header"><div class="step-num">3</div><div><b>Final Review</b></div></div>
+              <div class="detail-grid">
+                <div class="detail-row"><span class="l">Documents</span><span class="v" style="color:#10B981;">✓ Complete</span></div>
+                <div class="detail-row"><span class="l">PEP Check</span><span class="v" style="color:#10B981;">✓ Clear</span></div>
+                <div class="detail-row"><span class="l">Sanctions</span><span class="v" style="color:#10B981;">✓ Clear</span></div>
+              </div>
+              <div class="form-row"><label>Compliance Notes</label><textarea rows="3">All documents match customer profile. No red flags.</textarea></div>
+            </div>
+          `,
+          foot: `<button class="btn-pm" onclick="CM.closeModal()">Cancel</button><button class="btn-pm primary" onclick="CM.completeKYC()">Submit for Approval</button>`
+        });
+      }
+    },
+
+    completeKYC() {
+      this.closeModal();
+      const c = this.currentCustomer;
+      c.status = "verified";
+      c.risk = Math.max(8, c.risk - 30);
+      c.riskLevel = "low";
+      this.toast("KYC submitted for final approval");
+      this.renderDetailHeader();
+      this.renderCustomerList();
+      setTimeout(() => this.toast("KYC Approved! Customer is now verified.", "success"), 1800);
+    },
+
+    openRiskAssessment() {
+      const c = this.currentCustomer;
+      this.openModal({
+        title: "Risk Assessment",
+        sub: "Automated + Manual Review",
+        wide: true,
+        body: `
+          <div style="margin-bottom:16px;">
+            <div style="font-weight:700; margin-bottom:6px;">Current Score: <span style="color:#EF4444;">${c.risk}/100</span></div>
+            <div class="risk-meter"><div style="width:${c.risk}%; background:#EF4444;"></div></div>
+          </div>
+          <div class="section-title">Assessment Factors</div>
+          <div class="kv"><div class="a" style="background:#10B981;">✓</div><div class="b"><div class="t">Clean sanctions list</div></div><div style="color:#10B981;">-15</div></div>
+          <div class="kv"><div class="a" style="background:#F59E0B;">!</div><div class="b"><div class="t">High velocity (4 tx in 48h)</div></div><div style="color:#F59E0B;">+22</div></div>
+          <div class="kv"><div class="a" style="background:#EF4444;">!</div><div class="b"><div class="t">IP change (Nairobi → Mombasa)</div></div><div style="color:#EF4444;">+18</div></div>
+          <div class="form-row"><label>Analyst Override</label><select><option>No change</option><option>Reduce risk by 10</option><option>Increase risk by 15</option></select></div>
+        `,
+        foot: `<button class="btn-pm" onclick="CM.closeModal()">Cancel</button><button class="btn-pm primary" onclick="CM.toast('Risk score updated to '+(CM.currentCustomer.risk-12)); CM.closeModal();">Apply Assessment</button>`
+      });
+    },
+
+    openComplianceAction() {
+      const c = this.currentCustomer;
+      this.openModal({
+        title: "Compliance Review",
+        sub: c.kyc,
+        body: `
+          <div class="form-row"><label>Action</label><select><option>Clear flag</option><option>Request additional documents</option><option>Escalate to AML team</option><option>File SAR</option></select></div>
+          <div class="form-row"><label>Notes</label><textarea rows="4">Customer flagged due to high velocity and IP change. No sanctions hits. Recommend manual review.</textarea></div>
+        `,
+        foot: `<button class="btn-pm" onclick="CM.closeModal()">Cancel</button><button class="btn-pm danger" onclick="CM.toast('SAR filed — case #AML-8821'); CM.closeModal();">File SAR</button>`
+      });
+    },
+
+    openFullTxHistory() {
+      this.openModal({
+        title: "Full Transaction History",
+        sub: this.currentCustomer.name,
+        wide: true,
+        body: `
+          <div class="filter-row"><div class="filter-chip active">All</div><div class="filter-chip">Completed</div><div class="filter-chip">Failed</div><div class="filter-chip">Reversed</div></div>
+          <table class="pm-table"><thead><tr><th>Ref</th><th>Rail</th><th>Amount</th><th>Status</th><th>Date</th><th></th></tr></thead>
+          <tbody>
+            <tr><td>PM26KE44128</td><td>M-Pesa</td><td class="amt in">+KES 125,000</td><td><span class="status-pill completed">completed</span></td><td>Today</td><td><button class="btn-pm" onclick="CM.openTxDetailModal()">View</button></td></tr>
+            <tr><td>PM26KE44129</td><td>PesaLink</td><td class="amt out">-KES 45,000</td><td><span class="status-pill completed">completed</span></td><td>Feb 18</td><td><button class="btn-pm" onclick="CM.openTxDetailModal()">View</button></td></tr>
+            <tr><td>PM26US8821</td><td>SWIFT</td><td class="amt in">+USD 2,400</td><td><span class="status-pill processing">processing</span></td><td>Feb 17</td><td><button class="btn-pm" onclick="CM.openTxDetailModal()">View</button></td></tr>
+          </tbody></table>
+        `,
+        foot: `<button class="btn-pm" onclick="CM.closeModal()">Close</button><button class="btn-pm primary" onclick="CM.toast('Export started')">Export CSV</button>`
+      });
+    },
+
+    openTxDetailModal() {
+      this.closeModal();
+      this.openModal({
+        title: "Transaction PM26KE44128",
+        body: `
+          <div class="detail-grid">
+            <div class="detail-row"><span class="l">Amount</span><span class="v">KES 125,000</span></div>
+            <div class="detail-row"><span class="l">Rail</span><span class="v">M-Pesa B2B</span></div>
+            <div class="detail-row"><span class="l">From</span><span class="v">Safaricom 0722****341</span></div>
+            <div class="detail-row"><span class="l">To</span><span class="v">Wanjiku Mwangi (M-Pesa)</span></div>
+            <div class="detail-row"><span class="l">Status</span><span class="v"><span class="status-pill completed">completed</span></span></div>
+            <div class="detail-row"><span class="l">Fee</span><span class="v">KES 125</span></div>
+          </div>
+          <div class="section-title">Timeline</div>
+          <div class="activity-item"><div class="dot" style="background:#10B981"></div><div>Initiated — 14:32:07 EAT</div></div>
+          <div class="activity-item"><div class="dot" style="background:#3B82F6"></div><div>Settled via M-Pesa — 14:32:11 EAT (4s)</div></div>
+        `,
+        foot: `<button class="btn-pm" onclick="CM.closeModal()">Close</button><button class="btn-pm" onclick="CM.toast('Receipt downloaded')">Download Receipt</button>`
+      });
+    },
+
+    openFullActivity() {
+      this.openModal({
+        title: "Full Activity Log",
+        sub: this.currentCustomer.name,
+        wide: true,
+        body: `
+          <div class="activity-log">
+            <div class="activity-item"><div class="dot" style="background:#10B981"></div><div style="flex:1;"><div style="font-weight:600;">KYC documents verified</div><div style="font-size:11px;">Feb 18, 2025 — System</div></div></div>
+            <div class="activity-item"><div class="dot" style="background:#3B82F6"></div><div style="flex:1;"><div style="font-weight:600;">New bank account linked (KCB)</div><div style="font-size:11px;">Feb 10, 2025 — Customer</div></div></div>
+            <div class="activity-item"><div class="dot" style="background:#8B5CF6"></div><div style="flex:1;"><div style="font-weight:600;">Large transfer flagged & reviewed</div><div style="font-size:11px;">Jan 29, 2025 — Compliance</div></div></div>
+            <div class="activity-item"><div class="dot" style="background:#F59E0B"></div><div style="flex:1;"><div style="font-weight:600;">Compliance note added</div><div style="font-size:11px;">Jan 12, 2025 — Lucy Otieno</div></div></div>
+            <div class="activity-item"><div class="dot" style="background:#0EA5E9"></div><div style="flex:1;"><div style="font-weight:600;">Profile updated — phone changed</div><div style="font-size:11px;">Dec 28, 2024 — Customer</div></div></div>
+          </div>
+        `,
+        foot: `<button class="btn-pm" onclick="CM.closeModal()">Close</button>`
+      });
+    },
+
+    openBulkActions() {
+      this.openModal({
+        title: "Bulk Actions",
+        sub: "Apply to multiple customers",
+        body: `
+          <div class="form-row"><label>Select customers</label><select multiple style="height:120px;"><option>Wanjiku Mwangi</option><option>Equity Logistics Ltd</option><option>Acacia Tech Co.</option><option>Grace Wanjiku</option></select></div>
+          <div class="form-row"><label>Action</label><select><option>Export selected</option><option>Request KYC update</option><option>Apply risk tag</option><option>Send notification</option></select></div>
+        `,
+        foot: `<button class="btn-pm" onclick="CM.closeModal()">Cancel</button><button class="btn-pm primary" onclick="CM.toast('Bulk action queued'); CM.closeModal();">Execute</button>`
+      });
+    },
+
+    openActionMenu() {
+      const c = this.currentCustomer;
+      this.openModal({
+        title: "Customer Actions",
+        sub: c.name,
+        body: `
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <button class="btn-pm" style="justify-content:flex-start;" onclick="CM.closeModal(); CM.openEditCustomer()">✏️ Edit Profile</button>
+            <button class="btn-pm" style="justify-content:flex-start;" onclick="CM.closeModal(); CM.openLinkAccount()">🔗 Link New Account</button>
+            <button class="btn-pm" style="justify-content:flex-start;" onclick="CM.closeModal(); CM.startKYCWorkflow()">📋 Start KYC Workflow</button>
+            <button class="btn-pm" style="justify-content:flex-start;" onclick="CM.closeModal(); CM.openRiskAssessment()">📊 Run Risk Assessment</button>
+            <button class="btn-pm" style="justify-content:flex-start;" onclick="CM.closeModal(); CM.openComplianceAction()">🛡️ Compliance Review</button>
+            <button class="btn-pm" style="justify-content:flex-start;" onclick="CM.closeModal(); CM.openFullTxHistory()">📜 View Full Transaction History</button>
+            <button class="btn-pm danger" style="justify-content:flex-start;" onclick="CM.toast('Customer suspended'); CM.closeModal();">🚫 Suspend Account</button>
+          </div>
+        `,
+        foot: `<button class="btn-pm" onclick="CM.closeModal()">Close</button>`
+      });
+    },
+
+    openStatsModal(type) {
+      const titles = {
+        total: ["Total Customers", "12,847 active customers across all segments"],
+        kyc: ["KYC Status", "11,204 verified (87.2%) · 1,643 pending"],
+        risk: ["Risk Distribution", "76.4% Low · 19.8% Medium · 3.8% High"],
+        accounts: ["Linked Accounts", "31,482 total linked accounts (avg 2.45 per customer)"],
+        pending: ["Pending Review", "187 customers require manual review (14 critical)"]
+      };
+      this.openModal({
+        title: titles[type][0],
+        sub: titles[type][1],
+        body: `<div style="padding:20px 0; text-align:center; color:var(--pm-muted);">Detailed analytics and export options available in full report.</div>`,
+        foot: `<button class="btn-pm" onclick="CM.closeModal()">Close</button><button class="btn-pm primary" onclick="CM.toast('Report exported'); CM.closeModal();">Export Report</button>`
+      });
+    },
+
+    saveNote() {
+      this.toast("Note saved to customer record");
+    },
+
+    /* ========== INIT ========== */
+    initFilters() {
+      document.getElementById("statusFilters").addEventListener("click", (e) => {
+        const chip = e.target.closest(".filter-chip");
+        if (!chip) return;
+        document.querySelectorAll("#statusFilters .filter-chip").forEach(c => c.classList.remove("active"));
+        chip.classList.add("active");
+        this.filters.status = chip.dataset.filter;
+        this.renderCustomerList();
+      });
+      document.getElementById("globalSearch").addEventListener("input", (e) => {
+        this.filters.search = e.target.value;
+        this.renderCustomerList();
+      });
+    },
+
+    renderTopCustomers() {
+      const sorted = [...this.customers].sort((a,b) => b.volume - a.volume).slice(0,5);
+      document.getElementById("topCustomers").innerHTML = sorted.map(c => `
+        <div class="kv" onclick="CM.selectCustomer(${c.id})" style="cursor:pointer;">
+          <div class="a" style="background:${c.avatar}">${c.name.split(" ").map(x=>x[0]).join("").slice(0,2)}</div>
+          <div class="b"><div class="t">${c.name}</div><div class="d">${c.txCount} txs</div></div>
+          <div class="v">KES ${(c.volume/1000000).toFixed(1)}M</div>
+        </div>
+      `).join("");
+    },
+
+    renderHighRisk() {
+      const high = this.customers.filter(c => c.riskLevel === "high");
+      document.getElementById("highRiskList").innerHTML = high.length ? high.map(c => `
+        <div class="kv" onclick="CM.selectCustomer(${c.id})" style="cursor:pointer;">
+          <div class="a" style="background:#EF4444">${c.name.split(" ").map(x=>x[0]).join("").slice(0,2)}</div>
+          <div class="b"><div class="t">${c.name}</div><div class="d">Risk ${c.risk}</div></div>
+          <div class="v" style="color:#EF4444;">High</div>
+        </div>
+      `).join("") : `<div class="no-results">No high-risk customers.</div>`;
+    },
+
+    renderRecentOnboard() {
+      const recent = [...this.customers].sort((a,b) => b.joined.localeCompare(a.joined)).slice(0,4);
+      document.getElementById("recentOnboard").innerHTML = recent.map(c => `
+        <div class="kv" onclick="CM.selectCustomer(${c.id})" style="cursor:pointer;">
+          <div class="a" style="background:${c.avatar}">${c.name.split(" ").map(x=>x[0]).join("").slice(0,2)}</div>
+          <div class="b"><div class="t">${c.name}</div><div class="d">${c.joined}</div></div>
+          <span class="status-pill ${c.status}">${c.status}</span>
+        </div>
+      `).join("");
+    },
+
+    init() {
+      this.renderCustomerList();
+      this.initFilters();
+      this.renderTopCustomers();
+      this.renderHighRisk();
+      this.renderRecentOnboard();
+      this.initTabs();
+      
+      // Sidebar nav
+      document.getElementById("sideNav").addEventListener("click", (e) => {
+        const btn = e.target.closest(".pm-nav-item");
+        if (!btn) return;
+        document.querySelectorAll("#sideNav .pm-nav-item").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        if (btn.dataset.nav === "accounts") this.openModal({title:"Linked Accounts Overview", body:`<p>All 31,482 linked accounts across 12,847 customers.</p>`, foot:`<button class="btn-pm" onclick="CM.closeModal()">Close</button>`});
+        if (btn.dataset.nav === "kyc") this.openModal({title:"KYC Queue", body:`<p>187 customers pending KYC review.</p>`, foot:`<button class="btn-pm primary" onclick="CM.closeModal()">Open Queue</button>`});
+        if (btn.dataset.nav === "risk") this.openModal({title:"Risk Dashboard", body:`<p>492 medium risk, 49 high risk customers under monitoring.</p>`, foot:`<button class="btn-pm" onclick="CM.closeModal()">Close</button>`});
+      });
+
+      // Profile & Notif
+      document.getElementById("profileBtn").addEventListener("click", () => this.openModal({title:"Joseph Mwangi", body:`<p>Chief Operations Officer</p>`, foot:`<button class="btn-pm" onclick="CM.closeModal()">Close</button>`}));
+      document.getElementById("notifBtn").addEventListener("click", () => this.openModal({title:"Notifications", body:`<div class="notif-item"><div class="ico">🆕</div><div class="body"><div class="t">12 new KYC submissions</div></div></div>`, foot:`<button class="btn-pm" onclick="CM.closeModal()">Close</button>`}));
+
+      // Keyboard escape
+      document.addEventListener("keydown", (e) => { if (e.key === "Escape") this.closeModal(); });
+      document.getElementById("modalBackdrop").addEventListener("click", (e) => { if (e.target.id === "modalBackdrop") this.closeModal(); });
+
+      // Welcome
+      setTimeout(() => this.toast("Customer Management loaded — 187 customers require review"), 800);
+    }
+  };
+
+  document.addEventListener("DOMContentLoaded", () => CM.init());
+  </script>
+</body>
+</html>

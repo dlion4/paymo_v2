@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PayMo BaaS • Fee & Commission Management</title>
+    <link rel="stylesheet" href="master.css">
+    <style>
+        .fee-kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .fee-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .fee-table th,
+        .fee-table td {
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--pm-border);
+            text-align: left;
+        }
+
+        .fee-table th {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: var(--pm-muted);
+            font-weight: 700;
+        }
+
+        .fee-row {
+            transition: background 0.2s;
+        }
+
+        .fee-row:hover {
+            background: var(--pm-surface-2);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .mini-tab {
+            display: inline-flex;
+            background: var(--pm-surface-2);
+            border-radius: 999px;
+            padding: 4px;
+        }
+
+        .mini-tab button {
+            padding: 6px 16px;
+            border: none;
+            background: transparent;
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: 999px;
+            cursor: pointer;
+        }
+
+        .mini-tab button.active {
+            background: white;
+            box-shadow: var(--pm-shadow-sm);
+            color: var(--pm-primary);
+        }
+
+        .metric-value {
+            font-family: var(--pm-font-display);
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .fee-pill {
+            font-size: 11px;
+            padding: 2px 9px;
+            border-radius: 999px;
+            font-weight: 700;
+        }
+
+        .fee-pill.fixed {
+            background: var(--pm-info-soft);
+            color: #1D4ED8;
+        }
+
+        .fee-pill.percent {
+            background: var(--pm-accent-soft);
+            color: #047857;
+        }
+
+        .fee-pill.tier {
+            background: var(--pm-purple-soft);
+            color: #6D28D9;
+        }
+
+        .sim-result {
+            background: linear-gradient(135deg, #ECFDF5, #D1FAE5);
+            border-radius: 12px;
+            padding: 16px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="pm-app">
+        <!-- Sidebar -->
+        <aside class="pm-sidebar">
+            <div class="pm-sidebar-logo">P</div>
+            <nav class="pm-sidebar-nav">
+                <a href="#" class="pm-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <rect x="3" y="3" width="7" height="9" />
+                        <rect x="14" y="3" width="7" height="5" />
+                        <rect x="14" y="12" width="7" height="9" />
+                        <rect x="3" y="16" width="7" height="5" />
+                    </svg></a>
+                <a href="#" class="pm-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <polyline points="17 1 21 5 17 9" />
+                        <path d="M3 11V9a4 4 0 0 1 4-4h14" />
+                        <polyline points="7 23 3 19 7 15" />
+                        <path d="M21 13v2a4 4 0 0 1-4 4H3" />
+                    </svg></a>
+                <a href="#" class="pm-nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                    </svg></a>
+                <a href="#" class="pm-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <polyline points="12 6 12 12 16 14" />
+                    </svg></a>
+            </nav>
+        </aside>
+
+        <main class="pm-main">
+            <!-- Header -->
+            <header class="pm-header">
+                <div class="pm-header-title">
+                    <h1>Fee & Commission Management</h1>
+                    <p>Section 1.15 • Manage rail fees, partner commissions, and revenue splits</p>
+                </div>
+                <div class="pm-header-actions">
+                    <div class="pm-system-status"><span class="dot"></span> All rules active</div>
+                    <button class="pm-header-btn" onclick="PM.openAuditLog()"><svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <path d="M12 8v4l3 3" />
+                        </svg></button>
+                    <button class="pm-header-btn" onclick="PM.openGlobalSettings()"><svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="3" />
+                            <path
+                                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                        </svg></button>
+                    <button class="pm-profile-btn" onclick="PM.openProfile()">
+                        <div class="pm-avatar">JM</div>
+                        <div class="pm-profile-info">
+                            <div class="name">Joseph Mwangi</div>
+                            <div class="role">COO</div>
+                        </div>
+                    </button>
+                </div>
+            </header>
+
+            <div class="pm-content">
+                <!-- KPIs -->
+                <div class="fee-kpi-grid">
+                    <div class="kpi kpi-balance" onclick="PM.openRevenueBreakdown()">
+                        <div class="kpi-label">Today's Fee Revenue</div>
+                        <div class="metric-value">KES 142,870</div>
+                        <div class="kpi-sub">↑ 18.4% vs yesterday</div>
+                    </div>
+                    <div class="kpi kpi-volume" onclick="PM.openMarginAnalysis()">
+                        <div class="kpi-label">Avg Margin</div>
+                        <div class="metric-value">0.42%</div>
+                        <div class="kpi-sub">Across 12 rails</div>
+                    </div>
+                    <div class="kpi kpi-success" onclick="PM.openActiveRules()">
+                        <div class="kpi-label">Active Fee Rules</div>
+                        <div class="metric-value">87</div>
+                        <div class="kpi-sub">12 overrides in effect</div>
+                    </div>
+                    <div class="kpi kpi-banks" onclick="PM.openCommissionSummary()">
+                        <div class="kpi-label">Partner Commissions</div>
+                        <div class="metric-value">KES 48,310</div>
+                        <div class="kpi-sub">Paid to 34 partners</div>
+                    </div>
+                </div>
+
+                <!-- Section 1.15.1: Fee Schedule Management -->
+                <div class="pm-card">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="pm-card-title"><span class="emoji">💰</span> 1.15.1 Fee Schedule Management</h2>
+                            <p class="pm-card-sub">Rail-specific fees • Fixed / Percentage / Tiered</p>
+                        </div>
+                        <div>
+                            <button class="btn-pm primary" onclick="PM.createNewFeeRule()">+ New Fee Rule</button>
+                            <button class="btn-pm" onclick="PM.openBulkEditFees()">Bulk Edit</button>
+                        </div>
+                    </div>
+
+                    <div class="mini-tab" style="margin-bottom:16px;">
+                        <button class="active" onclick="PM.filterFeeTable('all',this)">All Rails</button>
+                        <button onclick="PM.filterFeeTable('mpesa',this)">M-Pesa</button>
+                        <button onclick="PM.filterFeeTable('rtgs',this)">RTGS</button>
+                        <button onclick="PM.filterFeeTable('swift',this)">SWIFT</button>
+                        <button onclick="PM.filterFeeTable('papss',this)">PAPSS</button>
+                    </div>
+
+                    <table class="fee-table" id="feeTable">
+                        <thead>
+                            <tr>
+                                <th>Rail</th>
+                                <th>Fee Type</th>
+                                <th>Value</th>
+                                <th>Min</th>
+                                <th>Max</th>
+                                <th>Effective</th>
+                                <th>Status</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="feeTableBody"></tbody>
+                    </table>
+                </div>
+
+                <!-- Section 1.15.2: Commission & Revenue Split -->
+                <div class="pm-card">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="pm-card-title"><span class="emoji">🤝</span> 1.15.2 Commission & Revenue Split
+                            </h2>
+                            <p class="pm-card-sub">Partner commissions • Customer tier overrides • Revenue sharing</p>
+                        </div>
+                        <button class="btn-pm primary" onclick="PM.createCommissionRule()">+ New Commission</button>
+                    </div>
+
+                    <table class="fee-table">
+                        <thead>
+                            <tr>
+                                <th>Partner / Tier</th>
+                                <th>Commission %</th>
+                                <th>Min Fee Share</th>
+                                <th>Cap</th>
+                                <th>Active From</th>
+                                <th>Status</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="commissionTableBody"></tbody>
+                    </table>
+                </div>
+
+                <!-- Section 1.15.3: Fee Simulation -->
+                <div class="pm-card">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="pm-card-title"><span class="emoji">🧪</span> 1.15.3 Fee Simulation & Testing</h2>
+                            <p class="pm-card-sub">What-if calculator • Bulk simulation • Audit preview</p>
+                        </div>
+                        <button class="btn-pm primary" onclick="PM.openFeeSimulator()">Open Simulator</button>
+                    </div>
+
+                    <div class="sim-result">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <div>
+                                <div style="font-size:12px; color:#047857;">Last Simulation</div>
+                                <div style="font-size:20px; font-weight:700;">KES 2,500,000 RTGS → Fee: KES 1,250
+                                    (0.05%)</div>
+                            </div>
+                            <button class="btn-pm" onclick="PM.openFeeSimulator()">Run New Simulation →</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Audit & Rules Overview -->
+                <div class="two-col">
+                    <div class="pm-card">
+                        <div class="section-header">
+                            <h2 class="pm-card-title">Recent Fee Changes</h2>
+                            <button class="btn-pm" onclick="PM.openAuditLog()">View Full Audit →</button>
+                        </div>
+                        <div id="auditPreview"></div>
+                    </div>
+
+                    <div class="pm-card">
+                        <div class="section-header">
+                            <h2 class="pm-card-title">Revenue by Rail (30d)</h2>
+                        </div>
+                        <div id="revenueByRail"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ====================== MODALS ====================== -->
+    <div class="pm-modal-backdrop" id="modalBackdrop" onclick="if (event.target.id==='modalBackdrop') PM.closeModal()">
+        <div class="pm-modal" id="modalEl" style="max-width:720px;">
+            <div class="pm-modal-head">
+                <div>
+                    <h3 id="modalTitle"></h3>
+                    <p id="modalSubtitle"></p>
+                </div>
+                <button class="pm-close-btn" onclick="PM.closeModal()">×</button>
+            </div>
+            <div class="pm-modal-body" id="modalBody"></div>
+            <div class="pm-modal-foot" id="modalFoot"></div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== PAYMO FEE MANAGEMENT JS ====================
+        const PM = {
+            fees: [
+                { id: 1, rail: 'M-Pesa B2C', type: 'percent', value: 0.5, min: 10, max: 500, effective: '2025-10-01', status: 'active' },
+                { id: 2, rail: 'RTGS', type: 'fixed', value: 150, min: 150, max: 150, effective: '2025-09-15', status: 'active' },
+                { id: 3, rail: 'SWIFT gpi', type: 'percent', value: 0.35, min: 25, max: 2500, effective: '2025-11-01', status: 'active' },
+                { id: 4, rail: 'PesaLink', type: 'tier', value: '0.3/0.2/0.1', min: 5, max: 300, effective: '2025-08-20', status: 'active' },
+                { id: 5, rail: 'PAPSS', type: 'percent', value: 0.25, min: 15, max: 1200, effective: '2025-10-10', status: 'active' },
+                { id: 6, rail: 'EFT', type: 'fixed', value: 75, min: 75, max: 75, effective: '2025-07-01', status: 'active' },
+            ],
+            commissions: [
+                { id: 1, partner: 'Safaricom', percent: 0.15, minShare: 5, cap: 300, from: '2025-01-01', status: 'active' },
+                { id: 2, partner: 'Equity Bank', percent: 0.12, minShare: 8, cap: 450, from: '2025-03-01', status: 'active' },
+                { id: 3, partner: 'KCB Bank', percent: 0.10, minShare: 10, cap: 600, from: '2025-02-15', status: 'active' },
+                { id: 4, partner: 'MTN Uganda', percent: 0.18, minShare: 6, cap: 280, from: '2025-06-01', status: 'active' },
+            ],
+            audit: [
+                { date: '2025-11-28', user: 'Joseph Mwangi', action: 'Updated RTGS fee to KES 150', rail: 'RTGS' },
+                { date: '2025-11-27', user: 'Lucy Otieno', action: 'Created new PAPSS tier rule', rail: 'PAPSS' },
+                { date: '2025-11-25', user: 'Peter Kamau', action: 'Added Equity Bank commission override', rail: 'PesaLink' },
+            ],
+
+            // Render fee table
+            renderFeeTable(filter = 'all') {
+                const tbody = document.getElementById('feeTableBody');
+                let html = '';
+                const filtered = filter === 'all' ? this.fees : this.fees.filter(f => f.rail.toLowerCase().includes(filter));
+
+                filtered.forEach(f => {
+                    const typeClass = f.type === 'fixed' ? 'fixed' : f.type === 'percent' ? 'percent' : 'tier';
+                    html += `
+        <tr class="fee-row">
+          <td><strong>${f.rail}</strong></td>
+          <td><span class="fee-pill ${typeClass}">${f.type}</span></td>
+          <td><strong>${f.type === 'fixed' ? 'KES ' + f.value : f.value + '%'}</strong></td>
+          <td>KES ${f.min}</td>
+          <td>KES ${f.max}</td>
+          <td>${f.effective}</td>
+          <td><span class="status-pill ${f.status}">${f.status}</span></td>
+          <td>
+            <button class="btn-pm" onclick="PM.editFeeRule(${f.id})">Edit</button>
+            <button class="btn-pm" onclick="PM.duplicateFeeRule(${f.id})">Duplicate</button>
+            <button class="btn-pm danger" onclick="PM.deleteFeeRule(${f.id})">Delete</button>
+          </td>
+        </tr>`;
+                });
+                tbody.innerHTML = html;
+            },
+
+            filterFeeTable(filter, btn) {
+                document.querySelectorAll('.mini-tab button').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                this.renderFeeTable(filter);
+            },
+
+            // Render commission table
+            renderCommissionTable() {
+                const tbody = document.getElementById('commissionTableBody');
+                let html = '';
+                this.commissions.forEach(c => {
+                    html += `
+        <tr class="fee-row">
+          <td><strong>${c.partner}</strong></td>
+          <td><strong>${c.percent}%</strong></td>
+          <td>KES ${c.minShare}</td>
+          <td>KES ${c.cap}</td>
+          <td>${c.from}</td>
+          <td><span class="status-pill ${c.status}">${c.status}</span></td>
+          <td>
+            <button class="btn-pm" onclick="PM.editCommission(${c.id})">Edit</button>
+            <button class="btn-pm" onclick="PM.viewCommissionImpact(${c.id})">Impact</button>
+          </td>
+        </tr>`;
+                });
+                tbody.innerHTML = html;
+            },
+
+            renderAuditPreview() {
+                const el = document.getElementById('auditPreview');
+                el.innerHTML = this.audit.map(a => `
+      <div class="kv" style="padding:8px 0;">
+        <div class="b"><div class="t">${a.action}</div><div class="d">${a.date} • ${a.user}</div></div>
+        <div><span class="fee-pill tier">${a.rail}</span></div>
+      </div>
+    `).join('');
+            },
+
+            renderRevenueByRail() {
+                const el = document.getElementById('revenueByRail');
+                const data = [
+                    { rail: 'M-Pesa', val: 68400 }, { rail: 'RTGS', val: 31200 }, { rail: 'SWIFT', val: 18900 },
+                    { rail: 'PesaLink', val: 12400 }, { rail: 'PAPSS', val: 8700 }, { rail: 'EFT', val: 3270 }
+                ];
+                el.innerHTML = data.map(d => `
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:8px;">
+        <div style="width:90px; font-size:12px;">${d.rail}</div>
+        <div style="flex:1; background:#E5E2DC; height:6px; border-radius:3px; overflow:hidden;">
+          <div style="width:${d.val / 68400 * 100}%; height:100%; background:var(--pm-primary);"></div>
+        </div>
+        <div style="width:80px; text-align:right; font-weight:700; font-size:13px;">KES ${d.val.toLocaleString()}</div>
+      </div>
+    `).join('');
+            },
+
+            // ==================== MODALS ====================
+            openModal(title, subtitle, body, foot) {
+                document.getElementById('modalTitle').innerHTML = title;
+                document.getElementById('modalSubtitle').innerHTML = subtitle || '';
+                document.getElementById('modalBody').innerHTML = body;
+                document.getElementById('modalFoot').innerHTML = foot || '';
+                document.getElementById('modalBackdrop').classList.add('open');
+            },
+            closeModal() {
+                document.getElementById('modalBackdrop').classList.remove('open');
+            },
+
+            // 1. Create New Fee Rule (Multi-step)
+            createNewFeeRule() {
+                this.openModal('Create New Fee Rule', 'Step 1 of 3 • Rail & Type',
+                    `<div class="mini-tab" style="margin-bottom:16px;">
+        <button class="active">Rail Selection</button>
+        <button>Fee Parameters</button>
+        <button>Review</button>
+      </div>
+      <div class="form-row"><label>Payment Rail</label>
+        <select id="newRail"><option>M-Pesa B2C</option><option>RTGS</option><option>SWIFT gpi</option><option>PesaLink</option><option>PAPSS</option></select>
+      </div>
+      <div class="form-row"><label>Fee Type</label>
+        <select id="newType"><option value="fixed">Fixed Amount</option><option value="percent">Percentage</option><option value="tier">Tiered</option></select>
+      </div>`,
+                    `<button class="btn-pm" onclick="PM.closeModal()">Cancel</button>
+       <button class="btn-pm primary" onclick="PM.newFeeStep2()">Continue →</button>`
+                );
+            },
+
+            newFeeStep2() {
+                const rail = document.getElementById('newRail').value;
+                const type = document.getElementById('newType').value;
+                let body = '';
+                if (type === 'fixed') {
+                    body = `<div class="form-row"><label>Fixed Fee Amount (KES)</label><input type="number" id="feeValue" value="150"></div>`;
+                } else if (type === 'percent') {
+                    body = `<div class="form-row"><label>Percentage Fee</label><input type="number" id="feeValue" value="0.35" step="0.01"></div>`;
+                } else {
+                    body = `<div class="form-row"><label>Tier 1 (0-50k)</label><input type="text" value="0.5%"><label>Tier 2 (50k-500k)</label><input type="text" value="0.3%"><label>Tier 3 (500k+)</label><input type="text" value="0.1%"></div>`;
+                }
+                this.openModal('Fee Parameters', 'Step 2 of 3', body + `
+      <div class="form-grid-2">
+        <div class="form-row"><label>Minimum Fee</label><input type="number" id="minFee" value="10"></div>
+        <div class="form-row"><label>Maximum Fee</label><input type="number" id="maxFee" value="500"></div>
+      </div>`,
+                    `<button class="btn-pm" onclick="PM.createNewFeeRule()">Back</button>
+       <button class="btn-pm primary" onclick="PM.newFeeStep3('${rail}','${type}')">Review →</button>`
+                );
+            },
+
+            newFeeStep3(rail, type) {
+                const val = document.getElementById('feeValue') ? document.getElementById('feeValue').value : '0.3/0.2/0.1';
+                const min = document.getElementById('minFee').value;
+                const max = document.getElementById('maxFee').value;
+                this.openModal('Review & Confirm', 'Step 3 of 3',
+                    `<div style="background:var(--pm-surface-2); padding:16px; border-radius:10px;">
+        <div><strong>Rail:</strong> ${rail}</div>
+        <div><strong>Type:</strong> ${type}</div>
+        <div><strong>Value:</strong> ${type === 'fixed' ? 'KES ' + val : val + '%'}</div>
+        <div><strong>Min/Max:</strong> KES ${min} — KES ${max}</div>
+        <div><strong>Effective Date:</strong> ${new Date().toISOString().split('T')[0]}</div>
+      </div>`,
+                    `<button class="btn-pm" onclick="PM.newFeeStep2()">Back</button>
+       <button class="btn-pm primary" onclick="PM.saveNewFeeRule('${rail}','${type}',${val},${min},${max})">Publish Rule</button>`
+                );
+            },
+
+            saveNewFeeRule(rail, type, val, min, max) {
+                this.fees.unshift({ id: Date.now(), rail, type, value: val, min, max, effective: new Date().toISOString().split('T')[0], status: 'active' });
+                this.closeModal();
+                this.renderFeeTable();
+                alert('Fee rule published successfully');
+            },
+
+            // Edit Fee Rule
+            editFeeRule(id) {
+                const fee = this.fees.find(f => f.id === id);
+                this.openModal('Edit Fee Rule', fee.rail,
+                    `<div class="form-grid-2">
+        <div class="form-row"><label>Fee Type</label><select id="editType"><option ${fee.type === 'fixed' ? 'selected' : ''}>fixed</option><option ${fee.type === 'percent' ? 'selected' : ''}>percent</option></select></div>
+        <div class="form-row"><label>Value</label><input type="text" id="editValue" value="${fee.value}"></div>
+        <div class="form-row"><label>Min</label><input type="number" id="editMin" value="${fee.min}"></div>
+        <div class="form-row"><label>Max</label><input type="number" id="editMax" value="${fee.max}"></div>
+      </div>`,
+                    `<button class="btn-pm" onclick="PM.closeModal()">Cancel</button>
+       <button class="btn-pm primary" onclick="PM.saveFeeEdit(${id})">Save Changes</button>`
+                );
+            },
+
+            saveFeeEdit(id) {
+                const fee = this.fees.find(f => f.id === id);
+                fee.type = document.getElementById('editType').value;
+                fee.value = document.getElementById('editValue').value;
+                fee.min = parseInt(document.getElementById('editMin').value);
+                fee.max = parseInt(document.getElementById('editMax').value);
+                this.closeModal();
+                this.renderFeeTable();
+            },
+
+            duplicateFeeRule(id) {
+                const fee = this.fees.find(f => f.id === id);
+                const copy = { ...fee, id: Date.now(), effective: new Date().toISOString().split('T')[0] };
+                this.fees.unshift(copy);
+                this.renderFeeTable();
+                alert('Rule duplicated');
+            },
+
+            deleteFeeRule(id) {
+                if (confirm('Delete this fee rule?')) {
+                    this.fees = this.fees.filter(f => f.id !== id);
+                    this.renderFeeTable();
+                }
+            },
+
+            // Commission functions
+            createCommissionRule() {
+                this.openModal('New Commission Rule', 'Partner Revenue Share',
+                    `<div class="form-row"><label>Partner</label><input id="partnerName" value="New Bank"></div>
+       <div class="form-grid-2">
+         <div class="form-row"><label>Commission %</label><input type="number" id="commPercent" value="0.12" step="0.01"></div>
+         <div class="form-row"><label>Minimum Share (KES)</label><input type="number" id="commMin" value="8"></div>
+       </div>`,
+                    `<button class="btn-pm" onclick="PM.closeModal()">Cancel</button>
+       <button class="btn-pm primary" onclick="PM.saveCommission()">Create Rule</button>`
+                );
+            },
+
+            saveCommission() {
+                this.commissions.unshift({
+                    id: Date.now(),
+                    partner: document.getElementById('partnerName').value,
+                    percent: parseFloat(document.getElementById('commPercent').value),
+                    minShare: parseInt(document.getElementById('commMin').value),
+                    cap: 500,
+                    from: new Date().toISOString().split('T')[0],
+                    status: 'active'
+                });
+                this.closeModal();
+                this.renderCommissionTable();
+            },
+
+            editCommission(id) {
+                const c = this.commissions.find(x => x.id === id);
+                this.openModal('Edit Commission', c.partner,
+                    `<div class="form-grid-2">
+        <div class="form-row"><label>Commission %</label><input type="number" id="editCommP" value="${c.percent}" step="0.01"></div>
+        <div class="form-row"><label>Min Share</label><input type="number" id="editCommMin" value="${c.minShare}"></div>
+      </div>`,
+                    `<button class="btn-pm" onclick="PM.closeModal()">Cancel</button>
+       <button class="btn-pm primary" onclick="PM.saveCommissionEdit(${id})">Save</button>`
+                );
+            },
+
+            saveCommissionEdit(id) {
+                const c = this.commissions.find(x => x.id === id);
+                c.percent = parseFloat(document.getElementById('editCommP').value);
+                c.minShare = parseInt(document.getElementById('editCommMin').value);
+                this.closeModal();
+                this.renderCommissionTable();
+            },
+
+            viewCommissionImpact(id) {
+                const c = this.commissions.find(x => x.id === id);
+                this.openModal('Commission Impact Analysis', c.partner,
+                    `<div style="margin-bottom:16px;">This commission rule is applied to <strong>18,420 transactions</strong> in the last 30 days.</div>
+       <div class="sim-result">
+         <div><strong>Projected payout:</strong> KES ${(c.percent * 184200).toFixed(0)}</div>
+         <div><strong>Transactions affected:</strong> 18,420</div>
+       </div>`,
+                    `<button class="btn-pm" onclick="PM.closeModal()">Close</button>`
+                );
+            },
+
+            // Fee Simulator (Multi-step)
+            openFeeSimulator() {
+                this.openModal('Fee Simulator', 'What-if calculator',
+                    `<div class="form-grid-2">
+        <div class="form-row"><label>Amount</label><input type="number" id="simAmount" value="2500000"></div>
+        <div class="form-row"><label>Rail</label><select id="simRail"><option>RTGS</option><option>M-Pesa B2C</option><option>SWIFT gpi</option><option>PAPSS</option></select></div>
+        <div class="form-row"><label>Customer Tier</label><select id="simTier"><option>Standard</option><option>Premium</option><option>Enterprise</option></select></div>
+        <div class="form-row"><label>Direction</label><select id="simDir"><option>Outgoing</option><option>Incoming</option></select></div>
+      </div>
+      <div id="simResult" style="margin-top:16px;"></div>`,
+                    `<button class="btn-pm" onclick="PM.closeModal()">Close</button>
+       <button class="btn-pm primary" onclick="PM.runSimulation()">Calculate Fee</button>`
+                );
+            },
+
+            runSimulation() {
+                const amt = parseFloat(document.getElementById('simAmount').value);
+                const rail = document.getElementById('simRail').value;
+                const fee = this.fees.find(f => f.rail.includes(rail)) || this.fees[0];
+                let calculated = fee.type === 'fixed' ? fee.value : (amt * fee.value / 100);
+                calculated = Math.max(fee.min, Math.min(fee.max, calculated));
+
+                document.getElementById('simResult').innerHTML = `
+      <div class="sim-result">
+        <div style="font-size:13px;">Estimated Fee</div>
+        <div style="font-size:28px; font-weight:700;">KES ${calculated.toFixed(0)}</div>
+        <div style="font-size:12px; color:#047857;">Margin: 0.42% • Effective rate: ${(calculated / amt * 100).toFixed(3)}%</div>
+      </div>
+      <button class="btn-pm" style="margin-top:12px;" onclick="PM.saveSimulation(${calculated})">Save Simulation to Audit</button>
+    `;
+            },
+
+            saveSimulation(fee) {
+                this.audit.unshift({ date: new Date().toISOString().split('T')[0], user: 'Joseph Mwangi', action: `Simulation: KES ${fee} fee`, rail: 'Simulator' });
+                this.closeModal();
+                this.renderAuditPreview();
+                alert('Simulation saved to audit log');
+            },
+
+            // Other modals
+            openRevenueBreakdown() {
+                this.openModal('Revenue Breakdown', 'Last 30 days',
+                    `<div class="rev-grid">
+        <div class="rev-card-item"><div class="l">Transaction Fees</div><div class="v">KES 98,420</div></div>
+        <div class="rev-card-item"><div class="l">FX Spreads</div><div class="v">KES 31,200</div></div>
+        <div class="rev-card-item"><div class="l">Rail Commissions</div><div class="v">KES 13,250</div></div>
+      </div>`,
+                    `<button class="btn-pm primary" onclick="PM.closeModal()">Close</button>`
+                );
+            },
+
+            openMarginAnalysis() {
+                this.openModal('Margin Analysis', 'Per-rail profitability',
+                    `<div style="max-height:300px; overflow:auto;">${this.fees.map(f => `<div class="kv"><div class="b"><div class="t">${f.rail}</div></div><div class="v">${f.type === 'fixed' ? 'Fixed' : '%'} • Margin 0.42%</div></div>`).join('')}</div>`,
+                    `<button class="btn-pm" onclick="PM.closeModal()">Close</button>`
+                );
+            },
+
+            openActiveRules() {
+                this.openModal('Active Fee Rules', `${this.fees.length} rules`,
+                    this.fees.map(f => `<div class="kv"><div class="b"><div class="t">${f.rail}</div><div class="d">${f.type} • ${f.value}</div></div><span class="status-pill active">active</span></div>`).join(''),
+                    `<button class="btn-pm primary" onclick="PM.closeModal()">Close</button>`
+                );
+            },
+
+            openCommissionSummary() {
+                this.openModal('Partner Commission Summary', '30-day payout',
+                    `<div>Total paid: <strong>KES 48,310</strong> to 34 partners</div>`,
+                    `<button class="btn-pm" onclick="PM.closeModal()">Close</button>`
+                );
+            },
+
+            openBulkEditFees() {
+                this.openModal('Bulk Edit Fees', 'Apply changes to multiple rules',
+                    `<div class="form-row"><label>Select Rails</label><select multiple style="height:120px;"><option>M-Pesa B2C</option><option>RTGS</option><option>SWIFT gpi</option></select></div>
+       <div class="form-row"><label>New Value</label><input type="text" value="0.45%"></div>`,
+                    `<button class="btn-pm" onclick="PM.closeModal()">Cancel</button>
+       <button class="btn-pm primary" onclick="PM.applyBulkEdit()">Apply to 4 rules</button>`
+                );
+            },
+
+            applyBulkEdit() {
+                alert('Bulk update applied to 4 rules');
+                this.closeModal();
+                this.renderFeeTable();
+            },
+
+            openAuditLog() {
+                this.openModal('Fee Audit Log', 'Full history',
+                    this.audit.map(a => `<div class="kv"><div class="b"><div class="t">${a.action}</div><div class="d">${a.date} • ${a.user}</div></div><span class="fee-pill tier">${a.rail}</span></div>`).join(''),
+                    `<button class="btn-pm" onclick="PM.closeModal()">Close</button>`
+                );
+            },
+
+            openGlobalSettings() {
+                this.openModal('Global Fee Settings', 'System-wide configuration',
+                    `<div class="form-row"><label>Default Currency</label><select><option>KES</option><option>USD</option></select></div>
+       <div class="form-row"><label>Fee Rounding</label><select><option>Nearest KES</option><option>2 decimals</option></select></div>
+       <div class="form-row"><label>Tax on Fees</label><input type="number" value="16">%</div>`,
+                    `<button class="btn-pm primary" onclick="PM.closeModal()">Save Settings</button>`
+                );
+            },
+
+            openProfile() {
+                this.openModal('Joseph Mwangi', 'Chief Operations Officer',
+                    `<div class="detail-grid"><div class="detail-row"><span class="l">Role</span><span class="v">COO</span></div><div class="detail-row"><span class="l">Last Login</span><span class="v">Today 09:14</span></div></div>`,
+                    `<button class="btn-pm" onclick="PM.closeModal()">Close</button>`
+                );
+            },
+
+            // Init
+            init() {
+                this.renderFeeTable();
+                this.renderCommissionTable();
+                this.renderAuditPreview();
+                this.renderRevenueByRail();
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => PM.init());
+    </script>
+</body>
+
+</html>

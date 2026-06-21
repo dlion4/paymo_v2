@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transaction Analytics & Reporting • PayMo BaaS</title>
+    <link rel="stylesheet" href="master.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap"
+        rel="stylesheet">
+    <style>
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+
+        .analytics-grid-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+        }
+
+        .analytics-grid-4 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 16px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .mini-tab {
+            display: inline-flex;
+            background: var(--pm-surface-2);
+            border-radius: var(--pm-r-pill);
+            padding: 3px;
+        }
+
+        .mini-tab-btn {
+            padding: 6px 14px;
+            font-size: 12px;
+            font-weight: 600;
+            border: none;
+            background: transparent;
+            border-radius: var(--pm-r-pill);
+            cursor: pointer;
+        }
+
+        .mini-tab-btn.active {
+            background: white;
+            box-shadow: var(--pm-shadow-sm);
+        }
+
+        .metric-card {
+            padding: 18px;
+            border-radius: var(--pm-r-lg);
+            border: 1px solid var(--pm-border);
+            background: var(--pm-surface);
+        }
+
+        .metric-value {
+            font-family: var(--pm-font-display);
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .trend-up {
+            color: #047857;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .trend-down {
+            color: #B91C1C;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .report-table th {
+            text-align: left;
+            padding: 10px 12px;
+            background: var(--pm-surface-2);
+            border-bottom: 1px solid var(--pm-border);
+            font-weight: 700;
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+
+        .report-table td {
+            padding: 12px;
+            border-bottom: 1px solid var(--pm-border);
+        }
+
+        .report-table tr:hover {
+            background: var(--pm-surface-2);
+        }
+
+        .chart-container {
+            background: var(--pm-surface);
+            border: 1px solid var(--pm-border);
+            border-radius: var(--pm-r-lg);
+            padding: 20px;
+        }
+
+        .filter-bar {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .filter-bar select,
+        .filter-bar input {
+            padding: 8px 12px;
+            border: 1px solid var(--pm-border);
+            border-radius: var(--pm-r-sm);
+            font-size: 13px;
+        }
+
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--pm-border);
+        }
+
+        .data-row:last-child {
+            border-bottom: none;
+        }
+
+        .insight-card {
+            background: linear-gradient(135deg, #EEF2FF, #E0E7FF);
+            border-radius: var(--pm-r-lg);
+            padding: 18px;
+        }
+
+        .rail-performance {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .rail-bar {
+            height: 8px;
+            background: var(--pm-bg-2);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .rail-bar>div {
+            height: 100%;
+            background: var(--pm-primary);
+            transition: width .4s;
+        }
+
+        .multi-step {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 18px;
+        }
+
+        .multi-step .step {
+            flex: 1;
+            padding: 8px;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: 8px;
+            background: var(--pm-surface-2);
+        }
+
+        .multi-step .step.active {
+            background: var(--pm-primary);
+            color: white;
+        }
+
+        .modal-tab {
+            display: flex;
+            gap: 4px;
+            border-bottom: 1px solid var(--pm-border);
+            margin-bottom: 16px;
+        }
+
+        .modal-tab button {
+            padding: 8px 16px;
+            border: none;
+            background: transparent;
+            font-weight: 600;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+        }
+
+        .modal-tab button.active {
+            border-bottom-color: var(--pm-primary);
+            color: var(--pm-primary);
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 12px;
+        }
+
+        .stat-item {
+            background: var(--pm-surface-2);
+            padding: 12px;
+            border-radius: var(--pm-r-md);
+            text-align: center;
+        }
+
+        .stat-item .val {
+            font-size: 20px;
+            font-weight: 700;
+            font-family: var(--pm-font-display);
+        }
+
+        .stat-item .lbl {
+            font-size: 10px;
+            color: var(--pm-muted);
+            text-transform: uppercase;
+        }
+
+        .compliance-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border: 1px solid var(--pm-border);
+            border-radius: var(--pm-r-md);
+            margin-bottom: 8px;
+        }
+
+        .compliance-row .status {
+            padding: 3px 9px;
+            border-radius: var(--pm-r-pill);
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        @media (max-width: 768px) {
+
+            .analytics-grid,
+            .analytics-grid-3,
+            .analytics-grid-4 {
+                grid-template-columns: 1fr;
+            }
+
+            .rail-performance {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="pm-app">
+        <!-- Sidebar -->
+        <aside class="pm-sidebar">
+            <div class="pm-sidebar-logo">P</div>
+            <nav class="pm-sidebar-nav">
+                <a href="#" class="pm-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <rect x="3" y="3" width="7" height="9" />
+                        <rect x="14" y="3" width="7" height="5" />
+                        <rect x="14" y="12" width="7" height="9" />
+                        <rect x="3" y="16" width="7" height="5" />
+                    </svg></a>
+                <a href="#" class="pm-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <polyline points="17 1 21 5 17 9" />
+                        <path d="M3 11V9a4 4 0 0 1 4-4h14" />
+                        <polyline points="7 23 3 19 7 15" />
+                        <path d="M21 13v2a4 4 0 0 1-4 4H3" />
+                    </svg></a>
+                <a href="#" class="pm-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                        <circle cx="9" cy="7" r="4" />
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                    </svg></a>
+                <a href="#" class="pm-nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <line x1="18" y1="20" x2="18" y2="10" />
+                        <line x1="12" y1="20" x2="12" y2="4" />
+                        <line x1="6" y1="20" x2="6" y2="14" />
+                    </svg></a>
+                <a href="#" class="pm-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="2" y1="12" x2="22" y2="12" />
+                        <path
+                            d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                    </svg></a>
+                <a href="#" class="pm-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                        <polyline points="14 2 14 8 20 8" />
+                        <line x1="16" y1="13" x2="8" y2="13" />
+                        <line x1="16" y1="17" x2="8" y2="17" />
+                    </svg></a>
+                <a href="#" class="pm-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <circle cx="12" cy="12" r="3" />
+                        <path
+                            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                    </svg></a>
+                <a href="#" class="pm-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                    </svg></a>
+                <a href="#" class="pm-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                        <line x1="12" y1="17" x2="12.01" y2="17" />
+                    </svg></a>
+            </nav>
+        </aside>
+
+        <main class="pm-main">
+            <!-- Header -->
+            <header class="pm-header">
+                <div class="pm-header-title">
+                    <h1>Transaction Analytics &amp; Reporting</h1>
+                    <p>Deep insights, compliance reports, revenue intelligence and performance analytics</p>
+                </div>
+                <div class="pm-header-actions">
+                    <div class="pm-system-status"><span class="dot"></span> Data synced 14s ago</div>
+                    <button class="pm-header-btn" onclick="openModal('notifications')"><svg viewBox="0 0 24 24"
+                            fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                        </svg></button>
+                    <button class="pm-header-btn" onclick="openModal('profile')">
+                        <div class="pm-avatar">JM</div>
+                    </button>
+                </div>
+            </header>
+
+            <div class="pm-content">
+                <!-- KPI Row -->
+                <div class="analytics-grid-4">
+                    <div class="metric-card">
+                        <div class="kpi-label">Total Transactions (30d)</div>
+                        <div class="metric-value">1,284,392</div>
+                        <div class="trend-up">↑ 18.4%</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="kpi-label">Total Volume (KES)</div>
+                        <div class="metric-value">184.2B</div>
+                        <div class="trend-up">↑ 22.1%</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="kpi-label">Avg Success Rate</div>
+                        <div class="metric-value">98.7%</div>
+                        <div class="trend-down">↓ 0.3%</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="kpi-label">Revenue Generated</div>
+                        <div class="metric-value">KES 142.8M</div>
+                        <div class="trend-up">↑ 31%</div>
+                    </div>
+                </div>
+
+                <!-- Main Analytics Grid -->
+                <div class="analytics-grid">
+                    <!-- Volume & Trend -->
+                    <div class="pm-card">
+                        <div class="section-header">
+                            <div>
+                                <h3 class="pm-card-title">Volume &amp; Trend Analysis</h3>
+                                <p class="pm-card-sub">Last 30 days • All rails combined</p>
+                            </div>
+                            <div class="filter-bar">
+                                <select id="volRange">
+                                    <option>30 Days</option>
+                                    <option>90 Days</option>
+                                    <option>12 Months</option>
+                                </select>
+                                <button class="btn-pm" onclick="exportChart('volume')">Export</button>
+                            </div>
+                        </div>
+                        <div class="chart-container"><svg id="volTrendChart" width="100%" height="240"
+                                viewBox="0 0 700 240"></svg></div>
+                        <div class="mini-tab" style="margin-top:12px;">
+                            <button class="mini-tab-btn active" onclick="switchVolumeTab(this, 'daily')">Daily</button>
+                            <button class="mini-tab-btn" onclick="switchVolumeTab(this, 'rail')">By Rail</button>
+                            <button class="mini-tab-btn" onclick="switchVolumeTab(this, 'hour')">Hourly</button>
+                        </div>
+                    </div>
+
+                    <!-- Rail Performance -->
+                    <div class="pm-card">
+                        <div class="section-header">
+                            <div>
+                                <h3 class="pm-card-title">Rail Performance</h3>
+                                <p class="pm-card-sub">Success rate &amp; latency</p>
+                            </div>
+                            <button class="btn-pm" onclick="openModal('railCompare')">Compare Rails</button>
+                        </div>
+                        <div class="rail-performance" id="railPerf"></div>
+                    </div>
+                </div>
+
+                <!-- Revenue & Cost Analysis -->
+                <div class="section-header">
+                    <h3 class="pm-card-title">Revenue &amp; Margin Intelligence</h3><button class="btn-pm primary"
+                        onclick="openModal('revenueBreakdown')">Full Breakdown</button>
+                </div>
+                <div class="analytics-grid-3">
+                    <div class="pm-card">
+                        <div class="section-header">
+                            <div><b>Revenue by Rail</b></div>
+                        </div>
+                        <div id="revRail"></div>
+                    </div>
+                    <div class="pm-card">
+                        <div class="section-header">
+                            <div><b>Fee vs FX Spread</b></div>
+                        </div>
+                        <div style="display:flex; gap:20px; align-items:center;">
+                            <div style="flex:1"><svg id="revPie" width="140" height="140" viewBox="0 0 140 140"></svg>
+                            </div>
+                            <div style="flex:1">
+                                <div class="data-row"><span>Transaction Fees</span><b>KES 84.2M</b></div>
+                                <div class="data-row"><span>FX Spreads</span><b>KES 39.1M</b></div>
+                                <div class="data-row"><span>Rail Commissions</span><b>KES 19.5M</b></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="pm-card">
+                        <div class="section-header">
+                            <div><b>Cost per Transaction</b></div>
+                        </div>
+                        <div id="costPerTx"></div>
+                    </div>
+                </div>
+
+                <!-- Compliance & Risk Reports -->
+                <div class="section-header">
+                    <h3 class="pm-card-title">Compliance &amp; Risk Reporting</h3><button class="btn-pm"
+                        onclick="openModal('complianceReport')">Generate SAR</button>
+                </div>
+                <div class="analytics-grid-3">
+                    <div class="pm-card">
+                        <div class="mini-tab" style="margin-bottom:12px;">
+                            <button class="mini-tab-btn active" onclick="filterCompliance(this,'all')">All</button>
+                            <button class="mini-tab-btn" onclick="filterCompliance(this,'high')">High Risk</button>
+                            <button class="mini-tab-btn" onclick="filterCompliance(this,'pending')">Pending</button>
+                        </div>
+                        <div id="complianceList"></div>
+                    </div>
+                    <div class="pm-card">
+                        <h4 style="margin:0 0 12px;">KYC Status Distribution</h4>
+                        <div class="stat-grid">
+                            <div class="stat-item">
+                                <div class="val">87,942</div>
+                                <div class="lbl">Verified</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="val">4,218</div>
+                                <div class="lbl">Pending</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="val">312</div>
+                                <div class="lbl">Flagged</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="val">89</div>
+                                <div class="lbl">Rejected</div>
+                            </div>
+                        </div>
+                        <button class="btn-pm primary" style="width:100%; margin-top:16px;"
+                            onclick="openModal('kycReport')">View Full KYC Report</button>
+                    </div>
+                    <div class="pm-card">
+                        <h4 style="margin:0 0 12px;">Audit Trail Summary</h4>
+                        <div class="data-row"><span>Transactions Audited</span><b>1,284,392</b></div>
+                        <div class="data-row"><span>Flags Raised</span><b>2,847</b></div>
+                        <div class="data-row"><span>SARs Filed (30d)</span><b>41</b></div>
+                        <div class="data-row"><span>CBK Submissions</span><b>18</b></div>
+                        <button class="btn-pm" style="width:100%; margin-top:12px;" onclick="openModal('auditLog')">View
+                            Full Audit Log</button>
+                    </div>
+                </div>
+
+                <!-- Scheduled & Custom Reports -->
+                <div class="section-header">
+                    <h3 class="pm-card-title">Report Center</h3><button class="btn-pm primary"
+                        onclick="openModal('generateReport')">+ New Report</button>
+                </div>
+                <div class="pm-card">
+                    <div class="mini-tab" style="margin-bottom:16px;">
+                        <button class="mini-tab-btn active"
+                            onclick="switchReportTab(this,'scheduled')">Scheduled</button>
+                        <button class="mini-tab-btn" onclick="switchReportTab(this,'templates')">Templates</button>
+                        <button class="mini-tab-btn" onclick="switchReportTab(this,'history')">History</button>
+                    </div>
+                    <div id="reportCenter"></div>
+                </div>
+
+                <!-- Customer & Segment Analytics -->
+                <div class="section-header">
+                    <h3 class="pm-card-title">Customer &amp; Segment Analytics</h3><button class="btn-pm"
+                        onclick="openModal('customerSegments')">View Segments</button>
+                </div>
+                <div class="analytics-grid-3">
+                    <div class="pm-card">
+                        <h4>Top 5 Customers (Volume)</h4>
+                        <div id="topCustomers"></div>
+                    </div>
+                    <div class="pm-card">
+                        <h4>Segment Breakdown</h4>
+                        <div id="segmentBreakdown"></div>
+                    </div>
+                    <div class="pm-card">
+                        <h4>Customer Retention</h4>
+                        <div class="stat-grid">
+                            <div class="stat-item">
+                                <div class="val">94.2%</div>
+                                <div class="lbl">30-day</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="val">88.7%</div>
+                                <div class="lbl">90-day</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="val">76.4%</div>
+                                <div class="lbl">12-month</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ==================== MODALS ==================== -->
+    <div id="modalBackdrop" class="pm-modal-backdrop" onclick="if(event.target.id==='modalBackdrop') closeModal()">
+        <div class="pm-modal" id="modalContent" style="max-width:720px"></div>
+    </div>
+
+    <script>
+        // ==================== DATA ====================
+        const rails = [
+            { id: 'mpesa', name: 'M-Pesa', success: 99.6, latency: 187, volume: 412000000, rev: 28400000 },
+            { id: 'pesalink', name: 'PesaLink', success: 99.4, latency: 92, volume: 184000000, rev: 9200000 },
+            { id: 'rtgs', name: 'RTGS', success: 99.9, latency: 420, volume: 1800000000, rev: 18900000 },
+            { id: 'swift', name: 'SWIFT gpi', success: 97.8, latency: 6200, volume: 2100000, rev: 12400000 },
+            { id: 'papss', name: 'PAPSS', success: 98.9, latency: 980, volume: 4200000, rev: 3100000 }
+        ];
+
+        const complianceItems = [
+            { id: 1, ref: 'PM26KE4412', type: 'High Value', risk: 92, status: 'Pending', age: '2h', customer: 'Equity Logistics' },
+            { id: 2, ref: 'PM26US8819', type: 'Velocity', risk: 78, status: 'Escalated', age: '4h', customer: 'Wise Holdings' },
+            { id: 3, ref: 'PM26TZ0091', type: 'Structuring', risk: 85, status: 'Pending', age: '9h', customer: 'Vodacom TZ' },
+            { id: 4, ref: 'PM26KE9921', type: 'Sanctions', risk: 97, status: 'Escalated', age: '1d', customer: 'Acacia Tech' },
+        ];
+
+        const scheduledReports = [
+            { name: 'Daily Volume Report', freq: 'Daily 06:00', last: 'Today', recipients: '12' },
+            { name: 'Weekly Compliance Pack', freq: 'Weekly Mon', last: 'Jan 6', recipients: '7' },
+            { name: 'Monthly Revenue & Margin', freq: 'Monthly 1st', last: 'Jan 1', recipients: '9' },
+        ];
+
+        const topCustomers = [
+            { name: 'Equity Logistics Ltd', vol: 'KES 18.4B', tx: 12482 },
+            { name: 'Safaricom PLC', vol: 'KES 14.9B', tx: 8721 },
+            { name: 'KCB Bank Treasury', vol: 'KES 11.2B', tx: 3104 },
+            { name: 'MTN Uganda', vol: 'KES 9.8B', tx: 6542 },
+            { name: 'Stanbic Kenya', vol: 'KES 8.1B', tx: 2891 },
+        ];
+
+        let currentModal = null;
+
+        // ==================== UTILS ====================
+        function openModal(type) {
+            const m = document.getElementById('modalContent');
+            const back = document.getElementById('modalBackdrop');
+            let html = '';
+
+            if (type === 'railCompare') {
+                html = `<div class="pm-modal-head"><h3>Rail Performance Comparison</h3><button class="pm-close-btn" onclick="closeModal()">×</button></div>
+    <div class="pm-modal-body">
+      <table class="report-table"><thead><tr><th>Rail</th><th>Success %</th><th>Avg Latency</th><th>30d Volume</th><th>Revenue</th><th>Status</th></tr></thead><tbody>
+      ${rails.map(r => `<tr><td><b>${r.name}</b></td><td>${r.success}%</td><td>${r.latency}ms</td><td>KES ${(r.volume / 1e9).toFixed(1)}B</td><td>KES ${(r.rev / 1e6).toFixed(1)}M</td><td><span class="status-pill online">Active</span></td></tr>`).join('')}
+      </tbody></table>
+    </div>`;
+            }
+            else if (type === 'revenueBreakdown') {
+                html = `<div class="pm-modal-head"><h3>Revenue Breakdown — January 2026</h3><button class="pm-close-btn" onclick="closeModal()">×</button></div>
+    <div class="pm-modal-body">
+      <div class="modal-tab"><button class="active">By Rail</button><button onclick="switchRevTab(this)">By Product</button><button onclick="switchRevTab(this)">By Customer</button></div>
+      <div id="revModalBody">
+        ${rails.map(r => `<div class="data-row"><span>${r.name}</span><b>KES ${(r.rev / 1e6).toFixed(1)}M</b><span class="trend-up">↑ ${(Math.random() * 8 + 2).toFixed(1)}%</span></div>`).join('')}
+      </div>
+    </div>
+    <div class="pm-modal-foot"><button class="btn-pm primary" onclick="downloadRevenueReport()">Download Full Report (PDF)</button></div>`;
+            }
+            else if (type === 'complianceReport') {
+                html = `<div class="pm-modal-head"><h3>Generate Suspicious Activity Report (SAR)</h3><button class="pm-close-btn" onclick="closeModal()">×</button></div>
+    <div class="pm-modal-body">
+      <div class="form-grid-2">
+        <div class="form-row"><label>Reference</label><input value="SAR-2026-0142" readonly></div>
+        <div class="form-row"><label>Customer</label><input value="Equity Logistics Ltd"></div>
+        <div class="form-row"><label>Risk Score</label><input value="92 / 100" readonly></div>
+        <div class="form-row"><label>Priority</label><select><option>High — Immediate Filing</option><option>Medium</option></select></div>
+      </div>
+      <div class="form-row"><label>Narrative</label><textarea rows="4">Multiple high-value RTGS transfers to new beneficiary within 48h. Velocity pattern detected. Customer KYC verified but source of funds requires clarification.</textarea></div>
+      <div class="form-row"><label>Supporting Documents</label><div style="border:2px dashed var(--pm-border);padding:14px;border-radius:8px;text-align:center">Drop files or <span style="color:var(--pm-primary);cursor:pointer">browse</span></div></div>
+    </div>
+    <div class="pm-modal-foot"><button class="btn-pm" onclick="closeModal()">Cancel</button><button class="btn-pm danger" onclick="submitSAR()">File SAR with CBK</button></div>`;
+            }
+            else if (type === 'kycReport') {
+                html = `<div class="pm-modal-head"><h3>KYC &amp; Onboarding Report — January 2026</h3><button class="pm-close-btn" onclick="closeModal()">×</button></div>
+    <div class="pm-modal-body">
+      <div class="mini-tab"><button class="mini-tab-btn active">Summary</button><button class="mini-tab-btn">By Segment</button><button class="mini-tab-btn">Rejections</button></div>
+      <div class="stat-grid" style="margin:16px 0">
+        <div class="stat-item"><div class="val">92,561</div><div class="lbl">Total Applications</div></div>
+        <div class="stat-item"><div class="val">87,942</div><div class="lbl">Approved</div></div>
+        <div class="stat-item"><div class="val">4,218</div><div class="lbl">In Progress</div></div>
+        <div class="stat-item"><div class="val">401</div><div class="lbl">Rejected</div></div>
+      </div>
+      <table class="report-table"><tr><th>Reason</th><th>Count</th><th>%</th></tr>
+      <tr><td>Incomplete documents</td><td>214</td><td>53%</td></tr>
+      <tr><td>PEP match</td><td>89</td><td>22%</td></tr>
+      <tr><td>Adverse media</td><td>67</td><td>17%</td></tr>
+      <tr><td>Address mismatch</td><td>31</td><td>8%</td></tr></table>
+    </div>`;
+            }
+            else if (type === 'auditLog') {
+                html = `<div class="pm-modal-head"><h3>Full Audit Trail — January 2026</h3><button class="pm-close-btn" onclick="closeModal()">×</button></div>
+    <div class="pm-modal-body" style="max-height:420px;overflow:auto">
+      <table class="report-table"><thead><tr><th>Timestamp</th><th>User</th><th>Action</th><th>Reference</th><th>Result</th></tr></thead>
+      <tbody>
+        <tr><td>Jan 14 14:22</td><td>Joseph Mwangi</td><td>Approved High-Value Transfer</td><td>PM26KE4412</td><td><span class="status-pill completed">Success</span></td></tr>
+        <tr><td>Jan 14 13:41</td><td>System</td><td>AML Flag Raised</td><td>PM26US8819</td><td><span class="status-pill processing">Escalated</span></td></tr>
+        <tr><td>Jan 14 11:09</td><td>Lucy Otieno</td><td>Filed SAR</td><td>SAR-2026-0142</td><td><span class="status-pill completed">Submitted</span></td></tr>
+      </tbody></table>
+    </div>`;
+            }
+            else if (type === 'generateReport') {
+                html = `<div class="pm-modal-head"><h3>Create Custom Report</h3><button class="pm-close-btn" onclick="closeModal()">×</button></div>
+    <div class="pm-modal-body">
+      <div class="multi-step"><div class="step active">1. Parameters</div><div class="step">2. Schedule</div><div class="step">3. Delivery</div></div>
+      <div class="form-grid-2">
+        <div class="form-row"><label>Report Type</label><select><option>Transaction Volume &amp; Success</option><option>Revenue &amp; Margin</option><option>Compliance Summary</option><option>Customer Segmentation</option></select></div>
+        <div class="form-row"><label>Date Range</label><select><option>Last 30 days</option><option>Last Quarter</option><option>Custom Range</option></select></div>
+        <div class="form-row"><label>Group By</label><select><option>Rail</option><option>Customer Segment</option><option>Currency</option></select></div>
+        <div class="form-row"><label>Format</label><select><option>PDF</option><option>Excel (XLSX)</option><option>CSV</option></select></div>
+      </div>
+    </div>
+    <div class="pm-modal-foot"><button class="btn-pm" onclick="closeModal()">Cancel</button><button class="btn-pm primary" onclick="generateCustomReport()">Generate &amp; Schedule</button></div>`;
+            }
+            else if (type === 'customerSegments') {
+                html = `<div class="pm-modal-head"><h3>Customer Segment Analysis</h3><button class="pm-close-btn" onclick="closeModal()">×</button></div>
+    <div class="pm-modal-body">
+      <div class="mini-tab"><button class="mini-tab-btn active">Enterprise</button><button class="mini-tab-btn">SME</button><button class="mini-tab-btn">Retail</button></div>
+      <div style="margin-top:16px">
+        <div class="data-row"><span>Enterprise (42)</span><b>KES 84.2B (46%)</b></div>
+        <div class="data-row"><span>SME (1,842)</span><b>KES 72.4B (39%)</b></div>
+        <div class="data-row"><span>Retail (92,561)</span><b>KES 27.6B (15%)</b></div>
+      </div>
+      <div class="insight-card" style="margin-top:16px">Enterprise segment shows highest growth (+31%) but also highest average ticket size (KES 2.1M).</div>
+    </div>`;
+            }
+            else if (type === 'notifications') {
+                html = `<div class="pm-modal-head"><h3>Notifications</h3><button class="pm-close-btn" onclick="closeModal()">×</button></div>
+    <div class="pm-modal-body"><div class="notif-list">
+      <div class="notif-item unread"><div class="ico">📊</div><div class="body"><div class="t">Monthly Revenue Report ready</div><div class="d">KES 142.8M generated in January</div></div></div>
+      <div class="notif-item"><div class="ico">🚨</div><div class="body"><div class="t">4 new high-risk flags</div><div class="d">Requires compliance review</div></div></div>
+    </div></div>`;
+            }
+            else if (type === 'profile') {
+                html = `<div class="pm-modal-head"><h3>Joseph Mwangi — COO</h3><button class="pm-close-btn" onclick="closeModal()">×</button></div>
+    <div class="pm-modal-body"><div class="detail-grid">
+      <div class="detail-row"><span class="l">Role</span><span class="v">Chief Operations Officer</span></div>
+      <div class="detail-row"><span class="l">Last Login</span><span class="v">Today 08:41 EAT</span></div>
+      <div class="detail-row"><span class="l">Permissions</span><span class="v">Full Access (Owner)</span></div>
+    </div></div>`;
+            }
+
+            m.innerHTML = html;
+            back.style.display = 'flex';
+            currentModal = type;
+        }
+
+        function closeModal() {
+            document.getElementById('modalBackdrop').style.display = 'none';
+            currentModal = null;
+        }
+
+        function switchRevTab(el) {
+            document.querySelectorAll('.modal-tab button').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+            const body = document.getElementById('revModalBody');
+            if (el.textContent.includes('Product')) body.innerHTML = `<div class="data-row"><span>Fees</span><b>KES 84.2M</b></div><div class="data-row"><span>FX Spreads</span><b>KES 39.1M</b></div>`;
+            else if (el.textContent.includes('Customer')) body.innerHTML = `<div class="data-row"><span>Enterprise</span><b>KES 61.4M</b></div><div class="data-row"><span>SME</span><b>KES 52.8M</b></div>`;
+        }
+
+        function submitSAR() {
+            closeModal();
+            const toast = document.createElement('div');
+            toast.className = 'toast success';
+            toast.style.cssText = 'position:fixed;bottom:24px;right:24px;background:white;border:1px solid var(--pm-border);padding:12px 16px;border-radius:8px;box-shadow:var(--pm-shadow-lg);';
+            toast.innerHTML = '✅ SAR-2026-0142 filed successfully with CBK';
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 2800);
+        }
+
+        function generateCustomReport() {
+            closeModal();
+            const toast = document.createElement('div');
+            toast.className = 'toast success';
+            toast.style.cssText = 'position:fixed;bottom:24px;right:24px;background:white;border:1px solid var(--pm-border);padding:12px 16px;border-radius:8px;box-shadow:var(--pm-shadow-lg);';
+            toast.innerHTML = '📄 Report scheduled — will be emailed at 06:00 EAT';
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 2800);
+        }
+
+        function downloadRevenueReport() {
+            closeModal();
+            alert('Revenue report (PDF) downloaded successfully.');
+        }
+
+        function filterCompliance(el, filter) {
+            document.querySelectorAll('.mini-tab-btn').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+            const container = document.getElementById('complianceList');
+            let filtered = complianceItems;
+            if (filter === 'high') filtered = complianceItems.filter(i => i.risk > 85);
+            if (filter === 'pending') filtered = complianceItems.filter(i => i.status === 'Pending');
+            container.innerHTML = filtered.map(i => `
+    <div class="compliance-row" onclick="openComplianceDetail(${i.id})">
+      <div><b>${i.ref}</b><div style="font-size:11px;color:var(--pm-muted)">${i.customer}</div></div>
+      <div><span class="status-pill ${i.status === 'Pending' ? 'processing' : 'completed'}">${i.status}</span></div>
+      <div style="text-align:right"><div style="font-weight:700;color:${i.risk > 85 ? '#B91C1C' : '#F59E0B'}">${i.risk}</div><div style="font-size:10px">Risk</div></div>
+    </div>`).join('');
+        }
+
+        function openComplianceDetail(id) {
+            const item = complianceItems.find(i => i.id === id);
+            const m = document.getElementById('modalContent');
+            m.innerHTML = `<div class="pm-modal-head"><h3>Case ${item.ref}</h3><button class="pm-close-btn" onclick="closeModal()">×</button></div>
+  <div class="pm-modal-body">
+    <div class="detail-grid"><div class="detail-row"><span class="l">Customer</span><span class="v">${item.customer}</span></div><div class="detail-row"><span class="l">Risk Score</span><span class="v" style="color:#B91C1C">${item.risk}/100</span></div><div class="detail-row"><span class="l">Age</span><span class="v">${item.age}</span></div></div>
+    <div class="divider"></div>
+    <div class="form-row"><label>AI Recommendation</label><div style="padding:12px;background:#FEF3C7;border-radius:8px">High risk — recommend filing SAR and freezing further transfers pending investigation.</div></div>
+    <div class="modal-tab"><button class="active">Profile</button><button>History</button><button>Documents</button></div>
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button class="btn-pm" onclick="closeModal()">Dismiss</button>
+      <button class="btn-pm" onclick="escalateCase(${id})">Escalate</button>
+      <button class="btn-pm danger" onclick="fileSARFromCase(${id})">File SAR</button>
+    </div>
+  </div>`;
+        }
+
+        function escalateCase(id) { closeModal(); alert('Case escalated to Compliance Director.'); }
+        function fileSARFromCase(id) { closeModal(); alert('SAR filed for case ' + id); }
+
+        function switchVolumeTab(el, type) {
+            document.querySelectorAll('.mini-tab-btn').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+            const svg = document.getElementById('volTrendChart');
+            if (type === 'rail') {
+                svg.innerHTML = `<text x="50%" y="50%" text-anchor="middle" fill="#64748b" font-size="14">Rail volume breakdown chart (mock)</text>`;
+            } else if (type === 'hour') {
+                svg.innerHTML = `<text x="50%" y="50%" text-anchor="middle" fill="#64748b" font-size="14">Hourly distribution chart (mock)</text>`;
+            } else {
+                renderVolumeChart();
+            }
+        }
+
+        function switchReportTab(el, tab) {
+            document.querySelectorAll('.mini-tab-btn').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+            const container = document.getElementById('reportCenter');
+            if (tab === 'scheduled') {
+                container.innerHTML = scheduledReports.map(r => `<div class="data-row"><span>${r.name}</span><span>${r.freq}</span><span>${r.last}</span><span>${r.recipients} recipients</span><button class="btn-pm" onclick="editSchedule('${r.name}')">Edit</button></div>`).join('');
+            } else if (tab === 'templates') {
+                container.innerHTML = `<div class="data-row"><span>Daily Volume</span><button class="btn-pm primary" onclick="useTemplate('daily')">Use</button></div><div class="data-row"><span>Revenue &amp; Margin</span><button class="btn-pm primary" onclick="useTemplate('revenue')">Use</button></div>`;
+            } else {
+                container.innerHTML = `<div class="data-row"><span>Jan 2026 Revenue Report</span><button class="btn-pm" onclick="downloadReport('jan')">Download</button></div>`;
+            }
+        }
+
+        function editSchedule(name) { alert('Editing schedule for: ' + name); }
+        function useTemplate(t) { alert('Template loaded: ' + t); closeModal(); }
+        function downloadReport(m) { alert('Downloading ' + m + ' report...'); }
+
+        function renderVolumeChart() {
+            const svg = document.getElementById('volTrendChart');
+            svg.innerHTML = '';
+            const data = [42, 58, 71, 89, 112, 134, 158, 172, 195, 218, 204, 189, 167, 149, 132, 118, 98, 79, 64, 51, 39, 31, 27, 22];
+            const max = Math.max(...data);
+            const pts = data.map((v, i) => `${(i / (data.length - 1)) * 680},${220 - (v / max) * 180}`).join(' ');
+            svg.innerHTML = `
+    <defs><linearGradient id="gvol" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#4F46E5" stop-opacity="0.35"/><stop offset="100%" stop-color="#4F46E5" stop-opacity="0"/></linearGradient></defs>
+    <path d="M0,220 L${pts} L680,220 Z" fill="url(#gvol)"/>
+    <polyline points="${pts}" fill="none" stroke="#4F46E5" stroke-width="2.5"/>
+    ${data.map((v, i) => `<circle cx="${(i / (data.length - 1)) * 680}" cy="${220 - (v / max) * 180}" r="2.5" fill="#4F46E5"/>`).join('')}
+  `;
+        }
+
+        function renderRailPerf() {
+            const container = document.getElementById('railPerf');
+            container.innerHTML = rails.map(r => `
+    <div style="padding:12px;border:1px solid var(--pm-border);border-radius:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <b>${r.name}</b><span class="status-pill online">${r.success}%</span>
+      </div>
+      <div class="rail-bar"><div style="width:${r.success}%"></div></div>
+      <div style="font-size:11px;color:var(--pm-muted);margin-top:4px">${r.latency}ms avg • KES ${(r.volume / 1e9).toFixed(1)}B</div>
+    </div>`).join('');
+        }
+
+        function renderRevRail() {
+            const c = document.getElementById('revRail');
+            c.innerHTML = rails.map(r => `
+    <div class="data-row"><span>${r.name}</span><b>KES ${(r.rev / 1e6).toFixed(1)}M</b><span class="trend-up">↑ ${(Math.random() * 7 + 3).toFixed(1)}%</span></div>`).join('');
+        }
+
+        function renderCostPerTx() {
+            const c = document.getElementById('costPerTx');
+            c.innerHTML = rails.map(r => `
+    <div class="data-row"><span>${r.name}</span><b>KES ${(r.rev / r.volume * 1000).toFixed(2)}</b></div>`).join('');
+        }
+
+        function renderCompliance() {
+            const c = document.getElementById('complianceList');
+            c.innerHTML = complianceItems.map(i => `
+    <div class="compliance-row" onclick="openComplianceDetail(${i.id})">
+      <div><b>${i.ref}</b><div style="font-size:11px;color:var(--pm-muted)">${i.customer}</div></div>
+      <div><span class="status-pill ${i.status === 'Pending' ? 'processing' : 'completed'}">${i.status}</span></div>
+      <div style="text-align:right"><div style="font-weight:700;color:${i.risk > 85 ? '#B91C1C' : '#F59E0B'}">${i.risk}</div><div style="font-size:10px">Risk</div></div>
+    </div>`).join('');
+        }
+
+        function renderTopCustomers() {
+            const c = document.getElementById('topCustomers');
+            c.innerHTML = topCustomers.map(cu => `<div class="data-row"><span>${cu.name}</span><b>${cu.vol}</b><span style="font-size:11px;color:var(--pm-muted)">${cu.tx} tx</span></div>`).join('');
+        }
+
+        function renderSegments() {
+            const c = document.getElementById('segmentBreakdown');
+            c.innerHTML = `<div class="data-row"><span>Enterprise</span><b>46%</b></div><div class="data-row"><span>SME</span><b>39%</b></div><div class="data-row"><span>Retail</span><b>15%</b></div>`;
+        }
+
+        function init() {
+            renderVolumeChart();
+            renderRailPerf();
+            renderRevRail();
+            renderCostPerTx();
+            renderCompliance();
+            renderTopCustomers();
+            renderSegments();
+
+            // Initial report tab
+            const rc = document.getElementById('reportCenter');
+            rc.innerHTML = scheduledReports.map(r => `<div class="data-row"><span>${r.name}</span><span>${r.freq}</span><span>${r.last}</span><span>${r.recipients} recipients</span><button class="btn-pm" onclick="editSchedule('${r.name}')">Edit</button></div>`).join('');
+
+            // Keyboard escape
+            document.addEventListener('keydown', e => { if (e.key === 'Escape' && currentModal) closeModal(); });
+        }
+
+        window.onload = init;
+    </script>
+</body>
+
+</html>

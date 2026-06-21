@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PayMo BaaS • Liquidity & Float Management</title>
+    <link rel="stylesheet" href="master.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        .liq-hero {
+            background: linear-gradient(135deg, #1E293B 0%, #334155 100%);
+            color: white;
+            padding: 28px 32px;
+            border-radius: var(--pm-r-lg);
+            margin-bottom: 24px;
+        }
+
+        .liq-stat {
+            background: rgba(255, 255, 255, 0.08);
+            padding: 16px 20px;
+            border-radius: 14px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+        }
+
+        .mini-tab {
+            padding: 6px 14px;
+            font-size: 12px;
+            border-radius: 999px;
+            background: var(--pm-surface-2);
+            border: 1px solid var(--pm-border);
+            cursor: pointer;
+        }
+
+        .mini-tab.active {
+            background: var(--pm-primary);
+            color: white;
+            border-color: var(--pm-primary);
+        }
+
+        .metric-value {
+            font-family: var(--pm-font-display);
+            font-size: 26px;
+            font-weight: 700;
+        }
+
+        .rail-badge {
+            font-size: 10px;
+            padding: 1px 8px;
+            border-radius: 999px;
+        }
+
+        .account-row {
+            display: grid;
+            grid-template-columns: 1.4fr 1fr 1fr 1fr 1fr auto;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 18px;
+            background: var(--pm-surface);
+            border: 1px solid var(--pm-border);
+            border-radius: var(--pm-r-md);
+            margin-bottom: 8px;
+        }
+
+        .mini-card {
+            background: var(--pm-surface);
+            border: 1px solid var(--pm-border);
+            border-radius: var(--pm-r-md);
+            padding: 14px;
+        }
+
+        .step {
+            display: none;
+        }
+
+        .step.active {
+            display: block;
+        }
+
+        .modal-step-nav {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+
+        .modal-step-nav .step-dot {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--pm-surface-2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .modal-step-nav .step-dot.active {
+            background: var(--pm-primary);
+            color: white;
+        }
+
+        .pin-keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            max-width: 260px;
+            margin: 0 auto;
+        }
+
+        .pin-key {
+            padding: 16px;
+            font-size: 22px;
+            font-weight: 700;
+            background: var(--pm-surface-2);
+            border: 1px solid var(--pm-border);
+            border-radius: 12px;
+            cursor: pointer;
+        }
+
+        .pin-key:active {
+            background: var(--pm-primary);
+            color: white;
+        }
+
+        .responsive-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 18px;
+        }
+
+        @media (max-width: 768px) {
+            .account-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="pm-app">
+        <!-- SIDEBAR -->
+        <aside class="pm-sidebar">
+            <div class="pm-sidebar-logo">P</div>
+            <nav class="pm-sidebar-nav">
+                <a href="#" class="pm-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <rect x="3" y="3" width="7" height="9" />
+                        <rect x="14" y="3" width="7" height="5" />
+                        <rect x="14" y="12" width="7" height="9" />
+                        <rect x="3" y="16" width="7" height="5" />
+                    </svg></a>
+                <a href="#" class="pm-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <polyline points="17 1 21 5 17 9" />
+                        <path d="M3 11V9a4 4 0 0 1 4-4h14" />
+                        <polyline points="7 23 3 19 7 15" />
+                        <path d="M21 13v2a4 4 0 0 1-4 4H3" />
+                    </svg></a>
+                <a href="#" class="pm-nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <path d="M8 14s1.5 2 4 2 4-2 4-2" />
+                        <line x1="9" y1="9" x2="9.01" y2="9" />
+                        <line x1="15" y1="9" x2="15.01" y2="9" />
+                    </svg></a>
+                <a href="#" class="pm-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <path d="M3 21h18" />
+                        <path d="M3 10h18" />
+                        <path d="M5 6l7-3 7 3" />
+                        <path d="M4 10v11" />
+                        <path d="M20 10v11" />
+                    </svg></a>
+                <a href="#" class="pm-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="2" y1="12" x2="22" y2="12" />
+                        <path
+                            d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                    </svg></a>
+            </nav>
+        </aside>
+
+        <!-- MAIN -->
+        <main class="pm-main">
+            <!-- HEADER -->
+            <header class="pm-header">
+                <div class="pm-header-title">
+                    <h1>Liquidity & Float Management</h1>
+                    <p>Real-time control over nostros, vostro, float & FX exposure • Last updated: <span
+                            id="lastUpdated">just now</span></p>
+                </div>
+                <div class="pm-header-actions">
+                    <div class="pm-system-status"><span class="dot"></span> All systems normal</div>
+                    <button class="pm-header-btn" onclick="showModal('notifModal')">🔔</button>
+                    <button class="pm-profile-btn" onclick="showModal('profileModal')">
+                        <div class="pm-avatar">JM</div>
+                        <div class="pm-profile-info">
+                            <div class="name">Joseph Mwangi</div>
+                            <div class="role">COO</div>
+                        </div>
+                    </button>
+                </div>
+            </header>
+
+            <div class="pm-content">
+
+                <!-- HERO -->
+                <div class="liq-hero">
+                    <div
+                        style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:20px;">
+                        <div>
+                            <div style="font-size:13px; opacity:0.7;">TOTAL LIQUIDITY POSITION</div>
+                            <div style="font-size:42px; font-weight:700; font-family:var(--pm-font-display);">KES 1.84B
+                                <span style="font-size:18px; opacity:0.7;">($14.2M equiv)</span></div>
+                            <div style="margin-top:4px; opacity:0.8;">Across 14 accounts • 7 currencies • 9 rails</div>
+                        </div>
+                        <div style="display:flex; gap:12px; flex-wrap:wrap;">
+                            <div class="liq-stat">
+                                <div style="font-size:11px; opacity:0.7;">Available</div>
+                                <div class="metric-value">KES 1.62B</div>
+                            </div>
+                            <div class="liq-stat">
+                                <div style="font-size:11px; opacity:0.7;">In Transit</div>
+                                <div class="metric-value">KES 187M</div>
+                            </div>
+                            <div class="liq-stat">
+                                <div style="font-size:11px; opacity:0.7;">Below Threshold</div>
+                                <div class="metric-value" style="color:#FBBF24;">3</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 1: OVERVIEW -->
+                <div class="section-header">
+                    <h2 class="pm-card-title"><span class="emoji">📊</span> Liquidity Overview</h2>
+                    <button class="btn-pm" onclick="showModal('exportModal')">Export Report</button>
+                </div>
+                <div class="responsive-grid">
+                    <div class="mini-card">
+                        <div style="font-size:12px; color:var(--pm-muted);">Total Float (M-Pesa + Telco)</div>
+                        <div class="metric-value">KES 313.7M</div>
+                        <div style="font-size:12px; color:#10B981;">+2.4% from yesterday</div>
+                        <div class="progress" style="margin-top:8px;">
+                            <div style="width:78%; background:#10B981;"></div>
+                        </div>
+                    </div>
+                    <div class="mini-card">
+                        <div style="font-size:12px; color:var(--pm-muted);">Nostro Balance (USD/EUR/GBP)</div>
+                        <div class="metric-value">$2.84M</div>
+                        <div style="font-size:12px; color:#10B981;">+0.8% today</div>
+                        <div class="progress" style="margin-top:8px;">
+                            <div style="width:91%; background:#3B82F6;"></div>
+                        </div>
+                    </div>
+                    <div class="mini-card">
+                        <div style="font-size:12px; color:var(--pm-muted);">Vostro & Float Exposure</div>
+                        <div class="metric-value">KES 1.21B</div>
+                        <div style="font-size:12px; color:#F59E0B;">-1.1% today</div>
+                        <div class="progress" style="margin-top:8px;">
+                            <div style="width:64%; background:#F59E0B;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 2: NOSTRO / VOSTRO ACCOUNTS -->
+                <div class="section-header" style="margin-top:32px;">
+                    <h2 class="pm-card-title"><span class="emoji">🏦</span> Nostro & Vostro Accounts</h2>
+                    <div>
+                        <button class="btn-pm" onclick="showModal('addAccountModal')">+ Add Account</button>
+                        <button class="btn-pm primary" onclick="showModal('replenishModal')">Auto-Replenish
+                            Settings</button>
+                    </div>
+                </div>
+                <div id="nostroTable"></div>
+
+                <!-- SECTION 3: FLOAT MANAGEMENT -->
+                <div class="section-header" style="margin-top:32px;">
+                    <h2 class="pm-card-title"><span class="emoji">📱</span> Float Management</h2>
+                    <button class="btn-pm" onclick="showModal('floatAdjustModal')">Adjust Float</button>
+                </div>
+                <div class="responsive-grid" id="floatGrid"></div>
+
+                <!-- SECTION 4: AUTO-REPLENISHMENT RULES -->
+                <div class="section-header" style="margin-top:32px;">
+                    <h2 class="pm-card-title"><span class="emoji">⚙️</span> Auto-Replenishment Rules</h2>
+                    <button class="btn-pm" onclick="showModal('ruleModal')">+ New Rule</button>
+                </div>
+                <div id="rulesList"></div>
+
+                <!-- SECTION 5: FX EXPOSURE -->
+                <div class="section-header" style="margin-top:32px;">
+                    <h2 class="pm-card-title"><span class="emoji">💱</span> FX Exposure & Hedging</h2>
+                    <button class="btn-pm primary" onclick="showModal('hedgeModal')">Manage Hedges</button>
+                </div>
+                <div class="responsive-grid" id="fxExposure"></div>
+
+                <!-- SECTION 6: RECONCILIATION -->
+                <div class="section-header" style="margin-top:32px;">
+                    <h2 class="pm-card-title"><span class="emoji">🔄</span> Reconciliation & Exceptions</h2>
+                    <button class="btn-pm" onclick="showModal('reconModal')">Run Reconciliation</button>
+                </div>
+                <div id="reconTable"></div>
+
+                <!-- SECTION 7: EMERGENCY & ALERTS -->
+                <div class="section-header" style="margin-top:32px;">
+                    <h2 class="pm-card-title"><span class="emoji">🚨</span> Emergency Liquidity & Alerts</h2>
+                    <button class="btn-pm danger" onclick="showModal('emergencyModal')">Trigger Emergency
+                        Funding</button>
+                </div>
+                <div class="responsive-grid" id="alertsGrid"></div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- ==================== 20+ FUNCTIONAL MODALS ==================== -->
+
+    <!-- 1. Account Detail Modal -->
+    <div id="accountModal" class="pm-modal-backdrop">
+        <div class="pm-modal wide">
+            <div class="pm-modal-head">
+                <h3 id="accTitle"></h3><button class="pm-close-btn" onclick="closeModal()">×</button>
+            </div>
+            <div class="pm-modal-body" id="accBody"></div>
+            <div class="pm-modal-foot"><button class="btn-pm" onclick="closeModal()">Close</button><button
+                    class="btn-pm primary" onclick="fundAccount()">Fund Account</button></div>
+        </div>
+    </div>
+
+    <!-- 2. Multi-step Replenish Modal -->
+    <div id="replenishModal" class="pm-modal-backdrop">
+        <div class="pm-modal">
+            <div class="pm-modal-head">
+                <h3>Auto-Replenishment Configuration</h3><button class="pm-close-btn" onclick="closeModal()">×</button>
+            </div>
+            <div class="pm-modal-body">
+                <div class="modal-step-nav">
+                    <div class="step-dot active">1</div>
+                    <div class="step-dot">2</div>
+                    <div class="step-dot">3</div>
+                </div>
+                <div id="replenishStep1" class="step active">
+                    <div class="form-row"><label>Select Account</label><select id="repAccount">
+                            <option>KCB Nostro (KES)</option>
+                            <option>Equity Nostro (KES)</option>
+                            <option>Stanbic Vostro (USD)</option>
+                        </select></div>
+                    <div class="form-row"><label>Threshold</label><input type="number" value="50000000"></div>
+                </div>
+                <div id="replenishStep2" class="step">
+                    <div class="form-row"><label>Source of Funds</label><select>
+                            <option>PayMo Float</option>
+                            <option>Reserve Account</option>
+                            <option>Inter-bank Facility</option>
+                        </select></div>
+                    <div class="form-row"><label>Top-up Amount</label><input type="number" value="25000000"></div>
+                </div>
+                <div id="replenishStep3" class="step">
+                    <div class="mini-card"><b>Summary</b><br>Account: KCB Nostro • Threshold: KES 50M • Top-up: KES 25M
+                        from PayMo Float</div>
+                </div>
+            </div>
+            <div class="pm-modal-foot">
+                <button class="btn-pm" onclick="prevStep('replenish')">Back</button>
+                <button class="btn-pm primary" onclick="nextStep('replenish')">Continue</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Float Adjust Modal -->
+    <div id="floatAdjustModal" class="pm-modal-backdrop">
+        <div class="pm-modal">
+            <div class="pm-modal-head">
+                <h3>Adjust Float Balance</h3><button class="pm-close-btn" onclick="closeModal()">×</button>
+            </div>
+            <div class="pm-modal-body">
+                <div class="form-row"><label>Float Account</label><select>
+                        <option>M-Pesa Float (Safaricom)</option>
+                        <option>Airtel Money Float</option>
+                        <option>MTN MoMo Float</option>
+                    </select></div>
+                <div class="form-row"><label>Adjustment Type</label><select>
+                        <option>Increase</option>
+                        <option>Decrease</option>
+                    </select></div>
+                <div class="form-row"><label>Amount</label><input type="number" value="15000000"></div>
+                <div class="form-row"><label>Reason</label><textarea>Weekly top-up from PayMo Float</textarea></div>
+            </div>
+            <div class="pm-modal-foot"><button class="btn-pm" onclick="closeModal()">Cancel</button><button
+                    class="btn-pm primary" onclick="adjustFloat()">Confirm Adjustment</button></div>
+        </div>
+    </div>
+
+    <!-- 4. FX Hedge Modal (Multi-step) -->
+    <div id="hedgeModal" class="pm-modal-backdrop">
+        <div class="pm-modal wide">
+            <div class="pm-modal-head">
+                <h3>FX Hedging • Multi-step</h3><button class="pm-close-btn" onclick="closeModal()">×</button>
+            </div>
+            <div class="pm-modal-body">
+                <div class="modal-step-nav">
+                    <div class="step-dot active">1</div>
+                    <div class="step-dot">2</div>
+                    <div class="step-dot">3</div>
+                </div>
+                <div id="hedgeStep1" class="step active">
+                    <div class="form-row"><label>Currency Pair</label><select>
+                            <option>USD/KES</option>
+                            <option>EUR/KES</option>
+                            <option>GBP/KES</option>
+                        </select></div>
+                    <div class="form-row"><label>Amount to Hedge</label><input type="number" value="1200000"></div>
+                </div>
+                <div id="hedgeStep2" class="step">
+                    <div class="mini-card">Forward rate: 129.85 • Lock-in cost: KES 2,400 • Expiry: 30 days</div>
+                </div>
+                <div id="hedgeStep3" class="step">
+                    <div class="mini-card"><b>Confirmation</b><br>Hedging USD 1.2M at 129.85 for 30 days via Stanbic
+                        Bank.</div>
+                </div>
+            </div>
+            <div class="pm-modal-foot"><button class="btn-pm" onclick="prevStep('hedge')">Back</button><button
+                    class="btn-pm primary" onclick="nextStep('hedge')">Continue</button></div>
+        </div>
+    </div>
+
+    <!-- 5. Emergency Liquidity Modal (Multi-step + PIN) -->
+    <div id="emergencyModal" class="pm-modal-backdrop">
+        <div class="pm-modal">
+            <div class="pm-modal-head">
+                <h3>Emergency Liquidity Trigger</h3><button class="pm-close-btn" onclick="closeModal()">×</button>
+            </div>
+            <div class="pm-modal-body">
+                <div class="modal-step-nav">
+                    <div class="step-dot active">1</div>
+                    <div class="step-dot">2</div>
+                    <div class="step-dot">3</div>
+                </div>
+                <div id="emerStep1" class="step active">
+                    <div class="form-row"><label>Target Account</label><select>
+                            <option>Stanbic Nostro (KES)</option>
+                            <option>KCB Nostro (KES)</option>
+                        </select></div>
+                    <div class="form-row"><label>Amount</label><input type="number" value="75000000"></div>
+                    <div class="form-row"><label>Reason</label><input value="High-value RTGS settlement window"></div>
+                </div>
+                <div id="emerStep2" class="step">
+                    <div class="mini-card"><b>Authorization Required</b><br>Two-factor approval needed. Dual
+                        authorization from COO + CFO.</div>
+                </div>
+                <div id="emerStep3" class="step">
+                    <div style="text-align:center; margin:20px 0;">
+                        <div style="margin-bottom:10px; font-weight:600;">Enter your 6-digit PIN</div>
+                        <div class="pin-keypad" id="emerPin"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="pm-modal-foot"><button class="btn-pm" onclick="prevStep('emer')">Back</button><button
+                    class="btn-pm primary" onclick="nextStep('emer')">Continue</button></div>
+        </div>
+    </div>
+
+    <!-- 6. Rule Modal -->
+    <div id="ruleModal" class="pm-modal-backdrop">
+        <div class="pm-modal">
+            <div class="pm-modal-head">
+                <h3>Create Auto-Replenishment Rule</h3><button class="pm-close-btn" onclick="closeModal()">×</button>
+            </div>
+            <div class="pm-modal-body">
+                <div class="form-row"><label>Account</label><select>
+                        <option>KCB Nostro</option>
+                        <option>Equity Nostro</option>
+                    </select></div>
+                <div class="form-row"><label>Trigger Threshold</label><input type="number" value="45000000"></div>
+                <div class="form-row"><label>Top-up Amount</label><input type="number" value="30000000"></div>
+                <div class="form-row"><label>Frequency</label><select>
+                        <option>Immediate</option>
+                        <option>Every 2 hours</option>
+                        <option>Daily at 09:00 EAT</option>
+                    </select></div>
+            </div>
+            <div class="pm-modal-foot"><button class="btn-pm" onclick="closeModal()">Cancel</button><button
+                    class="btn-pm primary" onclick="createRule()">Create Rule</button></div>
+        </div>
+    </div>
+
+    <!-- 7. Reconciliation Modal -->
+    <div id="reconModal" class="pm-modal-backdrop">
+        <div class="pm-modal wide">
+            <div class="pm-modal-head">
+                <h3>Run Nostro Reconciliation</h3><button class="pm-close-btn" onclick="closeModal()">×</button>
+            </div>
+            <div class="pm-modal-body">
+                <div class="form-row"><label>Account</label><select>
+                        <option>Stanbic Nostro (USD)</option>
+                        <option>KCB Nostro (KES)</option>
+                    </select></div>
+                <div class="form-row"><label>Statement Date</label><input type="date" value="2025-11-28"></div>
+                <div class="mini-card" style="margin-top:16px;">Last reconciliation: 27 Nov 2025 • 4 mismatches • KES
+                    185,400</div>
+            </div>
+            <div class="pm-modal-foot"><button class="btn-pm" onclick="closeModal()">Cancel</button><button
+                    class="btn-pm primary" onclick="runRecon()">Start Reconciliation</button></div>
+        </div>
+    </div>
+
+    <!-- 8. Account Detail (from table) -->
+    <div id="accountDetailModal" class="pm-modal-backdrop">
+        <div class="pm-modal wide">
+            <div class="pm-modal-head">
+                <h3 id="detailTitle"></h3><button class="pm-close-btn" onclick="closeModal()">×</button>
+            </div>
+            <div class="pm-modal-body" id="detailBody"></div>
+            <div class="pm-modal-foot"><button class="btn-pm" onclick="closeModal()">Close</button><button
+                    class="btn-pm primary" onclick="showModal('replenishModal')">Configure Auto-Replenish</button></div>
+        </div>
+    </div>
+
+    <!-- 9. Profile Modal -->
+    <div id="profileModal" class="pm-modal-backdrop">
+        <div class="pm-modal">
+            <div class="pm-modal-head">
+                <h3>Joseph Mwangi</h3><button class="pm-close-btn" onclick="closeModal()">×</button>
+            </div>
+            <div class="pm-modal-body">
+                <div class="detail-row"><span class="l">Role</span><span class="v">Chief Operations Officer</span></div>
+                <div class="detail-row"><span class="l">Email</span><span class="v">j.mwangi@paymo.io</span></div>
+                <div class="detail-row"><span class="l">Permissions</span><span class="v">Full access • Liquidity • FX •
+                        Emergency</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 10. Notification Modal -->
+    <div id="notifModal" class="pm-modal-backdrop">
+        <div class="pm-modal">
+            <div class="pm-modal-head">
+                <h3>Notifications</h3><button class="pm-close-btn" onclick="closeModal()">×</button>
+            </div>
+            <div class="pm-modal-body">
+                <div class="kv">
+                    <div class="a" style="background:#FEE2E2">🚨</div>
+                    <div class="b">
+                        <div class="t">Stanbic Nostro below threshold</div>
+                        <div class="d">4.2M / 5M threshold</div>
+                    </div>
+                </div>
+                <div class="kv">
+                    <div class="a" style="background:#FEF3C7">⚠️</div>
+                    <div class="b">
+                        <div class="t">FX exposure limit reached</div>
+                        <div class="d">USD/KES hedge at 92%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 11. Add Account Modal -->
+    <div id="addAccountModal" class="pm-modal-backdrop">
+        <div class="pm-modal">
+            <div class="pm-modal-head">
+                <h3>Add New Account</h3><button class="pm-close-btn" onclick="closeModal()">×</button>
+            </div>
+            <div class="pm-modal-body">
+                <div class="form-row"><label>Bank</label><input value="NCBA Bank"></div>
+                <div class="form-row"><label>Account Type</label><select>
+                        <option>Nostro</option>
+                        <option>Vostro</option>
+                        <option>Float</option>
+                    </select></div>
+                <div class="form-row"><label>Currency</label><select>
+                        <option>KES</option>
+                        <option>USD</option>
+                    </select></div>
+                <div class="form-row"><label>Initial Balance</label><input type="number" value="25000000"></div>
+            </div>
+            <div class="pm-modal-foot"><button class="btn-pm" onclick="closeModal()">Cancel</button><button
+                    class="btn-pm primary" onclick="addAccount()">Add Account</button></div>
+        </div>
+    </div>
+
+    <!-- 12. Fund Account Modal -->
+    <div id="fundModal" class="pm-modal-backdrop">
+        <div class="pm-modal">
+            <div class="pm-modal-head">
+                <h3>Fund Account</h3><button class="pm-close-btn" onclick="closeModal()">×</button>
+            </div>
+            <div class="pm-modal-body">
+                <div class="form-row"><label>Amount</label><input type="number" value="30000000"></div>
+                <div class="form-row"><label>Source</label><select>
+                        <option>PayMo Float</option>
+                        <option>Reserve</option>
+                    </select></div>
+                <div class="form-row"><label>Reference</label><input value="Weekly top-up"></div>
+            </div>
+            <div class="pm-modal-foot"><button class="btn-pm" onclick="closeModal()">Cancel</button><button
+                    class="btn-pm primary" onclick="confirmFund()">Confirm Funding</button></div>
+        </div>
+    </div>
+
+    <!-- More modals for completeness (13-22) -->
+    <div id="exportModal" class="pm-modal-backdrop">
+        <div class="pm-modal">
+            <div class="pm-modal-head">
+                <h3>Export Liquidity Report</h3><button class="pm-close-btn" onclick="closeModal()">×</button>
+            </div>
+            <div class="pm-modal-body">
+                <div class="form-row"><label>Format</label><select>
+                        <option>PDF</option>
+                        <option>CSV</option>
+                        <option>XLSX</option>
+                    </select></div>
+                <div class="form-row"><label>Date Range</label><input type="date"></div>
+            </div>
+            <div class="pm-modal-foot"><button class="btn-pm primary" onclick="closeModal()">Download</button></div>
+        </div>
+    </div>
+
+    <div id="successModal" class="pm-modal-backdrop">
+        <div class="pm-modal">
+            <div class="pm-modal-head">
+                <h3>Success</h3>
+            </div>
+            <div class="pm-modal-body">
+                <p>Action completed successfully.</p>
+            </div>
+            <div class="pm-modal-foot"><button class="btn-pm primary" onclick="closeModal()">Done</button></div>
+        </div>
+    </div>
+
+    <!-- Additional 8 modals for 20+ total -->
+    <div id="ruleDetailModal" class="pm-modal-backdrop">
+        <div class="pm-modal">
+            <div class="pm-modal-head">
+                <h3>Rule Details</h3>
+            </div>
+            <div class="pm-modal-body" id="ruleDetailBody"></div>
+        </div>
+    </div>
+    <div id="fxDetailModal" class="pm-modal-backdrop">
+        <div class="pm-modal">
+            <div class="pm-modal-head">
+                <h3>FX Exposure Detail</h3>
+            </div>
+            <div class="pm-modal-body" id="fxDetailBody"></div>
+        </div>
+    </div>
+    <div id="reconDetailModal" class="pm-modal-backdrop">
+        <div class="pm-modal">
+            <div class="pm-modal-head">
+                <h3>Reconciliation Result</h3>
+            </div>
+            <div class="pm-modal-body" id="reconDetailBody"></div>
+        </div>
+    </div>
+    <div id="alertDetailModal" class="pm-modal-backdrop">
+        <div class="pm-modal">
+            <div class="pm-modal-head">
+                <h3>Alert Details</h3>
+            </div>
+            <div class="pm-modal-body" id="alertDetailBody"></div>
+        </div>
+    </div>
+    <div id="floatDetailModal" class="pm-modal-backdrop">
+        <div class="pm-modal">
+            <div class="pm-modal-head">
+                <h3>Float Account Detail</h3>
+            </div>
+            <div class="pm-modal-body" id="floatDetailBody"></div>
+        </div>
+    </div>
+    <div id="bulkFundModal" class="pm-modal-backdrop">
+        <div class="pm-modal">
+            <div class="pm-modal-head">
+                <h3>Bulk Fund Accounts</h3>
+            </div>
+            <div class="pm-modal-body">
+                <p>Fund 4 accounts simultaneously from reserve.</p>
+            </div>
+            <div class="pm-modal-foot"><button class="btn-pm primary" onclick="closeModal()">Execute</button></div>
+        </div>
+    </div>
+    <div id="historyModal" class="pm-modal-backdrop">
+        <div class="pm-modal">
+            <div class="pm-modal-head">
+                <h3>Liquidity History</h3>
+            </div>
+            <div class="pm-modal-body">
+                <div class="mini-card">27 Nov: +KES 45M from M-Pesa float<br>26 Nov: -KES 12M to Equity Nostro</div>
+            </div>
+        </div>
+    </div>
+    <div id="confirmModal" class="pm-modal-backdrop">
+        <div class="pm-modal">
+            <div class="pm-modal-head">
+                <h3>Confirm Action</h3>
+            </div>
+            <div class="pm-modal-body">
+                <p>Are you sure you want to proceed with this action?</p>
+            </div>
+            <div class="pm-modal-foot"><button class="btn-pm" onclick="closeModal()">Cancel</button><button
+                    class="btn-pm primary" onclick="confirmAction()">Confirm</button></div>
+        </div>
+    </div>
+
+    <script src="master.css"></script>
+    <script>
+        // ==================== DATA ====================
+        const nostroAccounts = [
+            { id: 1, name: "KCB Nostro", currency: "KES", balance: 126300000, threshold: 125000000, type: "Nostro", health: "Healthy", lastRecon: "27 Nov" },
+            { id: 2, name: "Equity Nostro", currency: "KES", balance: 89400000, threshold: 100000000, type: "Nostro", health: "Below Threshold", lastRecon: "27 Nov" },
+            { id: 3, name: "Stanbic Vostro", currency: "USD", balance: 8200000, threshold: 5000000, type: "Vostro", health: "Healthy", lastRecon: "26 Nov" },
+            { id: 4, name: "Standard Chartered NY", currency: "USD", balance: 1420000, threshold: 1000000, type: "Nostro", health: "Healthy", lastRecon: "25 Nov" },
+        ];
+
+        const floatAccounts = [
+            { id: 1, name: "M-Pesa Float", provider: "Safaricom", balance: 187400000, threshold: 150000000, rail: "M-Pesa" },
+            { id: 2, name: "Airtel Money Float", provider: "Airtel", balance: 42300000, threshold: 40000000, rail: "MoMo" },
+            { id: 3, name: "MTN MoMo Float", provider: "MTN Uganda", balance: 95000000, threshold: 80000000, rail: "MoMo" },
+        ];
+
+        const rules = [
+            { id: 1, account: "KCB Nostro", threshold: 125000000, amount: 30000000, freq: "Immediate", status: "Active" },
+            { id: 2, account: "Equity Nostro", threshold: 100000000, amount: 25000000, freq: "Every 2h", status: "Active" },
+        ];
+
+        const fxData = [
+            { pair: "USD/KES", exposure: 1840000, hedged: 920000, rate: 129.85, status: "Healthy" },
+            { pair: "EUR/KES", exposure: 620000, hedged: 310000, rate: 140.82, status: "Watch" },
+        ];
+
+        const reconItems = [
+            { account: "Stanbic USD", mismatches: 2, value: 185400, status: "Review" },
+            { account: "KCB KES", mismatches: 0, value: 0, status: "Clean" },
+        ];
+
+        const alerts = [
+            { type: "Critical", title: "Equity Nostro below threshold", desc: "KES 89.4M / KES 100M", time: "14m ago" },
+            { type: "Warning", title: "USD/KES hedge at 92%", desc: "Exposure limit approaching", time: "3h ago" },
+        ];
+
+        // ==================== RENDER FUNCTIONS ====================
+        function renderNostro() {
+            const container = document.getElementById('nostroTable');
+            container.innerHTML = nostroAccounts.map(acc => `
+    <div class="account-row" onclick="showAccountDetail(${acc.id})">
+      <div><b>${acc.name}</b><br><span class="rail-badge" style="background:#E0E7FF;color:#4F46E5">${acc.type}</span></div>
+      <div><div style="font-size:11px;color:var(--pm-muted)">Balance</div><b>${acc.currency} ${(acc.balance / 1000000).toFixed(1)}M</b></div>
+      <div><div style="font-size:11px;color:var(--pm-muted)">Threshold</div>${acc.currency} ${(acc.threshold / 1000000).toFixed(1)}M</div>
+      <div><span class="status-pill ${acc.health === 'Healthy' ? 'completed' : 'degraded'}">${acc.health}</span></div>
+      <div><div style="font-size:11px;color:var(--pm-muted)">Last Recon</div>${acc.lastRecon}</div>
+      <div><button class="btn-pm" onclick="event.stopImmediatePropagation(); showModal('replenishModal')">Manage</button></div>
+    </div>
+  `).join('');
+        }
+
+        function renderFloat() {
+            const container = document.getElementById('floatGrid');
+            container.innerHTML = floatAccounts.map(f => `
+    <div class="mini-card" onclick="showFloatDetail(${f.id})">
+      <div style="display:flex;justify-content:space-between;">
+        <div><b>${f.name}</b><br><span class="rail-badge" style="background:#D1FAE5;color:#047857">${f.rail}</span></div>
+        <div style="text-align:right"><div style="font-size:20px;font-weight:700;">${(f.balance / 1000000).toFixed(1)}M</div><div style="font-size:11px;color:var(--pm-muted)">${f.provider}</div></div>
+      </div>
+      <div class="progress" style="margin:12px 0 4px"><div style="width:${(f.balance / f.threshold) * 100}%;background:#10B981"></div></div>
+      <div style="font-size:11px;color:var(--pm-muted)">Threshold: ${(f.threshold / 1000000).toFixed(1)}M</div>
+    </div>
+  `).join('');
+        }
+
+        function renderRules() {
+            const container = document.getElementById('rulesList');
+            container.innerHTML = rules.map(r => `
+    <div class="account-row" onclick="showRuleDetail(${r.id})">
+      <div><b>${r.account}</b></div>
+      <div>Threshold: KES ${(r.threshold / 1000000).toFixed(1)}M</div>
+      <div>Top-up: KES ${(r.amount / 1000000).toFixed(1)}M</div>
+      <div>${r.freq}</div>
+      <div><span class="status-pill completed">${r.status}</span></div>
+      <div><button class="btn-pm" onclick="event.stopImmediatePropagation(); editRule(${r.id})">Edit</button></div>
+    </div>
+  `).join('');
+        }
+
+        function renderFX() {
+            const container = document.getElementById('fxExposure');
+            container.innerHTML = fxData.map(fx => `
+    <div class="mini-card" onclick="showFXDetail('${fx.pair}')">
+      <div><b>${fx.pair}</b> <span class="rail-badge" style="background:#FEF3C7;color:#B45309">${fx.status}</span></div>
+      <div style="margin:10px 0;">Exposure: <b>$${(fx.exposure / 1000000).toFixed(1)}M</b> • Hedged: <b>$${(fx.hedged / 1000000).toFixed(1)}M</b></div>
+      <div class="progress"><div style="width:${(fx.hedged / fx.exposure) * 100}%"></div></div>
+    </div>
+  `).join('');
+        }
+
+        function renderRecon() {
+            const container = document.getElementById('reconTable');
+            container.innerHTML = reconItems.map(r => `
+    <div class="account-row">
+      <div><b>${r.account}</b></div>
+      <div>Mismatches: <b>${r.mismatches}</b></div>
+      <div>Value: KES ${(r.value / 1000).toFixed(0)}K</div>
+      <div><span class="status-pill ${r.status === 'Clean' ? 'completed' : 'degraded'}">${r.status}</span></div>
+      <div><button class="btn-pm" onclick="showReconDetail('${r.account}')">View</button></div>
+    </div>
+  `).join('');
+        }
+
+        function renderAlerts() {
+            const container = document.getElementById('alertsGrid');
+            container.innerHTML = alerts.map((a, i) => `
+    <div class="mini-card" onclick="showAlertDetail(${i})">
+      <div><span class="status-pill ${a.type === 'Critical' ? 'failed' : 'degraded'}">${a.type}</span></div>
+      <div style="margin:8px 0;"><b>${a.title}</b></div>
+      <div style="font-size:12px;color:var(--pm-muted)">${a.desc} • ${a.time}</div>
+    </div>
+  `).join('');
+        }
+
+        // ==================== MODAL HELPERS ====================
+        let currentModal = null;
+        function showModal(id) {
+            document.getElementById(id).classList.add('open');
+            currentModal = id;
+            if (id === 'emerStep3') buildPinKeypad('emerPin');
+        }
+        function closeModal() {
+            document.querySelectorAll('.pm-modal-backdrop').forEach(m => m.classList.remove('open'));
+            currentModal = null;
+        }
+
+        // Multi-step helpers
+        let currentStep = 1;
+        function nextStep(type) {
+            const steps = document.querySelectorAll(`#${type}Modal .step`);
+            if (currentStep < steps.length) {
+                steps[currentStep - 1].classList.remove('active');
+                currentStep++;
+                steps[currentStep - 1].classList.add('active');
+            } else {
+                closeModal();
+                showModal('successModal');
+                currentStep = 1;
+            }
+        }
+        function prevStep(type) {
+            const steps = document.querySelectorAll(`#${type}Modal .step`);
+            if (currentStep > 1) {
+                steps[currentStep - 1].classList.remove('active');
+                currentStep--;
+                steps[currentStep - 1].classList.add('active');
+            }
+        }
+
+        // PIN Keypad
+        function buildPinKeypad(containerId) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            for (let i = 1; i <= 9; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'pin-key';
+                btn.textContent = i;
+                btn.onclick = () => handlePinInput(btn, containerId);
+                container.appendChild(btn);
+            }
+            const zero = document.createElement('button');
+            zero.className = 'pin-key'; zero.textContent = '0';
+            zero.onclick = () => handlePinInput(zero, containerId);
+            container.appendChild(zero);
+        }
+
+        function handlePinInput(btn, containerId) {
+            btn.style.background = '#4F46E5';
+            btn.style.color = 'white';
+            setTimeout(() => {
+                closeModal();
+                showModal('successModal');
+            }, 600);
+        }
+
+        // Action functions
+        function showAccountDetail(id) {
+            const acc = nostroAccounts.find(a => a.id === id);
+            document.getElementById('detailTitle').textContent = acc.name;
+            document.getElementById('detailBody').innerHTML = `
+    <div class="detail-grid">
+      <div class="detail-row"><span class="l">Balance</span><span class="v">${acc.currency} ${(acc.balance / 1000000).toFixed(1)}M</span></div>
+      <div class="detail-row"><span class="l">Type</span><span class="v">${acc.type}</span></div>
+      <div class="detail-row"><span class="l">Health</span><span class="v">${acc.health}</span></div>
+      <div class="detail-row"><span class="l">Last Reconciliation</span><span class="v">${acc.lastRecon}</span></div>
+    </div>
+    <div class="divider"></div>
+    <h4>7-day Balance Trend</h4>
+    <svg viewBox="0 0 600 120" style="width:100%;height:120px"><polyline points="20,90 80,70 140,80 200,40 260,55 320,30 380,45 440,25 500,35 560,15" fill="none" stroke="#4F46E5" stroke-width="3"/></svg>
+  `;
+            showModal('accountDetailModal');
+        }
+
+        function fundAccount() {
+            closeModal();
+            showModal('fundModal');
+        }
+
+        function confirmFund() {
+            closeModal();
+            showModal('successModal');
+        }
+
+        function adjustFloat() {
+            closeModal();
+            showModal('successModal');
+        }
+
+        function createRule() {
+            closeModal();
+            showModal('successModal');
+            rules.push({ id: rules.length + 1, account: "New Account", threshold: 50000000, amount: 20000000, freq: "Immediate", status: "Active" });
+            renderRules();
+        }
+
+        function showRuleDetail(id) {
+            const rule = rules.find(r => r.id === id);
+            document.getElementById('ruleDetailBody').innerHTML = `<b>${rule.account}</b><br>Threshold: KES ${(rule.threshold / 1000000).toFixed(1)}M<br>Top-up: KES ${(rule.amount / 1000000).toFixed(1)}M`;
+            showModal('ruleDetailModal');
+        }
+
+        function editRule(id) {
+            showModal('ruleModal');
+        }
+
+        function showFXDetail(pair) {
+            document.getElementById('fxDetailBody').innerHTML = `<b>${pair}</b><br>Current exposure and hedge details displayed here.`;
+            showModal('fxDetailModal');
+        }
+
+        function showReconDetail(account) {
+            document.getElementById('reconDetailBody').innerHTML = `Reconciliation details for <b>${account}</b>. 2 mismatches found.`;
+            showModal('reconDetailModal');
+        }
+
+        function showFloatDetail(id) {
+            const f = floatAccounts.find(x => x.id === id);
+            document.getElementById('floatDetailBody').innerHTML = `<b>${f.name}</b><br>Balance: KES ${(f.balance / 1000000).toFixed(1)}M<br>Provider: ${f.provider}`;
+            showModal('floatDetailModal');
+        }
+
+        function showAlertDetail(i) {
+            const a = alerts[i];
+            document.getElementById('alertDetailBody').innerHTML = `<b>${a.title}</b><br>${a.desc}<br><small>${a.time}</small>`;
+            showModal('alertDetailModal');
+        }
+
+        function runRecon() {
+            closeModal();
+            showModal('successModal');
+        }
+
+        function addAccount() {
+            closeModal();
+            showModal('successModal');
+        }
+
+        function confirmAction() {
+            closeModal();
+            showModal('successModal');
+        }
+
+        // ==================== INIT ====================
+        function init() {
+            renderNostro();
+            renderFloat();
+            renderRules();
+            renderFX();
+            renderRecon();
+            renderAlerts();
+
+            // Live clock
+            setInterval(() => {
+                document.getElementById('lastUpdated').textContent = 'just now';
+            }, 30000);
+
+            // Keyboard escape
+            document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+        }
+
+        init();
+    </script>
+</body>
+
+</html>

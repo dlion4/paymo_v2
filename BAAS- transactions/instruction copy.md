@@ -2548,3 +2548,232 @@ make it comprehesive reduce the use of toastas, no broken links no empty section
 this is the admins side dashboard so allow permissions and editable fields, data, records and sections relevantly
 design the next page
 
+ Here is the exhaustive outline for **Page 18 — Account Settings, Details, Profile & Administration**:
+
+---
+
+# PAGE 18 — ACCOUNT SETTINGS, DETAILS, PROFILE & ADMINISTRATION
+
+**Purpose:** Centralized command center for managing user identity, business profile, security posture, notification preferences, team access, API credentials, billing, and platform-wide administrative controls. Serves as the single source of truth for all account-level configuration across individual users, business entities, and platform administrators.
+
+---
+
+## TAB SECTION 18.1 — PERSONAL PROFILE & IDENTITY
+
+### 18.1.1 — Profile Overview Card
+- **Avatar & visual identity:** Profile photo upload with crop/zoom editor, fallback initials avatar with custom color selection, business logo display (if business account), cover banner image for business profiles
+- **Display name & handle:** Full legal name, preferred display name, unique PayMo handle (@username), public profile URL
+- **Account tier badge:** Basic, Verified, Premium, Enterprise with tier benefits tooltip
+- **Profile completeness progress bar:** Percentage complete with missing items checklist (photo, phone verify, 2FA, KYC, etc.)
+- **Quick actions:** Edit profile, View public profile, Download profile data (GDPR/ODPC portability), Share profile QR code
+
+### 18.1.2 — Identity Verification & KYC
+- **Document upload center:** National ID (Huduma Namba / old ID / passport / alien ID / driving license) front and back, selfie with liveness detection (blink, turn head, smile challenge), proof of address (utility bill, bank statement, tenancy agreement, employer letter)
+- **Verification status tracker:** Pending upload → Under Review → Verified → Rejected → Resubmit, with timestamp and reviewer notes per stage
+- **Verification level progression:** Level 1 (email/phone) → Level 2 (ID + selfie) → Level 3 (address proof) → Level 4 (enhanced due diligence), each level unlocking higher limits and features
+- **Re-verification triggers:** Document expiry alerts (90/60/30/7 days), name change workflow, address change workflow, annual re-verification requirement for high-tier accounts
+- **Biometric enrollment:** Fingerprint setup (mobile), Face ID setup (iOS/Android), Voice print (optional), Biometric usage log and device management
+
+### 18.1.3 — Contact Information
+- **Primary contact:** Email (verified/unverified badge, change workflow with OTP confirmation), phone number (with country code selector, SIM registration verification, change workflow with 72-hour cooling-off period)
+- **Secondary/backup contacts:** Backup email, emergency contact (name, relationship, phone), trusted device phone number
+- **Communication preferences:** Preferred language (English, Swahili, French, Arabic, Portuguese, Luganda, Kinyarwanda), preferred timezone (EAT/CAT/WAT/GMT/ET/CET), date format (DD/MM/YYYY, MM/DD/YYYY, YYYY-MM-DD), number format (Kenyan 1,000,000.00, European 1.000.000,00, Indian 10,00,000.00)
+- **Address book:** Primary residence, business address, billing address, shipping address (for card delivery), address verification status per entry, GPS coordinate capture for delivery optimization
+
+### 18.1.4 — Professional & Business Identity
+- **Occupation & income:** Employment status (employed, self-employed, business owner, unemployed, student, retired), employer name and sector, monthly income range, source of income declaration
+- **Business linkage:** Linked business accounts (if business owner/employee), role within each business (Owner, Director, Employee, Accountant), business verification status per linkage
+- **Tax identity:** KRA PIN (verified/unverified, auto-link to iTax), TIN for other jurisdictions, tax residency declaration (Kenya resident, non-resident, dual resident), FATCA/CRS self-certification
+
+---
+
+## TAB SECTION 18.2 — SECURITY CENTER
+
+### 18.2.1 — Authentication Methods
+- **Password management:** Current password strength meter (weak/medium/strong), password change with old password verification, password history enforcement (no last 5 passwords), password expiry policy (30/60/90/never days), breached password detection (HaveIBeenPwned integration)
+- **Multi-factor authentication (MFA):** Status toggle with enforcement level (optional, recommended, mandatory), available methods: SMS OTP, Email OTP, Authenticator app (Google Authenticator, Authy, Microsoft Authenticator — QR code setup with secret key backup), Hardware security key (YubiKey, FIDO2/WebAuthn — register multiple keys), Biometric (fingerprint, Face ID), Push notification approval (PayMo app)
+- **MFA backup & recovery:** Backup codes generation (10 single-use codes), download/print backup codes, regenerate backup codes (invalidates old), recovery email/phone setup, trusted contact for account recovery
+- **Login method preferences:** Default login method selection, passwordless login toggle (magic link, biometric only), remember device duration (1 day, 7 days, 30 days, never), trusted device list with revoke capability
+
+### 18.2.2 — Device & Session Management
+- **Active sessions dashboard:** All logged-in devices with device name, type (mobile/desktop/tablet), OS, browser/app, IP address, geolocation (city/country), login timestamp, last activity timestamp, session duration
+- **Session controls:** Remote logout any individual session, logout all other sessions, force password reset on suspicious session, mark device as trusted/untrusted
+- **Device fingerprinting:** Device trust score, new device alert configuration, impossible travel detection (login from Nairobi and London within 1 hour), device change verification requirement
+- **Login history:** 90-day searchable log (date, time, IP, device, location, method, success/failure), failed login attempt tracking with auto-lockout, export login history (CSV/PDF)
+
+### 18.2.3 — Security Alerts & Monitoring
+- **Alert configuration:** New device login, password changed, MFA disabled/modified, email/phone changed, large transaction, international login, suspicious activity pattern, SIM swap detection, account freeze/unfreeze
+- **Alert delivery channels:** In-app notification, SMS, email, WhatsApp, push notification — configurable per alert type
+- **Security score:** Dynamic score (0-100) based on: password strength, MFA enabled, backup codes saved, trusted devices only, recent security review, no active alerts — with improvement recommendations
+- **Security audit:** Last security review date, recommended actions checklist, security checklist completion percentage, annual security health check reminder
+
+### 18.2.4 — Account Protection Controls
+- **Transaction limits:** Per-transaction limit (configurable by type: transfer, payment, withdrawal, FX), daily aggregate limit, weekly aggregate limit, monthly aggregate limit, limit increase request with justification and supporting documents
+- **Beneficiary controls:** Cooling-off period for new beneficiaries (0/24/48/72 hours), beneficiary whitelist mode (only pre-approved beneficiaries), beneficiary change notification, beneficiary approval workflow for business accounts
+- **Geographic restrictions:** Allow transactions only from specific countries, block high-risk countries, home country lock (transactions only from Kenya unless travel mode enabled), travel mode pre-declaration with dates and destinations
+- **Time-based restrictions:** Allow transactions only during specified hours, block weekend transactions (configurable), holiday transaction exceptions
+- **Account freeze:** Self-freeze toggle (immediate, with unfreeze requiring MFA + identity verification), freeze reason selection, scheduled auto-unfreeze, freeze notification to all contacts
+
+---
+
+## TAB SECTION 18.3 — NOTIFICATION & COMMUNICATION PREFERENCES
+
+### 18.3.1 — Notification Channel Management
+- **Channel setup:** In-app push (primary, always on for critical), SMS (primary number, backup number, international number for diaspora), email (primary, billing, alerts — separate addresses), WhatsApp Business (opt-in with number verification), Slack/Teams integration (webhook URL, channel selection), webhook endpoints (custom URL per event category)
+- **Channel health status:** Delivery success rate per channel, last successful delivery timestamp, channel verification status, failed delivery retry configuration
+
+### 18.3.2 — Event-Based Notification Tuning
+- **Transaction events:** Successful payment (on/off), failed payment (on/off), large transaction threshold alert, international transaction, recurring payment processed, refund received, chargeback alert, dispute update
+- **Security events:** Login from new device, password changed, MFA enabled/disabled, email/phone changed, suspicious activity detected, account frozen/unfrozen, API key rotated
+- **Business events:** Invoice paid, invoice overdue, payroll executed, payroll failed, bulk disbursement completed, settlement received, report ready, compliance deadline approaching
+- **Marketing & updates:** Promotional offers, new features, partner offers, newsletter, product tips, survey invitations — all with granular opt-in/opt-out per category
+- **Frequency controls per event:** Real-time, hourly digest, daily digest (time selection), weekly digest (day selection), monthly digest, only critical, completely off
+
+### 18.3.3 — Quiet Hours & Do Not Disturb
+- **Schedule configuration:** Start time, end time, timezone, days of week (weekdays only, weekends only, all days, custom)
+- **Critical override:** Security alerts and fraud warnings always break through quiet hours
+- **Vacation mode:** Temporarily pause non-critical notifications with auto-resume date
+- **Emergency contact bypass:** Designated emergency contacts can override quiet hours
+
+---
+
+## TAB SECTION 18.4 — TEAM & ACCESS MANAGEMENT (Business Accounts)
+
+### 18.4.1 — Team Member Directory
+- **Member listing:** All team members with avatar, name, email, role, department, status (active/invited/deactivated), last login, MFA status, approval limit
+- **Quick actions:** Edit role, Reset MFA, Force password reset, Deactivate, Delete, View activity log, Transfer ownership (for Owner role)
+- **Member profile drawer:** Full profile with permissions matrix, recent activity, assigned tasks, pending approvals, security status
+
+### 18.4.2 — Role & Permission Builder
+- **Predefined roles:** Owner (full access, cannot be restricted), Admin (user management, settings, view all, cannot delete business), Finance Manager (collections, disbursements, payroll, reports, no user management), Accountant (bookkeeping, reconciliation, reports, read-only execution), HR Manager (payroll, employee data, benefits, leave), Sales Manager (invoicing, collections, customer management, no disbursements), Procurement Officer (supplier management, purchase orders, invoice processing, payment initiation), Viewer (read-only dashboard, no execution), Developer (API access, webhook management, sandbox only), Compliance Officer (audit logs, regulatory reports, screening results, read-only execution)
+- **Custom role builder:** Module access toggles (Collections, Disbursements, Payroll, Invoicing, Treasury, Reports, Settings, API, Cards, Virtual Accounts, FX, Compliance), action permissions per module (View, Create, Edit, Delete, Approve, Execute, Export, Configure), data scope (All data, Department-only, Own data, None), feature limits (max approval amount, max transaction amount, max batch size, max API calls), time restrictions (business hours, weekend access, holiday access), geographic restrictions (IP whitelist, country whitelist)
+- **Permission preview:** Simulate what a user with this role would see/do, permission conflict detection, role cloning and template saving
+
+### 18.4.3 — Invitation & Onboarding Workflow
+- **Invite member:** Email, role selection, department, approval limit, MFA requirement toggle, custom message, expiry (24 hours, 7 days, 30 days)
+- **Invitation tracking:** Sent, Opened, Accepted, Expired, Revoked statuses, resend invitation, bulk invite via CSV
+- **First-login mandatory setup:** MFA enrollment, password creation, terms acceptance, department confirmation, approval limit acknowledgment
+- **Offboarding checklist:** Revoke all sessions, disable API keys, reassign pending approvals, transfer ownership of recurring tasks, archive personal data (retain audit logs per regulation), final access date log
+
+### 18.4.4 — Approval Workflows & Authorization Matrix
+- **Amount-based approval tiers:** <KES 100,000 (single approver), KES 100,000-1,000,000 (dual approval), >KES 1,000,000 (triple approval + compliance), equivalent tiers in USD/EUR/GBP
+- **Category-based rules:** Payroll auto-approved within variance, capex requires procurement sign-off, international transfers require compliance pre-approval, bulk disbursements >100 beneficiaries require director sign-off
+- **Delegation rules:** Auto-delegate to backup approver during absence (leave, travel, sick), manual delegation with date range, delegation history and revocation
+- **Approval deadline & escalation:** 24-hour default deadline, auto-reminder at 50% and 80% of deadline, auto-escalation to manager after deadline, escalation chain configuration
+
+---
+
+## TAB SECTION 18.5 — API & INTEGRATION SETTINGS
+
+### 18.5.1 — API Credential Management
+- **Project/workspace list:** All API projects with name, environment (sandbox/production), status, created date, last activity
+- **Credential details per project:** Client ID (masked, reveal toggle), Client Secret (fully masked, regenerate button), API key (masked, rotate schedule), OAuth 2.0 redirect URIs, allowed IP ranges, allowed origins (CORS)
+- **Credential lifecycle:** Generate new, Rotate (grace period with old key valid for 24 hours), Revoke (immediate invalidation), Expiry tracking with alerts (30/7/1 day warnings)
+- **Scope configuration:** Granular permission toggles per API endpoint category (payments, disbursements, payroll, collections, virtual accounts, FX, webhooks, read-only)
+
+### 18.5.2 — Webhook Endpoint Management
+- **Endpoint directory:** All registered webhook URLs with event types subscribed, delivery success rate, average latency, last delivery timestamp, status (active/paused/failing)
+- **Endpoint configuration:** URL (HTTPS-only validation), event type subscription toggles, payload format (JSON/XML/form-encoded), custom headers (authentication), retry policy (max retries, backoff strategy), timeout setting
+- **Delivery log:** Last 1,000 deliveries with timestamp, event type, payload size, HTTP status, response time, retry count, full request/response inspectable
+- **Testing tools:** Send test event, verify signature validation, inspect payload structure, simulate retry behavior, load test with 100 concurrent events
+
+### 18.5.3 — Third-Party Integrations
+- **Connected apps directory:** All active integrations with logo, name, status, permissions granted, data access scope, connected date, last sync
+- **Integration types:** Accounting (QuickBooks, Xero, Sage, SAP, Oracle NetSuite), E-commerce (Shopify, WooCommerce, Magento, PrestaShop), CRM (Salesforce, HubSpot, Zoho), HR (Workday, BambooHR), Communication (Slack, Teams, WhatsApp Business API), Analytics (Google Analytics, Mixpanel), Identity (Azure AD, Google Workspace, Okta)
+- **Per-integration controls:** Sync frequency, data scope (read-only vs. read-write), field mapping configuration, error log, pause/resume sync, disconnect with data deletion confirmation
+- **Integration health dashboard:** Sync status, last successful sync, error rate, data freshness, API quota utilization
+
+---
+
+## TAB SECTION 18.6 — BILLING, FEES & SUBSCRIPTION
+
+### 18.6.1 — Current Plan & Usage
+- **Plan card:** Current tier (Starter/Growth/Enterprise/Custom), monthly/annual billing cycle, next billing date, days remaining, plan features checklist with used vs. included quotas
+- **Usage meters:** API calls (current vs. limit), transactions processed (current vs. limit), active users (current vs. limit), storage used (current vs. limit), webhook deliveries (current vs. limit)
+- **Upgrade/downgrade path:** Side-by-side plan comparison, feature matrix, prorated cost calculation, downgrade impact warning (data loss, feature loss), upgrade immediate activation
+
+### 18.6.2 — Payment Methods & Billing
+- **Payment methods:** M-Pesa (primary, auto-pay setup), bank transfer (PesaLink/EFT/RTGS), debit/credit card (Visa/Mastercard, 3D Secure), PayMo wallet balance
+- **Billing address:** Separate from business address, tax invoice requirements, e-TIMS integration for tax invoice generation
+- **Invoice history:** All invoices with number, date, amount, status (paid/pending/overdue), PDF download, payment confirmation, dispute invoice
+- **Auto-pay configuration:** Enable/disable, preferred method, backup method, failed payment retry (3 attempts), low balance alert before billing
+
+### 18.6.3 — Fee Schedule & Cost Transparency
+- **Current fee schedule:** Per-transaction fees by rail (M-Pesa, PesaLink, RTGS, EFT, SWIFT, etc.), FX spread by currency pair, monthly platform fee, API overage fees, support tier fees
+- **Fee calculator:** Interactive tool — select transaction type, amount, currency, rail → instant fee calculation with breakdown
+- **Volume discounts:** Current tier, next tier threshold, projected savings at next tier, annual prepay discount (2 months free)
+- **Cost analytics:** Monthly spend trend, spend by category (rails, FX, API, support), cost per transaction trend, savings from bulk vs. individual pricing
+
+---
+
+## TAB SECTION 18.7 — DATA PRIVACY & COMPLIANCE
+
+### 18.7.1 — Data Privacy Controls
+- **Consent management:** Granular consent toggles per data type (profile, transactions, location, device, contacts, photos), consent history with date and version, consent withdrawal with impact disclosure
+- **Data sharing preferences:** Share with PayMo partners (on/off), share for product improvement (on/off), share for marketing (on/off), anonymized analytics participation (on/off)
+- **Marketing preferences:** Email marketing, SMS marketing, push marketing, partner offers, personalized recommendations — all individually togglable
+- **Cookie & tracking preferences:** Essential (required), Functional, Analytics, Marketing — with detailed cookie list and purpose explanation
+
+### 18.7.2 — Data Subject Rights (GDPR/ODPC)
+- **Right to access:** Request full data package (profile, transactions, logs, documents), delivery method (download link, email, physical mail), processing time tracker (30-day SLA)
+- **Right to rectification:** Request data correction with evidence upload, correction workflow tracking, notification when corrected
+- **Right to erasure (right to be forgotten):** Account deletion request with impact assessment (what will be deleted, what retained per regulation), cooling-off period (30 days), irreversible deletion confirmation, data retention exceptions (regulatory 7-year requirement)
+- **Right to portability:** Export data in standard formats (JSON, CSV, OFX, MT940), structured machine-readable format, direct transfer to another provider (where technically feasible)
+- **Right to restrict processing:** Temporarily pause data processing while dispute resolution pending, restricted mode features available
+
+### 18.7.3 — Regulatory Compliance Status
+- **Compliance dashboard:** KYC/KYB status, AML monitoring status, tax compliance (KRA), data protection (ODPC), PCI DSS (if card processing), CBK licensing status, annual audit status
+- **Filing calendar:** Upcoming regulatory deadlines (KRA, CBK, ODPC, county permits), automatic reminders (90/60/30/7 days), filing status tracking, document upload for each filing
+- **Compliance score:** Dynamic score (0-100) based on document currency, filing timeliness, regulatory standing, risk profile stability — with improvement recommendations and feature unlocks tied to score
+
+---
+
+## TAB SECTION 18.8 — PLATFORM ADMINISTRATION (Super Admin Only)
+
+### 18.8.1 — System Configuration
+- **Global settings:** Platform name, branding (logo, colors, favicon), default language, default currency, default timezone, maintenance mode toggle, registration open/closed, invitation-only toggle
+- **Feature toggles:** Enable/disable modules (Collections, Disbursements, Payroll, Invoicing, FX, Cards, Virtual Accounts, API, Sandbox), beta features per tenant, experimental features with opt-in
+- **Rate limits & quotas:** Global API rate limit, per-tenant rate limit, per-user rate limit, file upload size limit, batch processing size limit, webhook timeout default
+- **Security policies:** Global password policy, global MFA enforcement, session timeout default, account lockout policy, IP blacklist (global), country blacklist (global)
+
+### 18.8.2 — Tenant & Client Management
+- **Tenant directory:** All business tenants with name, status, plan, created date, last activity, user count, transaction volume, compliance score
+- **Tenant actions:** View tenant dashboard (impersonate), Suspend tenant, Activate tenant, Delete tenant (with data archive), Migrate tenant plan, Assign dedicated support agent
+- **Tenant onboarding approval:** Review and approve new tenant registrations, KYB document review, risk assessment override, custom plan negotiation
+- **White-label configuration per tenant:** Custom domain, SSL certificate, custom branding, custom email templates, custom mobile app build
+
+### 18.8.3 — Audit & System Logs
+- **System audit log:** All platform-level actions with immutable hash, timestamp, actor, action, target, before/after values, IP, device
+- **Log search & filter:** By date range, actor, action type, target type, severity, keyword search
+- **Log export:** CSV, JSON, SIEM-compatible format (CEF, LEEF), automated daily export to SIEM
+- **Log retention policy:** Hot storage (30 days), warm storage (90 days), cold archive (7 years), auto-purge configuration
+
+### 18.8.4 — Backup & Disaster Recovery
+- **Backup status:** Last backup timestamp, backup size, backup type (full/incremental), backup location (primary, DR site, cloud), verification status
+- **Backup scheduling:** Daily full backup, hourly incremental, real-time transaction log shipping
+- **Restore testing:** Last restore test date, restore test results, scheduled restore drills
+- **Disaster recovery runbook:** DR plan document, RTO/RPO targets, failover procedures, contact tree, emergency communication templates
+
+---
+
+## TAB SECTION 18.9 — ACCOUNT LIFECYCLE
+
+### 18.9.1 — Account Status Management
+- **Status transitions:** Active → Suspended → Dormant → Closed, with valid transition paths and required actions per transition
+- **Self-suspension:** Temporary suspension with reason (travel, security concern, account review), scheduled auto-reactivation, reactivation workflow (MFA + identity verification)
+- **Dormancy management:** Dormancy warning (90 days no activity), reactivation incentive, dormancy fee disclosure, auto-closure timeline (2 years)
+
+### 18.9.2 — Account Closure
+- **Closure request form:** Reason selection (switching provider, business closed, dissatisfied, security concern, other), satisfaction survey, retention offer presentation
+- **Pre-closure checklist:** Outstanding balance settlement, pending transactions completion, active subscriptions cancellation, recurring payments cancellation reminder, data export offer, beneficiary notification
+- **Closure execution:** Balance transfer to nominated account (M-Pesa/bank/card), final statement generation, data retention confirmation (7 years per CBK), closure certificate, 30-day reactivation window
+- **Post-closure:** Data archive status, regulatory retention compliance, permanent deletion after retention period, right to be forgotten fulfillment confirmation
+
+### 18.9.3 — Account Recovery
+- **Forgotten credentials:** Email reset, phone reset, security questions (if configured), trusted contact recovery, identity verification recovery (ID + selfie)
+- **Compromised account recovery:** Immediate freeze, investigation workflow, credential reset, session revocation, transaction review, fraud report filing, reactivation after clearance
+- **Deceased account holder:** Next of kin claim process, death certificate upload, legal heir documentation, court order upload, account balance transfer to estate, closure with estate documentation
+
+---
+
+**END OF PAGE 18 OUTLINE**

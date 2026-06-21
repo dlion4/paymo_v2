@@ -1,0 +1,875 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💸</text></svg>" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PayMo BaaS — Transfer Management | Page 1.3</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="master-file1.css">
+    <style>
+        .tm-app {
+            display: flex;
+            min-height: 100vh;
+            background: var(--pm-bg);
+        }
+
+        .tm-main {
+            flex: 1;
+            padding: 24px 32px;
+        }
+
+        .tm-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .tm-header h1 {
+            font-family: var(--pm-font-display);
+            font-size: 26px;
+            margin: 0;
+        }
+
+        .tm-sub {
+            color: var(--pm-muted);
+            font-size: 13px;
+            margin-top: 4px;
+        }
+
+        .section-card {
+            background: var(--pm-surface);
+            border: 1px solid var(--pm-border);
+            border-radius: var(--pm-r-lg);
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--pm-shadow-sm);
+        }
+
+        .section-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+
+        .section-head h3 {
+            margin: 0;
+            font-family: var(--pm-font-display);
+            font-size: 16px;
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+        }
+
+        .filter-group label {
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--pm-ink-soft);
+            margin-bottom: 4px;
+        }
+
+        .filter-group input,
+        .filter-group select {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid var(--pm-border);
+            border-radius: 8px;
+            font-size: 13px;
+        }
+
+        .filter-row {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .data-table th {
+            text-align: left;
+            padding: 10px 12px;
+            background: var(--pm-surface-2);
+            border-bottom: 1px solid var(--pm-border);
+            font-size: 10px;
+            text-transform: uppercase;
+            color: var(--pm-muted);
+            font-weight: 700;
+        }
+
+        .data-table td {
+            padding: 12px;
+            border-bottom: 1px solid var(--pm-border);
+        }
+
+        .data-table tr:hover {
+            background: var(--pm-surface-2);
+        }
+
+        .status-pill {
+            font-size: 10px;
+            padding: 3px 9px;
+            border-radius: 999px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .status-pill.completed {
+            background: #D1FAE5;
+            color: #047857;
+        }
+
+        .status-pill.processing {
+            background: #DBEAFE;
+            color: #1D4ED8;
+        }
+
+        .status-pill.exception {
+            background: #FEE2E2;
+            color: #B91C1C;
+        }
+
+        .status-pill.reversed {
+            background: #FEF3C7;
+            color: #B45309;
+        }
+
+        .status-pill.scheduled {
+            background: #EDE9FE;
+            color: #6D28D9;
+        }
+
+        .mini-tab {
+            display: inline-flex;
+            gap: 4px;
+            background: var(--pm-surface-2);
+            padding: 4px;
+            border-radius: 999px;
+        }
+
+        .mini-tab button {
+            padding: 5px 12px;
+            border: none;
+            background: transparent;
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: 999px;
+            cursor: pointer;
+        }
+
+        .mini-tab button.active {
+            background: white;
+            box-shadow: var(--pm-shadow-sm);
+        }
+
+        .drawer {
+            position: fixed;
+            top: 0;
+            right: 0;
+            height: 100%;
+            width: 560px;
+            background: white;
+            box-shadow: -10px 0 30px rgba(0, 0, 0, 0.1);
+            z-index: 1200;
+            transform: translateX(100%);
+            transition: transform .3s;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .drawer.open {
+            transform: translateX(0);
+        }
+
+        .drawer-head {
+            padding: 18px 22px;
+            border-bottom: 1px solid var(--pm-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .drawer-body {
+            flex: 1;
+            overflow: auto;
+            padding: 22px;
+        }
+
+        .drawer-foot {
+            padding: 16px 22px;
+            border-top: 1px solid var(--pm-border);
+            display: flex;
+            gap: 10px;
+        }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .metric {
+            background: var(--pm-surface-2);
+            padding: 14px;
+            border-radius: 10px;
+        }
+
+        .metric .l {
+            font-size: 10px;
+            color: var(--pm-muted);
+        }
+
+        .metric .v {
+            font-size: 22px;
+            font-weight: 700;
+            font-family: var(--pm-font-display);
+        }
+
+        .bulk-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .action-btn {
+            padding: 8px 14px;
+            border-radius: 8px;
+            border: 1px solid var(--pm-border);
+            background: white;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .action-btn.primary {
+            background: var(--pm-primary);
+            color: white;
+            border-color: var(--pm-primary);
+        }
+
+        .action-btn.danger {
+            background: #EF4444;
+            color: white;
+            border-color: #EF4444;
+        }
+
+        .exception-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border: 1px solid var(--pm-border);
+            border-radius: 10px;
+            margin-bottom: 8px;
+        }
+
+        .exception-row .icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .row-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .tm-pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 14px;
+            font-size: 12px;
+        }
+
+        .tm-pagination .pages {
+            display: flex;
+            gap: 4px;
+        }
+
+        .tm-pagination .pages button {
+            width: 30px;
+            height: 30px;
+            border-radius: 6px;
+            border: 1px solid var(--pm-border);
+            background: white;
+            cursor: pointer;
+        }
+
+        .tm-pagination .pages button.active {
+            background: var(--pm-primary);
+            color: white;
+            border-color: var(--pm-primary);
+        }
+
+        .tab-row {
+            display: flex;
+            gap: 4px;
+            border-bottom: 1px solid var(--pm-border);
+            margin-bottom: 16px;
+        }
+
+        .tab-row .tab {
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-row .tab.active {
+            color: var(--pm-primary);
+            border-bottom-color: var(--pm-primary);
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .detail-row {
+            padding: 8px 0;
+            border-bottom: 1px solid var(--pm-border);
+        }
+
+        .detail-row .l {
+            font-size: 10px;
+            color: var(--pm-muted);
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .detail-row .v {
+            font-size: 14px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="tm-app">
+        <!-- Sidebar -->
+        <aside class="pm-sidebar">
+            <div class="pm-sidebar-logo">P</div>
+            <nav class="pm-sidebar-nav">
+                <a href="#" class="pm-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <rect x="3" y="3" width="7" height="9" />
+                        <rect x="14" y="3" width="7" height="5" />
+                        <rect x="14" y="12" width="7" height="9" />
+                        <rect x="3" y="16" width="7" height="5" />
+                    </svg></a>
+                <a href="#" class="pm-nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <polyline points="17 1 21 5 17 9" />
+                        <path d="M3 11V9a4 4 0 0 1 4-4h14" />
+                        <polyline points="7 23 3 19 7 15" />
+                        <path d="M21 13v2a4 4 0 0 1-4 4H3" />
+                    </svg></a>
+                <a href="#" class="pm-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                        <circle cx="9" cy="7" r="4" />
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                    </svg></a>
+                <a href="#" class="pm-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <path d="M3 21h18" />
+                        <path d="M3 10h18" />
+                        <path d="M5 6l7-3 7 3" />
+                        <path d="M4 10v11" />
+                    </svg></a>
+                <a href="#" class="pm-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="2" y1="12" x2="22" y2="12" />
+                    </svg></a>
+                <a href="#" class="pm-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    </svg></a>
+            </nav>
+        </aside>
+
+        <div class="tm-main">
+            <!-- Header -->
+            <div class="tm-header">
+                <div>
+                    <h1>Transfer Management</h1>
+                    <div class="tm-sub">47,231 transfers • 1.3M volume today • 99.2% success rate</div>
+                </div>
+                <div class="filter-row">
+                    <button class="btn-pm primary" onclick="openNewTransfer()">+ New Transfer</button>
+                    <button class="btn-pm" onclick="openBulkUpload()">Bulk Upload</button>
+                    <button class="btn-pm" onclick="openExport()">Export</button>
+                </div>
+            </div>
+
+            <!-- 1.3.1 Advanced Filter Panel -->
+            <div class="section-card">
+                <div class="section-head">
+                    <h3>🔍 Advanced Filter Panel</h3>
+                    <button class="btn-pm" onclick="resetFilters()">Reset Filters</button>
+                </div>
+                <div class="filter-grid">
+                    <div class="filter-group"><label>Date Range</label><select id="fDate">
+                            <option>Last 24 hours</option>
+                            <option>Last 7 days</option>
+                            <option>Last 30 days</option>
+                            <option>Custom</option>
+                        </select></div>
+                    <div class="filter-group"><label>Status</label><select id="fStatus">
+                            <option>All</option>
+                            <option>Completed</option>
+                            <option>Processing</option>
+                            <option>Exception</option>
+                            <option>Reversed</option>
+                            <option>Scheduled</option>
+                        </select></div>
+                    <div class="filter-group"><label>Rail</label><select id="fRail">
+                            <option>All Rails</option>
+                            <option>M-Pesa B2B</option>
+                            <option>PesaLink</option>
+                            <option>RTGS</option>
+                            <option>SWIFT gpi</option>
+                            <option>EFT</option>
+                            <option>PAPSS</option>
+                            <option>SEPA</option>
+                        </select></div>
+                    <div class="filter-group"><label>Currency</label><select id="fCurrency">
+                            <option>All</option>
+                            <option>KES</option>
+                            <option>USD</option>
+                            <option>EUR</option>
+                            <option>GBP</option>
+                            <option>UGX</option>
+                        </select></div>
+                    <div class="filter-group"><label>Amount Min</label><input type="number" id="fMin" placeholder="0">
+                    </div>
+                    <div class="filter-group"><label>Amount Max</label><input type="number" id="fMax"
+                            placeholder="10000000"></div>
+                    <div class="filter-group"><label>Sender</label><input type="text" id="fSender"
+                            placeholder="Bank / M-Pesa / PayPal"></div>
+                    <div class="filter-group"><label>Reference</label><input type="text" id="fRef"
+                            placeholder="PM26..."></div>
+                </div>
+                <div style="margin-top:12px; display:flex; gap:8px;">
+                    <button class="btn-pm primary" onclick="applyFilters()">Apply Filters</button>
+                    <button class="btn-pm" onclick="saveFilterPreset()">Save Preset</button>
+                    <button class="btn-pm" onclick="loadFilterPreset()">Load Preset</button>
+                </div>
+            </div>
+
+            <!-- 1.3.2 Transfers Data Table -->
+            <div class="section-card">
+                <div class="section-head">
+                    <h3>📋 Transfers Data Table</h3>
+                    <div class="mini-tab" id="statusTabs">
+                        <button class="active" data-s="all">All</button>
+                        <button data-s="completed">Completed</button>
+                        <button data-s="processing">Processing</button>
+                        <button data-s="exception">Exception</button>
+                        <button data-s="reversed">Reversed</button>
+                    </div>
+                </div>
+                <div style="overflow-x:auto;">
+                    <table class="data-table" id="transfersTable">
+                        <thead>
+                            <tr>
+                                <th>Reference</th>
+                                <th>From → To</th>
+                                <th>Rail</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th>Fee</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transfersBody"></tbody>
+                    </table>
+                </div>
+                <div class="tm-pagination">
+                    <div>Showing <b id="showingCount">1-25</b> of <b>47,231</b></div>
+                    <div class="pages"><button>‹</button><button
+                            class="active">1</button><button>2</button><button>3</button><button>›</button></div>
+                </div>
+            </div>
+
+            <!-- 1.3.4 Exception Management -->
+            <div class="section-card">
+                <div class="section-head">
+                    <h3>⚠️ Exception Management (18 open)</h3>
+                    <button class="btn-pm" onclick="openBulkResolve()">Bulk Resolve</button>
+                </div>
+                <div id="exceptionList"></div>
+            </div>
+
+            <!-- 1.3.5 Bulk Operations Center -->
+            <div class="section-card">
+                <div class="section-head">
+                    <h3>📦 Bulk Operations Center</h3>
+                    <button class="btn-pm primary" onclick="openBulkUpload()">Upload CSV</button>
+                </div>
+                <div class="bulk-grid">
+                    <div>
+                        <h4 style="font-size:13px; margin:0 0 8px;">Recent Bulk Jobs</h4>
+                        <div class="exception-row">
+                            <div class="icon" style="background:#D1FAE5">✓</div>
+                            <div style="flex:1">
+                                <div style="font-weight:600">BULK-44129 — 1,240 transfers</div>
+                                <div style="font-size:11px; color:#64748B">Completed • 14:22 EAT</div>
+                            </div><button class="action-btn" onclick="viewBulkJob('BULK-44129')">View</button>
+                        </div>
+                        <div class="exception-row">
+                            <div class="icon" style="background:#FEF3C7">⏱</div>
+                            <div style="flex:1">
+                                <div style="font-weight:600">BULK-44130 — 890 transfers</div>
+                                <div style="font-size:11px; color:#64748B">Processing • 68% complete</div>
+                            </div><button class="action-btn" onclick="viewBulkJob('BULK-44130')">Monitor</button>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 style="font-size:13px; margin:0 0 8px;">Quick Bulk Actions</h4>
+                        <div style="display:flex; flex-direction:column; gap:8px;">
+                            <button class="action-btn" onclick="openBulkApprove()">Approve 18 pending transfers</button>
+                            <button class="action-btn" onclick="openBulkRetry()">Retry 7 failed transfers</button>
+                            <button class="action-btn danger" onclick="openBulkCancel()">Cancel 4 scheduled
+                                transfers</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transfer Detail Drawer -->
+    <div class="drawer" id="detailDrawer">
+        <div class="drawer-head">
+            <div>
+                <h3 id="drawerRef">Transfer Detail</h3>
+                <p id="drawerSub" style="margin:0; color:#64748B; font-size:12px;"></p>
+            </div>
+            <button onclick="closeDrawer()" class="pm-close-btn">×</button>
+        </div>
+        <div class="drawer-body" id="drawerBody"></div>
+        <div class="drawer-foot" id="drawerFoot"></div>
+    </div>
+
+    <!-- Multi-step New Transfer Modal -->
+    <div class="pm-modal-backdrop" id="modalBackdrop">
+        <div class="pm-modal wide" id="modal">
+            <div class="pm-modal-head">
+                <h3 id="modalTitle"></h3><button class="pm-close-btn" onclick="closeModal()">×</button>
+            </div>
+            <div class="pm-modal-body" id="modalBody"></div>
+            <div class="pm-modal-foot" id="modalFoot"></div>
+        </div>
+    </div>
+
+    <script>
+        const transfers = [
+            { ref: 'PM26KE001A', from: 'Safaricom 0722****341', to: 'KCB 0123***4567', rail: 'M-Pesa B2B', amount: 125000, ccy: 'KES', status: 'completed', date: '2025-11-18 14:32', fee: 125, risk: 12, sender: 'MPESA', receiver: 'BANK' },
+            { ref: 'PM26US009B', from: 'Wise Holdings', to: 'PayMo USD Nostro', rail: 'SWIFT gpi', amount: 4500, ccy: 'USD', status: 'processing', date: '2025-11-18 14:31', fee: 89, risk: 34, sender: 'BANK', receiver: 'BANK' },
+            { ref: 'PM26KE003D', from: 'Equity 201400***12', to: 'Stanbic 90012***34', rail: 'RTGS', amount: 2500000, ccy: 'KES', status: 'exception', date: '2025-11-18 14:28', fee: 2500, risk: 87, sender: 'BANK', receiver: 'BANK' },
+            { ref: 'PM26KE002C', from: 'PayMo Float', to: 'MTN 0772****998', rail: 'PesaLink', amount: 890000, ccy: 'KES', status: 'completed', date: '2025-11-18 14:30', fee: 89, risk: 8, sender: 'BANK', receiver: 'MPESA' },
+            { ref: 'PM26GB004E', from: 'PayPal UK', to: 'PayMo GBP Nostro', rail: 'PayPal', amount: 1200, ccy: 'GBP', status: 'reversed', date: '2025-11-18 14:27', fee: 12, risk: 56, sender: 'PAYPAL', receiver: 'BANK' },
+            { ref: 'PM26KE007H', from: 'Co-op 011234***', to: 'M-Pesa 0711****556', rail: 'PesaLink', amount: 75000, ccy: 'KES', status: 'scheduled', date: '2025-11-18 15:00', fee: 30, risk: 22, sender: 'BANK', receiver: 'MPESA' },
+        ];
+
+        const exceptions = [
+            { id: 'EX-8821', ref: 'PM26KE003D', type: 'AML Flag', desc: 'Velocity check triggered on Equity → Stanbic', risk: 87, age: '2h 14m', priority: 'HIGH' },
+            { id: 'EX-8822', ref: 'PM26TZ008I', type: 'Reconciliation Mismatch', desc: '4 items unmatched with Stanbic statement', risk: 61, age: '5h', priority: 'MED' },
+            { id: 'EX-8823', ref: 'PM26US009B', type: 'SLA Breach Warning', desc: 'Approaching 24h limit on SWIFT payout', risk: 44, age: '18h', priority: 'MED' },
+        ];
+
+        function renderTransfers(filter = 'all') {
+            const tbody = document.getElementById('transfersBody');
+            tbody.innerHTML = '';
+            let filtered = transfers;
+            if (filter !== 'all') filtered = transfers.filter(t => t.status === filter);
+            filtered.forEach(t => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+      <td><b style="color:#4F46E5">${t.ref}</b></td>
+      <td>${t.from}<br><small style="color:#64748B">→ ${t.to}</small></td>
+      <td><span style="font-size:11px">${t.rail}</span></td>
+      <td><b>${t.ccy} ${t.amount.toLocaleString()}</b></td>
+      <td><span class="status-pill ${t.status}">${t.status}</span></td>
+      <td style="color:#64748B">${t.date}</td>
+      <td>${t.ccy} ${t.fee}</td>
+      <td><div class="row-actions">
+        <button class="action-btn" onclick="openTransferDetail('${t.ref}')">View</button>
+        ${t.status === 'exception' ? `<button class="action-btn danger" onclick="openExceptionModal('${t.ref}')">Resolve</button>` : ''}
+        ${t.status === 'processing' ? `<button class="action-btn" onclick="cancelTransfer('${t.ref}')">Cancel</button>` : ''}
+      </div></td>`;
+                tbody.appendChild(tr);
+            });
+            document.getElementById('showingCount').textContent = `1-${filtered.length}`;
+        }
+
+        function applyFilters() {
+            const status = document.getElementById('fStatus').value.toLowerCase();
+            const rail = document.getElementById('fRail').value;
+            const ccy = document.getElementById('fCurrency').value;
+            const tbody = document.getElementById('transfersBody');
+            tbody.innerHTML = '';
+            let filtered = transfers.filter(t => {
+                let ok = true;
+                if (status !== 'all') ok = ok && t.status === status;
+                if (rail !== 'All Rails') ok = ok && t.rail === rail;
+                if (ccy !== 'All') ok = ok && t.ccy === ccy;
+                return ok;
+            });
+            filtered.forEach(t => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td><b style="color:#4F46E5">${t.ref}</b></td><td>${t.from} → ${t.to}</td><td>${t.rail}</td><td><b>${t.ccy} ${t.amount.toLocaleString()}</b></td><td><span class="status-pill ${t.status}">${t.status}</span></td><td>${t.date}</td><td>${t.ccy} ${t.fee}</td><td><button class="action-btn" onclick="openTransferDetail('${t.ref}')">View</button></td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function resetFilters() {
+            document.getElementById('fStatus').value = 'All';
+            document.getElementById('fRail').value = 'All Rails';
+            document.getElementById('fCurrency').value = 'All';
+            renderTransfers('all');
+        }
+
+        function saveFilterPreset() {
+            alert('Filter preset "High Value KES RTGS" saved successfully.');
+        }
+        function loadFilterPreset() {
+            document.getElementById('fStatus').value = 'exception';
+            document.getElementById('fRail').value = 'RTGS';
+            document.getElementById('fCurrency').value = 'KES';
+            applyFilters();
+        }
+
+        function openTransferDetail(ref) {
+            const t = transfers.find(x => x.ref === ref);
+            const drawer = document.getElementById('detailDrawer');
+            document.getElementById('drawerRef').innerHTML = t.ref;
+            document.getElementById('drawerSub').innerHTML = `${t.from} → ${t.to} • ${t.date}`;
+            document.getElementById('drawerBody').innerHTML = `
+    <div class="metric-grid">
+      <div class="metric"><div class="l">Amount</div><div class="v">${t.ccy} ${t.amount.toLocaleString()}</div></div>
+      <div class="metric"><div class="l">Fee</div><div class="v">${t.ccy} ${t.fee}</div></div>
+      <div class="metric"><div class="l">Risk Score</div><div class="v" style="color:${t.risk > 70 ? '#B91C1C' : '#047857'}">${t.risk}/100</div></div>
+      <div class="metric"><div class="l">Status</div><div class="v"><span class="status-pill ${t.status}">${t.status}</span></div></div>
+    </div>
+    <div class="detail-grid">
+      <div class="detail-row"><div class="l">Sender Type</div><div class="v">${t.sender}</div></div>
+      <div class="detail-row"><div class="l">Receiver Type</div><div class="v">${t.receiver}</div></div>
+      <div class="detail-row"><div class="l">Rail</div><div class="v">${t.rail}</div></div>
+      <div class="detail-row"><div class="l">Settlement</div><div class="v">T+0 • Instant</div></div>
+    </div>
+    <h4 style="margin:18px 0 8px">Timeline</h4>
+    <div style="font-size:13px; line-height:1.7">
+      14:32:07 — Transfer initiated<br>
+      14:32:08 — Routed to ${t.rail}<br>
+      14:32:11 — Recipient notified<br>
+      ${t.status === 'completed' ? '14:32:14 — Funds settled' : t.status === 'exception' ? '14:32:14 — Flagged for review' : 'In progress...'}
+    </div>`;
+            document.getElementById('drawerFoot').innerHTML = `
+    <button class="action-btn" onclick="closeDrawer()">Close</button>
+    ${t.status === 'exception' ? `<button class="action-btn danger" onclick="openExceptionModal('${t.ref}'); closeDrawer()">Resolve Exception</button>` : ''}
+    <button class="action-btn primary" onclick="exportSingle('${t.ref}')">Export PDF</button>`;
+            drawer.classList.add('open');
+        }
+
+        function closeDrawer() { document.getElementById('detailDrawer').classList.remove('open'); }
+
+        function openExceptionModal(ref) {
+            const t = transfers.find(x => x.ref === ref);
+            showModal('Exception Resolution — ' + ref, `
+    <div class="detail-grid">
+      <div class="detail-row"><div class="l">Type</div><div class="v">AML Velocity Flag</div></div>
+      <div class="detail-row"><div class="l">Risk Score</div><div class="v" style="color:#B91C1C">${t.risk}/100</div></div>
+    </div>
+    <div class="tab-row" style="margin:16px 0">
+      <div class="tab active" onclick="switchTab(this,'tab1')">AI Recommendation</div>
+      <div class="tab" onclick="switchTab(this,'tab2')">Customer Profile</div>
+      <div class="tab" onclick="switchTab(this,'tab3')">Audit Trail</div>
+    </div>
+    <div id="tab1">
+      <p style="font-size:13px">High velocity detected (12 transfers in 4 hours). Recommend manual review before release.</p>
+      <button class="action-btn primary" onclick="approveException('${ref}')">Approve & Release</button>
+      <button class="action-btn" onclick="escalateException('${ref}')">Escalate to Compliance</button>
+      <button class="action-btn danger" onclick="rejectException('${ref}')">Reject Transfer</button>
+    </div>
+    <div id="tab2" style="display:none">
+      <div class="detail-grid"><div class="detail-row"><div class="l">KYC Status</div><div class="v">Verified</div></div><div class="detail-row"><div class="l">Lifetime Volume</div><div class="v">KES 18.4M</div></div></div>
+    </div>
+    <div id="tab3" style="display:none">
+      <div style="font-size:12px; color:#64748B">14:28:55 — Transfer created<br>14:29:02 — AML engine flagged<br>14:29:18 — Assigned to Joseph Mwangi</div>
+    </div>`, `<button class="action-btn" onclick="closeModal()">Cancel</button>`);
+        }
+
+        function switchTab(el, tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+            ['tab1', 'tab2', 'tab3'].forEach(id => document.getElementById(id).style.display = (id === tab ? 'block' : 'none'));
+        }
+
+        function approveException(ref) { closeModal(); alert('Transfer ' + ref + ' approved and released.'); renderTransfers(); }
+        function escalateException(ref) { closeModal(); alert('Escalated to Compliance team.'); }
+        function rejectException(ref) { closeModal(); alert('Transfer rejected and customer notified.'); renderTransfers(); }
+
+        function cancelTransfer(ref) {
+            if (confirm('Cancel transfer ' + ref + '?')) {
+                alert('Transfer cancelled successfully.');
+                renderTransfers();
+            }
+        }
+
+        function exportSingle(ref) { alert('PDF receipt for ' + ref + ' downloaded.'); }
+
+        function openBulkUpload() {
+            showModal('Bulk Upload — CSV', `
+    <div style="border:2px dashed #CBD5E1; padding:40px; text-align:center; border-radius:12px; margin-bottom:16px;">
+      <div style="font-size:42px; margin-bottom:10px;">📄</div>
+      <div style="font-weight:700">Drop CSV or click to upload</div>
+      <div style="font-size:12px; color:#64748B">Max 10,000 rows • ISO 20022 supported</div>
+    </div>
+    <div class="detail-grid"><div class="detail-row"><div class="l">File</div><div class="v">bulk_transfers_nov18.csv</div></div><div class="detail-row"><div class="l">Rows</div><div class="v">1,240 valid • 7 errors</div></div></div>`,
+                `<button class="action-btn" onclick="closeModal()">Cancel</button><button class="action-btn primary" onclick="validateBulk()">Validate & Preview</button>`);
+        }
+
+        function validateBulk() {
+            closeModal();
+            showModal('Bulk Validation Results', `
+    <div style="background:#D1FAE5; padding:12px; border-radius:8px; margin-bottom:12px;">1,233 rows validated successfully. 7 rows contain errors.</div>
+    <table class="data-table"><thead><tr><th>Row</th><th>Error</th><th>Action</th></tr></thead><tbody>
+      <tr><td>42</td><td>Invalid phone format</td><td><button class="action-btn" onclick="fixRow(this)">Fix</button></td></tr>
+      <tr><td>119</td><td>Amount exceeds limit</td><td><button class="action-btn" onclick="fixRow(this)">Fix</button></td></tr>
+    </tbody></table>`, `<button class="action-btn" onclick="closeModal()">Cancel</button><button class="action-btn primary" onclick="confirmBulkUpload()">Upload 1,233 Transfers</button>`);
+        }
+
+        function fixRow(btn) { btn.outerHTML = '<span style="color:#047857">Fixed</span>'; }
+        function confirmBulkUpload() { closeModal(); alert('Bulk upload queued. Job ID: BULK-44131'); }
+
+        function openBulkApprove() {
+            showModal('Bulk Approve — 18 Pending', `
+    <p>Review and approve 18 transfers waiting for authorization.</p>
+    <div style="max-height:260px; overflow:auto; margin:12px 0;">
+      ${transfers.slice(0, 4).map(t => `<div class="exception-row"><div style="flex:1"><b>${t.ref}</b> — ${t.ccy} ${t.amount}</div><button class="action-btn" onclick="this.innerHTML='Approved'">Approve</button></div>`).join('')}
+    </div>`, `<button class="action-btn" onclick="closeModal()">Cancel</button><button class="action-btn primary" onclick="approveAllPending()">Approve All</button>`);
+        }
+        function approveAllPending() { closeModal(); alert('18 transfers approved.'); }
+
+        function openBulkRetry() {
+            showModal('Bulk Retry Failed Transfers', `
+    <p>7 transfers failed due to temporary rail issues. Retry now?</p>
+    <div style="margin:14px 0">${transfers.filter(t => t.status === 'reversed').map(t => `<div class="exception-row"><div style="flex:1">${t.ref} — ${t.ccy} ${t.amount}</div><span class="status-pill reversed">${t.status}</span></div>`).join('')}</div>`,
+                `<button class="action-btn" onclick="closeModal()">Cancel</button><button class="action-btn primary" onclick="retryAllFailed()">Retry All</button>`);
+        }
+        function retryAllFailed() { closeModal(); alert('7 transfers queued for retry.'); }
+
+        function openBulkCancel() {
+            showModal('Bulk Cancel Scheduled', `
+    <p>Cancel 4 scheduled transfers?</p>
+    <div style="margin:14px 0">${transfers.filter(t => t.status === 'scheduled').map(t => `<div class="exception-row"><div style="flex:1">${t.ref} — ${t.ccy} ${t.amount}</div></div>`).join('')}</div>`,
+                `<button class="action-btn" onclick="closeModal()">Keep</button><button class="action-btn danger" onclick="cancelAllScheduled()">Cancel All</button>`);
+        }
+        function cancelAllScheduled() { closeModal(); alert('4 scheduled transfers cancelled.'); }
+
+        function viewBulkJob(jobId) {
+            showModal('Bulk Job — ' + jobId, `
+    <div class="metric-grid"><div class="metric"><div class="l">Status</div><div class="v">Completed</div></div><div class="metric"><div class="l">Processed</div><div class="v">1,240 / 1,240</div></div><div class="metric"><div class="l">Success</div><div class="v" style="color:#047857">99.4%</div></div><div class="metric"><div class="l">Duration</div><div class="v">4m 12s</div></div></div>
+    <h4 style="margin:16px 0 8px">Error Summary</h4>
+    <div>7 rows failed validation (phone format). All others succeeded.</div>`, `<button class="action-btn" onclick="closeModal()">Close</button><button class="action-btn primary" onclick="downloadBulkReport()">Download Report</button>`);
+        }
+
+        function downloadBulkReport() { closeModal(); alert('CSV report downloaded.'); }
+
+        function openBulkResolve() {
+            showModal('Bulk Resolve Exceptions', `
+    <p>Resolve 18 open exceptions in bulk.</p>
+    <div style="margin:12px 0">${exceptions.map(e => `<div class="exception-row"><div class="icon" style="background:#FEE2E2">!</div><div style="flex:1"><b>${e.ref}</b> — ${e.type}<br><small>${e.desc}</small></div><button class="action-btn" onclick="this.innerHTML='Resolved'">Resolve</button></div>`).join('')}</div>`,
+                `<button class="action-btn" onclick="closeModal()">Cancel</button><button class="action-btn primary" onclick="resolveAllExceptions()">Resolve All</button>`);
+        }
+        function resolveAllExceptions() { closeModal(); alert('All exceptions resolved.'); }
+
+        function openNewTransfer() {
+            showModal('New Transfer — Step 1 of 4', `
+    <div class="tab-row"><div class="tab active">Amount</div><div class="tab">Recipient</div><div class="tab">Rail</div><div class="tab">Review</div></div>
+    <div class="detail-grid"><div class="filter-group"><label>From Account</label><select><option>PayMo Float (KES 500,000)</option><option>KCB Nostro (KES 1.8M)</option></select></div><div class="filter-group"><label>Amount</label><input type="number" value="125000"></div><div class="filter-group"><label>Currency</label><select><option>KES</option><option>USD</option></select></div><div class="filter-group"><label>Reference</label><input value="Rent — December"></div></div>`,
+                `<button class="action-btn" onclick="closeModal()">Cancel</button><button class="action-btn primary" onclick="nextTransferStep(2)">Continue</button>`);
+        }
+
+        let currentStep = 1;
+        function nextTransferStep(step) {
+            currentStep = step;
+            const titles = ['', 'Amount', 'Recipient', 'Rail & Review', 'PIN Confirmation'];
+            document.getElementById('modalTitle').innerHTML = `New Transfer — Step ${step} of 4`;
+            if (step === 2) {
+                document.getElementById('modalBody').innerHTML = `<div class="filter-group"><label>Recipient Name</label><input value="Wanjiku Mwangi"></div><div class="filter-group"><label>Phone / Account</label><input value="0712345678"></div><div class="filter-group"><label>Bank / Network</label><select><option>Safaricom M-Pesa</option><option>KCB Bank</option></select></div>`;
+                document.getElementById('modalFoot').innerHTML = `<button class="action-btn" onclick="closeModal()">Cancel</button><button class="action-btn primary" onclick="nextTransferStep(3)">Continue</button>`;
+            } else if (step === 3) {
+                document.getElementById('modalBody').innerHTML = `<div class="metric-grid"><div class="metric"><div class="l">Rail</div><div class="v">PesaLink</div></div><div class="metric"><div class="l">Fee</div><div class="v">KES 125</div></div><div class="metric"><div class="l">ETA</div><div class="v">&lt; 10s</div></div></div>`;
+                document.getElementById('modalFoot').innerHTML = `<button class="action-btn" onclick="closeModal()">Cancel</button><button class="action-btn primary" onclick="nextTransferStep(4)">Review & Submit</button>`;
+            } else if (step === 4) {
+                document.getElementById('modalBody').innerHTML = `<div style="text-align:center; padding:20px 0"><div style="font-size:48px; margin-bottom:10px">🔐</div><div style="font-weight:700; margin-bottom:6px">Enter your 6-digit PIN</div><div style="display:flex; justify-content:center; gap:8px; margin:20px 0"><input type="password" maxlength="1" style="width:42px; height:48px; text-align:center; font-size:24px; border:2px solid #CBD5E1; border-radius:8px"><input type="password" maxlength="1" style="width:42px; height:48px; text-align:center; font-size:24px; border:2px solid #CBD5E1; border-radius:8px"><input type="password" maxlength="1" style="width:42px; height:48px; text-align:center; font-size:24px; border:2px solid #CBD5E1; border-radius:8px"><input type="password" maxlength="1" style="width:42px; height:48px; text-align:center; font-size:24px; border:2px solid #CBD5E1; border-radius:8px"><input type="password" maxlength="1" style="width:42px; height:48px; text-align:center; font-size:24px; border:2px solid #CBD5E1; border-radius:8px"><input type="password" maxlength="1" style="width:42px; height:48px; text-align:center; font-size:24px; border:2px solid #CBD5E1; border-radius:8px"></div></div>`;
+                document.getElementById('modalFoot').innerHTML = `<button class="action-btn" onclick="closeModal()">Cancel</button><button class="action-btn primary" onclick="submitTransfer()">Confirm & Send</button>`;
+            }
+        }
+
+        function submitTransfer() {
+            closeModal();
+            showModal('Transfer Submitted', `<div style="text-align:center; padding:20px"><div style="font-size:42px">✅</div><h3 style="margin:12px 0">Transfer PM26KE012M submitted successfully</h3><p style="color:#64748B">Recipient will be notified instantly.</p></div>`, `<button class="action-btn primary" onclick="closeModal()">Done</button>`);
+            setTimeout(() => { renderTransfers(); }, 800);
+        }
+
+        function showModal(title, body, foot) {
+            document.getElementById('modalTitle').innerHTML = title;
+            document.getElementById('modalBody').innerHTML = body;
+            document.getElementById('modalFoot').innerHTML = foot || '';
+            document.getElementById('modalBackdrop').classList.add('open');
+        }
+        function closeModal() { document.getElementById('modalBackdrop').classList.remove('open'); }
+
+        function applyStatusTab(btn, status) {
+            document.querySelectorAll('#statusTabs button').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderTransfers(status);
+        }
+
+        function init() {
+            renderTransfers('all');
+            document.getElementById('statusTabs').addEventListener('click', e => {
+                if (e.target.tagName === 'BUTTON') {
+                    applyStatusTab(e.target, e.target.dataset.s);
+                }
+            });
+            // Keyboard escape
+            document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal(); closeDrawer(); } });
+            // Demo toast
+            setTimeout(() => { /* no toast on load */ }, 1200);
+        }
+        init();
+    </script>
+</body>
+
+</html>
